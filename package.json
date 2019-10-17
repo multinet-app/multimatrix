@@ -2,7 +2,7 @@
     "name": "view-adjmatrix",
     "version": "0.1.0",
     "scripts": {
-        "serve": "cd src/ && http-server -c-1  -p 8081",
+        "serve": "cd src/ && http-server -c-1  -p 8082",
         "test": "cd src/ && jest"
     },
     "description": "An adjacency matrix visualization built to fit in with multinet",
