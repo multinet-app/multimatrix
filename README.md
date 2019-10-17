@@ -7,7 +7,7 @@ To start a development environment you need to serve the main index.html file fr
 # Install http-server
 $ yarn install
 
-# Serve the webpage on localhost (default port is 8081)
+# Serve the webpage on localhost (default port is 8082)
 $ yarn serve
 
 ```
