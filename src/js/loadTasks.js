@@ -23,14 +23,9 @@ async function resetPanel() {
 
     config = task.config;
 
-    await loadNewGraph(config.graphFiles[config.loadedGraph]);
+    graph = await load_data(workspace, graph)
 
-    if (vis === "nodeLink") {
-        loadTask(task);
-    } else {
-        console.log()
-        window.controller.loadTask(currentTask);
-    }
+    window.controller.loadTask(currentTask);
 }
 
 async function loadNewGraph(fileName) {
@@ -159,34 +154,4 @@ async function loadTasks(visType, tasksType) {
                 .appendChild(newStyleSheet);
         });
     }
-}
-
-//function that loads in a .js script tag and only resolves the promise once the script is fully loaded
-function loadScript(url, callback) {
-    return new Promise(function(resolve, reject) {
-        var script = document.createElement("script");
-        script.type = "text/javascript";
-        if (script.readyState) {
-            // only required for IE <9
-            script.onreadystatechange = function() {
-                if (
-                    script.readyState === "loaded" ||
-                    script.readyState === "complete"
-                ) {
-                    script.onreadystatechange = null;
-                    callback();
-                    resolve();
-                }
-            };
-        } else {
-            //Others
-            script.onload = function() {
-                callback();
-                resolve();
-            };
-        }
-
-        script.src = url;
-        document.getElementsByTagName("head")[0].appendChild(script);
-    });
 }
