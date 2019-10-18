@@ -8,9 +8,6 @@ let app;
 
 
 async function resetPanel() {
-
-    let task = taskList[0];
-
     // Clear any values in the search box and the search message
     d3.select(".searchInput").property("value", "");
     d3.select(".searchMsg").style("display", "none");
@@ -20,10 +17,9 @@ async function resetPanel() {
         .selectAll("li")
         .remove();
 
-    config = task.config;
-
     graph = await load_data(workspace, graph)
 
+    makeController()
     window.controller.loadTask(0);
 }
 
@@ -57,48 +53,4 @@ async function loadNewGraph(fileName) {
     // options.attr('onclick',"console.log('clicked')");
 
     // options.on("click",console.log('clicked an option!'))
-}
-
-async function loadTasks(visType, tasksType) {
-    let taskListFiles = { "heuristics": "taskLists/heuristics.json" };
-    let selectedVis = "adjMatrix"
-
-    //do an async load of the designated task list;
-    let taskListObj = await d3.json(taskListFiles[tasksType]);
-
-    let taskListEntries = Object.entries(taskListObj);
-
-    // insert order and taskID into each element in this list
-    taskList = taskListEntries.map((t, i) => {
-        let task = t[1];
-        task.order = i;
-        task.taskID = t[0];
-        task.workerID = workerID;
-        return task;
-    });
-
-    let scriptTags = {
-        adjMatrix: [
-            "js/adjMatrix/libs/reorder/science.v1.js",
-            "js/adjMatrix/libs/reorder/tiny-queue.js",
-            "js/adjMatrix/libs/reorder/reorder.v1.js",
-            "js/adjMatrix/fill_config_settings.js",
-            "js/adjMatrix/autocomplete.js",
-            "js/adjMatrix/view.js",
-            "js/adjMatrix/controller.js",
-            "js/adjMatrix/model.js",
-            "js/adjMatrix/helper_functions.js"
-        ]
-    };
-
-    const loadAllScripts = async() => {
-        return await Promise.all(
-            scriptTags[selectedVis].map(async src => {
-                return await loadScript(src, () => "");
-            })
-        );
-    };
-
-    await loadAllScripts();
-
 }

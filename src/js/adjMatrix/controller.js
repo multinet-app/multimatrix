@@ -76,36 +76,36 @@ var Controller = /** @class */ (function () {
         this.model = new Model(this); // start reading in data
     };
     Controller.prototype.loadTask = function (taskNum) {
-        console.log(this.tasks);
-        this.tasks = taskList;
-        console.log(this.tasks);
-        this.taskNum = taskNum;
-        this.task = this.tasks[this.taskNum];
-        console.log(this.task, this.tasks, this.tasks[this.taskNum], this.taskNum);
-        this.configuration = this.task.config;
-        //let prompt = 'Task ' + (this.taskNum + 1) + ' - ' + this.task.prompt;
-        //this.configuration.adjMatrix.edgeBars = true;
-        if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
-            if (!this.configuration.nodeAttributes.includes('selected')) {
-                this.configuration.nodeAttributes.unshift('selected');
-                var obj = {
-                    "domain": [true, false],
-                    "range": ["#e86b45", '#fff'],
-                    "labels": ['answer', 'not answer'],
-                    'glyph': 'rect',
-                    'label': 'selected'
-                };
-                this.configuration.attributeScales.node['selected'] = obj;
-            }
-        }
-        this.configuration.adjMatrix['toggle'] = false;
-        //this.configuration.adjMatrix.neighborSelect = true;
-        this.attrWidth = d3.min([150 * this.configuration.nodeAttributes.length, 650]);
-        this.configuration.state = {};
-        this.configuration.state.adjMatrix = {};
-        if (this.configuration.adjMatrix.sortKey == null || this.configuration.adjMatrix.sortKey == '') {
-            this.configuration.adjMatrix.sortKey = 'shortName';
-        }
+        // console.log(this.tasks)
+        // this.tasks = taskList
+        // console.log(this.tasks);
+        // this.taskNum = taskNum;
+        // this.task = this.tasks[this.taskNum];
+        // console.log(this.task,this.tasks,this.tasks[this.taskNum],this.taskNum)
+        // this.configuration = this.task.config;
+        // //let prompt = 'Task ' + (this.taskNum + 1) + ' - ' + this.task.prompt;
+        // //this.configuration.adjMatrix.edgeBars = true;
+        // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
+        //   if (!this.configuration.nodeAttributes.includes('selected')) {
+        //     this.configuration.nodeAttributes.unshift('selected');
+        //     let obj = {
+        //       "domain": [true, false],
+        //       "range": ["#e86b45", '#fff'],
+        //       "labels": ['answer', 'not answer'],
+        //       'glyph': 'rect',
+        //       'label': 'selected'
+        //     }
+        //     this.configuration.attributeScales.node['selected'] = obj;
+        //   }
+        // }
+        // this.configuration.adjMatrix['toggle'] = false;
+        // //this.configuration.adjMatrix.neighborSelect = true;
+        // this.attrWidth = d3.min([150 * this.configuration.nodeAttributes.length, 650]);
+        // this.configuration.state = {}
+        // this.configuration.state.adjMatrix = {};
+        // if (this.configuration.adjMatrix.sortKey == null || this.configuration.adjMatrix.sortKey == '') {
+        //   this.configuration.adjMatrix.sortKey = 'shortName'
+        // }
         this.sizeLayout();
         //configuration.adjMatrix.sortKey
         this.reload();
@@ -226,4 +226,6 @@ var Controller = /** @class */ (function () {
     };
     return Controller;
 }());
-window.controller = new Controller();
+function makeController() {
+    window.controller = new Controller();
+}
