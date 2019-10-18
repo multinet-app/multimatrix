@@ -7,12 +7,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-
     <!-- Title -->
     <title>NodeLink View</title>
 
     <!-- Load in favicon from assets -->
-    <link rel="shortcut icon" href="/assets/favicon.ico" />
+    <link rel="shortcut icon" href="/adjmatrix/assets/favicon.ico" />
 
     <!-- Load in CSS -->
     <link rel="stylesheet" href="css/base.css">
@@ -365,13 +364,6 @@
 
     async function startStudy() {
         await loadTasks(vis, mode);
-
-        if (vis === 'nodeLink') {
-            loadVis("vis");
-        } else {
-            // included script already auto loads the vis. 
-        }
-
         resetPanel();
     }
 
