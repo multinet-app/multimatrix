@@ -1,4 +1,4 @@
-
+const d3 = require("d3");
 // Work on importing class file
 class View {
   /*
@@ -527,7 +527,7 @@ class View {
       //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]]);
       //let otherColors = ['#064B6E', '#4F0664', '#000000']
 
-      let scale = d3.scaleSqrt().domain(extent).range(["white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]);
+      let scale = d3.scaleSqrt().domain(extent).range("white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]);
 
       scale.clamp(true);
       // store scales
@@ -1766,7 +1766,7 @@ class View {
       button.attr('cursor', 'pointer')
       button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1)
       button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
-      let path = button.datum([sortNames[i])
+      let path = button.datum(sortNames[i])
       let realPath = path
         .append('path').attr('class', 'sortIcon').attr('d', (d) => {
           return this.controller.model.icons[iconNames[i]].d;

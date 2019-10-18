@@ -1,11 +1,11 @@
-var Model = /** @class */ (function() {
+var Model = /** @class */ (function () {
     function Model(controller) {
         var _this = this;
         this.controller = controller;
         this.datumID = controller.datumID;
         console.log(controller, controller.configuration, controller.configuration.graphFiles, controller.configuration.loadedGraph);
         //console.log(controller,controller.configuration,controller.configuration.graphFiles[controller.configuration.loadedGraph])
-        d3.json(controller.configuration.graphFiles[controller.configuration.loadedGraph]).then(function(data) {
+        d3.json(controller.configuration.graphFiles[controller.configuration.loadedGraph]).then(function (data) {
             _this.graph = data;
             _this.edges = data.links;
             //setPanelValuesFromFile(controller.configuration, data);
@@ -43,17 +43,19 @@ var Model = /** @class */ (function() {
             if (_this.controller.configuration.adjMatrix.sortKey in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
                 _this.orderType = 'shortName'; //this.controller.configuration.adjMatrix.sortKey;
                 clusterFlag = true;
-            } else {
+            }
+            else {
                 _this.orderType = _this.controller.configuration.adjMatrix.sortKey;
             }
             _this.order = _this.changeOrder(_this.orderType);
             // sorts quantitative by descending value, sorts qualitative by alphabetical
             if (!_this.isQuant(_this.orderType)) {
-                _this.nodes = _this.nodes.sort(function(a, b) { return a[_this.orderType].localeCompare(b[_this.orderType]); });
-            } else {
-                _this.nodes = _this.nodes.sort(function(a, b) { return b[_this.orderType] - a[_this.orderType]; });
+                _this.nodes = _this.nodes.sort(function (a, b) { return a[_this.orderType].localeCompare(b[_this.orderType]); });
             }
-            _this.nodes.forEach(function(node, index) {
+            else {
+                _this.nodes = _this.nodes.sort(function (a, b) { return b[_this.orderType] - a[_this.orderType]; });
+            }
+            _this.nodes.forEach(function (node, index) {
                 node.index = index;
                 _this.idMap[node.id] = index;
             });
@@ -71,17 +73,19 @@ var Model = /** @class */ (function() {
      * @param  attr [string that corresponds to attribute type]
      * @return      [description]
      */
-    Model.prototype.isQuant = function(attr) {
+    Model.prototype.isQuant = function (attr) {
         // if not in list
         if (!Object.keys(this.controller.configuration.attributeScales.node).includes(attr)) {
             return false;
-        } else if (this.controller.configuration.attributeScales.node[attr].range === undefined) {
+        }
+        else if (this.controller.configuration.attributeScales.node[attr].range === undefined) {
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     };
-    Model.prototype.populateSearchBox = function() {
+    Model.prototype.populateSearchBox = function () {
         /*
         d3.select("#search-input").attr("list", "characters");
         let inputParent = d3.select("#search-input").node().parentNode;
@@ -116,17 +120,17 @@ var Model = /** @class */ (function() {
      * returns an object containing the current provenance state.
      * @return [the provenance state]
      */
-    Model.prototype.getApplicationState = function() {
+    Model.prototype.getApplicationState = function () {
         var _this = this;
         return {
-            currentState: function() { return _this.provenance.graph().current.state; }
+            currentState: function () { _this.provenance.graph().current.state; }
         };
     };
     /**
      * Initializes the provenance library and sets observers.
      * @return [none]
      */
-    Model.prototype.setUpProvenance = function() {
+    Model.prototype.setUpProvenance = function () {
         var initialState = {
             workerID: workerID,
             taskID: this.controller.tasks[this.controller.taskNum],
@@ -167,7 +171,6 @@ var Model = /** @class */ (function() {
             answerBox: rowElements.concat(columnElements),
             search: rowElements.concat(columnElements)
         };
-
         function classAllHighlights(state) {
             var clickedElements = new Set();
             var answerElements = new Set();
@@ -182,9 +185,11 @@ var Model = /** @class */ (function() {
                     for (var node in state.selections[selectionType]) {
                         if (selectionType == 'answerBox') {
                             answerElements.add('#' + selectionElement + node);
-                        } else if (selectionType == 'neighborSelect') {
+                        }
+                        else if (selectionType == 'neighborSelect') {
                             neighborElements.add('#' + selectionElement + node);
-                        } else {
+                        }
+                        else {
                             // if both in attrRow and rowLabel, don't highlight element
                             if (selectionType == 'attrRow' || selectionType == 'rowLabel') {
                                 if (node in state.selections['attrRow'] && node in state.selections['rowLabel'])
@@ -203,21 +208,20 @@ var Model = /** @class */ (function() {
             neighborSelectQuery != [] ? d3.selectAll(neighborSelectQuery).classed('neighbor', true) : null;
             return;
         }
-
         function setUpObservers() {
             var _this = this;
-            var updateHighlights = function(state) {
+            var updateHighlights = function (state) {
                 console.log(state);
                 d3.selectAll('.clicked').classed('clicked', false);
                 d3.selectAll('.answer').classed('answer', false);
                 d3.selectAll('.neighbor').classed('neighbor', false);
                 classAllHighlights(state);
             };
-            var updateCellClicks = function(state) {
+            var updateCellClicks = function (state) {
                 var cellNames = [];
-                Object.keys(state.selections.cellcol).map(function(key) {
+                Object.keys(state.selections.cellcol).map(function (key) {
                     var names = state.selections.cellcol[key];
-                    names.map(function(name) {
+                    names.map(function (name) {
                         var cellsNames = splitCellNames(name);
                         cellNames = cellNames.concat(cellsNames);
                     });
@@ -231,7 +235,7 @@ var Model = /** @class */ (function() {
                     return;
                 d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
             };
-            var updateAnswerBox = function(state) {
+            var updateAnswerBox = function (state) {
                 window.controller.configuration.adjMatrix['toggle'] ? window.controller.view.updateAnswerToggles(state) : window.controller.view.updateCheckBox(state);
                 //window.controller.view.updateAnswerToggles(state)
                 var answer = [];
@@ -256,7 +260,7 @@ var Model = /** @class */ (function() {
         setUpObservers();
         return [app, provenance];
     };
-    Model.prototype.reload = function() {
+    Model.prototype.reload = function () {
         this.controller.loadData(this.nodes, this.edges, this.matrix);
     };
     /**
@@ -266,11 +270,11 @@ var Model = /** @class */ (function() {
      * @param  interactionType class name of element interacted with
      * @return        [description]
      */
-    Model.prototype.generateSortAction = function(sortKey) {
+    Model.prototype.generateSortAction = function (sortKey) {
         var _this = this;
         return {
             label: 'sort',
-            action: function(sortKey) {
+            action: function (sortKey) {
                 var currentState = _this.controller.model.app.currentState();
                 //add time stamp to the state graph
                 currentState.time = Date.now();
@@ -291,7 +295,7 @@ var Model = /** @class */ (function() {
      * @param  type A string corresponding to the attribute screen_name to sort by.
      * @return      A numerical range in corrected order.
      */
-    Model.prototype.changeOrder = function(type, node) {
+    Model.prototype.changeOrder = function (type, node) {
         if (node === void 0) { node = false; }
         var action = this.generateSortAction(type);
         if (this.provenance) {
@@ -299,7 +303,7 @@ var Model = /** @class */ (function() {
         }
         return this.sortObserver(type, node);
     };
-    Model.prototype.sortObserver = function(type, node) {
+    Model.prototype.sortObserver = function (type, node) {
         var _this = this;
         if (node === void 0) { node = false; }
         var order;
@@ -313,23 +317,29 @@ var Model = /** @class */ (function() {
             if (type == "clusterBary") {
                 var barycenter = reorder.barycenter_order(graph);
                 order = reorder.adjacent_exchange(graph, barycenter[0], barycenter[1])[1];
-            } else if (type == "clusterSpectral") {
+            }
+            else if (type == "clusterSpectral") {
                 order = reorder.spectral_order(graph);
-            } else if (type == "clusterLeaf") {
+            }
+            else if (type == "clusterLeaf") {
                 var mat = reorder.graph2mat(graph);
                 order = reorder.optimal_leaf_order()(mat);
             }
             //
             //order = reorder.optimal_leaf_order()(this.scalarMatrix);
-        } else if (this.orderType == 'edges') {
-            order = d3.range(this.nodes.length).sort(function(a, b) { return _this.nodes[b][type].length - _this.nodes[a][type].length; });
-        } else if (node == true) {
-            order = d3.range(this.nodes.length).sort(function(a, b) { return _this.nodes[a]['shortName'].localeCompare(_this.nodes[b]['shortName']); });
-            order = d3.range(this.nodes.length).sort(function(a, b) { console.log(_this.nodes[a], _this.nodes[a]['neighbors'], parseInt(type)); return _this.nodes[b]['neighbors'].includes(parseInt(type)) - _this.nodes[a]['neighbors'].includes(parseInt(type)); });
-        } else if (!this.isQuant(this.orderType)) { // == "screen_name" || this.orderType == "name") {
-            order = d3.range(this.nodes.length).sort(function(a, b) { return _this.nodes[a][_this.orderType].localeCompare(_this.nodes[b][_this.orderType]); });
-        } else {
-            order = d3.range(this.nodes.length).sort(function(a, b) { return _this.nodes[b][type] - _this.nodes[a][type]; });
+        }
+        else if (this.orderType == 'edges') {
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b][type].length - _this.nodes[a][type].length; });
+        }
+        else if (node == true) {
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['shortName'].localeCompare(_this.nodes[b]['shortName']); });
+            order = d3.range(this.nodes.length).sort(function (a, b) { console.log(_this.nodes[a], _this.nodes[a]['neighbors'], parseInt(type)); return _this.nodes[b]['neighbors'].includes(parseInt(type)) - _this.nodes[a]['neighbors'].includes(parseInt(type)); });
+        }
+        else if (!this.isQuant(this.orderType)) { // == "screen_name" || this.orderType == "name") {
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a][_this.orderType].localeCompare(_this.nodes[b][_this.orderType]); });
+        }
+        else {
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b][type] - _this.nodes[a][type]; });
         }
         this.order = order;
         return order;
@@ -338,11 +348,11 @@ var Model = /** @class */ (function() {
      * [processData description]
      * @return [description]
      */
-    Model.prototype.processData = function() {
+    Model.prototype.processData = function () {
         var _this = this;
         // generate a hashmap of id's?
         // Set up node data
-        this.nodes.forEach(function(rowNode, i) {
+        this.nodes.forEach(function (rowNode, i) {
             rowNode.count = 0;
             /* Numeric Conversion */
             rowNode.followers_count = +rowNode.followers_count;
@@ -354,10 +364,9 @@ var Model = /** @class */ (function() {
             //rowNode.id = +rowNode.id;
             rowNode.y = i;
             /* matrix used for edge attributes, otherwise should we hide */
-            _this.matrix[i] = _this.nodes.map(function(colNode) { return { cellName: 'cell' + rowNode[_this.datumID] + '_' + colNode[_this.datumID], correspondingCell: 'cell' + colNode[_this.datumID] + '_' + rowNode[_this.datumID], rowid: rowNode[_this.datumID], colid: colNode[_this.datumID], x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
-            _this.scalarMatrix[i] = _this.nodes.map(function(colNode) { return 0; });
+            _this.matrix[i] = _this.nodes.map(function (colNode) { return { cellName: 'cell' + rowNode[_this.datumID] + '_' + colNode[_this.datumID], correspondingCell: 'cell' + colNode[_this.datumID] + '_' + rowNode[_this.datumID], rowid: rowNode[_this.datumID], colid: colNode[_this.datumID], x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
+            _this.scalarMatrix[i] = _this.nodes.map(function (colNode) { return 0; });
         });
-
         function checkEdge(edge) {
             if (typeof edge.source !== "number")
                 return false;
@@ -368,7 +377,7 @@ var Model = /** @class */ (function() {
         this.edges = this.edges.filter(checkEdge);
         this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 };
         // Convert links to matrix; count character occurrences.
-        this.edges.forEach(function(link) {
+        this.edges.forEach(function (link) {
             var addValue = 1;
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]][link.type] += link.count;
             //
@@ -387,21 +396,21 @@ var Model = /** @class */ (function() {
             link.target = _this.idMap[link.target];
         });
     };
-    Model.prototype.getOrder = function() {
+    Model.prototype.getOrder = function () {
         return this.order;
     };
     /**
      * Returns the node data.
      * @return Node data in JSON Array
      */
-    Model.prototype.getNodes = function() {
+    Model.prototype.getNodes = function () {
         return this.nodes;
     };
     /**
      * Returns the edge data.
      * @return Edge data in JSON Array
      */
-    Model.prototype.getEdges = function() {
+    Model.prototype.getEdges = function () {
         return this.edges;
     };
     return Model;

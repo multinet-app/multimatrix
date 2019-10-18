@@ -1,70 +1,41 @@
-var __awaiter = (this && this.__awaiter) || function(thisArg, _arguments, P, generator) {
-    return new(P || (P = Promise))(function(resolve, reject) {
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-
-        function step(result) { result.done ? resolve(result.value) : new P(function(resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function(thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] },
-        f, y, t, g;
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
     return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-
-    function verb(n) { return function(v) { return step([n, v]); }; }
-
+    function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
-                case 0:
-                case 1:
-                    t = op;
-                    break;
-                case 4:
-                    _.label++;
-                    return { value: op[1], done: false };
-                case 5:
-                    _.label++;
-                    y = op[1];
-                    op = [0];
-                    continue;
-                case 7:
-                    op = _.ops.pop();
-                    _.trys.pop();
-                    continue;
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
                 default:
                     if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
                     if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) {
-                        _.label = t[1];
-                        t = op;
-                        break;
-                    }
-                    if (t && _.label < t[2]) {
-                        _.label = t[2];
-                        _.ops.push(op);
-                        break;
-                    }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
                     if (t[2]) _.ops.pop();
-                    _.trys.pop();
-                    continue;
+                    _.trys.pop(); continue;
             }
             op = body.call(thisArg, _);
-        } catch (e) {
-            op = [6, e];
-            y = 0;
-        } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1];
-        return { value: op[0] ? op[1] : void 0, done: true };
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
 // Work on importing class file
-var Controller = /** @class */ (function() {
+var Controller = /** @class */ (function () {
     function Controller() {
         this.hoverRow = {};
         this.hoverCol = {};
@@ -74,15 +45,15 @@ var Controller = /** @class */ (function() {
         this.loadTasks();
         this.sizeLayout();
     }
-    Controller.prototype.setupExports = function(base, task) {
-        d3.select("#exportBaseConfig").on("click", function() {
+    Controller.prototype.setupExports = function (base, task) {
+        d3.select("#exportBaseConfig").on("click", function () {
             exportConfig(Object.keys(base), Object.keys(base.adjMatrix), false);
         });
-        d3.select("#exportConfig").on("click", function() {
+        d3.select("#exportConfig").on("click", function () {
             exportConfig(Object.keys(task), Object.keys(task.adjMatrixValues), true);
         });
     };
-    Controller.prototype.setupCSS = function(base) {
+    Controller.prototype.setupCSS = function (base) {
         return;
         /*set css values for 'clicked' nodes;
         //set fill or stroke of selected node;
@@ -99,12 +70,12 @@ var Controller = /** @class */ (function() {
           sheet.addRule(".rect.selected", ruleString, 1);
           */
     };
-    Controller.prototype.finishConstructing = function(config) {
+    Controller.prototype.finishConstructing = function (config) {
         this.configuration = config;
         this.view = new View(this); // initalize view,
         this.model = new Model(this); // start reading in data
     };
-    Controller.prototype.loadTask = function(taskNum) {
+    Controller.prototype.loadTask = function (taskNum) {
         console.log(this.tasks);
         this.tasks = taskList;
         console.log(this.tasks);
@@ -143,20 +114,20 @@ var Controller = /** @class */ (function() {
         // add observers and new provenance graph
         // create new field to store in fB?
     };
-    Controller.prototype.loadTasks = function() {
-        return __awaiter(this, void 0, void 0, function() {
-            return __generator(this, function(_a) {
+    Controller.prototype.loadTasks = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
                 this.taskNum = 0;
                 this.tasks = taskList;
-                return [2 /*return*/ ];
+                return [2 /*return*/];
             });
         });
     };
-    Controller.prototype.clear = function() {
+    Controller.prototype.clear = function () {
         var _this = this;
         var action = {
             label: 'clear',
-            action: function() {
+            action: function () {
                 var currentState = _this.model.app.currentState();
                 //add time stamp to the state graph
                 currentState.time = Date.now();
@@ -180,10 +151,9 @@ var Controller = /** @class */ (function() {
         };
         this.model.provenance.applyAction(action);
     };
-    Controller.prototype.sizeLayout = function() {
+    Controller.prototype.sizeLayout = function () {
         var targetDiv = d3.select("#targetSize");
-        var width = targetDiv.style("width").replace("px", ""),
-            height = targetDiv.style("height").replace("px", "");
+        var width = targetDiv.style("width").replace("px", ""), height = targetDiv.style("height").replace("px", "");
         var taskBarHeight = 74;
         var panelDimensions = {};
         /*panelDimensions.width = width * 0.245;*/
@@ -215,13 +185,13 @@ var Controller = /** @class */ (function() {
         //d3.select('.adjMatrix.vis').style('width',width*0.8);
         d3.select('.adjMatrix.vis').style('width', (this.visWidth).toString() + 'px');
     };
-    Controller.prototype.clearView = function() {
+    Controller.prototype.clearView = function () {
         d3.select('.tooltip').remove();
         d3.select('#topology').selectAll('*').remove();
         d3.select('#attributes').selectAll('*').remove();
         d3.select('#legend-svg').selectAll('*').remove();
     };
-    Controller.prototype.reload = function() {
+    Controller.prototype.reload = function () {
         this.clearView();
         //this.loadCurrentTask();
         d3.select('.loading').style('display', 'block');
@@ -235,21 +205,21 @@ var Controller = /** @class */ (function() {
      * Passes the processed edge and node data to the view.
      * @return None
      */
-    Controller.prototype.loadData = function(nodes, edges, matrix) {
+    Controller.prototype.loadData = function (nodes, edges, matrix) {
         this.view.loadData(nodes, edges, matrix);
     };
     /**
      * Obtains the order from the model and returns it to the view.
      * @return [description]
      */
-    Controller.prototype.getOrder = function() {
+    Controller.prototype.getOrder = function () {
         return this.model.getOrder();
     };
     /**
      * Obtains the order from the model and returns it to the view.
      * @return [description]
      */
-    Controller.prototype.changeOrder = function(order, node) {
+    Controller.prototype.changeOrder = function (order, node) {
         if (node === void 0) { node = false; }
         this.configuration.adjMatrix.sortKey = order;
         return this.model.changeOrder(order, node);

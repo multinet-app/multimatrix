@@ -152,7 +152,7 @@ class Model {
    */
   getApplicationState() {
     return {
-      currentState: () => this.provenance.graph().current.state;
+      currentState: () => {this.provenance.graph().current.state}
     };
   }
 

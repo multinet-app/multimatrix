@@ -15,6 +15,7 @@
 
     <!-- Load in CSS -->
     <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/adjMatrix/adj-matrix.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.css">
 
     <!-- Load in js from CDN where possible for fast load times -->
@@ -71,10 +72,6 @@
                             </div>
 
 
-                        </div>
-
-                        <div class="nodeLink">
-                            <svg id="node-link-svg"></svg>
                         </div>
 
                         <div class="adjMatrix vis">
@@ -348,7 +345,7 @@
         graph
     } = getUrlVars();
 
-    mode = 'heuristics'; //can be 'develop', 'test', 'heuristics', or 'study'
+    mode = 'heuristics';
 
     async function startStudy() {
         await loadTasks(vis, mode);

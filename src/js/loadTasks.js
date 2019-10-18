@@ -1,7 +1,6 @@
 //global variable that defines the tasks to be shown to the user and the (randomized) order in which to show them
 var taskList;
 let workerID; // to be populated when the user goes through the consent form;
-let currentTask; //start at task 0
 let onTrials = false;
 let participantCollection;
 // let vis;
@@ -10,7 +9,7 @@ let app;
 
 async function resetPanel() {
 
-    let task = taskList[currentTask];
+    let task = taskList[0];
 
     // Clear any values in the search box and the search message
     d3.select(".searchInput").property("value", "");
@@ -25,17 +24,10 @@ async function resetPanel() {
 
     graph = await load_data(workspace, graph)
 
-    window.controller.loadTask(currentTask);
+    window.controller.loadTask(0);
 }
 
 async function loadNewGraph(fileName) {
-    // console.log('loading ', fileName)
-    graph = await d3.json(fileName);
-
-    // console.log(graph.links)
-    //
-    //update the datalist associated to the search box (in case the nodes in the new graph have changed)
-    //if (vis === 'nodeLink'){
     d3.select("#search-input").attr("list", "characters");
     let inputParent = d3.select("#search-input").node().parentNode;
 
@@ -68,23 +60,10 @@ async function loadNewGraph(fileName) {
 }
 
 async function loadTasks(visType, tasksType) {
-    //reset currentTask to 0
-    currentTask = 0;
-
     let taskListFiles = { "heuristics": "taskLists/heuristics.json" };
-    // let conditions = conditionsObj.data().conditionList;
-
-    // let selectedCondition = conditions[group];
-
-    // Hard-coded the vis to be nodeLink
-    let selectedVis = (
-        vis ||
-        "nodeLink" ||
-        "adjMatrix"
-    );
+    let selectedVis = "adjMatrix"
 
     //do an async load of the designated task list;
-    console.log(taskListFiles, tasksType)
     let taskListObj = await d3.json(taskListFiles[tasksType]);
 
     let taskListEntries = Object.entries(taskListObj);
@@ -98,60 +77,28 @@ async function loadTasks(visType, tasksType) {
         return task;
     });
 
-    //remove divs that are irrelevant to the vis approach being used am/nl
-    if (selectedVis === "nodeLink") {
-        d3.selectAll(".adjMatrix").remove();
-    } else {
-        d3.selectAll(".nodeLink").remove();
-    }
+    let scriptTags = {
+        adjMatrix: [
+            "js/adjMatrix/libs/reorder/science.v1.js",
+            "js/adjMatrix/libs/reorder/tiny-queue.js",
+            "js/adjMatrix/libs/reorder/reorder.v1.js",
+            "js/adjMatrix/fill_config_settings.js",
+            "js/adjMatrix/autocomplete.js",
+            "js/adjMatrix/view.js",
+            "js/adjMatrix/controller.js",
+            "js/adjMatrix/model.js",
+            "js/adjMatrix/helper_functions.js"
+        ]
+    };
 
-    //load script tags if this is the trials page or if there were no trials for this setup)
+    const loadAllScripts = async() => {
+        return await Promise.all(
+            scriptTags[selectedVis].map(async src => {
+                return await loadScript(src, () => "");
+            })
+        );
+    };
 
-    if (tasksType === "trials" || !trials) {
-        let scriptTags = {
-            nodeLink: [
-                "js/nodeLink/main_nodeLink.js",
-                "js/nodeLink/helperFunctions.js"
-            ],
-            adjMatrix: [
-                "js/adjMatrix/libs/reorder/science.v1.js",
-                "js/adjMatrix/libs/reorder/tiny-queue.js",
-                "js/adjMatrix/libs/reorder/reorder.v1.js",
-                "js/adjMatrix/fill_config_settings.js",
-                "js/adjMatrix/autocomplete.js",
-                "js/adjMatrix/view.js",
-                "js/adjMatrix/controller.js",
-                "js/adjMatrix/model.js",
-                "js/adjMatrix/helper_functions.js"
-            ]
-        };
-        let cssTags = {
-            nodeLink: [
-                "css/nodeLink/node-link.css",
-                "css/nodeLink/bulma-checkradio.min.css"
-            ],
-            adjMatrix: ["css/adjMatrix/adj-matrix.css"]
-        };
+    await loadAllScripts();
 
-        // //   dynamically load only js/css relevant to the vis approach being used;
-        const loadAllScripts = async() => {
-            return await Promise.all(
-                scriptTags[selectedVis].map(async src => {
-                    return await loadScript(src, () => "");
-                })
-            );
-        };
-
-        console.log(selectedVis)
-        await loadAllScripts();
-
-        cssTags[selectedVis].map(href => {
-            var newStyleSheet = document.createElement("link");
-            newStyleSheet.href = href;
-            newStyleSheet.rel = "stylesheet";
-            d3.select("head")
-                .node()
-                .appendChild(newStyleSheet);
-        });
-    }
 }
