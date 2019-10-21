@@ -1,4 +1,4 @@
-# Multinet Node-Link View
+# Multinet Addjacency-Matrix View
 
 ## Development Environment
 To start a development environment you need to serve the main index.html file from a webserver. The fastest way to do this is with the following code:
