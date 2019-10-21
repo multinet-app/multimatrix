@@ -20,12 +20,12 @@ class Model {
   constructor(controller: any) {
     this.controller = controller;
     this.datumID = controller.datumID;
-    console.log(controller, controller.configuration, controller.configuration.graphFiles, controller.configuration.loadedGraph)
+    console.log(controller)
 
     //console.log(controller,controller.configuration,controller.configuration.graphFiles[controller.configuration.loadedGraph])
-    d3.json(controller.configuration.graphFiles[controller.configuration.loadedGraph]).then((data: any) => {
-      this.graph = data;
-      this.edges = data.links;
+    
+      this.graph = graph;
+      this.edges = graph.links;
 
       //setPanelValuesFromFile(controller.configuration, data);
       this.matrix = [];
@@ -57,27 +57,27 @@ class Model {
         }
 
       }
-      this.nodes = data.nodes
-      this.populateSearchBox();
+      this.nodes = graph.nodes
+      // this.populateSearchBox();
       this.idMap = {};
 
       // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
       let clusterFlag = false;
-      if (this.controller.configuration.adjMatrix.sortKey in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
+      if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
         this.orderType = 'shortName';//this.controller.configuration.adjMatrix.sortKey;
         clusterFlag = true;
       } else {
-        this.orderType = this.controller.configuration.adjMatrix.sortKey;
+        // this.orderType = this.controller.configuration.adjMatrix.sortKey;
       }
 
-      this.order = this.changeOrder(this.orderType);
+      // this.order = this.changeOrder(this.orderType);
 
       // sorts quantitative by descending value, sorts qualitative by alphabetical
-      if (!this.isQuant(this.orderType)) {
-        this.nodes = this.nodes.sort((a, b) => a[this.orderType].localeCompare(b[this.orderType]));
-      } else {
-        this.nodes = this.nodes.sort((a, b) => { return b[this.orderType] - a[this.orderType]; });
-      }
+      // if (!this.isQuant(this.orderType)) {
+      //   this.nodes = this.nodes.sort((a, b) => a[this.orderType].localeCompare(b[this.orderType]));
+      // } else {
+      //   this.nodes = this.nodes.sort((a, b) => { return b[this.orderType] - a[this.orderType]; });
+      // }
 
       this.nodes.forEach((node, index) => {
         node.index = index;
@@ -88,13 +88,13 @@ class Model {
 
       this.processData();
 
-      if (clusterFlag) {
-        this.orderType = this.controller.configuration.adjMatrix.sortKey;
-        this.order = this.changeOrder(this.orderType);
-      }
+      // if (clusterFlag) {
+      //   this.orderType = this.controller.configuration.adjMatrix.sortKey;
+      //   this.order = this.changeOrder(this.orderType);
+      // }
 
       this.controller.loadData(this.nodes, this.edges, this.matrix);
-    })
+    
   }
 
   /**
@@ -104,13 +104,15 @@ class Model {
    */
   isQuant(attr) {
     // if not in list
-    if (!Object.keys(this.controller.configuration.attributeScales.node).includes(attr)) {
-      return false;
-    } else if (this.controller.configuration.attributeScales.node[attr].range === undefined) {
-      return true;
-    } else {
-      return false;
-    }
+    // if (!Object.keys(this.controller.configuration.attributeScales.node).includes(attr)) {
+    //   return false;
+    // } else if (this.controller.configuration.attributeScales.node[attr].range === undefined) {
+    //   return true;
+    // } else {
+    //   return false;
+    // }
+
+    return false;
   }
 
 
@@ -369,8 +371,9 @@ class Model {
 
   sortObserver(type: string, node: boolean = false){
     let order;
-    this.orderType = type;
-    this.controller.configuration.adjMatrix.sortKey = type;
+    // this.orderType = type;
+    // this.controller.configuration.adjMatrix.sortKey = type;
+    type = "edges"
     if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
 
       var graph = reorder.graph()
@@ -398,7 +401,7 @@ class Model {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['shortName'].localeCompare(this.nodes[b]['shortName']));
       order = d3.range(this.nodes.length).sort((a, b) => { console.log(this.nodes[a], this.nodes[a]['neighbors'], parseInt(type)); return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type)); });
     }
-    else if (!this.isQuant(this.orderType)) {// == "screen_name" || this.orderType == "name") {
+    else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]));
 
     } else {
@@ -459,12 +462,12 @@ class Model {
 
       this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
       // if not directed, increment the other values
-      if (!this.controller.configuration.isDirected) {
-        this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
-        this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
-        this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
+      // if (!this.controller.configuration.isDirected) {
+      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
+      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
+      //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
 
-      }
+      // }
       link.source = this.idMap[link.source];
       link.target = this.idMap[link.target];
     });

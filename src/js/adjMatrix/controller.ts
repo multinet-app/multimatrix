@@ -35,11 +35,7 @@ class Controller {
 
   }
 
-  finishConstructing(config) {
-    this.configuration = config;
-
-
-
+  finishConstructing() {
     this.view = new View(this); // initalize view,
     this.model = new Model(this); // start reading in data
 
@@ -58,17 +54,17 @@ class Controller {
     // this.configuration = this.task.config;
     // //let prompt = 'Task ' + (this.taskNum + 1) + ' - ' + this.task.prompt;
 
-    // //this.configuration.adjMatrix.edgeBars = true;
+    // edgeBars = true;
     // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
     //   if (!this.configuration.nodeAttributes.includes('selected')) {
     //     this.configuration.nodeAttributes.unshift('selected');
-    //     let obj = {
-    //       "domain": [true, false],
-    //       "range": ["#e86b45", '#fff'],
-    //       "labels": ['answer', 'not answer'],
-    //       'glyph': 'rect',
-    //       'label': 'selected'
-    //     }
+        let obj = {
+          "domain": [true, false],
+          "range": ["#e86b45", '#fff'],
+          "labels": ['answer', 'not answer'],
+          'glyph': 'rect',
+          'label': 'selected'
+        }
     //     this.configuration.attributeScales.node['selected'] = obj;
 
     //   }
@@ -83,7 +79,7 @@ class Controller {
     // this.configuration.state = {}
     // this.configuration.state.adjMatrix = {};
     // if (this.configuration.adjMatrix.sortKey == null || this.configuration.adjMatrix.sortKey == '') {
-    //   this.configuration.adjMatrix.sortKey = 'shortName'
+    sortKey = 'name'
     // }
 
     this.sizeLayout();
@@ -216,16 +212,16 @@ class Controller {
     }
 
 
-    this.attributePorportion = this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
-    this.edgePorportion = this.edgeWidth / (this.edgeWidth + this.attrWidth + filler);
+    this.attributeProportion = this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
+    this.edgeProportion = this.edgeWidth / (this.edgeWidth + this.attrWidth + filler);
 
     if (this.edgeWidth < panelDimensions.height) {
-      this.visHeight = this.visWidth * this.edgePorportion;
+      this.visHeight = this.visWidth * this.edgeProportion;
     }
 
-    d3.select('.topocontainer').style('width', (100 * this.edgePorportion).toString() + '%');
+    d3.select('.topocontainer').style('width', (100 * this.edgeProportion).toString() + '%');
     d3.select('.topocontainer').style('height', (this.visHeight).toString() + 'px');
-    d3.select('.attrcontainer').style('width', (100 * this.attributePorportion).toString() + '%');
+    d3.select('.attrcontainer').style('width', (100 * this.attributeProportion).toString() + '%');
     d3.select('.attrcontainer').style('height', (this.visHeight).toString() + 'px');
 
 
@@ -245,6 +241,7 @@ class Controller {
     this.loadTasks();
 
     this.sizeLayout();
+    this.finishConstructing()
   }
 
   clearView() {
@@ -263,7 +260,8 @@ class Controller {
 
     this.view = new View(this); // initalize view,
     this.model = new Model(this); //.reload();
-    this.tasks[this.taskNum].startTime = Date.now();
+    startTime = Date.now();
+    console.log("model", this.model)
     //
     //this.model = new Model(this); // start reading in data
   }
@@ -281,6 +279,7 @@ class Controller {
    * @return [description]
    */
   getOrder() {
+    
     return this.model.getOrder();
   }
 
@@ -289,8 +288,8 @@ class Controller {
    * @return [description]
    */
   changeOrder(order: string, node : boolean = false) {
-    this.configuration.adjMatrix.sortKey = order;
-    return this.model.changeOrder(order,node);
+    // this.configuration.adjMatrix.sortKey = order;
+    // return this.model.changeOrder(order,node);
   }
 }
 

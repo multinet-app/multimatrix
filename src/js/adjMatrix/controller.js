@@ -44,6 +44,7 @@ var Controller = /** @class */ (function () {
         //this.loadClearButton();
         this.loadTasks();
         this.sizeLayout();
+        this.finishConstructing();
     }
     Controller.prototype.setupExports = function (base, task) {
         d3.select("#exportBaseConfig").on("click", function () {
@@ -70,8 +71,7 @@ var Controller = /** @class */ (function () {
           sheet.addRule(".rect.selected", ruleString, 1);
           */
     };
-    Controller.prototype.finishConstructing = function (config) {
-        this.configuration = config;
+    Controller.prototype.finishConstructing = function () {
         this.view = new View(this); // initalize view,
         this.model = new Model(this); // start reading in data
     };
@@ -84,17 +84,17 @@ var Controller = /** @class */ (function () {
         // console.log(this.task,this.tasks,this.tasks[this.taskNum],this.taskNum)
         // this.configuration = this.task.config;
         // //let prompt = 'Task ' + (this.taskNum + 1) + ' - ' + this.task.prompt;
-        // //this.configuration.adjMatrix.edgeBars = true;
+        // edgeBars = true;
         // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
         //   if (!this.configuration.nodeAttributes.includes('selected')) {
         //     this.configuration.nodeAttributes.unshift('selected');
-        //     let obj = {
-        //       "domain": [true, false],
-        //       "range": ["#e86b45", '#fff'],
-        //       "labels": ['answer', 'not answer'],
-        //       'glyph': 'rect',
-        //       'label': 'selected'
-        //     }
+        var obj = {
+            "domain": [true, false],
+            "range": ["#e86b45", '#fff'],
+            "labels": ['answer', 'not answer'],
+            'glyph': 'rect',
+            'label': 'selected'
+        };
         //     this.configuration.attributeScales.node['selected'] = obj;
         //   }
         // }
@@ -104,7 +104,7 @@ var Controller = /** @class */ (function () {
         // this.configuration.state = {}
         // this.configuration.state.adjMatrix = {};
         // if (this.configuration.adjMatrix.sortKey == null || this.configuration.adjMatrix.sortKey == '') {
-        //   this.configuration.adjMatrix.sortKey = 'shortName'
+        sortKey = 'name';
         // }
         this.sizeLayout();
         //configuration.adjMatrix.sortKey
@@ -173,14 +173,14 @@ var Controller = /** @class */ (function () {
             filler = this.visWidth - this.attrWidth - this.edgeWidth;
             this.visWidth = this.visWidth;
         }
-        this.attributePorportion = this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
-        this.edgePorportion = this.edgeWidth / (this.edgeWidth + this.attrWidth + filler);
+        this.attributeProportion = this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
+        this.edgeProportion = this.edgeWidth / (this.edgeWidth + this.attrWidth + filler);
         if (this.edgeWidth < panelDimensions.height) {
-            this.visHeight = this.visWidth * this.edgePorportion;
+            this.visHeight = this.visWidth * this.edgeProportion;
         }
-        d3.select('.topocontainer').style('width', (100 * this.edgePorportion).toString() + '%');
+        d3.select('.topocontainer').style('width', (100 * this.edgeProportion).toString() + '%');
         d3.select('.topocontainer').style('height', (this.visHeight).toString() + 'px');
-        d3.select('.attrcontainer').style('width', (100 * this.attributePorportion).toString() + '%');
+        d3.select('.attrcontainer').style('width', (100 * this.attributeProportion).toString() + '%');
         d3.select('.attrcontainer').style('height', (this.visHeight).toString() + 'px');
         //d3.select('.adjMatrix.vis').style('width',width*0.8);
         d3.select('.adjMatrix.vis').style('width', (this.visWidth).toString() + 'px');
@@ -197,7 +197,8 @@ var Controller = /** @class */ (function () {
         d3.select('.loading').style('display', 'block');
         this.view = new View(this); // initalize view,
         this.model = new Model(this); //.reload();
-        this.tasks[this.taskNum].startTime = Date.now();
+        startTime = Date.now();
+        console.log("model", this.model);
         //
         //this.model = new Model(this); // start reading in data
     };
@@ -221,8 +222,8 @@ var Controller = /** @class */ (function () {
      */
     Controller.prototype.changeOrder = function (order, node) {
         if (node === void 0) { node = false; }
-        this.configuration.adjMatrix.sortKey = order;
-        return this.model.changeOrder(order, node);
+        // this.configuration.adjMatrix.sortKey = order;
+        // return this.model.changeOrder(order,node);
     };
     return Controller;
 }());

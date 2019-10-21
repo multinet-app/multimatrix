@@ -1,4 +1,3 @@
-var d3 = require("d3");
 // Work on importing class file
 var View = /** @class */ (function () {
     function View(controller) {
@@ -102,7 +101,7 @@ var View = /** @class */ (function () {
     View.prototype.renderView = function () {
         d3.select('.loading').style('display', 'block').style('opacity', 1);
         this.initalizeEdges();
-        this.initalizeAttributes();
+        // this.initalizeAttributes();
         d3.select('.loading').style('display', 'none');
     };
     /**
@@ -115,10 +114,11 @@ var View = /** @class */ (function () {
         // d3.select('#topology').style('float', 'left');
         var _this = this;
         // Set width and height based upon the calculated layout size
-        var width = this.controller.visWidth * this.controller.edgePorportion;
+        var width = this.controller.visWidth * 1; //this.controller.edgeProportion;
         var height = this.controller.visHeight;
-        this.edgeWidth = width - (this.margins.left + this.margins.right); //*this.controller.edgePorportion;
-        this.edgeHeight = height - (this.margins.top + this.margins.bottom); //*this.controller.edgePorportion;
+        console.log(width, this.margins.left, this.margins.right);
+        this.edgeWidth = width - (this.margins.left + this.margins.right); //*this.controller.edgeProportion;
+        this.edgeHeight = height - (this.margins.top + this.margins.bottom); //*this.controller.edgeProportion;
         // Creates scalable SVG
         this.edges = d3.select('#topology').append("svg")
             .attr("viewBox", "0 0 " + (width) + " " + height + "")
@@ -128,6 +128,7 @@ var View = /** @class */ (function () {
             .attr('id', 'edgeMargin')
             .attr("transform", "translate(" + this.margins.left + "," + this.margins.top + ")");
         // sets the vertical scale
+        console.log(this.edgeWidth);
         this.orderingScale = d3.scaleBand().range([0, this.edgeWidth]).domain(d3.range(this.nodes.length));
         // creates column groupings
         this.edgeColumns = this.edges.selectAll(".column")
@@ -163,7 +164,8 @@ var View = /** @class */ (function () {
             .attr('width', this.orderingScale.bandwidth())
             .attr('fill-opacity', 0);
         // render edges
-        this.controller.configuration.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : this.drawFullSquares(cells);
+        // this.controller.configuration.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
+        this.drawFullSquares(cells);
         cells
             .on("mouseover", function (cell, i, nodes) {
             _this.showEdgeTooltip(cell, i, nodes);
@@ -424,23 +426,22 @@ var View = /** @class */ (function () {
      * @return An object where keys are strings of types and values are d3 scales
      */
     View.prototype.generateEdgeScales = function () {
-        var _this = this;
         var edgeScales = {};
-        this.controller.configuration.attributeScales.edge.type.domain.forEach(function (type) {
-            // calculate the max
-            var extent = [0, _this.controller.configuration.attributeScales.edge.count.domain[1]];
-            //model.maxTracker[type]]
-            // set up scale
-            console.log(extent);
-            var typeIndex = _this.controller.configuration.attributeScales.edge.type.domain.indexOf(type);
-            //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]]);
-            //let otherColors = ['#064B6E', '#4F0664', '#000000']
-            var scale = d3.scaleSqrt().domain(extent).range("white", _this.controller.configuration.attributeScales.edge.type.range[typeIndex]);
-            scale.clamp(true);
-            // store scales
-            edgeScales[type] = scale;
-        });
-        return edgeScales;
+        // this.controller.configuration.attributeScales.edge.type.domain.forEach(type => {
+        //   // calculate the max
+        //   let extent = [0, this.controller.configuration.attributeScales.edge.count.domain[1]];
+        //   //model.maxTracker[type]]
+        //   // set up scale
+        //   console.log(extent);
+        //   let typeIndex = this.controller.configuration.attributeScales.edge.type.domain.indexOf(type);
+        //   //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]]);
+        //   //let otherColors = ['#064B6E', '#4F0664', '#000000']
+        //   let scale = d3.scaleSqrt().domain(extent).range("white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]);
+        //   scale.clamp(true);
+        //   // store scales
+        //   edgeScales[type] = scale;
+        // });
+        // return edgeScales;
     };
     /**
      * Draws the grid lines for the adjacency matrix.
@@ -1114,10 +1115,10 @@ var View = /** @class */ (function () {
      */
     View.prototype.initalizeAttributes = function () {
         var _this = this;
-        var width = this.controller.visWidth * this.controller.attributePorportion; //this.edgeWidth + this.margins.left + this.margins.right;
+        var width = this.controller.visWidth * this.controller.attributeProportion; //this.edgeWidth + this.margins.left + this.margins.right;
         var height = this.controller.visHeight; //this.edgeHeight + this.margins.top + this.margins.bottom;
-        this.attributeWidth = width - (this.margins.left + this.margins.right); //* this.controller.attributePorportion;
-        this.attributeHeight = height - (this.margins.top + this.margins.bottom); // * this.controller.attributePorportion;
+        this.attributeWidth = width - (this.margins.left + this.margins.right); //* this.controller.attributeProportion;
+        this.attributeHeight = height - (this.margins.top + this.margins.bottom); // * this.controller.attributeProportion;
         this.attributes = d3.select('#attributes').append("svg")
             .attr("viewBox", "0 0 " + (width) + " " + height + "")
             .attr("preserveAspectRatio", "xMinYMin meet")

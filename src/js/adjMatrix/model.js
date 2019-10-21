@@ -3,70 +3,67 @@ var Model = /** @class */ (function () {
         var _this = this;
         this.controller = controller;
         this.datumID = controller.datumID;
-        console.log(controller, controller.configuration, controller.configuration.graphFiles, controller.configuration.loadedGraph);
+        console.log(controller);
         //console.log(controller,controller.configuration,controller.configuration.graphFiles[controller.configuration.loadedGraph])
-        d3.json(controller.configuration.graphFiles[controller.configuration.loadedGraph]).then(function (data) {
-            _this.graph = data;
-            _this.edges = data.links;
-            //setPanelValuesFromFile(controller.configuration, data);
-            _this.matrix = [];
-            _this.scalarMatrix = [];
-            /*
-            d3.request('../../assets/adj-matrix/alphabeticalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-              console.log(svg,error)
-              this.alphabeticalSortSvg = svg;
-            })
-      
-            d3.request('../../assets/adj-matrix/categoricalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-              this.categoricalSortSvg = svg;
-            })*/
-            // = "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3 C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z";
-            _this.icons = {
-                'quant': {
-                    'd': "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z"
-                },
-                'alphabetical': {
-                    'd': "M401.1,331.2h-189c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.8C407.7,334.2,404.8,331.2,401.1,331.2z M223.7,344.3H266c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-42.3V344.3z M223.7,373H300c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-76.3V373.7z M263.6,447.8c0,2-1.6,3.6-3.6,3.6h-36.4v-18.8H260c2,0,3.6,1.6,3.6,3.6V447.8z M321.5,418.4c0,2-1.6,3.6-3.6,3.6h-94.2v-18.8h94.2c2,0,3.6,1.6,3.6,3.6V418.4z M392.6,449.5h-34.3V442l22.6-27h-21.7v-8.8h33.2v7.5l-21.5,27h21.7V449.5z M381,394.7l-3.7,6.4l-3.7-6.4h2.7v-14.6h2v14.6H381z M387,380l-3.4-9.7h-13.5l-3.3,9.7h-10.2l15.8-43.3h9l15.8,43.3H387z M371.8,363.4H382l-5.1-15.3L371.8,363.4z"
-                },
-                'categorical': {
-                    'd': "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.4C407.7,333.7,404.7,330.7,401,330.7z M272.9,374.3h-52.4v-17.1h52.4V374.3z M272.9,354h-52.4v-17h52.4V354z M332.1,414.9h-52.4v-17h52.4V414.9z M332.1,394.6h-52.4v-17h52.4V394.6z M394.8,456.5h-52.4v-17h52.4V456.5z M394.8,434.9h-52.4v-17h52.4V434.9z"
-                },
-                'cellSort': {
-                    'd': "M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z"
-                }
-            };
-            _this.nodes = data.nodes;
-            _this.populateSearchBox();
-            _this.idMap = {};
-            // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
-            var clusterFlag = false;
-            if (_this.controller.configuration.adjMatrix.sortKey in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
-                _this.orderType = 'shortName'; //this.controller.configuration.adjMatrix.sortKey;
-                clusterFlag = true;
+        this.graph = graph;
+        this.edges = graph.links;
+        //setPanelValuesFromFile(controller.configuration, data);
+        this.matrix = [];
+        this.scalarMatrix = [];
+        /*
+        d3.request('../../assets/adj-matrix/alphabeticalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
+          console.log(svg,error)
+          this.alphabeticalSortSvg = svg;
+        })
+  
+        d3.request('../../assets/adj-matrix/categoricalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
+          this.categoricalSortSvg = svg;
+        })*/
+        // = "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3 C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z";
+        this.icons = {
+            'quant': {
+                'd': "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z"
+            },
+            'alphabetical': {
+                'd': "M401.1,331.2h-189c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.8C407.7,334.2,404.8,331.2,401.1,331.2z M223.7,344.3H266c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-42.3V344.3z M223.7,373H300c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-76.3V373.7z M263.6,447.8c0,2-1.6,3.6-3.6,3.6h-36.4v-18.8H260c2,0,3.6,1.6,3.6,3.6V447.8z M321.5,418.4c0,2-1.6,3.6-3.6,3.6h-94.2v-18.8h94.2c2,0,3.6,1.6,3.6,3.6V418.4z M392.6,449.5h-34.3V442l22.6-27h-21.7v-8.8h33.2v7.5l-21.5,27h21.7V449.5z M381,394.7l-3.7,6.4l-3.7-6.4h2.7v-14.6h2v14.6H381z M387,380l-3.4-9.7h-13.5l-3.3,9.7h-10.2l15.8-43.3h9l15.8,43.3H387z M371.8,363.4H382l-5.1-15.3L371.8,363.4z"
+            },
+            'categorical': {
+                'd': "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.4C407.7,333.7,404.7,330.7,401,330.7z M272.9,374.3h-52.4v-17.1h52.4V374.3z M272.9,354h-52.4v-17h52.4V354z M332.1,414.9h-52.4v-17h52.4V414.9z M332.1,394.6h-52.4v-17h52.4V394.6z M394.8,456.5h-52.4v-17h52.4V456.5z M394.8,434.9h-52.4v-17h52.4V434.9z"
+            },
+            'cellSort': {
+                'd': "M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z"
             }
-            else {
-                _this.orderType = _this.controller.configuration.adjMatrix.sortKey;
-            }
-            _this.order = _this.changeOrder(_this.orderType);
-            // sorts quantitative by descending value, sorts qualitative by alphabetical
-            if (!_this.isQuant(_this.orderType)) {
-                _this.nodes = _this.nodes.sort(function (a, b) { return a[_this.orderType].localeCompare(b[_this.orderType]); });
-            }
-            else {
-                _this.nodes = _this.nodes.sort(function (a, b) { return b[_this.orderType] - a[_this.orderType]; });
-            }
-            _this.nodes.forEach(function (node, index) {
-                node.index = index;
-                _this.idMap[node.id] = index;
-            });
-            _this.controller = controller;
-            _this.processData();
-            if (clusterFlag) {
-                _this.orderType = _this.controller.configuration.adjMatrix.sortKey;
-                _this.order = _this.changeOrder(_this.orderType);
-            }
-            _this.controller.loadData(_this.nodes, _this.edges, _this.matrix);
+        };
+        this.nodes = graph.nodes;
+        // this.populateSearchBox();
+        this.idMap = {};
+        // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
+        var clusterFlag = false;
+        if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
+            this.orderType = 'shortName'; //this.controller.configuration.adjMatrix.sortKey;
+            clusterFlag = true;
+        }
+        else {
+            // this.orderType = this.controller.configuration.adjMatrix.sortKey;
+        }
+        // this.order = this.changeOrder(this.orderType);
+        // sorts quantitative by descending value, sorts qualitative by alphabetical
+        // if (!this.isQuant(this.orderType)) {
+        //   this.nodes = this.nodes.sort((a, b) => a[this.orderType].localeCompare(b[this.orderType]));
+        // } else {
+        //   this.nodes = this.nodes.sort((a, b) => { return b[this.orderType] - a[this.orderType]; });
+        // }
+        this.nodes.forEach(function (node, index) {
+            node.index = index;
+            _this.idMap[node.id] = index;
         });
+        this.controller = controller;
+        this.processData();
+        // if (clusterFlag) {
+        //   this.orderType = this.controller.configuration.adjMatrix.sortKey;
+        //   this.order = this.changeOrder(this.orderType);
+        // }
+        this.controller.loadData(this.nodes, this.edges, this.matrix);
     }
     /**
      * Determines if the attribute is quantitative
@@ -75,15 +72,14 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.isQuant = function (attr) {
         // if not in list
-        if (!Object.keys(this.controller.configuration.attributeScales.node).includes(attr)) {
-            return false;
-        }
-        else if (this.controller.configuration.attributeScales.node[attr].range === undefined) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        // if (!Object.keys(this.controller.configuration.attributeScales.node).includes(attr)) {
+        //   return false;
+        // } else if (this.controller.configuration.attributeScales.node[attr].range === undefined) {
+        //   return true;
+        // } else {
+        //   return false;
+        // }
+        return false;
     };
     Model.prototype.populateSearchBox = function () {
         /*
@@ -307,8 +303,9 @@ var Model = /** @class */ (function () {
         var _this = this;
         if (node === void 0) { node = false; }
         var order;
-        this.orderType = type;
-        this.controller.configuration.adjMatrix.sortKey = type;
+        // this.orderType = type;
+        // this.controller.configuration.adjMatrix.sortKey = type;
+        type = "edges";
         if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
             var graph = reorder.graph()
                 .nodes(this.nodes)
@@ -335,7 +332,7 @@ var Model = /** @class */ (function () {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['shortName'].localeCompare(_this.nodes[b]['shortName']); });
             order = d3.range(this.nodes.length).sort(function (a, b) { console.log(_this.nodes[a], _this.nodes[a]['neighbors'], parseInt(type)); return _this.nodes[b]['neighbors'].includes(parseInt(type)) - _this.nodes[a]['neighbors'].includes(parseInt(type)); });
         }
-        else if (!this.isQuant(this.orderType)) { // == "screen_name" || this.orderType == "name") {
+        else if (false /*!this.isQuant(this.orderType)*/) { // == "screen_name" || this.orderType == "name") {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a][_this.orderType].localeCompare(_this.nodes[b][_this.orderType]); });
         }
         else {
@@ -387,11 +384,11 @@ var Model = /** @class */ (function () {
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].z += addValue;
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].count += 1;
             // if not directed, increment the other values
-            if (!_this.controller.configuration.isDirected) {
-                _this.matrix[_this.idMap[link.target]][_this.idMap[link.source]].z += addValue;
-                _this.matrix[_this.idMap[link.target]][_this.idMap[link.source]][link.type] += link.count;
-                _this.scalarMatrix[_this.idMap[link.source]][_this.idMap[link.target]] += link.count;
-            }
+            // if (!this.controller.configuration.isDirected) {
+            //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
+            //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
+            //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
+            // }
             link.source = _this.idMap[link.source];
             link.target = _this.idMap[link.target];
         });
