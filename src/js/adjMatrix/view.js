@@ -114,11 +114,12 @@ var View = /** @class */ (function () {
         // d3.select('#topology').style('float', 'left');
         var _this = this;
         // Set width and height based upon the calculated layout size
-        var width = this.controller.visWidth * 1; //this.controller.edgeProportion;
+        var width = this.controller.visWidth;
         var height = this.controller.visHeight;
-        console.log(width, this.margins.left, this.margins.right);
-        this.edgeWidth = width - (this.margins.left + this.margins.right); //*this.controller.edgeProportion;
-        this.edgeHeight = height - (this.margins.top + this.margins.bottom); //*this.controller.edgeProportion;
+        var sideLength = width < height ? width : height;
+        // Use the height as the 
+        this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
+        this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
         // Creates scalable SVG
         this.edges = d3.select('#topology').append("svg")
             .attr("viewBox", "0 0 " + (width) + " " + height + "")
@@ -128,7 +129,7 @@ var View = /** @class */ (function () {
             .attr('id', 'edgeMargin')
             .attr("transform", "translate(" + this.margins.left + "," + this.margins.top + ")");
         // sets the vertical scale
-        this.orderingScale = d3.scaleBand().range([0, this.edgeWidth]).domain(d3.range(this.nodes.length));
+        this.orderingScale = d3.scaleBand().range([0, this.edgeHeight]).domain(d3.range(this.nodes.length));
         // creates column groupings
         this.edgeColumns = this.edges.selectAll(".column")
             .data(this.matrix)

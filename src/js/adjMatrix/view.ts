@@ -162,12 +162,13 @@ class View {
     // d3.select('#topology').style('float', 'left');
 
     // Set width and height based upon the calculated layout size
-    let width = this.controller.visWidth * 1;//this.controller.edgeProportion;
+    let width = this.controller.visWidth
     let height = this.controller.visHeight;
+    let sideLength = width < height ? width : height
 
-    console.log(width, this.margins.left, this.margins.right)
-    this.edgeWidth = width - (this.margins.left + this.margins.right)//*this.controller.edgeProportion;
-    this.edgeHeight = height - (this.margins.top + this.margins.bottom)//*this.controller.edgeProportion;
+    // Use the height as the 
+    this.edgeWidth = sideLength - (this.margins.left + this.margins.right)
+    this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom)
 
     // Creates scalable SVG
     this.edges = d3.select('#topology').append("svg")
@@ -179,7 +180,7 @@ class View {
       .attr("transform", "translate(" + this.margins.left + "," + this.margins.top + ")")
 
     // sets the vertical scale
-    this.orderingScale = d3.scaleBand<number>().range([0, this.edgeWidth]).domain(d3.range(this.nodes.length));
+    this.orderingScale = d3.scaleBand<number>().range([0, this.edgeHeight]).domain(d3.range(this.nodes.length));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll(".column")
