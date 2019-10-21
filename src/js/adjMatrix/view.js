@@ -161,7 +161,7 @@ var View = /** @class */ (function () {
             .attr("x", function (d) { return 0; })
             .attr('height', this.orderingScale.bandwidth())
             .attr('width', this.orderingScale.bandwidth())
-            .attr('fill-opacity', 0);
+            .attr('fill-opacity');
         // render edges
         // this.controller.configuration.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
         this.drawFullSquares(cells);
@@ -247,7 +247,12 @@ var View = /** @class */ (function () {
             .style("fill", 'white');
         squares
             .filter(function (d) { return d.z == 0; })
-            .style("fill-opacity", 0);
+            .style("fill-opacity", function (d) {
+            var row = d.cellName.split("_")[0].split("cell")[1];
+            var column = d.cellName.split("_")[1];
+            var numConnections = graph.links.map(function (d) { var outcome = d.source === row && d.target === column ? 1 : 0; return outcome; }).reduce(function (a, b) { return a + b; }, 0);
+            return 1 - numConnections;
+        });
         this.setSquareColors('all');
     };
     /**

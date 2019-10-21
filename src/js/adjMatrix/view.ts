@@ -222,7 +222,7 @@ class View {
       .attr("x", d => 0)
       .attr('height', this.orderingScale.bandwidth())
       .attr('width', this.orderingScale.bandwidth())
-      .attr('fill-opacity', 0);
+      .attr('fill-opacity', )
 
     // render edges
     // this.controller.configuration.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
@@ -318,7 +318,14 @@ class View {
       .style("fill", 'white')
     squares
       .filter(d => d.z == 0)
-      .style("fill-opacity", 0);
+      .style("fill-opacity", d => { 
+          let row = d.cellName.split("_")[0].split("cell")[1]
+          let column = d.cellName.split("_")[1]
+
+          let numConnections = graph.links.map(d => { let outcome = d.source === row && d.target === column ? 1 : 0; return outcome}).reduce((a, b) => a + b, 0)
+          
+          return 1 - numConnections
+         });
 
     this.setSquareColors('all');
 
