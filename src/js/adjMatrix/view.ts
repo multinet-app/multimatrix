@@ -432,7 +432,7 @@ class View {
       .attr("dy", ".32em")
       .attr("text-anchor", "end")
       .style("font-size", labelSize)
-      .text((d, i) => this.nodes[i].shortName)
+      .text((d, i) => this.nodes[i].name)
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('click', (d, i, nodes) => {

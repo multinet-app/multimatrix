@@ -285,7 +285,6 @@ class Controller {
    * @return [description]
    */
   getOrder() {
-    
     return this.model.getOrder();
   }
 

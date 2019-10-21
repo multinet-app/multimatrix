@@ -348,7 +348,7 @@ var View = /** @class */ (function () {
             .attr("dy", ".32em")
             .attr("text-anchor", "end")
             .style("font-size", labelSize)
-            .text(function (d, i) { return _this.nodes[i].shortName; })
+            .text(function (d, i) { return _this.nodes[i].name; })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('click', function (d, i, nodes) {
