@@ -250,6 +250,7 @@ var View = /** @class */ (function () {
             .style("fill-opacity", function (d) {
             var row = d.cellName.split("_")[0].split("cell")[1];
             var column = d.cellName.split("_")[1];
+            // Get the number of connections, should only be at most 1 with our test data
             var numConnections = graph.links.map(function (d) { var outcome = d.source === row && d.target === column ? 1 : 0; return outcome; }).reduce(function (a, b) { return a + b; }, 0);
             return 1 - numConnections;
         });
@@ -278,7 +279,6 @@ var View = /** @class */ (function () {
             mentionsMessage = mentionsMessage.substring(0, mentionsMessage.length - 1);
         }
         var message = [interactedMessage, retweetMessage, mentionsMessage].filter(Boolean).join("</br>"); //retweetMessage+'</br>'+mentionsMessage
-        console.log(message);
         if (message !== '') {
             var yOffset = (retweetMessage !== '' && mentionsMessage !== '') ? 45 : 30;
             console.log(yOffset);

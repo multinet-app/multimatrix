@@ -52,9 +52,9 @@ async function load_links(workspace, edge_table) {
 
 function rename_link_vars(links) {
     for (row of links) {
-        row.id = row._id;
-        row.source = row._from;
-        row.target = row._to;
+        row.id = row._id.replace(/\//g, "-");
+        row.source = row._from.replace(/\//g, "-");
+        row.target = row._to.replace(/\//g, "-");
 
         delete row._id;
         delete row._from;
@@ -66,7 +66,7 @@ function rename_link_vars(links) {
 
 function rename_node_vars(nodes) {
     for (row of nodes) {
-        row.id = row._id;
+        row.id = row._id.replace(/\//g, "-");
 
         delete row._id;
     };

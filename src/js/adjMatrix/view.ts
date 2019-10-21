@@ -322,6 +322,7 @@ class View {
           let row = d.cellName.split("_")[0].split("cell")[1]
           let column = d.cellName.split("_")[1]
 
+          // Get the number of connections, should only be at most 1 with our test data
           let numConnections = graph.links.map(d => { let outcome = d.source === row && d.target === column ? 1 : 0; return outcome}).reduce((a, b) => a + b, 0)
           
           return 1 - numConnections
@@ -356,7 +357,6 @@ class View {
     }
 
     let message = [interactedMessage, retweetMessage, mentionsMessage].filter(Boolean).join("</br>");//retweetMessage+'</br>'+mentionsMessage
-    console.log(message);
 
     if (message !== '') {
       let yOffset = (retweetMessage !== '' && mentionsMessage !== '') ? 45 : 30;
