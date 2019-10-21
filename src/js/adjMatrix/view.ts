@@ -179,7 +179,6 @@ class View {
       .attr("transform", "translate(" + this.margins.left + "," + this.margins.top + ")")
 
     // sets the vertical scale
-    console.log(this.edgeWidth)
     this.orderingScale = d3.scaleBand<number>().range([0, this.edgeWidth]).domain(d3.range(this.nodes.length));
 
     // creates column groupings
@@ -252,7 +251,7 @@ class View {
     this.controller.hoverRow = {}
     this.controller.hoverCol = {}
 
-    this.order = this.controller.getOrder();
+    // this.order = this.controller.getOrder();
 
     this.appendEdgeLabels();
 
@@ -419,7 +418,8 @@ class View {
    * @return none
    */
   appendEdgeLabels() {
-    let labelSize = this.controller.configuration.nodeAttributes.length > 4 ? 9.5 : 11;
+    let labelSize = //this.controller.configuration.nodeAttributes.length > 4 ? 9.5 : 
+    11;
     this.nodes.length < 50 ? labelSize = labelSize + 2 : null;
     this.edgeRows.append("text")
       .attr('class', 'rowLabel')
@@ -441,16 +441,21 @@ class View {
       })
 
     let verticalOffset = 3;
-    if(this.controller.configuration.adjMatrix.neighborSelect){
+    if(true/*this.controller.configuration.adjMatrix.neighborSelect*/){
       verticalOffset = 187.5;
       let horizontalOffset = this.nodes.length < 50 ? 143.75 : 0;
-      this.edgeColumns.append('path').attr('id',d=>'sortIcon'+d[0].rowid).attr('class', 'sortIcon').attr('d', (d) => {
-          return this.controller.model.icons['cellSort'].d;
-        }).style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' }).attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
+      this.edgeColumns.append('path')
+      .attr('id', d=>'sortIcon' + d[0].rowid)
+      .attr('class', 'sortIcon')
+      .attr('d', (d) => {
+          return "hello";//this.controller.model.icons['cellSort'].d;
+        })
+        //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+        .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
         .on('click', (d, i, nodes) => {
           this.sort(d[0].rowid);
           //this.clickFunction(d, i, nodes);
-          console.log(d3.select('#colLabel'+d[0].rowid));
+          console.log(d3.select('#colLabel' + d[0].rowid));
           /*var e = document.createEvent('UIEvents');
           e.initUIEvent('click', true, true, /* ... *///);
           /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
@@ -475,9 +480,9 @@ class View {
       .attr("dy", ".32em")
       .attr("text-anchor", "start")
       .style("font-size", labelSize)
-      .text((d, i) => this.nodes[i].shortName)
+      .text((d, i) => this.nodes[i].name)
       .on('click', (d, i, nodes) => {
-        if (this.controller.configuration.adjMatrix.neighborSelect) {
+        if (true /*this.controller.configuration.adjMatrix.neighborSelect*/) {
           //this.sort(d[0].rowid)
           this.clickFunction(d, i, nodes);
           let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');

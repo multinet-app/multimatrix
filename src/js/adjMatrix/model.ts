@@ -63,12 +63,12 @@ class Model {
 
       // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
       let clusterFlag = false;
-      if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
-        this.orderType = 'shortName';//this.controller.configuration.adjMatrix.sortKey;
-        clusterFlag = true;
-      } else {
-        // this.orderType = this.controller.configuration.adjMatrix.sortKey;
-      }
+      // if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
+      //   this.orderType = 'shortName';//this.controller.configuration.adjMatrix.sortKey;
+      //   clusterFlag = true;
+      // } else {
+      //   // this.orderType = this.controller.configuration.adjMatrix.sortKey;
+      // }
 
       // this.order = this.changeOrder(this.orderType);
 
@@ -272,6 +272,7 @@ class Model {
             let cellsNames = splitCellNames(name);
             cellNames = cellNames.concat(cellsNames)
           })
+          console.log(cellNames, "cellnames")
 
           //names.map(name=>{
           //})

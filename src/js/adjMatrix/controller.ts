@@ -36,9 +36,12 @@ class Controller {
   }
 
   finishConstructing() {
+    console.log("making view")
     this.view = new View(this); // initalize view,
+    console.log(this.view, "view")
+    console.log("making model")
     this.model = new Model(this); // start reading in data
-
+    console.log(this.model, "model")
   }
 
   private tasks: any;
@@ -241,7 +244,10 @@ class Controller {
     this.loadTasks();
 
     this.sizeLayout();
-    this.finishConstructing()
+
+    console.log("finishing")
+    this.finishConstructing();
+    console.log("model", this.model)
   }
 
   clearView() {

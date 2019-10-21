@@ -128,7 +128,6 @@ var View = /** @class */ (function () {
             .attr('id', 'edgeMargin')
             .attr("transform", "translate(" + this.margins.left + "," + this.margins.top + ")");
         // sets the vertical scale
-        console.log(this.edgeWidth);
         this.orderingScale = d3.scaleBand().range([0, this.edgeWidth]).domain(d3.range(this.nodes.length));
         // creates column groupings
         this.edgeColumns = this.edges.selectAll(".column")
@@ -185,7 +184,7 @@ var View = /** @class */ (function () {
         this.controller.answerRow = {};
         this.controller.hoverRow = {};
         this.controller.hoverCol = {};
-        this.order = this.controller.getOrder();
+        // this.order = this.controller.getOrder();
         this.appendEdgeLabels();
         // add tooltip
         this.tooltip = d3.select("body")
@@ -335,7 +334,8 @@ var View = /** @class */ (function () {
      */
     View.prototype.appendEdgeLabels = function () {
         var _this = this;
-        var labelSize = this.controller.configuration.nodeAttributes.length > 4 ? 9.5 : 11;
+        var labelSize = //this.controller.configuration.nodeAttributes.length > 4 ? 9.5 : 
+         11;
         this.nodes.length < 50 ? labelSize = labelSize + 2 : null;
         this.edgeRows.append("text")
             .attr('class', 'rowLabel')
@@ -356,12 +356,17 @@ var View = /** @class */ (function () {
             _this.clickFunction(d, i, nodes);
         });
         var verticalOffset = 3;
-        if (this.controller.configuration.adjMatrix.neighborSelect) {
+        if (true /*this.controller.configuration.adjMatrix.neighborSelect*/) {
             verticalOffset = 187.5;
             var horizontalOffset = this.nodes.length < 50 ? 143.75 : 0;
-            this.edgeColumns.append('path').attr('id', function (d) { return 'sortIcon' + d[0].rowid; }).attr('class', 'sortIcon').attr('d', function (d) {
-                return _this.controller.model.icons['cellSort'].d;
-            }).style('fill', function (d) { return d == _this.controller.model.orderType ? '#EBB769' : '#8B8B8B'; }).attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
+            this.edgeColumns.append('path')
+                .attr('id', function (d) { return 'sortIcon' + d[0].rowid; })
+                .attr('class', 'sortIcon')
+                .attr('d', function (d) {
+                return "hello"; //this.controller.model.icons['cellSort'].d;
+            })
+                //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+                .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
                 .on('click', function (d, i, nodes) {
                 _this.sort(d[0].rowid);
                 //this.clickFunction(d, i, nodes);
@@ -388,9 +393,9 @@ var View = /** @class */ (function () {
             .attr("dy", ".32em")
             .attr("text-anchor", "start")
             .style("font-size", labelSize)
-            .text(function (d, i) { return _this.nodes[i].shortName; })
+            .text(function (d, i) { return _this.nodes[i].name; })
             .on('click', function (d, i, nodes) {
-            if (_this.controller.configuration.adjMatrix.neighborSelect) {
+            if (true /*this.controller.configuration.adjMatrix.neighborSelect*/) {
                 //this.sort(d[0].rowid)
                 _this.clickFunction(d, i, nodes);
                 var action = _this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');

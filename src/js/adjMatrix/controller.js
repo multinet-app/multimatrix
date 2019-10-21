@@ -44,7 +44,9 @@ var Controller = /** @class */ (function () {
         //this.loadClearButton();
         this.loadTasks();
         this.sizeLayout();
+        console.log("finishing");
         this.finishConstructing();
+        console.log("model", this.model);
     }
     Controller.prototype.setupExports = function (base, task) {
         d3.select("#exportBaseConfig").on("click", function () {
@@ -72,8 +74,12 @@ var Controller = /** @class */ (function () {
           */
     };
     Controller.prototype.finishConstructing = function () {
+        console.log("making view");
         this.view = new View(this); // initalize view,
+        console.log(this.view, "view");
+        console.log("making model");
         this.model = new Model(this); // start reading in data
+        console.log(this.model, "model");
     };
     Controller.prototype.loadTask = function (taskNum) {
         // console.log(this.tasks)
