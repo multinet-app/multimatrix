@@ -36,27 +36,14 @@ class Controller {
   }
 
   finishConstructing() {
-    console.log("making view")
     this.view = new View(this); // initalize view,
-    console.log(this.view, "view")
-    console.log("making model")
     this.model = new Model(this); // start reading in data
-    console.log(this.model, "model")
   }
 
   private tasks: any;
   private taskNum: number;
 
   loadTask(taskNum) {
-    // console.log(this.tasks)
-    // this.tasks = taskList
-    // console.log(this.tasks);
-    // this.taskNum = taskNum;
-    // this.task = this.tasks[this.taskNum];
-    // console.log(this.task,this.tasks,this.tasks[this.taskNum],this.taskNum)
-    // this.configuration = this.task.config;
-    // //let prompt = 'Task ' + (this.taskNum + 1) + ' - ' + this.task.prompt;
-
     // edgeBars = true;
     // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
     //   if (!this.configuration.nodeAttributes.includes('selected')) {
@@ -82,74 +69,14 @@ class Controller {
     // this.configuration.state = {}
     // this.configuration.state.adjMatrix = {};
     // if (this.configuration.adjMatrix.sortKey == null || this.configuration.adjMatrix.sortKey == '') {
-    sortKey = 'name'
+    let sortKey = 'name'
     // }
 
     this.sizeLayout();
     //configuration.adjMatrix.sortKey
     this.reload();
-
-    // load data file
-    // render vis from configurations
-    // add observers and new provenance graph
-    // create new field to store in fB?
   }
-  async loadTasks() {
-    this.taskNum = 0;
-    this.tasks = taskList;
-    // work here to disambiguate task stuff TODO
-    /*
-    let taskConfigs = await d3.json("./../../taskLists/am_large.json").then((data) => {
-      //this.tasks = data.tasks;
-      this.configuration = data.task1.config;
-      this.tasks = [data.task1];
 
-      let obj = {
-        "domain": [true, false],
-        "range": ["#e86b45", '#fff'],
-        "labels": ['answer', 'not answer'],
-        'glyph': 'rect',
-        'label': 'selected'
-      }
-
-      //this.configuration = result;
-      this.configuration.attributeScales.node['selected'] = obj;
-      this.configuration.state = {}
-      this.configuration.state.adjMatrix = {};
-      this.configuration.adjMatrix.sortKey = 'shortName'
-      //configuration.adjMatrix.sortKey
-      this.reload();
-
-    });*/
-
-    //let taskConfig = "../configs/task" + (this.taskNum + 1).toString() + "Config.json";
-    //if (this.tenAttr) {
-    //  taskConfig = "../configs/10AttrConfig.json"
-    //} else if (this.fiveAttr) {
-    //  taskConfig = "../configs/5AttrConfig.json"
-    //}
-
-    //let that = this;
-    /*
-    Promise.all([
-      d3.json("../configs/baseConfig.json"),
-      d3.json(taskConfig),
-      d3.json("../configs/state.json")
-    ]).then((configComponents) => {
-      /*that.setupCSS(configComponents[0]);
-      that.setupExports(configComponents[0], configComponents[1]);
-      let components = [configComponents[0], configComponents[1], configComponents[2]];
-      let result = deepmerge.all(components);
-*/
-    // added selected attribute scale
-
-    //that.finishConstructing(result);
-    //})
-
-
-
-
-  }
   private clickedCells: any;
   clear() {
 
@@ -160,7 +87,6 @@ class Controller {
           //add time stamp to the state graph
           currentState.time = Date.now();
           currentState.event = 'clear';
-          console.log("before Clear:", currentState)
           currentState.selections = {
             answerBox: {},
             attrRow: {},
@@ -172,7 +98,6 @@ class Controller {
             neighborSelect: {},
             previousMouseovers: []
           }
-          console.log("after Clear:", currentState)
           return currentState;
         },
         args: []
@@ -239,20 +164,12 @@ class Controller {
     this.datumID = 'id';
     this.clickedCells = new Set();
 
-
-    //this.loadClearButton();
-    this.loadTasks();
-
     this.sizeLayout();
-
-    console.log("finishing")
     this.finishConstructing();
-    console.log("model", this.model)
   }
 
   clearView() {
     d3.select('.tooltip').remove();
-
     d3.select('#topology').selectAll('*').remove();
     d3.select('#attributes').selectAll('*').remove();
     d3.select('#legend-svg').selectAll('*').remove();
@@ -261,14 +178,12 @@ class Controller {
 
   reload() {
     this.clearView();
-    //this.loadCurrentTask();
     d3.select('.loading').style('display', 'block');
 
     this.view = new View(this); // initalize view,
     this.model = new Model(this); //.reload();
     startTime = Date.now();
-    console.log("model", this.model)
-    //
+
     //this.model = new Model(this); // start reading in data
   }
 

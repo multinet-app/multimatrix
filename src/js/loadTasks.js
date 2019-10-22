@@ -53,9 +53,6 @@ async function loadNewGraph(fileName) {
 
     options.attr("value", d => d.shortName);
     options.attr("id", d => d.id);
-    // options.attr('onclick',"console.log('clicked')");
-
-    // options.on("click",console.log('clicked an option!'))
 }
 
 async function loadTasks() {

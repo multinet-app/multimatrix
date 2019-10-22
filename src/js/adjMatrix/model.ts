@@ -20,9 +20,6 @@ class Model {
   constructor(controller: any) {
     this.controller = controller;
     this.datumID = controller.datumID;
-    console.log(controller)
-
-    //console.log(controller,controller.configuration,controller.configuration.graphFiles[controller.configuration.loadedGraph])
     
       this.graph = graph;
       this.edges = graph.links;
@@ -32,7 +29,6 @@ class Model {
       this.scalarMatrix = [];
       /*
       d3.request('../../assets/adj-matrix/alphabeticalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-        console.log(svg,error)
         this.alphabeticalSortSvg = svg;
       })
 
@@ -143,7 +139,6 @@ class Model {
 
     d3.select("#search-input").on("change", (d,i,nodes) => {
       let selectedOption = d3.select(nodes[i]).property("value");
-      console.log(this.controller.view.search(selectedOption))
     });
 */
   }
@@ -256,7 +251,6 @@ class Model {
 
     function setUpObservers() {
       let updateHighlights = (state) => {
-        console.log(state);
         d3.selectAll('.clicked').classed('clicked', false);
         d3.selectAll('.answer').classed('answer', false);
         d3.selectAll('.neighbor').classed('neighbor', false);
@@ -272,7 +266,6 @@ class Model {
             let cellsNames = splitCellNames(name);
             cellNames = cellNames.concat(cellsNames)
           })
-          console.log(cellNames, "cellnames")
 
           //names.map(name=>{
           //})
@@ -342,7 +335,6 @@ class Model {
         currentState.event = 'sort';
 
         currentState.sortKey = sortKey
-        console.log(this.controller.view,this.controller.view.mouseoverEvents)
         if(this.controller.view,this.controller.view.mouseoverEvents){
           currentState.selections.previousMouseovers = this.controller.view.mouseoverEvents;
           this.controller.view.mouseoverEvents.length = 0;
@@ -400,7 +392,7 @@ class Model {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type].length - this.nodes[a][type].length);
     } else if (node == true) {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['shortName'].localeCompare(this.nodes[b]['shortName']));
-      order = d3.range(this.nodes.length).sort((a, b) => { console.log(this.nodes[a], this.nodes[a]['neighbors'], parseInt(type)); return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type)); });
+      order = d3.range(this.nodes.length).sort((a, b) => {return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type));});
     }
     else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]));

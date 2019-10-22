@@ -98,12 +98,10 @@ class View {
    */
   search(searchNode: string) {
     let selectedOption = searchNode.toLowerCase()//d3.select(nodes[i]).property("value");
-    console.log(selectedOption);
 
     if (selectedOption.length === 0) {
       return;
     }
-
 
     //find the right nodeObject
     let name = this.nodes.filter(node => { return node.shortName.toLowerCase() == selectedOption });
@@ -112,7 +110,6 @@ class View {
     name = name[0][this.datumID];
 
     let state = this.controller.model.app.currentState();
-    console.log(state.selections.search, state, name);
     if (name in state.selections.search) {
       return 0;
     }
@@ -158,15 +155,12 @@ class View {
    * @return None
    */
   initalizeEdges() {
-    // Float edges so put edges and attr on same row
-    // d3.select('#topology').style('float', 'left');
-
-    // Set width and height based upon the calculated layout size
+    // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     let width = this.controller.visWidth
     let height = this.controller.visHeight;
     let sideLength = width < height ? width : height
 
-    // Use the height as the 
+    // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right)
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom)
 
@@ -361,7 +355,6 @@ class View {
 
     if (message !== '') {
       let yOffset = (retweetMessage !== '' && mentionsMessage !== '') ? 45 : 30;
-      console.log(yOffset);
       this.tooltip.html(message)
         .style("left", (window.pageXOffset + matrix.e - 45) + "px")
         .style("top", (window.pageYOffset + matrix.f - yOffset) + "px");
@@ -463,7 +456,6 @@ class View {
         .on('click', (d, i, nodes) => {
           this.sort(d[0].rowid);
           //this.clickFunction(d, i, nodes);
-          console.log(d3.select('#colLabel' + d[0].rowid));
           /*var e = document.createEvent('UIEvents');
           e.initUIEvent('click', true, true, /* ... *///);
           /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
@@ -536,7 +528,6 @@ class View {
     //   let extent = [0, this.controller.configuration.attributeScales.edge.count.domain[1]];
     //   //model.maxTracker[type]]
     //   // set up scale
-    //   console.log(extent);
     //   let typeIndex = this.controller.configuration.attributeScales.edge.type.domain.indexOf(type);
 
     //   //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]]);
@@ -597,7 +588,6 @@ class View {
       .attr("y2", this.edgeHeight + this.margins.bottom)
       .style('stroke', '#aaa')
       .style('opacity', 0.3)
-      console.log(one,two)
     // adds column lines
     /*this.edgeColumns.append("line")
       .attr("x1", -this.edgeWidth)
@@ -661,11 +651,8 @@ class View {
       label: interactionType,
       action: (nodeID) => {
         const currentState = this.controller.model.app.currentState();
-        console.log(this.mouseoverEvents,currentState.selections.previousMouseovers);
           currentState.selections.previousMouseovers = this.mouseoverEvents;
           this.mouseoverEvents.length = 0;
-          console.log(this.mouseoverEvents);
-        console.log(currentState);
         //add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = interactionType;
@@ -1201,7 +1188,7 @@ class View {
     let nodeIDs = this.nodes.map(node=>node.id);
     if(nodeIDs.includes(parseInt(order))){
       this.order = this.controller.changeOrder(order,true);
-      console.log(order);
+      (order);
     } else {
       this.order = this.controller.changeOrder(order);
 
@@ -1512,7 +1499,6 @@ class View {
           .attr('x', columnPosition + barMargin.left)
           .attr('y', barMargin.top) // as y is set by translate
           .attr('fill', d => {
-            console.log(this.controller.model.orderType, column);
             return this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B'
           })
           .on('mouseover', function(d) {
@@ -1745,15 +1731,14 @@ class View {
       })
 
     columnHeaderGroups
-    //console.log(this.controller.model.categoricalSortSvg)
     if (columns.length < 6) {
       let path = columnHeaderGroups.filter(d => { return d !== 'selected' }).append('path').attr('class', 'sortIcon').attr('d', (d) => {
         let variable = this.isCategorical(d) ? 'categorical' : 'quant'
         return this.controller.model.icons[variable].d;
-      }).style('fill', d => { console.log(d == this.controller.model.orderType, d, this.controller.model.orderType); return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' }).attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")").on('click', (d, i, nodes) => {
-        this.sort(d);
-      }).attr('cursor', 'pointer');
-      console.log(path);
+      }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+      .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
+      .on('click', (d, i, nodes) => {this.sort(d);})
+      .attr('cursor', 'pointer');
     }
 
 
@@ -1788,7 +1773,6 @@ class View {
         }).style('fill', () => { return sortNames[i] == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' }).attr("transform", "scale(0.1)translate(" + (-195) + "," + (-320) + ")")/*.on('click', (d,i,nodes) => {
         this.sort(d);
       })*/.attr('cursor', 'pointer');
-      console.log(path, realPath)
       button.on('click', () => {
         this.sort(sortNames[i]);
       })
@@ -1980,7 +1964,6 @@ class View {
         .style('font-size', 11)
       //.attr('transform', 'rotate(-90)')
       rect1.on('mouseover', (d, index, nodes) => {
-        console.log(attributeInfo.domain[i]);
         let matrix = nodes[index].getScreenCTM()
           .translate(+nodes[index].getAttribute("x"), +nodes[index].getAttribute("y"));
 

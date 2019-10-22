@@ -3,8 +3,6 @@ var Model = /** @class */ (function () {
         var _this = this;
         this.controller = controller;
         this.datumID = controller.datumID;
-        console.log(controller);
-        //console.log(controller,controller.configuration,controller.configuration.graphFiles[controller.configuration.loadedGraph])
         this.graph = graph;
         this.edges = graph.links;
         //setPanelValuesFromFile(controller.configuration, data);
@@ -12,7 +10,6 @@ var Model = /** @class */ (function () {
         this.scalarMatrix = [];
         /*
         d3.request('../../assets/adj-matrix/alphabeticalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-          console.log(svg,error)
           this.alphabeticalSortSvg = svg;
         })
   
@@ -107,7 +104,6 @@ var Model = /** @class */ (function () {
     
         d3.select("#search-input").on("change", (d,i,nodes) => {
           let selectedOption = d3.select(nodes[i]).property("value");
-          console.log(this.controller.view.search(selectedOption))
         });
     */
     };
@@ -206,7 +202,6 @@ var Model = /** @class */ (function () {
         function setUpObservers() {
             var _this = this;
             var updateHighlights = function (state) {
-                console.log(state);
                 d3.selectAll('.clicked').classed('clicked', false);
                 d3.selectAll('.answer').classed('answer', false);
                 d3.selectAll('.neighbor').classed('neighbor', false);
@@ -220,7 +215,6 @@ var Model = /** @class */ (function () {
                         var cellsNames = splitCellNames(name);
                         cellNames = cellNames.concat(cellsNames);
                     });
-                    console.log(cellNames, "cellnames");
                     //names.map(name=>{
                     //})
                 });
@@ -276,7 +270,6 @@ var Model = /** @class */ (function () {
                 currentState.time = Date.now();
                 currentState.event = 'sort';
                 currentState.sortKey = sortKey;
-                console.log(_this.controller.view, _this.controller.view.mouseoverEvents);
                 if (_this.controller.view, _this.controller.view.mouseoverEvents) {
                     currentState.selections.previousMouseovers = _this.controller.view.mouseoverEvents;
                     _this.controller.view.mouseoverEvents.length = 0;
@@ -330,7 +323,7 @@ var Model = /** @class */ (function () {
         }
         else if (node == true) {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['shortName'].localeCompare(_this.nodes[b]['shortName']); });
-            order = d3.range(this.nodes.length).sort(function (a, b) { console.log(_this.nodes[a], _this.nodes[a]['neighbors'], parseInt(type)); return _this.nodes[b]['neighbors'].includes(parseInt(type)) - _this.nodes[a]['neighbors'].includes(parseInt(type)); });
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b]['neighbors'].includes(parseInt(type)) - _this.nodes[a]['neighbors'].includes(parseInt(type)); });
         }
         else if (false /*!this.isQuant(this.orderType)*/) { // == "screen_name" || this.orderType == "name") {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a][_this.orderType].localeCompare(_this.nodes[b][_this.orderType]); });

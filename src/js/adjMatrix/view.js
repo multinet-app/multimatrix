@@ -64,7 +64,6 @@ var View = /** @class */ (function () {
      */
     View.prototype.search = function (searchNode) {
         var selectedOption = searchNode.toLowerCase(); //d3.select(nodes[i]).property("value");
-        console.log(selectedOption);
         if (selectedOption.length === 0) {
             return;
         }
@@ -74,7 +73,6 @@ var View = /** @class */ (function () {
             return -1; // node was not found
         name = name[0][this.datumID];
         var state = this.controller.model.app.currentState();
-        console.log(state.selections.search, state, name);
         if (name in state.selections.search) {
             return 0;
         }
@@ -110,14 +108,12 @@ var View = /** @class */ (function () {
      * @return None
      */
     View.prototype.initalizeEdges = function () {
-        // Float edges so put edges and attr on same row
-        // d3.select('#topology').style('float', 'left');
         var _this = this;
-        // Set width and height based upon the calculated layout size
+        // Set width and height based upon the calculated layout size. Grab the smaller of the 2
         var width = this.controller.visWidth;
         var height = this.controller.visHeight;
         var sideLength = width < height ? width : height;
-        // Use the height as the 
+        // Use the smallest side as the length of the matrix
         this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
         this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
         // Creates scalable SVG
@@ -282,7 +278,6 @@ var View = /** @class */ (function () {
         var message = [interactedMessage, retweetMessage, mentionsMessage].filter(Boolean).join("</br>"); //retweetMessage+'</br>'+mentionsMessage
         if (message !== '') {
             var yOffset = (retweetMessage !== '' && mentionsMessage !== '') ? 45 : 30;
-            console.log(yOffset);
             this.tooltip.html(message)
                 .style("left", (window.pageXOffset + matrix.e - 45) + "px")
                 .style("top", (window.pageYOffset + matrix.f - yOffset) + "px");
@@ -376,7 +371,6 @@ var View = /** @class */ (function () {
                 .on('click', function (d, i, nodes) {
                 _this.sort(d[0].rowid);
                 //this.clickFunction(d, i, nodes);
-                console.log(d3.select('#colLabel' + d[0].rowid));
                 /*var e = document.createEvent('UIEvents');
                 e.initUIEvent('click', true, true, /* ... */ //);
                 /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
@@ -443,7 +437,6 @@ var View = /** @class */ (function () {
         //   let extent = [0, this.controller.configuration.attributeScales.edge.count.domain[1]];
         //   //model.maxTracker[type]]
         //   // set up scale
-        //   console.log(extent);
         //   let typeIndex = this.controller.configuration.attributeScales.edge.type.domain.indexOf(type);
         //   //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]]);
         //   //let otherColors = ['#064B6E', '#4F0664', '#000000']
@@ -497,7 +490,6 @@ var View = /** @class */ (function () {
             .attr("y2", this.edgeHeight + this.margins.bottom)
             .style('stroke', '#aaa')
             .style('opacity', 0.3);
-        console.log(one, two);
         // adds column lines
         /*this.edgeColumns.append("line")
           .attr("x1", -this.edgeWidth)
@@ -558,11 +550,8 @@ var View = /** @class */ (function () {
             label: interactionType,
             action: function (nodeID) {
                 var currentState = _this.controller.model.app.currentState();
-                console.log(_this.mouseoverEvents, currentState.selections.previousMouseovers);
                 currentState.selections.previousMouseovers = _this.mouseoverEvents;
                 _this.mouseoverEvents.length = 0;
-                console.log(_this.mouseoverEvents);
-                console.log(currentState);
                 //add time stamp to the state graph
                 currentState.time = Date.now();
                 currentState.event = interactionType;
@@ -1026,7 +1015,7 @@ var View = /** @class */ (function () {
         var nodeIDs = this.nodes.map(function (node) { return node.id; });
         if (nodeIDs.includes(parseInt(order))) {
             this.order = this.controller.changeOrder(order, true);
-            console.log(order);
+            (order);
         }
         else {
             this.order = this.controller.changeOrder(order);
@@ -1271,7 +1260,6 @@ var View = /** @class */ (function () {
                     .attr('x', columnPosition + barMargin.left)
                     .attr('y', barMargin.top) // as y is set by translate
                     .attr('fill', function (d) {
-                    console.log(_this.controller.model.orderType, column);
                     return _this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B';
                 })
                     .on('mouseover', function (d) {
@@ -1477,15 +1465,14 @@ var View = /** @class */ (function () {
             }
         });
         columnHeaderGroups;
-        //console.log(this.controller.model.categoricalSortSvg)
         if (columns.length < 6) {
             var path = columnHeaderGroups.filter(function (d) { return d !== 'selected'; }).append('path').attr('class', 'sortIcon').attr('d', function (d) {
                 var variable = _this.isCategorical(d) ? 'categorical' : 'quant';
                 return _this.controller.model.icons[variable].d;
-            }).style('fill', function (d) { console.log(d == _this.controller.model.orderType, d, _this.controller.model.orderType); return d == _this.controller.model.orderType ? '#EBB769' : '#8B8B8B'; }).attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")").on('click', function (d, i, nodes) {
-                _this.sort(d);
-            }).attr('cursor', 'pointer');
-            console.log(path);
+            }).style('fill', function (d) { return d == _this.controller.model.orderType ? '#EBB769' : '#8B8B8B'; })
+                .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
+                .on('click', function (d, i, nodes) { _this.sort(d); })
+                .attr('cursor', 'pointer');
         }
         var answerColumn = columnHeaders.selectAll('.header').filter(function (d) { return d == 'selected'; });
         answerColumn.attr('font-weight', 650);
@@ -1514,7 +1501,6 @@ var View = /** @class */ (function () {
             this.sort(d);
           })*/
                 .attr('cursor', 'pointer');
-            console.log(path, realPath);
             button.on('click', function () {
                 _this.sort(sortNames[i]);
             });
@@ -1664,7 +1650,6 @@ var View = /** @class */ (function () {
                 .style('font-size', 11);
             //.attr('transform', 'rotate(-90)')
             rect1.on('mouseover', function (d, index, nodes) {
-                console.log(attributeInfo.domain[i]);
                 var matrix = nodes[index].getScreenCTM()
                     .translate(+nodes[index].getAttribute("x"), +nodes[index].getAttribute("y"));
                 _this.tooltip.html(attributeInfo.domain[i])
