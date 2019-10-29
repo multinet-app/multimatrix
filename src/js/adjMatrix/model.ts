@@ -16,25 +16,30 @@ class Model {
   private datumID: string;
   private provenance: any;
   private app: any;
+  public icons: object;
+  public sortKey: string;
 
   constructor(controller: any) {
     this.controller = controller;
     this.datumID = controller.datumID;
     
       this.graph = graph;
+      this.nodes = graph.nodes;
       this.edges = graph.links;
+      this.sortKey = "name";
 
-      //setPanelValuesFromFile(controller.configuration, data);
       this.matrix = [];
       this.scalarMatrix = [];
-      /*
-      d3.request('../../assets/adj-matrix/alphabeticalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-        this.alphabeticalSortSvg = svg;
-      })
+      
+      // d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
+      // .then(function(error, svg) {
+      //   this.alphabeticalSortSvg = svg;
+      // })
 
-      d3.request('../../assets/adj-matrix/categoricalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-        this.categoricalSortSvg = svg;
-      })*/
+      // d3.image('../../assets/adj-matrix/categoricalSort.svg')
+      // .then(function(error, svg) {
+      //   this.categoricalSortSvg = svg;
+      // })
 
       // = "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3 C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z";
 
@@ -53,8 +58,8 @@ class Model {
         }
 
       }
-      this.nodes = graph.nodes
-      // this.populateSearchBox();
+
+      this.populateSearchBox();
       this.idMap = {};
 
       // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
@@ -85,7 +90,7 @@ class Model {
       this.processData();
 
       // if (clusterFlag) {
-      //   this.orderType = this.controller.configuration.adjMatrix.sortKey;
+      //   this.orderType = this.sortKey;
       //   this.order = this.changeOrder(this.orderType);
       // }
 
@@ -113,12 +118,16 @@ class Model {
 
 
   populateSearchBox() {
-    /*
-    d3.select("#search-input").attr("list", "characters");
-    let inputParent = d3.select("#search-input").node().parentNode;
+    d3.select("#search-input")
+    .attr("list", "characters");
+    
+    let inputParent = d3.select("#search-input")
+    .node()
+    .parentNode;
 
-    let datalist = d3
-    .select(inputParent).selectAll('#characters').data([0]);
+    let datalist = d3.select(inputParent)
+    .selectAll('#characters')
+    .data([0]);
 
     let enterSelection = datalist.enter()
     .append("datalist")
@@ -126,7 +135,7 @@ class Model {
 
     datalist.exit().remove();
 
-    datalist= enterSelection.merge(datalist);
+    datalist = enterSelection.merge(datalist);
 
     let options = datalist.selectAll("option").data(this.nodes);
 
@@ -134,13 +143,13 @@ class Model {
     options.exit().remove();
 
     options = optionsEnter.merge(options);
-    options.attr("value", d => d.shortName);
+    options.attr("value", d => d.name);
     options.attr("id", d => d.id);
 
-    d3.select("#search-input").on("change", (d,i,nodes) => {
+    d3.select("#search-input")
+    .on("change", (d,i,nodes) => {
       let selectedOption = d3.select(nodes[i]).property("value");
     });
-*/
   }
 
   /**
@@ -168,7 +177,7 @@ class Model {
       time: Date.now(), //timestamp for the current state of the graph;
       count: 0,
       clicked: [],
-      sortKey: this.controller.configuration.adjMatrix.sortKey,
+      sortKey: this.sortKey,
       selections: {
         answerBox: {},
         attrRow: {},
@@ -183,12 +192,10 @@ class Model {
     };
 
     const provenance = ProvenanceLibrary.initProvenance(initialState);
-
     this.provenance = provenance;
 
     const app = this.getApplicationState();
     this.app = app;
-
 
     // creates the document with the name and worker ID
 

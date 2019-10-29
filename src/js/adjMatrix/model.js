@@ -4,18 +4,19 @@ var Model = /** @class */ (function () {
         this.controller = controller;
         this.datumID = controller.datumID;
         this.graph = graph;
+        this.nodes = graph.nodes;
         this.edges = graph.links;
-        //setPanelValuesFromFile(controller.configuration, data);
+        this.sortKey = "name";
         this.matrix = [];
         this.scalarMatrix = [];
-        /*
-        d3.request('../../assets/adj-matrix/alphabeticalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-          this.alphabeticalSortSvg = svg;
-        })
-  
-        d3.request('../../assets/adj-matrix/categoricalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-          this.categoricalSortSvg = svg;
-        })*/
+        // d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
+        // .then(function(error, svg) {
+        //   this.alphabeticalSortSvg = svg;
+        // })
+        // d3.image('../../assets/adj-matrix/categoricalSort.svg')
+        // .then(function(error, svg) {
+        //   this.categoricalSortSvg = svg;
+        // })
         // = "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3 C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z";
         this.icons = {
             'quant': {
@@ -31,8 +32,7 @@ var Model = /** @class */ (function () {
                 'd': "M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z"
             }
         };
-        this.nodes = graph.nodes;
-        // this.populateSearchBox();
+        this.populateSearchBox();
         this.idMap = {};
         // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
         var clusterFlag = false;
@@ -56,7 +56,7 @@ var Model = /** @class */ (function () {
         this.controller = controller;
         this.processData();
         // if (clusterFlag) {
-        //   this.orderType = this.controller.configuration.adjMatrix.sortKey;
+        //   this.orderType = this.sortKey;
         //   this.order = this.changeOrder(this.orderType);
         // }
         this.controller.loadData(this.nodes, this.edges, this.matrix);
@@ -78,34 +78,29 @@ var Model = /** @class */ (function () {
         return false;
     };
     Model.prototype.populateSearchBox = function () {
-        /*
-        d3.select("#search-input").attr("list", "characters");
-        let inputParent = d3.select("#search-input").node().parentNode;
-    
-        let datalist = d3
-        .select(inputParent).selectAll('#characters').data([0]);
-    
-        let enterSelection = datalist.enter()
-        .append("datalist")
-        .attr("id", "characters");
-    
+        d3.select("#search-input")
+            .attr("list", "characters");
+        var inputParent = d3.select("#search-input")
+            .node()
+            .parentNode;
+        var datalist = d3.select(inputParent)
+            .selectAll('#characters')
+            .data([0]);
+        var enterSelection = datalist.enter()
+            .append("datalist")
+            .attr("id", "characters");
         datalist.exit().remove();
-    
-        datalist= enterSelection.merge(datalist);
-    
-        let options = datalist.selectAll("option").data(this.nodes);
-    
-        let optionsEnter = options.enter().append("option");
+        datalist = enterSelection.merge(datalist);
+        var options = datalist.selectAll("option").data(this.nodes);
+        var optionsEnter = options.enter().append("option");
         options.exit().remove();
-    
         options = optionsEnter.merge(options);
-        options.attr("value", d => d.shortName);
-        options.attr("id", d => d.id);
-    
-        d3.select("#search-input").on("change", (d,i,nodes) => {
-          let selectedOption = d3.select(nodes[i]).property("value");
+        options.attr("value", function (d) { return d.name; });
+        options.attr("id", function (d) { return d.id; });
+        d3.select("#search-input")
+            .on("change", function (d, i, nodes) {
+            var selectedOption = d3.select(nodes[i]).property("value");
         });
-    */
     };
     /**
      * returns an object containing the current provenance state.
@@ -132,7 +127,7 @@ var Model = /** @class */ (function () {
             time: Date.now(),
             count: 0,
             clicked: [],
-            sortKey: this.controller.configuration.adjMatrix.sortKey,
+            sortKey: this.sortKey,
             selections: {
                 answerBox: {},
                 attrRow: {},
