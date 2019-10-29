@@ -13,7 +13,6 @@ class Model {
   private orderType: string;
   public graph: any;
   private scalarMatrix: any;
-  private datumID: string;
   private provenance: any;
   private app: any;
   public icons: object;
@@ -21,7 +20,6 @@ class Model {
 
   constructor(controller: any) {
     this.controller = controller;
-    this.datumID = controller.datumID;
     
       this.graph = graph;
       this.nodes = graph.nodes;
@@ -85,8 +83,6 @@ class Model {
         this.idMap[node.id] = index;
       })
 
-      this.controller = controller;
-
       this.processData();
 
       // if (clusterFlag) {
@@ -94,7 +90,12 @@ class Model {
       //   this.order = this.changeOrder(this.orderType);
       // }
 
-      this.controller.loadData(this.nodes, this.edges, this.matrix);
+      // Check if the model exists yet. If not, we shouldn't be loading in the data
+      if (this.controller.model) {
+        this.controller.loadData(this.nodes, this.edges, this.matrix);
+      }
+
+      this.setUpProvenance()
     
   }
 
@@ -169,7 +170,6 @@ class Model {
   setUpProvenance() {
     const initialState = {
       workerID: workerID, // workerID is a global variable
-      taskID: this.controller.tasks[this.controller.taskNum],
       nodes: '',//array of nodes that keep track of their position, whether they were softSelect or hardSelected;
       search: '', //field to store the id of a searched node;
       startTime: Date.now(), //time this provenance graph was created and the task initialized;
@@ -191,11 +191,13 @@ class Model {
       }
     };
 
+    console.log("setting provenance")
     const provenance = ProvenanceLibrary.initProvenance(initialState);
     this.provenance = provenance;
 
-    const app = this.getApplicationState();
+    const app = this.provenance.graph().current.state;
     this.app = app;
+    console.log("app", this.app)
 
     // creates the document with the name and worker ID
 
@@ -257,7 +259,9 @@ class Model {
     }
 
     function setUpObservers() {
+      console.log("setting observers")
       let updateHighlights = (state) => {
+        console.log("updating highlights")
         d3.selectAll('.clicked').classed('clicked', false);
         d3.selectAll('.answer').classed('answer', false);
         d3.selectAll('.neighbor').classed('neighbor', false);
@@ -266,6 +270,7 @@ class Model {
       };
 
       let updateCellClicks = (state) => {
+        console.log("updateCellClicks")
         let cellNames = [];
         Object.keys(state.selections.cellcol).map(key => {
           let names = state.selections.cellcol[key];
@@ -285,19 +290,6 @@ class Model {
 
       }
 
-      let updateAnswerBox = (state) => {
-        window.controller.configuration.adjMatrix['toggle'] ? window.controller.view.updateAnswerToggles(state) : window.controller.view.updateCheckBox(state);
-        //window.controller.view.updateAnswerToggles(state)
-        let answer = [];
-        for (let i = 0; i < window.controller.model.nodes.length; i++) {
-          if (window.controller.model.nodes[i][this.controller.view.datumID] in state.selections.answerBox) {
-            answer.push(window.controller.model.nodes[i]);
-          }
-        }
-        updateAnswer(answer);
-
-
-      }
       provenance.addObserver("selections.attrRow", updateHighlights)
       provenance.addObserver("selections.rowLabel", updateHighlights)
       provenance.addObserver("selections.colLabel", updateHighlights)
@@ -308,7 +300,6 @@ class Model {
 
       provenance.addObserver("selections.search", updateHighlights)
       provenance.addObserver("selections.answerBox", updateHighlights)
-      provenance.addObserver("selections.answerBox", updateAnswerBox)
 
     }
     setUpObservers();
@@ -435,7 +426,7 @@ class Model {
 
 
       /* matrix used for edge attributes, otherwise should we hide */
-      this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode[this.datumID] + '_' + colNode[this.datumID], correspondingCell: 'cell' + colNode[this.datumID] + '_' + rowNode[this.datumID], rowid: rowNode[this.datumID], colid: colNode[this.datumID], x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
+      this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id+ '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
       this.scalarMatrix[i] = this.nodes.map(function(colNode) { return 0; });
 
     });

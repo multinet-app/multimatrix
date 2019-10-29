@@ -2,7 +2,6 @@ var Model = /** @class */ (function () {
     function Model(controller) {
         var _this = this;
         this.controller = controller;
-        this.datumID = controller.datumID;
         this.graph = graph;
         this.nodes = graph.nodes;
         this.edges = graph.links;
@@ -53,13 +52,16 @@ var Model = /** @class */ (function () {
             node.index = index;
             _this.idMap[node.id] = index;
         });
-        this.controller = controller;
         this.processData();
         // if (clusterFlag) {
         //   this.orderType = this.sortKey;
         //   this.order = this.changeOrder(this.orderType);
         // }
-        this.controller.loadData(this.nodes, this.edges, this.matrix);
+        // Check if the model exists yet. If not, we shouldn't be loading in the data
+        if (this.controller.model) {
+            this.controller.loadData(this.nodes, this.edges, this.matrix);
+        }
+        this.setUpProvenance();
     }
     /**
      * Determines if the attribute is quantitative
@@ -119,7 +121,6 @@ var Model = /** @class */ (function () {
     Model.prototype.setUpProvenance = function () {
         var initialState = {
             workerID: workerID,
-            taskID: this.controller.tasks[this.controller.taskNum],
             nodes: '',
             search: '',
             startTime: Date.now(),
@@ -140,10 +141,12 @@ var Model = /** @class */ (function () {
                 previousMouseovers: []
             }
         };
+        console.log("setting provenance");
         var provenance = ProvenanceLibrary.initProvenance(initialState);
         this.provenance = provenance;
-        var app = this.getApplicationState();
+        var app = this.provenance.graph().current.state;
         this.app = app;
+        console.log("app", this.app);
         // creates the document with the name and worker ID
         var columnElements = ['topoCol'];
         var rowElements = ['topoRow', 'attrRow'];
@@ -195,14 +198,16 @@ var Model = /** @class */ (function () {
             return;
         }
         function setUpObservers() {
-            var _this = this;
+            console.log("setting observers");
             var updateHighlights = function (state) {
+                console.log("updating highlights");
                 d3.selectAll('.clicked').classed('clicked', false);
                 d3.selectAll('.answer').classed('answer', false);
                 d3.selectAll('.neighbor').classed('neighbor', false);
                 classAllHighlights(state);
             };
             var updateCellClicks = function (state) {
+                console.log("updateCellClicks");
                 var cellNames = [];
                 Object.keys(state.selections.cellcol).map(function (key) {
                     var names = state.selections.cellcol[key];
@@ -220,17 +225,6 @@ var Model = /** @class */ (function () {
                     return;
                 d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
             };
-            var updateAnswerBox = function (state) {
-                window.controller.configuration.adjMatrix['toggle'] ? window.controller.view.updateAnswerToggles(state) : window.controller.view.updateCheckBox(state);
-                //window.controller.view.updateAnswerToggles(state)
-                var answer = [];
-                for (var i = 0; i < window.controller.model.nodes.length; i++) {
-                    if (window.controller.model.nodes[i][_this.controller.view.datumID] in state.selections.answerBox) {
-                        answer.push(window.controller.model.nodes[i]);
-                    }
-                }
-                updateAnswer(answer);
-            };
             provenance.addObserver("selections.attrRow", updateHighlights);
             provenance.addObserver("selections.rowLabel", updateHighlights);
             provenance.addObserver("selections.colLabel", updateHighlights);
@@ -240,7 +234,6 @@ var Model = /** @class */ (function () {
             provenance.addObserver("selections.cellcol", updateCellClicks);
             provenance.addObserver("selections.search", updateHighlights);
             provenance.addObserver("selections.answerBox", updateHighlights);
-            provenance.addObserver("selections.answerBox", updateAnswerBox);
         }
         setUpObservers();
         return [app, provenance];
@@ -349,7 +342,7 @@ var Model = /** @class */ (function () {
             //rowNode.id = +rowNode.id;
             rowNode.y = i;
             /* matrix used for edge attributes, otherwise should we hide */
-            _this.matrix[i] = _this.nodes.map(function (colNode) { return { cellName: 'cell' + rowNode[_this.datumID] + '_' + colNode[_this.datumID], correspondingCell: 'cell' + colNode[_this.datumID] + '_' + rowNode[_this.datumID], rowid: rowNode[_this.datumID], colid: colNode[_this.datumID], x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
+            _this.matrix[i] = _this.nodes.map(function (colNode) { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id + '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
             _this.scalarMatrix[i] = _this.nodes.map(function (colNode) { return 0; });
         });
         function checkEdge(edge) {

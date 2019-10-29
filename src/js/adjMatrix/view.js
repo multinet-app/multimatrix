@@ -3,6 +3,7 @@ var View = /** @class */ (function () {
     function View(controller) {
         var _this = this;
         this.controller = controller;
+        console.log("controller", this.controller);
         this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
         this.mouseoverEvents = [];
         this.datumID = controller.datumID;
@@ -90,6 +91,7 @@ var View = /** @class */ (function () {
         this.nodes = nodes;
         this.edges = edges;
         this.matrix = matrix;
+        console.log("initial matrix", matrix);
         this.renderView();
     };
     /**
@@ -97,10 +99,13 @@ var View = /** @class */ (function () {
      * @return none
      */
     View.prototype.renderView = function () {
+        console.log("rendering1");
         d3.select('.loading').style('display', 'block').style('opacity', 1);
+        console.log(this.controller);
         this.initalizeEdges();
         // this.initalizeAttributes();
         d3.select('.loading').style('display', 'none');
+        console.log("rendering2");
     };
     /**
      * Initalizes the edges view, renders all SVG elements and attaches listeners
@@ -126,6 +131,9 @@ var View = /** @class */ (function () {
             .attr("transform", "translate(" + this.margins.left + "," + this.margins.top + ")");
         // sets the vertical scale
         this.orderingScale = d3.scaleBand().range([0, this.edgeHeight]).domain(d3.range(this.nodes.length));
+        console.log("nodes", this.nodes);
+        console.log("edges", graph.links);
+        console.log("matrix", this.matrix);
         // creates column groupings
         this.edgeColumns = this.edges.selectAll(".column")
             .data(this.matrix)
@@ -147,7 +155,7 @@ var View = /** @class */ (function () {
         this.edgeScales = this.generateEdgeScales();
         this.generateColorLegend();
         var cells = this.edgeRows.selectAll(".cell")
-            .data(function (d) { return d; /*.filter(item => item.z > 0)*/ })
+            .data(function (d) { return d; })
             .enter().append('g')
             .attr("class", "cell")
             .attr('id', function (d) { return d.cellName; })
@@ -157,8 +165,7 @@ var View = /** @class */ (function () {
             .classed('baseCell', true)
             .attr("x", function (d) { return 0; })
             .attr('height', this.orderingScale.bandwidth())
-            .attr('width', this.orderingScale.bandwidth())
-            .attr('fill-opacity');
+            .attr('width', this.orderingScale.bandwidth());
         // render edges
         // this.controller.configuration.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
         this.drawFullSquares(cells);
@@ -172,8 +179,9 @@ var View = /** @class */ (function () {
                 .style("opacity", 0);
             _this.unhoverEdge(cell);
         })
-            .filter(function (d) { return d.interacted != 0 || d.retweet != 0 || d.mentions != 0; })
+            // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
             .on('click', function (d, i, nodes) {
+            console.log("clicked");
             // only trigger click if edge exists
             _this.clickFunction(d, i, nodes);
         })
@@ -235,6 +243,8 @@ var View = /** @class */ (function () {
      * @return       none
      */
     View.prototype.drawFullSquares = function (cells) {
+        console.log(cells);
+        console.log("graph", graph);
         var squares = cells
             .append("rect")
             .attr("x", 0) //d => this.orderingScale(d.x))
@@ -248,7 +258,11 @@ var View = /** @class */ (function () {
             var row = d.cellName.split("_")[0].split("cell")[1];
             var column = d.cellName.split("_")[1];
             // Get the number of connections, should only be at most 1 with our test data
-            var numConnections = graph.links.map(function (d) { var outcome = d.source === row && d.target === column ? 1 : 0; return outcome; }).reduce(function (a, b) { return a + b; }, 0);
+            var numConnections = graph.links.map(function (d) {
+                var outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0;
+                return outcome;
+            })
+                .reduce(function (a, b) { return a + b; }, 0);
             return 1 - numConnections;
         });
         this.setSquareColors('all');
@@ -263,21 +277,22 @@ var View = /** @class */ (function () {
     View.prototype.showEdgeTooltip = function (cell, i, nodes) {
         var matrix = nodes[i].getScreenCTM()
             .translate(+nodes[i].getAttribute("x"), +nodes[i].getAttribute("y"));
-        var interactedMessage = cell.interacted > 0 ? cell.interacted.toString() + " interactions" : ''; //
-        if (cell.interacted == 1) {
-            interactedMessage = interactedMessage.substring(0, interactedMessage.length - 1);
-        }
-        var retweetMessage = cell.retweet > 0 ? cell.retweet.toString() + " retweets" : ''; //
-        if (cell.retweet == 1) {
-            retweetMessage = retweetMessage.substring(0, retweetMessage.length - 1);
-        }
-        var mentionsMessage = cell.mentions > 0 ? cell.mentions.toString() + " mentions" : ''; //
-        if (cell.mentions == 1) {
-            mentionsMessage = mentionsMessage.substring(0, mentionsMessage.length - 1);
-        }
-        var message = [interactedMessage, retweetMessage, mentionsMessage].filter(Boolean).join("</br>"); //retweetMessage+'</br>'+mentionsMessage
+        // let interactedMessage = cell.interacted > 0 ? cell.interacted.toString() + " interactions" : '';//
+        // if (cell.interacted == 1) {
+        //   interactedMessage = interactedMessage.substring(0, interactedMessage.length - 1)
+        // }
+        // let retweetMessage = cell.retweet > 0 ? cell.retweet.toString() + " retweets" : '';//
+        // if (cell.retweet == 1) {
+        //   retweetMessage = retweetMessage.substring(0, retweetMessage.length - 1)
+        // }
+        // let mentionsMessage = cell.mentions > 0 ? cell.mentions.toString() + " mentions" : '';//
+        // if (cell.mentions == 1) {
+        //   mentionsMessage = mentionsMessage.substring(0, mentionsMessage.length - 1)
+        // }
+        var message = nodes[i].id;
+        // [interactedMessage, retweetMessage, mentionsMessage].filter(Boolean).join("</br>");//retweetMessage+'</br>'+mentionsMessage
         if (message !== '') {
-            var yOffset = (retweetMessage !== '' && mentionsMessage !== '') ? 45 : 30;
+            var yOffset = /*(retweetMessage !== '' && mentionsMessage !== '') ? 45 :*/ 30;
             this.tooltip.html(message)
                 .style("left", (window.pageXOffset + matrix.e - 45) + "px")
                 .style("top", (window.pageYOffset + matrix.f - yOffset) + "px");
@@ -364,7 +379,7 @@ var View = /** @class */ (function () {
                 .attr('id', function (d) { return 'sortIcon' + d[0].rowid; })
                 .attr('class', 'sortIcon')
                 .attr('d', function (d) {
-                return "hello"; //this.controller.model.icons['cellSort'].d;
+                return ""; //this.controller.model.icons['cellSort'].d;
             })
                 //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
                 .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
@@ -549,7 +564,7 @@ var View = /** @class */ (function () {
         return {
             label: interactionType,
             action: function (nodeID) {
-                var currentState = _this.controller.model.app.currentState();
+                var currentState = _this.controller.model.app;
                 currentState.selections.previousMouseovers = _this.mouseoverEvents;
                 _this.mouseoverEvents.length = 0;
                 //add time stamp to the state graph
@@ -1466,9 +1481,13 @@ var View = /** @class */ (function () {
         });
         columnHeaderGroups;
         if (columns.length < 6) {
-            var path = columnHeaderGroups.filter(function (d) { return d !== 'selected'; }).append('path').attr('class', 'sortIcon').attr('d', function (d) {
-                var variable = _this.isCategorical(d) ? 'categorical' : 'quant';
-                return _this.controller.model.icons[variable].d;
+            var path = columnHeaderGroups
+                .filter(function (d) { return d !== 'selected'; })
+                .append('path')
+                .attr('class', 'sortIcon')
+                .attr('d', function (d) {
+                // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
+                // return this.controller.model.icons[variable].d;
             }).style('fill', function (d) { return d == _this.controller.model.orderType ? '#EBB769' : '#8B8B8B'; })
                 .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
                 .on('click', function (d, i, nodes) { _this.sort(d); })

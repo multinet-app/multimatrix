@@ -53,6 +53,7 @@ class View {
 
   constructor(controller) {
     this.controller = controller;
+    console.log("controller", this.controller)
 
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
 
@@ -131,6 +132,7 @@ class View {
     this.nodes = nodes
     this.edges = edges;
     this.matrix = matrix;
+    console.log("initial matrix", matrix)
 
     this.renderView();
   }
@@ -140,13 +142,16 @@ class View {
    * @return none
    */
   renderView() {
+    console.log("rendering1")
     d3.select('.loading').style('display', 'block').style('opacity', 1);
+
+    console.log(this.controller)
 
     this.initalizeEdges();
     // this.initalizeAttributes();
 
     d3.select('.loading').style('display', 'none');
-
+    console.log("rendering2")
   }
 
   /**
@@ -176,6 +181,9 @@ class View {
     // sets the vertical scale
     this.orderingScale = d3.scaleBand<number>().range([0, this.edgeHeight]).domain(d3.range(this.nodes.length));
 
+    console.log("nodes", this.nodes)
+    console.log("edges", graph.links)
+    console.log("matrix", this.matrix)
     // creates column groupings
     this.edgeColumns = this.edges.selectAll(".column")
       .data(this.matrix)
@@ -205,7 +213,7 @@ class View {
     this.generateColorLegend();
 
     var cells = this.edgeRows.selectAll(".cell")
-      .data(d => { return d/*.filter(item => item.z > 0)*/ })
+      .data(d => { return d })
       .enter().append('g')
       .attr("class", "cell")
       .attr('id', d => d.cellName)
@@ -217,7 +225,6 @@ class View {
       .attr("x", d => 0)
       .attr('height', this.orderingScale.bandwidth())
       .attr('width', this.orderingScale.bandwidth())
-      .attr('fill-opacity', )
 
     // render edges
     // this.controller.configuration.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
@@ -234,8 +241,9 @@ class View {
 
         this.unhoverEdge(cell);
       })
-      .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
+      // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
       .on('click', (d, i, nodes) => {
+        console.log("clicked")
         // only trigger click if edge exists
         this.clickFunction(d, i, nodes);
 
@@ -304,6 +312,8 @@ class View {
    * @return       none
    */
   drawFullSquares(cells) {
+    console.log(cells)
+    console.log("graph", graph)
     let squares = cells
       .append("rect")
       .attr("x", 0)//d => this.orderingScale(d.x))
@@ -318,7 +328,11 @@ class View {
           let column = d.cellName.split("_")[1]
 
           // Get the number of connections, should only be at most 1 with our test data
-          let numConnections = graph.links.map(d => { let outcome = d.source === row && d.target === column ? 1 : 0; return outcome}).reduce((a, b) => a + b, 0)
+          let numConnections = graph.links.map(d => { 
+            let outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0; 
+            return outcome;
+          })
+            .reduce((a, b) => a + b, 0)
           
           return 1 - numConnections
          });
@@ -338,23 +352,24 @@ class View {
     let matrix = nodes[i].getScreenCTM()
       .translate(+nodes[i].getAttribute("x"), +nodes[i].getAttribute("y"));
 
-    let interactedMessage = cell.interacted > 0 ? cell.interacted.toString() + " interactions" : '';//
-    if (cell.interacted == 1) {
-      interactedMessage = interactedMessage.substring(0, interactedMessage.length - 1)
-    }
-    let retweetMessage = cell.retweet > 0 ? cell.retweet.toString() + " retweets" : '';//
-    if (cell.retweet == 1) {
-      retweetMessage = retweetMessage.substring(0, retweetMessage.length - 1)
-    }
-    let mentionsMessage = cell.mentions > 0 ? cell.mentions.toString() + " mentions" : '';//
-    if (cell.mentions == 1) {
-      mentionsMessage = mentionsMessage.substring(0, mentionsMessage.length - 1)
-    }
+    // let interactedMessage = cell.interacted > 0 ? cell.interacted.toString() + " interactions" : '';//
+    // if (cell.interacted == 1) {
+    //   interactedMessage = interactedMessage.substring(0, interactedMessage.length - 1)
+    // }
+    // let retweetMessage = cell.retweet > 0 ? cell.retweet.toString() + " retweets" : '';//
+    // if (cell.retweet == 1) {
+    //   retweetMessage = retweetMessage.substring(0, retweetMessage.length - 1)
+    // }
+    // let mentionsMessage = cell.mentions > 0 ? cell.mentions.toString() + " mentions" : '';//
+    // if (cell.mentions == 1) {
+    //   mentionsMessage = mentionsMessage.substring(0, mentionsMessage.length - 1)
+    // }
 
-    let message = [interactedMessage, retweetMessage, mentionsMessage].filter(Boolean).join("</br>");//retweetMessage+'</br>'+mentionsMessage
+    let message = nodes[i].id
+    // [interactedMessage, retweetMessage, mentionsMessage].filter(Boolean).join("</br>");//retweetMessage+'</br>'+mentionsMessage
 
     if (message !== '') {
-      let yOffset = (retweetMessage !== '' && mentionsMessage !== '') ? 45 : 30;
+      let yOffset = /*(retweetMessage !== '' && mentionsMessage !== '') ? 45 :*/ 30;
       this.tooltip.html(message)
         .style("left", (window.pageXOffset + matrix.e - 45) + "px")
         .style("top", (window.pageYOffset + matrix.f - yOffset) + "px");
@@ -449,7 +464,7 @@ class View {
       .attr('id', d=>'sortIcon' + d[0].rowid)
       .attr('class', 'sortIcon')
       .attr('d', (d) => {
-          return "hello";//this.controller.model.icons['cellSort'].d;
+          return "";//this.controller.model.icons['cellSort'].d;
         })
         //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
         .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
@@ -650,7 +665,7 @@ class View {
     return {
       label: interactionType,
       action: (nodeID) => {
-        const currentState = this.controller.model.app.currentState();
+        const currentState = this.controller.model.app;
           currentState.selections.previousMouseovers = this.mouseoverEvents;
           this.mouseoverEvents.length = 0;
         //add time stamp to the state graph
@@ -1732,9 +1747,13 @@ class View {
 
     columnHeaderGroups
     if (columns.length < 6) {
-      let path = columnHeaderGroups.filter(d => { return d !== 'selected' }).append('path').attr('class', 'sortIcon').attr('d', (d) => {
-        let variable = this.isCategorical(d) ? 'categorical' : 'quant'
-        return this.controller.model.icons[variable].d;
+      let path = columnHeaderGroups
+        .filter(d => { return d !== 'selected' })
+        .append('path')
+        .attr('class', 'sortIcon')
+        .attr('d', (d) => {
+        // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
+        // return this.controller.model.icons[variable].d;
       }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
       .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
       .on('click', (d, i, nodes) => {this.sort(d);})

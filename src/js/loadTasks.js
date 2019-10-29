@@ -8,7 +8,7 @@ let app;
 
 
 async function resetPanel() {
-    await loadTasks()
+    await loadScripts()
 
     // Clear any values in the search box and the search message
     d3.select(".searchInput").property("value", "");
@@ -55,9 +55,7 @@ async function loadNewGraph(fileName) {
     options.attr("id", d => d.id);
 }
 
-async function loadTasks() {
-    let selectedVis = "adjMatrix"
-
+async function loadScripts() {
     let scriptTags = [
         "js/adjMatrix/libs/reorder/science.v1.js",
         "js/adjMatrix/libs/reorder/tiny-queue.js",

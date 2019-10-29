@@ -1,12 +1,18 @@
 // Work on importing class file
 var Controller = /** @class */ (function () {
     function Controller() {
+        console.log("constructing controller");
         this.hoverRow = {};
         this.hoverCol = {};
         this.datumID = 'id';
         this.clickedCells = new Set();
         this.sizeLayout();
-        this.finishConstructing();
+        this.view = new View(this); // initalize view,
+        console.log("added this.view");
+        this.model = new Model(this); // start reading in data
+        console.log("added this.model");
+        this.model.reload();
+        d3.select('.loading').style('display', 'block');
     }
     Controller.prototype.setupExports = function (base, task) {
         d3.select("#exportBaseConfig").on("click", function () {
@@ -26,16 +32,11 @@ var Controller = /** @class */ (function () {
           s.href.includes("styles.css")
         );
     
-        // let nodeIsRect = config.style.nodeShape === 'rect';
         // sheet.addRule(".node", (nodeIsRect? 'rx: 2; ry:2'  : 'rx:20; ry:20' ) , 1);
     
           let ruleString = "fill :" + base.style.selectedNodeColor +" !important;";
           sheet.addRule(".rect.selected", ruleString, 1);
           */
-    };
-    Controller.prototype.finishConstructing = function () {
-        this.view = new View(this); // initalize view,
-        this.model = new Model(this); // start reading in data
     };
     Controller.prototype.loadTask = function (taskNum) {
         // edgeBars = true;
@@ -62,7 +63,6 @@ var Controller = /** @class */ (function () {
         // }
         this.sizeLayout();
         //configuration.adjMatrix.sortKey
-        this.reload();
     };
     Controller.prototype.clear = function () {
         var _this = this;
@@ -131,11 +131,15 @@ var Controller = /** @class */ (function () {
         d3.select('#legend-svg').selectAll('*').remove();
     };
     Controller.prototype.reload = function () {
+        console.log("reloading controller");
         this.clearView();
         d3.select('.loading').style('display', 'block');
-        this.view = new View(this); // initalize view,
-        this.model = new Model(this); //.reload();
+        this.view = new View(this);
+        console.log("controller.view exists");
+        this.model = new Model(this);
+        console.log("controller.model exists");
         startTime = Date.now();
+        this.loadData();
         //this.model = new Model(this); // start reading in data
     };
     /**
