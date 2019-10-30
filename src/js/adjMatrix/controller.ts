@@ -5,7 +5,7 @@ class Controller {
    */
   private view: any;
   private model: any;
-  private configuration: any;
+  public configToggle: boolean;
 
   setupExports(base, task) {
     d3.select("#exportBaseConfig").on("click", function() {
@@ -26,7 +26,6 @@ class Controller {
       s.href.includes("styles.css")
     );
 
-    // let nodeIsRect = config.style.nodeShape === 'rect';
     // sheet.addRule(".node", (nodeIsRect? 'rx: 2; ry:2'  : 'rx:20; ry:20' ) , 1);
 
       let ruleString = "fill :" + base.style.selectedNodeColor +" !important;";
@@ -35,33 +34,16 @@ class Controller {
 
   }
 
-  finishConstructing(config) {
-    this.configuration = config;
-
-
-
-    this.view = new View(this); // initalize view,
-    this.model = new Model(this); // start reading in data
-
-  }
+  
 
   private tasks: any;
   private taskNum: number;
 
   loadTask(taskNum) {
-    console.log(this.tasks)
-    this.tasks = taskList
-    console.log(this.tasks);
-    this.taskNum = taskNum;
-    this.task = this.tasks[this.taskNum];
-    console.log(this.task,this.tasks,this.tasks[this.taskNum],this.taskNum)
-    this.configuration = this.task.config;
-    //let prompt = 'Task ' + (this.taskNum + 1) + ' - ' + this.task.prompt;
-
-    //this.configuration.adjMatrix.edgeBars = true;
-    if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
-      if (!this.configuration.nodeAttributes.includes('selected')) {
-        this.configuration.nodeAttributes.unshift('selected');
+    // edgeBars = true;
+    // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
+    //   if (!this.nodeAttributes.includes('selected')) {
+    //     this.nodeAttributes.unshift('selected');
         let obj = {
           "domain": [true, false],
           "range": ["#e86b45", '#fff'],
@@ -69,88 +51,27 @@ class Controller {
           'glyph': 'rect',
           'label': 'selected'
         }
-        this.configuration.attributeScales.node['selected'] = obj;
+    //     this.attributeScales.node['selected'] = obj;
 
-      }
+    //   }
 
 
-    }
-    this.configuration.adjMatrix['toggle'] = false;
-    //this.configuration.adjMatrix.neighborSelect = true;
+    // }
+    // this.adjMatrix['toggle'] = false;
+    // //this.adjMatrix.neighborSelect = true;
 
-    this.attrWidth = d3.min([150 * this.configuration.nodeAttributes.length, 650]);
+    // this.attrWidth = d3.min([150 * this.nodeAttributes.length, 650]);
 
-    this.configuration.state = {}
-    this.configuration.state.adjMatrix = {};
-    if (this.configuration.adjMatrix.sortKey == null || this.configuration.adjMatrix.sortKey == '') {
-      this.configuration.adjMatrix.sortKey = 'shortName'
-    }
+    // this.state = {}
+    // this.state.adjMatrix = {};
+    // if (this.adjMatrix.sortKey == null || this.adjMatrix.sortKey == '') {
+    let sortKey = 'name'
+    // }
 
     this.sizeLayout();
-    //configuration.adjMatrix.sortKey
-    this.reload();
-
-    // load data file
-    // render vis from configurations
-    // add observers and new provenance graph
-    // create new field to store in fB?
+    //this.adjMatrix.sortKey
   }
-  async loadTasks() {
-    this.taskNum = 0;
-    this.tasks = taskList;
-    // work here to disambiguate task stuff TODO
-    /*
-    let taskConfigs = await d3.json("./../../taskLists/am_large.json").then((data) => {
-      //this.tasks = data.tasks;
-      this.configuration = data.task1.config;
-      this.tasks = [data.task1];
 
-      let obj = {
-        "domain": [true, false],
-        "range": ["#e86b45", '#fff'],
-        "labels": ['answer', 'not answer'],
-        'glyph': 'rect',
-        'label': 'selected'
-      }
-
-      //this.configuration = result;
-      this.configuration.attributeScales.node['selected'] = obj;
-      this.configuration.state = {}
-      this.configuration.state.adjMatrix = {};
-      this.configuration.adjMatrix.sortKey = 'shortName'
-      //configuration.adjMatrix.sortKey
-      this.reload();
-
-    });*/
-
-    //let taskConfig = "../configs/task" + (this.taskNum + 1).toString() + "Config.json";
-    //if (this.tenAttr) {
-    //  taskConfig = "../configs/10AttrConfig.json"
-    //} else if (this.fiveAttr) {
-    //  taskConfig = "../configs/5AttrConfig.json"
-    //}
-
-    //let that = this;
-    /*
-    Promise.all([
-      d3.json("../configs/baseConfig.json"),
-      d3.json(taskConfig),
-      d3.json("../configs/state.json")
-    ]).then((configComponents) => {
-      /*that.setupCSS(configComponents[0]);
-      that.setupExports(configComponents[0], configComponents[1]);
-      let components = [configComponents[0], configComponents[1], configComponents[2]];
-      let result = deepmerge.all(components);
-*/
-    // added selected attribute scale
-
-    //that.finishConstructing(result);
-    //})
-
-
-
-
-  }
   private clickedCells: any;
   clear() {
 
@@ -161,7 +82,6 @@ class Controller {
           //add time stamp to the state graph
           currentState.time = Date.now();
           currentState.event = 'clear';
-          console.log("before Clear:", currentState)
           currentState.selections = {
             answerBox: {},
             attrRow: {},
@@ -173,7 +93,6 @@ class Controller {
             neighborSelect: {},
             previousMouseovers: []
           }
-          console.log("after Clear:", currentState)
           return currentState;
         },
         args: []
@@ -199,8 +118,6 @@ class Controller {
     d3.select("#visPanel").style("width", panelDimensions.width + "px");
     d3.select("#visPanel").style("height", panelDimensions.height + "px");
 
-
-    d3.select('#panelDiv').style('display', 'none');
     document.getElementById("visContent").style.width = '100vw';
     document.getElementById("visContent").style.overflowX = "scroll";
 
@@ -216,16 +133,16 @@ class Controller {
     }
 
 
-    this.attributePorportion = this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
-    this.edgePorportion = this.edgeWidth / (this.edgeWidth + this.attrWidth + filler);
+    this.attributeProportion = this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
+    this.edgeProportion = this.edgeWidth / (this.edgeWidth + this.attrWidth + filler);
 
     if (this.edgeWidth < panelDimensions.height) {
-      this.visHeight = this.visWidth * this.edgePorportion;
+      this.visHeight = this.visWidth * this.edgeProportion;
     }
 
-    d3.select('.topocontainer').style('width', (100 * this.edgePorportion).toString() + '%');
+    d3.select('.topocontainer').style('width', (100 * this.edgeProportion).toString() + '%');
     d3.select('.topocontainer').style('height', (this.visHeight).toString() + 'px');
-    d3.select('.attrcontainer').style('width', (100 * this.attributePorportion).toString() + '%');
+    d3.select('.attrcontainer').style('width', (100 * this.attributeProportion).toString() + '%');
     d3.select('.attrcontainer').style('height', (this.visHeight).toString() + 'px');
 
 
@@ -234,22 +151,26 @@ class Controller {
   }
 
   constructor() {
-
     this.hoverRow = {};
     this.hoverCol = {};
     this.datumID = 'id';
-    this.clickedCells = new Set();
+    this.clickedCells = new Set()
 
-
-    //this.loadClearButton();
-    this.loadTasks();
+    this.configToggle = configPanel === "true";
 
     this.sizeLayout();
+
+    this.view = new View(this); // initalize view,
+
+    this.model = new Model(this); // start reading in data
+
+    this.model.reload();
+
+    d3.select('.loading').style('display', 'block');
   }
 
   clearView() {
     d3.select('.tooltip').remove();
-
     d3.select('#topology').selectAll('*').remove();
     d3.select('#attributes').selectAll('*').remove();
     d3.select('#legend-svg').selectAll('*').remove();
@@ -258,13 +179,14 @@ class Controller {
 
   reload() {
     this.clearView();
-    //this.loadCurrentTask();
     d3.select('.loading').style('display', 'block');
 
-    this.view = new View(this); // initalize view,
-    this.model = new Model(this); //.reload();
-    this.tasks[this.taskNum].startTime = Date.now();
-    //
+    this.view = new View(this);
+    this.model = new Model(this);
+    startTime = Date.now();
+
+    this.loadData();
+
     //this.model = new Model(this); // start reading in data
   }
 
@@ -289,9 +211,11 @@ class Controller {
    * @return [description]
    */
   changeOrder(order: string, node : boolean = false) {
-    this.configuration.adjMatrix.sortKey = order;
-    return this.model.changeOrder(order,node);
+    // this.adjMatrix.sortKey = order;
+    // return this.model.changeOrder(order,node);
   }
 }
 
-window.controller = new Controller();
+function makeController() {
+  window.controller = new Controller();
+}

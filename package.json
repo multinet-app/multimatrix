@@ -1,0 +1,16 @@
+{
+    "name": "view-adjmatrix",
+    "version": "0.1.0",
+    "scripts": {
+        "serve": "cd src/ && http-server -c-1  -p 8082",
+        "test": "cd src/ && jest"
+    },
+    "description": "An adjacency matrix visualization built to fit in with multinet",
+    "main": "index.js",
+    "repository": "git@github.com:multinet-app/view-adjmatrix.git",
+    "author": "Visualization Design Lab <vdl.sci.utah.edu>",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "http-server": "^0.11.1"
+    }
+}

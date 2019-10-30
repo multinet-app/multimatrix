@@ -13,32 +13,31 @@ class Model {
   private orderType: string;
   public graph: any;
   private scalarMatrix: any;
-  private datumID: string;
   private provenance: any;
   private app: any;
+  public icons: object;
+  public sortKey: string;
 
   constructor(controller: any) {
     this.controller = controller;
-    this.datumID = controller.datumID;
-    console.log(controller, controller.configuration, controller.configuration.graphFiles, controller.configuration.loadedGraph)
+    
+      this.graph = graph;
+      this.nodes = graph.nodes;
+      this.edges = graph.links;
+      this.sortKey = "name";
 
-    //console.log(controller,controller.configuration,controller.configuration.graphFiles[controller.configuration.loadedGraph])
-    d3.json(controller.configuration.graphFiles[controller.configuration.loadedGraph]).then((data: any) => {
-      this.graph = data;
-      this.edges = data.links;
-
-      //setPanelValuesFromFile(controller.configuration, data);
       this.matrix = [];
       this.scalarMatrix = [];
-      /*
-      d3.request('../../assets/adj-matrix/alphabeticalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-        console.log(svg,error)
-        this.alphabeticalSortSvg = svg;
-      })
+      
+      // d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
+      // .then(function(error, svg) {
+      //   this.alphabeticalSortSvg = svg;
+      // })
 
-      d3.request('../../assets/adj-matrix/categoricalSort.svg').mimeType("image/svg+xml").get(function(error, svg) {
-        this.categoricalSortSvg = svg;
-      })*/
+      // d3.image('../../assets/adj-matrix/categoricalSort.svg')
+      // .then(function(error, svg) {
+      //   this.categoricalSortSvg = svg;
+      // })
 
       // = "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3 C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z";
 
@@ -57,44 +56,47 @@ class Model {
         }
 
       }
-      this.nodes = data.nodes
+
       this.populateSearchBox();
       this.idMap = {};
 
       // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
       let clusterFlag = false;
-      if (this.controller.configuration.adjMatrix.sortKey in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
-        this.orderType = 'shortName';//this.controller.configuration.adjMatrix.sortKey;
-        clusterFlag = true;
-      } else {
-        this.orderType = this.controller.configuration.adjMatrix.sortKey;
-      }
+      // if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
+      //   this.orderType = 'shortName';//this.controller.sortKey;
+      //   clusterFlag = true;
+      // } else {
+      //   // this.orderType = this.controller.sortKey;
+      // }
 
-      this.order = this.changeOrder(this.orderType);
+      // this.order = this.changeOrder(this.orderType);
 
       // sorts quantitative by descending value, sorts qualitative by alphabetical
-      if (!this.isQuant(this.orderType)) {
-        this.nodes = this.nodes.sort((a, b) => a[this.orderType].localeCompare(b[this.orderType]));
-      } else {
-        this.nodes = this.nodes.sort((a, b) => { return b[this.orderType] - a[this.orderType]; });
-      }
+      // if (!this.isQuant(this.orderType)) {
+      //   this.nodes = this.nodes.sort((a, b) => a[this.orderType].localeCompare(b[this.orderType]));
+      // } else {
+      //   this.nodes = this.nodes.sort((a, b) => { return b[this.orderType] - a[this.orderType]; });
+      // }
 
       this.nodes.forEach((node, index) => {
         node.index = index;
         this.idMap[node.id] = index;
       })
 
-      this.controller = controller;
-
       this.processData();
 
-      if (clusterFlag) {
-        this.orderType = this.controller.configuration.adjMatrix.sortKey;
-        this.order = this.changeOrder(this.orderType);
+      // if (clusterFlag) {
+      //   this.orderType = this.sortKey;
+      //   this.order = this.changeOrder(this.orderType);
+      // }
+
+      // Check if the model exists yet. If not, we shouldn't be loading in the data
+      if (this.controller.model) {
+        this.controller.loadData(this.nodes, this.edges, this.matrix);
       }
 
-      this.controller.loadData(this.nodes, this.edges, this.matrix);
-    })
+      [this.app, this.provenance] = this.setUpProvenance()
+    
   }
 
   /**
@@ -104,23 +106,29 @@ class Model {
    */
   isQuant(attr) {
     // if not in list
-    if (!Object.keys(this.controller.configuration.attributeScales.node).includes(attr)) {
-      return false;
-    } else if (this.controller.configuration.attributeScales.node[attr].range === undefined) {
-      return true;
-    } else {
-      return false;
-    }
+    // if (!Object.keys(this.controller.attributeScales.node).includes(attr)) {
+    //   return false;
+    // } else if (this.controller.attributeScales.node[attr].range === undefined) {
+    //   return true;
+    // } else {
+    //   return false;
+    // }
+
+    return false;
   }
 
 
   populateSearchBox() {
-    /*
-    d3.select("#search-input").attr("list", "characters");
-    let inputParent = d3.select("#search-input").node().parentNode;
+    d3.select("#search-input")
+    .attr("list", "characters");
+    
+    let inputParent = d3.select("#search-input")
+    .node()
+    .parentNode;
 
-    let datalist = d3
-    .select(inputParent).selectAll('#characters').data([0]);
+    let datalist = d3.select(inputParent)
+    .selectAll('#characters')
+    .data([0]);
 
     let enterSelection = datalist.enter()
     .append("datalist")
@@ -128,7 +136,7 @@ class Model {
 
     datalist.exit().remove();
 
-    datalist= enterSelection.merge(datalist);
+    datalist = enterSelection.merge(datalist);
 
     let options = datalist.selectAll("option").data(this.nodes);
 
@@ -136,14 +144,13 @@ class Model {
     options.exit().remove();
 
     options = optionsEnter.merge(options);
-    options.attr("value", d => d.shortName);
+    options.attr("value", d => d.name);
     options.attr("id", d => d.id);
 
-    d3.select("#search-input").on("change", (d,i,nodes) => {
+    d3.select("#search-input")
+    .on("change", (d,i,nodes) => {
       let selectedOption = d3.select(nodes[i]).property("value");
-      console.log(this.controller.view.search(selectedOption))
     });
-*/
   }
 
   /**
@@ -151,9 +158,7 @@ class Model {
    * @return [the provenance state]
    */
   getApplicationState() {
-    return {
-      currentState: () => this.provenance.graph().current.state;
-    };
+    return this.provenance.graph().current.state
   }
 
   /**
@@ -163,7 +168,6 @@ class Model {
   setUpProvenance() {
     const initialState = {
       workerID: workerID, // workerID is a global variable
-      taskID: this.controller.tasks[this.controller.taskNum],
       nodes: '',//array of nodes that keep track of their position, whether they were softSelect or hardSelected;
       search: '', //field to store the id of a searched node;
       startTime: Date.now(), //time this provenance graph was created and the task initialized;
@@ -171,7 +175,7 @@ class Model {
       time: Date.now(), //timestamp for the current state of the graph;
       count: 0,
       clicked: [],
-      sortKey: this.controller.configuration.adjMatrix.sortKey,
+      sortKey: this.sortKey,
       selections: {
         answerBox: {},
         attrRow: {},
@@ -186,12 +190,10 @@ class Model {
     };
 
     const provenance = ProvenanceLibrary.initProvenance(initialState);
-
     this.provenance = provenance;
 
     const app = this.getApplicationState();
     this.app = app;
-
 
     // creates the document with the name and worker ID
 
@@ -254,7 +256,6 @@ class Model {
 
     function setUpObservers() {
       let updateHighlights = (state) => {
-        console.log(state);
         d3.selectAll('.clicked').classed('clicked', false);
         d3.selectAll('.answer').classed('answer', false);
         d3.selectAll('.neighbor').classed('neighbor', false);
@@ -282,19 +283,6 @@ class Model {
 
       }
 
-      let updateAnswerBox = (state) => {
-        window.controller.configuration.adjMatrix['toggle'] ? window.controller.view.updateAnswerToggles(state) : window.controller.view.updateCheckBox(state);
-        //window.controller.view.updateAnswerToggles(state)
-        let answer = [];
-        for (let i = 0; i < window.controller.model.nodes.length; i++) {
-          if (window.controller.model.nodes[i][this.controller.view.datumID] in state.selections.answerBox) {
-            answer.push(window.controller.model.nodes[i]);
-          }
-        }
-        updateAnswer(answer);
-
-
-      }
       provenance.addObserver("selections.attrRow", updateHighlights)
       provenance.addObserver("selections.rowLabel", updateHighlights)
       provenance.addObserver("selections.colLabel", updateHighlights)
@@ -305,7 +293,6 @@ class Model {
 
       provenance.addObserver("selections.search", updateHighlights)
       provenance.addObserver("selections.answerBox", updateHighlights)
-      provenance.addObserver("selections.answerBox", updateAnswerBox)
 
     }
     setUpObservers();
@@ -339,7 +326,6 @@ class Model {
         currentState.event = 'sort';
 
         currentState.sortKey = sortKey
-        console.log(this.controller.view,this.controller.view.mouseoverEvents)
         if(this.controller.view,this.controller.view.mouseoverEvents){
           currentState.selections.previousMouseovers = this.controller.view.mouseoverEvents;
           this.controller.view.mouseoverEvents.length = 0;
@@ -369,8 +355,9 @@ class Model {
 
   sortObserver(type: string, node: boolean = false){
     let order;
-    this.orderType = type;
-    this.controller.configuration.adjMatrix.sortKey = type;
+    // this.orderType = type;
+    // this.sortKey = type;
+    type = "edges"
     if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
 
       var graph = reorder.graph()
@@ -396,9 +383,9 @@ class Model {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type].length - this.nodes[a][type].length);
     } else if (node == true) {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['shortName'].localeCompare(this.nodes[b]['shortName']));
-      order = d3.range(this.nodes.length).sort((a, b) => { console.log(this.nodes[a], this.nodes[a]['neighbors'], parseInt(type)); return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type)); });
+      order = d3.range(this.nodes.length).sort((a, b) => {return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type));});
     }
-    else if (!this.isQuant(this.orderType)) {// == "screen_name" || this.orderType == "name") {
+    else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]));
 
     } else {
@@ -432,7 +419,7 @@ class Model {
 
 
       /* matrix used for edge attributes, otherwise should we hide */
-      this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode[this.datumID] + '_' + colNode[this.datumID], correspondingCell: 'cell' + colNode[this.datumID] + '_' + rowNode[this.datumID], rowid: rowNode[this.datumID], colid: colNode[this.datumID], x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
+      this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id+ '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
       this.scalarMatrix[i] = this.nodes.map(function(colNode) { return 0; });
 
     });
@@ -459,12 +446,12 @@ class Model {
 
       this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
       // if not directed, increment the other values
-      if (!this.controller.configuration.isDirected) {
-        this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
-        this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
-        this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
+      // if (!isDirected) {
+      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
+      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
+      //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
 
-      }
+      // }
       link.source = this.idMap[link.source];
       link.target = this.idMap[link.target];
     });
