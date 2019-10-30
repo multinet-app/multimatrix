@@ -8,12 +8,15 @@ var View = /** @class */ (function () {
         this.mouseoverEvents = [];
         this.datumID = controller.datumID;
         this.clickFunction = function (d, i, nodes) {
+            console.log("clicked");
             var nodeID = _this.controller.view.determineID(d);
             // remove hover or clicked from the class name of the objects that are interacted
             // this is necessary as the click events are attached to the hovered rect in attrRow
             var interaction = _this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
             var action = _this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
+            console.log(action);
             _this.controller.model.provenance.applyAction(action);
+            console.log(_this.controller.model.provenance.graph().current.state);
         };
         // set up loading screen
         // Add scroll handler to containers
@@ -181,7 +184,6 @@ var View = /** @class */ (function () {
         })
             // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
             .on('click', function (d, i, nodes) {
-            console.log("clicked");
             // only trigger click if edge exists
             _this.clickFunction(d, i, nodes);
         })
@@ -564,8 +566,9 @@ var View = /** @class */ (function () {
         return {
             label: interactionType,
             action: function (nodeID) {
-                var currentState = _this.controller.model.app;
-                currentState.selections.previousMouseovers = _this.mouseoverEvents;
+                var currentState = _this.controller.model.getApplicationState();
+                console.log("current state", currentState);
+                // currentState.selections.previousMouseovers = this.mouseoverEvents;
                 _this.mouseoverEvents.length = 0;
                 //add time stamp to the state graph
                 currentState.time = Date.now();

@@ -95,7 +95,7 @@ class Model {
         this.controller.loadData(this.nodes, this.edges, this.matrix);
       }
 
-      this.setUpProvenance()
+      [this.app, this.provenance] = this.setUpProvenance()
     
   }
 
@@ -158,9 +158,7 @@ class Model {
    * @return [the provenance state]
    */
   getApplicationState() {
-    return {
-      currentState: () => {this.provenance.graph().current.state}
-    };
+    return this.provenance.graph().current.state
   }
 
   /**
@@ -195,7 +193,7 @@ class Model {
     const provenance = ProvenanceLibrary.initProvenance(initialState);
     this.provenance = provenance;
 
-    const app = this.provenance.graph().current.state;
+    const app = this.getApplicationState();
     this.app = app;
     console.log("app", this.app)
 

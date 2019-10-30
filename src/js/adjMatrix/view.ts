@@ -61,6 +61,7 @@ class View {
     this.datumID = controller.datumID;
 
     this.clickFunction = (d, i, nodes) => {
+      console.log("clicked")
 
       let nodeID = this.controller.view.determineID(d);
       // remove hover or clicked from the class name of the objects that are interacted
@@ -68,7 +69,9 @@ class View {
       let interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
 
       let action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
+      console.log(action)
       this.controller.model.provenance.applyAction(action);
+      console.log(this.controller.model.provenance.graph().current.state)
 
     };
 
@@ -243,7 +246,6 @@ class View {
       })
       // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
       .on('click', (d, i, nodes) => {
-        console.log("clicked")
         // only trigger click if edge exists
         this.clickFunction(d, i, nodes);
 
@@ -665,8 +667,9 @@ class View {
     return {
       label: interactionType,
       action: (nodeID) => {
-        const currentState = this.controller.model.app;
-          currentState.selections.previousMouseovers = this.mouseoverEvents;
+        const currentState = this.controller.model.getApplicationState();
+        console.log("current state", currentState)
+          // currentState.selections.previousMouseovers = this.mouseoverEvents;
           this.mouseoverEvents.length = 0;
         //add time stamp to the state graph
         currentState.time = Date.now();

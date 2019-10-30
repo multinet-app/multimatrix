@@ -1,5 +1,6 @@
 var Model = /** @class */ (function () {
     function Model(controller) {
+        var _a;
         var _this = this;
         this.controller = controller;
         this.graph = graph;
@@ -61,7 +62,7 @@ var Model = /** @class */ (function () {
         if (this.controller.model) {
             this.controller.loadData(this.nodes, this.edges, this.matrix);
         }
-        this.setUpProvenance();
+        _a = this.setUpProvenance(), this.app = _a[0], this.provenance = _a[1];
     }
     /**
      * Determines if the attribute is quantitative
@@ -109,10 +110,7 @@ var Model = /** @class */ (function () {
      * @return [the provenance state]
      */
     Model.prototype.getApplicationState = function () {
-        var _this = this;
-        return {
-            currentState: function () { _this.provenance.graph().current.state; }
-        };
+        return this.provenance.graph().current.state;
     };
     /**
      * Initializes the provenance library and sets observers.
@@ -144,7 +142,7 @@ var Model = /** @class */ (function () {
         console.log("setting provenance");
         var provenance = ProvenanceLibrary.initProvenance(initialState);
         this.provenance = provenance;
-        var app = this.provenance.graph().current.state;
+        var app = this.getApplicationState();
         this.app = app;
         console.log("app", this.app);
         // creates the document with the name and worker ID
