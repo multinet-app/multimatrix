@@ -53,7 +53,6 @@ class View {
 
   constructor(controller) {
     this.controller = controller;
-    console.log("controller", this.controller)
 
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
 
@@ -61,7 +60,6 @@ class View {
     this.datumID = controller.datumID;
 
     this.clickFunction = (d, i, nodes) => {
-      console.log("clicked")
 
       let nodeID = this.controller.view.determineID(d);
       // remove hover or clicked from the class name of the objects that are interacted
@@ -69,9 +67,7 @@ class View {
       let interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
 
       let action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
-      console.log(action)
       this.controller.model.provenance.applyAction(action);
-      console.log(this.controller.model.provenance.graph().current.state)
 
     };
 
@@ -135,7 +131,6 @@ class View {
     this.nodes = nodes
     this.edges = edges;
     this.matrix = matrix;
-    console.log("initial matrix", matrix)
 
     this.renderView();
   }
@@ -145,16 +140,12 @@ class View {
    * @return none
    */
   renderView() {
-    console.log("rendering1")
     d3.select('.loading').style('display', 'block').style('opacity', 1);
-
-    console.log(this.controller)
 
     this.initalizeEdges();
     // this.initalizeAttributes();
 
     d3.select('.loading').style('display', 'none');
-    console.log("rendering2")
   }
 
   /**
@@ -184,9 +175,6 @@ class View {
     // sets the vertical scale
     this.orderingScale = d3.scaleBand<number>().range([0, this.edgeHeight]).domain(d3.range(this.nodes.length));
 
-    console.log("nodes", this.nodes)
-    console.log("edges", graph.links)
-    console.log("matrix", this.matrix)
     // creates column groupings
     this.edgeColumns = this.edges.selectAll(".column")
       .data(this.matrix)
@@ -314,8 +302,6 @@ class View {
    * @return       none
    */
   drawFullSquares(cells) {
-    console.log(cells)
-    console.log("graph", graph)
     let squares = cells
       .append("rect")
       .attr("x", 0)//d => this.orderingScale(d.x))
@@ -668,7 +654,6 @@ class View {
       label: interactionType,
       action: (nodeID) => {
         const currentState = this.controller.model.getApplicationState();
-        console.log("current state", currentState)
           // currentState.selections.previousMouseovers = this.mouseoverEvents;
           this.mouseoverEvents.length = 0;
         //add time stamp to the state graph

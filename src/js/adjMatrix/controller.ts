@@ -5,7 +5,7 @@ class Controller {
    */
   private view: any;
   private model: any;
-  private configuration: any;
+  public configToggle: boolean;
 
   setupExports(base, task) {
     d3.select("#exportBaseConfig").on("click", function() {
@@ -42,8 +42,8 @@ class Controller {
   loadTask(taskNum) {
     // edgeBars = true;
     // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
-    //   if (!this.configuration.nodeAttributes.includes('selected')) {
-    //     this.configuration.nodeAttributes.unshift('selected');
+    //   if (!this.nodeAttributes.includes('selected')) {
+    //     this.nodeAttributes.unshift('selected');
         let obj = {
           "domain": [true, false],
           "range": ["#e86b45", '#fff'],
@@ -51,25 +51,25 @@ class Controller {
           'glyph': 'rect',
           'label': 'selected'
         }
-    //     this.configuration.attributeScales.node['selected'] = obj;
+    //     this.attributeScales.node['selected'] = obj;
 
     //   }
 
 
     // }
-    // this.configuration.adjMatrix['toggle'] = false;
-    // //this.configuration.adjMatrix.neighborSelect = true;
+    // this.adjMatrix['toggle'] = false;
+    // //this.adjMatrix.neighborSelect = true;
 
-    // this.attrWidth = d3.min([150 * this.configuration.nodeAttributes.length, 650]);
+    // this.attrWidth = d3.min([150 * this.nodeAttributes.length, 650]);
 
-    // this.configuration.state = {}
-    // this.configuration.state.adjMatrix = {};
-    // if (this.configuration.adjMatrix.sortKey == null || this.configuration.adjMatrix.sortKey == '') {
+    // this.state = {}
+    // this.state.adjMatrix = {};
+    // if (this.adjMatrix.sortKey == null || this.adjMatrix.sortKey == '') {
     let sortKey = 'name'
     // }
 
     this.sizeLayout();
-    //configuration.adjMatrix.sortKey
+    //this.adjMatrix.sortKey
   }
 
   private clickedCells: any;
@@ -118,8 +118,6 @@ class Controller {
     d3.select("#visPanel").style("width", panelDimensions.width + "px");
     d3.select("#visPanel").style("height", panelDimensions.height + "px");
 
-
-    d3.select('#panelDiv').style('display', 'none');
     document.getElementById("visContent").style.width = '100vw';
     document.getElementById("visContent").style.overflowX = "scroll";
 
@@ -153,19 +151,18 @@ class Controller {
   }
 
   constructor() {
-    console.log("constructing controller")
     this.hoverRow = {};
     this.hoverCol = {};
     this.datumID = 'id';
-    this.clickedCells = new Set();
+    this.clickedCells = new Set()
+
+    this.configToggle = configPanel === "true";
 
     this.sizeLayout();
 
     this.view = new View(this); // initalize view,
-    console.log("added this.view")
 
     this.model = new Model(this); // start reading in data
-    console.log("added this.model")
 
     this.model.reload();
 
@@ -181,14 +178,11 @@ class Controller {
   }
 
   reload() {
-    console.log("reloading controller")
     this.clearView();
     d3.select('.loading').style('display', 'block');
 
     this.view = new View(this);
-    console.log("controller.view exists")
     this.model = new Model(this);
-    console.log("controller.model exists")
     startTime = Date.now();
 
     this.loadData();
@@ -217,7 +211,7 @@ class Controller {
    * @return [description]
    */
   changeOrder(order: string, node : boolean = false) {
-    // this.configuration.adjMatrix.sortKey = order;
+    // this.adjMatrix.sortKey = order;
     // return this.model.changeOrder(order,node);
   }
 }

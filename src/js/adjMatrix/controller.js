@@ -1,16 +1,14 @@
 // Work on importing class file
 var Controller = /** @class */ (function () {
     function Controller() {
-        console.log("constructing controller");
         this.hoverRow = {};
         this.hoverCol = {};
         this.datumID = 'id';
         this.clickedCells = new Set();
+        this.configToggle = configPanel === "true";
         this.sizeLayout();
         this.view = new View(this); // initalize view,
-        console.log("added this.view");
         this.model = new Model(this); // start reading in data
-        console.log("added this.model");
         this.model.reload();
         d3.select('.loading').style('display', 'block');
     }
@@ -41,8 +39,8 @@ var Controller = /** @class */ (function () {
     Controller.prototype.loadTask = function (taskNum) {
         // edgeBars = true;
         // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
-        //   if (!this.configuration.nodeAttributes.includes('selected')) {
-        //     this.configuration.nodeAttributes.unshift('selected');
+        //   if (!this.nodeAttributes.includes('selected')) {
+        //     this.nodeAttributes.unshift('selected');
         var obj = {
             "domain": [true, false],
             "range": ["#e86b45", '#fff'],
@@ -50,19 +48,19 @@ var Controller = /** @class */ (function () {
             'glyph': 'rect',
             'label': 'selected'
         };
-        //     this.configuration.attributeScales.node['selected'] = obj;
+        //     this.attributeScales.node['selected'] = obj;
         //   }
         // }
-        // this.configuration.adjMatrix['toggle'] = false;
-        // //this.configuration.adjMatrix.neighborSelect = true;
-        // this.attrWidth = d3.min([150 * this.configuration.nodeAttributes.length, 650]);
-        // this.configuration.state = {}
-        // this.configuration.state.adjMatrix = {};
-        // if (this.configuration.adjMatrix.sortKey == null || this.configuration.adjMatrix.sortKey == '') {
+        // this.adjMatrix['toggle'] = false;
+        // //this.adjMatrix.neighborSelect = true;
+        // this.attrWidth = d3.min([150 * this.nodeAttributes.length, 650]);
+        // this.state = {}
+        // this.state.adjMatrix = {};
+        // if (this.adjMatrix.sortKey == null || this.adjMatrix.sortKey == '') {
         var sortKey = 'name';
         // }
         this.sizeLayout();
-        //configuration.adjMatrix.sortKey
+        //this.adjMatrix.sortKey
     };
     Controller.prototype.clear = function () {
         var _this = this;
@@ -100,7 +98,6 @@ var Controller = /** @class */ (function () {
         panelDimensions.height = height - taskBarHeight;
         d3.select("#visPanel").style("width", panelDimensions.width + "px");
         d3.select("#visPanel").style("height", panelDimensions.height + "px");
-        d3.select('#panelDiv').style('display', 'none');
         document.getElementById("visContent").style.width = '100vw';
         document.getElementById("visContent").style.overflowX = "scroll";
         this.visHeight = panelDimensions.height;
@@ -131,13 +128,10 @@ var Controller = /** @class */ (function () {
         d3.select('#legend-svg').selectAll('*').remove();
     };
     Controller.prototype.reload = function () {
-        console.log("reloading controller");
         this.clearView();
         d3.select('.loading').style('display', 'block');
         this.view = new View(this);
-        console.log("controller.view exists");
         this.model = new Model(this);
-        console.log("controller.model exists");
         startTime = Date.now();
         this.loadData();
         //this.model = new Model(this); // start reading in data
@@ -162,7 +156,7 @@ var Controller = /** @class */ (function () {
      */
     Controller.prototype.changeOrder = function (order, node) {
         if (node === void 0) { node = false; }
-        // this.configuration.adjMatrix.sortKey = order;
+        // this.adjMatrix.sortKey = order;
         // return this.model.changeOrder(order,node);
     };
     return Controller;

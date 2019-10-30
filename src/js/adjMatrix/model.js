@@ -37,10 +37,10 @@ var Model = /** @class */ (function () {
         // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
         var clusterFlag = false;
         // if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
-        //   this.orderType = 'shortName';//this.controller.configuration.adjMatrix.sortKey;
+        //   this.orderType = 'shortName';//this.controller.sortKey;
         //   clusterFlag = true;
         // } else {
-        //   // this.orderType = this.controller.configuration.adjMatrix.sortKey;
+        //   // this.orderType = this.controller.sortKey;
         // }
         // this.order = this.changeOrder(this.orderType);
         // sorts quantitative by descending value, sorts qualitative by alphabetical
@@ -71,9 +71,9 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.isQuant = function (attr) {
         // if not in list
-        // if (!Object.keys(this.controller.configuration.attributeScales.node).includes(attr)) {
+        // if (!Object.keys(this.controller.attributeScales.node).includes(attr)) {
         //   return false;
-        // } else if (this.controller.configuration.attributeScales.node[attr].range === undefined) {
+        // } else if (this.controller.attributeScales.node[attr].range === undefined) {
         //   return true;
         // } else {
         //   return false;
@@ -139,12 +139,10 @@ var Model = /** @class */ (function () {
                 previousMouseovers: []
             }
         };
-        console.log("setting provenance");
         var provenance = ProvenanceLibrary.initProvenance(initialState);
         this.provenance = provenance;
         var app = this.getApplicationState();
         this.app = app;
-        console.log("app", this.app);
         // creates the document with the name and worker ID
         var columnElements = ['topoCol'];
         var rowElements = ['topoRow', 'attrRow'];
@@ -196,16 +194,13 @@ var Model = /** @class */ (function () {
             return;
         }
         function setUpObservers() {
-            console.log("setting observers");
             var updateHighlights = function (state) {
-                console.log("updating highlights");
                 d3.selectAll('.clicked').classed('clicked', false);
                 d3.selectAll('.answer').classed('answer', false);
                 d3.selectAll('.neighbor').classed('neighbor', false);
                 classAllHighlights(state);
             };
             var updateCellClicks = function (state) {
-                console.log("updateCellClicks");
                 var cellNames = [];
                 Object.keys(state.selections.cellcol).map(function (key) {
                     var names = state.selections.cellcol[key];
@@ -283,7 +278,7 @@ var Model = /** @class */ (function () {
         if (node === void 0) { node = false; }
         var order;
         // this.orderType = type;
-        // this.controller.configuration.adjMatrix.sortKey = type;
+        // this.sortKey = type;
         type = "edges";
         if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
             var graph = reorder.graph()
@@ -363,7 +358,7 @@ var Model = /** @class */ (function () {
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].z += addValue;
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].count += 1;
             // if not directed, increment the other values
-            // if (!this.controller.configuration.isDirected) {
+            // if (!isDirected) {
             //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
             //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
             //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;

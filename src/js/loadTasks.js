@@ -19,6 +19,9 @@ async function resetPanel() {
         .selectAll("li")
         .remove();
 
+    // Add the toggle for the control panel button
+    d3.select('#panelControl').on("click", () => window.controller.configToggle = toggleConfig(window.controller.configToggle));
+
 
     graph = await load_data(workspace, graph)
 
@@ -60,7 +63,6 @@ async function loadScripts() {
         "js/adjMatrix/libs/reorder/science.v1.js",
         "js/adjMatrix/libs/reorder/tiny-queue.js",
         "js/adjMatrix/libs/reorder/reorder.v1.js",
-        "js/adjMatrix/fill_config_settings.js",
         "js/adjMatrix/autocomplete.js",
         "js/adjMatrix/view.js",
         "js/adjMatrix/controller.js",

@@ -3,20 +3,16 @@ var View = /** @class */ (function () {
     function View(controller) {
         var _this = this;
         this.controller = controller;
-        console.log("controller", this.controller);
         this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
         this.mouseoverEvents = [];
         this.datumID = controller.datumID;
         this.clickFunction = function (d, i, nodes) {
-            console.log("clicked");
             var nodeID = _this.controller.view.determineID(d);
             // remove hover or clicked from the class name of the objects that are interacted
             // this is necessary as the click events are attached to the hovered rect in attrRow
             var interaction = _this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
             var action = _this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
-            console.log(action);
             _this.controller.model.provenance.applyAction(action);
-            console.log(_this.controller.model.provenance.graph().current.state);
         };
         // set up loading screen
         // Add scroll handler to containers
@@ -94,7 +90,6 @@ var View = /** @class */ (function () {
         this.nodes = nodes;
         this.edges = edges;
         this.matrix = matrix;
-        console.log("initial matrix", matrix);
         this.renderView();
     };
     /**
@@ -102,13 +97,10 @@ var View = /** @class */ (function () {
      * @return none
      */
     View.prototype.renderView = function () {
-        console.log("rendering1");
         d3.select('.loading').style('display', 'block').style('opacity', 1);
-        console.log(this.controller);
         this.initalizeEdges();
         // this.initalizeAttributes();
         d3.select('.loading').style('display', 'none');
-        console.log("rendering2");
     };
     /**
      * Initalizes the edges view, renders all SVG elements and attaches listeners
@@ -134,9 +126,6 @@ var View = /** @class */ (function () {
             .attr("transform", "translate(" + this.margins.left + "," + this.margins.top + ")");
         // sets the vertical scale
         this.orderingScale = d3.scaleBand().range([0, this.edgeHeight]).domain(d3.range(this.nodes.length));
-        console.log("nodes", this.nodes);
-        console.log("edges", graph.links);
-        console.log("matrix", this.matrix);
         // creates column groupings
         this.edgeColumns = this.edges.selectAll(".column")
             .data(this.matrix)
@@ -245,8 +234,6 @@ var View = /** @class */ (function () {
      * @return       none
      */
     View.prototype.drawFullSquares = function (cells) {
-        console.log(cells);
-        console.log("graph", graph);
         var squares = cells
             .append("rect")
             .attr("x", 0) //d => this.orderingScale(d.x))
@@ -567,7 +554,6 @@ var View = /** @class */ (function () {
             label: interactionType,
             action: function (nodeID) {
                 var currentState = _this.controller.model.getApplicationState();
-                console.log("current state", currentState);
                 // currentState.selections.previousMouseovers = this.mouseoverEvents;
                 _this.mouseoverEvents.length = 0;
                 //add time stamp to the state graph

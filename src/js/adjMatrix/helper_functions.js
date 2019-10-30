@@ -19,21 +19,3 @@ function searchForNode(theForm) {
     }
     return false;
 }
-window.onload = function() {
-    d3.select("#optimalConfig").on("click", () => {
-        window.controller.tenAttr = false;
-        window.controller.fiveAttr = false;
-        window.controller.loadConfigs();
-    });
-    d3.select("#nodeLinkConfig").on("click", () => { // 5 attr
-        window.controller.tenAttr = false;
-        window.controller.fiveAttr = true;
-        window.controller.loadConfigs();
-    });
-
-    d3.select("#saturatedConfig").on("click", () => { // 10 attr
-        window.controller.tenAttr = true;
-        window.controller.fiveAttr = false;
-        window.controller.loadConfigs();
-    });
-}
