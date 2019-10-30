@@ -159,7 +159,7 @@ var View = /** @class */ (function () {
             .attr('height', this.orderingScale.bandwidth())
             .attr('width', this.orderingScale.bandwidth());
         // render edges
-        // this.controller.configuration.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
+        // this.controller.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
         this.drawFullSquares(cells);
         cells
             .on("mouseover", function (cell, i, nodes) {
@@ -196,12 +196,12 @@ var View = /** @class */ (function () {
     View.prototype.drawEdgeBars = function (cells) {
         var _this = this;
         // bind squares to cells for the mouse over effect
-        var dividers = this.controller.configuration.isMultiEdge ? 2 : 1;
+        var dividers = this.controller.isMultiEdge ? 2 : 1;
         //let squares = cells
         var offset = 0;
         var squareSize = this.orderingScale.bandwidth() - 2 * offset;
         var _loop_1 = function (index) {
-            var type = this_1.controller.configuration.isMultiEdge ? this_1.controller.configuration.attributeScales.edge.type.domain[index] : 'interacted';
+            var type = this_1.controller.isMultiEdge ? this_1.controller.attributeScales.edge.type.domain[index] : 'interacted';
             cells
                 .append("rect")
                 .classed('nestedEdges nestedEdges' + type, true)
@@ -339,7 +339,7 @@ var View = /** @class */ (function () {
      */
     View.prototype.appendEdgeLabels = function () {
         var _this = this;
-        var labelSize = //this.controller.configuration.nodeAttributes.length > 4 ? 9.5 : 
+        var labelSize = //this.controller.nodeAttributes.length > 4 ? 9.5 : 
          11;
         this.nodes.length < 50 ? labelSize = labelSize + 2 : null;
         this.edgeRows.append("text")
@@ -361,7 +361,7 @@ var View = /** @class */ (function () {
             _this.clickFunction(d, i, nodes);
         });
         var verticalOffset = 3;
-        if (true /*this.controller.configuration.adjMatrix.neighborSelect*/) {
+        if (true /*this.controller.adjMatrix.neighborSelect*/) {
             verticalOffset = 187.5;
             var horizontalOffset = this.nodes.length < 50 ? 143.75 : 0;
             this.edgeColumns.append('path')
@@ -399,7 +399,7 @@ var View = /** @class */ (function () {
             .style("font-size", labelSize)
             .text(function (d, i) { return _this.nodes[i].name; })
             .on('click', function (d, i, nodes) {
-            if (true /*this.controller.configuration.adjMatrix.neighborSelect*/) {
+            if (true /*this.controller.adjMatrix.neighborSelect*/) {
                 //this.sort(d[0].rowid)
                 _this.clickFunction(d, i, nodes);
                 var action = _this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
@@ -436,15 +436,15 @@ var View = /** @class */ (function () {
      */
     View.prototype.generateEdgeScales = function () {
         var edgeScales = {};
-        // this.controller.configuration.attributeScales.edge.type.domain.forEach(type => {
+        // this.controller.attributeScales.edge.type.domain.forEach(type => {
         //   // calculate the max
-        //   let extent = [0, this.controller.configuration.attributeScales.edge.count.domain[1]];
+        //   let extent = [0, this.controller.attributeScales.edge.count.domain[1]];
         //   //model.maxTracker[type]]
         //   // set up scale
-        //   let typeIndex = this.controller.configuration.attributeScales.edge.type.domain.indexOf(type);
-        //   //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]]);
+        //   let typeIndex = this.controller.attributeScales.edge.type.domain.indexOf(type);
+        //   //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.attributeScales.edge.type.range[typeIndex]]);
         //   //let otherColors = ['#064B6E', '#4F0664', '#000000']
-        //   let scale = d3.scaleSqrt().domain(extent).range("white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]);
+        //   let scale = d3.scaleSqrt().domain(extent).range("white", this.controller.attributeScales.edge.type.range[typeIndex]);
         //   scale.clamp(true);
         //   // store scales
         //   edgeScales[type] = scale;
@@ -675,9 +675,9 @@ var View = /** @class */ (function () {
         var _this = this;
         var yOffset = 10;
         var xOffset = 10;
-        if (this.controller.configuration.adjMatrix.edgeBars && this.controller.configuration.isMultiEdge) {
+        if (this.controller.adjMatrix.edgeBars && this.controller.isMultiEdge) {
             var legendFile = 'assets/adj-matrix/';
-            legendFile += this.controller.configuration.isMultiEdge ? 'nestedSquaresLegend' : 'edgeBarsLegendSingleEdge';
+            legendFile += this.controller.isMultiEdge ? 'nestedSquaresLegend' : 'edgeBarsLegendSingleEdge';
             legendFile += '.png';
             d3.select('#legend-svg').append('g').append("svg:image")
                 .attr('x', 0)
@@ -701,9 +701,9 @@ var View = /** @class */ (function () {
             .attr("id", "legendLinear" + type)
             .attr("transform", function (d, i) { return "translate(" + xOffset + "," + yOffset + ")"; })
             .on('click', function (d, i, nodes) {
-            if (_this.controller.configuration.adjMatrix.selectEdgeType == true) { //
-                var edgeType = _this.controller.configuration.state.adjMatrix.selectedEdgeType == type ? 'all' : type;
-                _this.controller.configuration.state.adjMatrix.selectedEdgeType = edgeType;
+            if (_this.controller.adjMatrix.selectEdgeType == true) { //
+                var edgeType = _this.controller.state.adjMatrix.selectedEdgeType == type ? 'all' : type;
+                _this.controller.state.adjMatrix.selectedEdgeType = edgeType;
                 _this.setSquareColors(edgeType);
                 if (edgeType == "all") {
                     d3.selectAll('.selectedEdgeType').classed('selectedEdgeType', false);
@@ -766,7 +766,7 @@ var View = /** @class */ (function () {
     View.prototype.generateColorLegend = function () {
         var counter = 0;
         for (var type in this.edgeScales) {
-            if (this.controller.configuration.isMultiEdge) {
+            if (this.controller.isMultiEdge) {
                 if (type == "interacted") {
                     continue;
                 }
@@ -838,13 +838,13 @@ var View = /** @class */ (function () {
         for (var i = 0; i < this.matrix[0].length; i++) {
             if (this.matrix[i][nodeIndex].z > 0) {
                 var nodeID = this.matrix[i][nodeIndex].rowid;
-                if (this.controller.configuration.state.adjMatrix.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].includes(addingNode)) {
+                if (this.controller.state.adjMatrix.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.state.adjMatrix.highlightedNodes[nodeID].includes(addingNode)) {
                     // if array exists, add it
-                    this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].push(addingNode);
+                    this.controller.state.adjMatrix.highlightedNodes[nodeID].push(addingNode);
                 }
                 else {
                     // if array non exist, create it and add node
-                    this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID] = [addingNode];
+                    this.controller.state.adjMatrix.highlightedNodes[nodeID] = [addingNode];
                 }
             }
         }
@@ -858,15 +858,15 @@ var View = /** @class */ (function () {
     removeHighlightNode(removingNode: string) {
       // remove from selected nodes
   
-      for (let nodeID in this.controller.configuration.state.adjMatrix.highlightedNodes) {
+      for (let nodeID in this.controller.state.adjMatrix.highlightedNodes) {
         //finds the position of removing node in the nodes array
-        let index = this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].indexOf(removingNode);
+        let index = this.controller.state.adjMatrix.highlightedNodes[nodeID].indexOf(removingNode);
         // keep on removing all places of removing node
         if (index > -1) {
-          this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].splice(index, 1);
+          this.controller.state.adjMatrix.highlightedNodes[nodeID].splice(index, 1);
           // delete properties if no nodes left
-          if (this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].length == 0) {
-            delete this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID];
+          if (this.controller.state.adjMatrix.highlightedNodes[nodeID].length == 0) {
+            delete this.controller.state.adjMatrix.highlightedNodes[nodeID];
           }
         }
       }
@@ -935,12 +935,12 @@ var View = /** @class */ (function () {
         d3.selectAll(cssSelector).classed(classToRender, true);
     };
     View.prototype.selectNode = function (nodeID) {
-        var index = this.controller.configuration.state.selectedNodes.indexOf(nodeID);
+        var index = this.controller.state.selectedNodes.indexOf(nodeID);
         if (index > -1) {
-            this.controller.configuration.state.selectedNodes.splice(index, 1);
+            this.controller.state.selectedNodes.splice(index, 1);
         }
         else {
-            this.controller.configuration.state.selectedNodes.push(nodeID);
+            this.controller.state.selectedNodes.push(nodeID);
         }
         var attrRow = d3.selectAll('attr' + 'Row' + nodeID);
         attrRow
@@ -958,28 +958,28 @@ var View = /** @class */ (function () {
      * @return        [description]
      */
     View.prototype.selectNeighborNodes = function (nodeID) {
-        var nodeIndex = this.controller.configuration.state.adjMatrix.columnSelectedNodes.indexOf(nodeID);
+        var nodeIndex = this.controller.state.adjMatrix.columnSelectedNodes.indexOf(nodeID);
         if (nodeIndex > -1) {
             // find all neighbors and remove them
-            this.controller.configuration.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
+            this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
             this.removeHighlightNode(nodeID);
-            this.controller.configuration.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
+            this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
             // remove node from column selected nodes
         }
         else {
             this.addHighlightNode(nodeID);
-            this.controller.configuration.state.adjMatrix.columnSelectedNodes.push(nodeID);
+            this.controller.state.adjMatrix.columnSelectedNodes.push(nodeID);
         }
         this.renderNeighborHighlightNodes();
-        /*let index = this.controller.configuration.state.selectedNodes.indexOf(nodeID);
+        /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
     
         if(index > -1){ // if in selected node, remove it (unless it is )
-          this.controller.configuration.state.selectedNodes.splice(index,1);
+          this.controller.state.selectedNodes.splice(index,1);
           //find all partner nodes
           // if still exists keep,
         } else {
           // add node
-          this.controller.configuration.state.selectedNodes.push(nodeID);
+          this.controller.state.selectedNodes.push(nodeID);
     
         }
     
@@ -1082,10 +1082,10 @@ var View = /** @class */ (function () {
     };
     View.prototype.updateCheckBox = function (state) {
         var _this = this;
-        if (this.controller.configuration.attributeScales.node.selected == undefined) {
+        if (this.controller.attributeScales.node.selected == undefined) {
             return;
         }
-        var color = this.controller.configuration.attributeScales.node.selected.range[0];
+        var color = this.controller.attributeScales.node.selected.range[0];
         d3.selectAll('.answerBox').selectAll('rect').transition().duration(250)
             .style("fill", function (d) {
             var answerStatus = d[_this.datumID] in state.selections.answerBox;
@@ -1094,10 +1094,10 @@ var View = /** @class */ (function () {
     };
     View.prototype.updateAnswerToggles = function (state) {
         var _this = this;
-        if (this.controller.configuration.attributeScales.node.selected == undefined) {
+        if (this.controller.attributeScales.node.selected == undefined) {
             return;
         }
-        var color = this.controller.configuration.attributeScales.node.selected.range[0];
+        var color = this.controller.attributeScales.node.selected.range[0];
         d3.selectAll('.answerBox').selectAll('circle').transition().duration(500)
             .attr("cx", function (d) {
             var answerStatus = d[_this.datumID] in state.selections.answerBox;
@@ -1186,7 +1186,7 @@ var View = /** @class */ (function () {
             .attr("fill-opacity", 0)
             .on('mouseover', attributeMouseOver)
             .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
-        var columns = this.controller.configuration.nodeAttributes;
+        var columns = this.controller.nodeAttributes;
         //columns.unshift('selected'); // ANSWER COLUMNS
         var formatCurrency = d3.format("$,.0f"), formatNumber = d3.format(",.0f");
         // generate scales for each
@@ -1203,7 +1203,7 @@ var View = /** @class */ (function () {
         columns.forEach(function (col, index) {
             // calculate range
             columnRange.push(xRange);
-            var domain = _this.controller.configuration.attributeScales.node[col].domain;
+            var domain = _this.controller.attributeScales.node[col].domain;
             if (quantitativeAttributes.indexOf(col) > -1) {
                 var scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
                 scale.clamp(true);
@@ -1212,7 +1212,7 @@ var View = /** @class */ (function () {
             else {
                 // append colored blocks
                 // placeholder scale
-                var range = _this.controller.configuration.attributeScales.node[col].range;
+                var range = _this.controller.attributeScales.node[col].range;
                 var scale = d3.scaleOrdinal().domain(domain).range(range);
                 //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
                 attributeScales[col] = scale;
@@ -1302,7 +1302,7 @@ var View = /** @class */ (function () {
                     .attr("class", "answerBox")
                     .attr("id", function (d) { return "answerBox" + d[_this.datumID]; })
                     .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
-                if (_this.controller.configuration.adjMatrix.toggle) {
+                if (_this.controller.adjMatrix.toggle) {
                     var rect = answerBox.append("rect")
                         .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
                         .attr("y", barMargin.top)
@@ -1338,12 +1338,12 @@ var View = /** @class */ (function () {
                 }
                 answerBox
                     .on('click', function (d, i, nodes) {
-                    var color = _this.controller.configuration.attributeScales.node.selected.range[0];
+                    var color = _this.controller.attributeScales.node.selected.range[0];
                     //if already answer
                     var nodeID = _this.determineID(d);
                     /*Visual chagne */
                     var answerStatus = false; // TODO, remove?
-                    if (_this.controller.configuration.adjMatrix.toggle) {
+                    if (_this.controller.adjMatrix.toggle) {
                         d3.select(nodes[i]).selectAll('circle').transition().duration(500)
                             .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
                             .style("fill", answerStatus ? color : "white");
@@ -1547,7 +1547,7 @@ var View = /** @class */ (function () {
             var column = columns[i];
             // if column is categorical
             if (this.isCategorical(column)) {
-                var width = itemSize * (this.controller.configuration.attributeScales.node[column].domain.length + 1.5) + 20;
+                var width = itemSize * (this.controller.attributeScales.node[column].domain.length + 1.5) + 20;
                 if (column == "selected") {
                     width = 60;
                 }
@@ -1575,7 +1575,7 @@ var View = /** @class */ (function () {
         var height = this.orderingScale.bandwidth() - 2 * topMargin;
         var bandwidthScale = this.nodes.length < 50 ? (1 / 3) : 2;
         var width = this.orderingScale.bandwidth() * bandwidthScale;
-        var numberCategories = this.controller.configuration.attributeScales.node[column].domain.length;
+        var numberCategories = this.controller.attributeScales.node[column].domain.length;
         var legendItemSize = (this.columnWidths[column]) / (numberCategories + 1.5); ///bandwidth * bandwidthScale;
         var _loop_3 = function (index) {
             this_3.attributeRows
@@ -1616,8 +1616,8 @@ var View = /** @class */ (function () {
     };
     View.prototype.generateCategoricalLegend = function (attribute, legendWidth) {
         var _this = this;
-        var numberCategories = this.controller.configuration.attributeScales.node[attribute].domain.length;
-        var attributeInfo = this.controller.configuration.attributeScales.node[attribute];
+        var numberCategories = this.controller.attributeScales.node[attribute].domain.length;
+        var attributeInfo = this.controller.attributeScales.node[attribute];
         var dividers = attributeInfo.domain.length;
         var legendHeight = d3.min([25, this.orderingScale.bandwidth()]);
         var bandwidthScale = 2;

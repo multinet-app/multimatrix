@@ -218,7 +218,7 @@ class View {
       .attr('width', this.orderingScale.bandwidth())
 
     // render edges
-    // this.controller.configuration.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
+    // this.controller.adjMatrix.edgeBars ? this.drawEdgeBars(cells) : 
     this.drawFullSquares(cells);
 
     cells
@@ -261,7 +261,7 @@ class View {
    */
   drawEdgeBars(cells: any) {
     // bind squares to cells for the mouse over effect
-    let dividers = this.controller.configuration.isMultiEdge ? 2 : 1;
+    let dividers = this.controller.isMultiEdge ? 2 : 1;
 
     //let squares = cells
     let offset = 0;
@@ -269,7 +269,7 @@ class View {
 
     for (let index = 0; index < dividers; index++) {
 
-      let type = this.controller.configuration.isMultiEdge ? this.controller.configuration.attributeScales.edge.type.domain[index] : 'interacted';
+      let type = this.controller.isMultiEdge ? this.controller.attributeScales.edge.type.domain[index] : 'interacted';
 
       cells
         .append("rect")
@@ -422,7 +422,7 @@ class View {
    * @return none
    */
   appendEdgeLabels() {
-    let labelSize = //this.controller.configuration.nodeAttributes.length > 4 ? 9.5 : 
+    let labelSize = //this.controller.nodeAttributes.length > 4 ? 9.5 : 
     11;
     this.nodes.length < 50 ? labelSize = labelSize + 2 : null;
     this.edgeRows.append("text")
@@ -445,7 +445,7 @@ class View {
       })
 
     let verticalOffset = 3;
-    if(true/*this.controller.configuration.adjMatrix.neighborSelect*/){
+    if(true/*this.controller.adjMatrix.neighborSelect*/){
       verticalOffset = 187.5;
       let horizontalOffset = this.nodes.length < 50 ? 143.75 : 0;
       this.edgeColumns.append('path')
@@ -485,7 +485,7 @@ class View {
       .style("font-size", labelSize)
       .text((d, i) => this.nodes[i].name)
       .on('click', (d, i, nodes) => {
-        if (true /*this.controller.configuration.adjMatrix.neighborSelect*/) {
+        if (true /*this.controller.adjMatrix.neighborSelect*/) {
           //this.sort(d[0].rowid)
           this.clickFunction(d, i, nodes);
           let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
@@ -526,17 +526,17 @@ class View {
    */
   generateEdgeScales() {
     let edgeScales = {};
-    // this.controller.configuration.attributeScales.edge.type.domain.forEach(type => {
+    // this.controller.attributeScales.edge.type.domain.forEach(type => {
     //   // calculate the max
-    //   let extent = [0, this.controller.configuration.attributeScales.edge.count.domain[1]];
+    //   let extent = [0, this.controller.attributeScales.edge.count.domain[1]];
     //   //model.maxTracker[type]]
     //   // set up scale
-    //   let typeIndex = this.controller.configuration.attributeScales.edge.type.domain.indexOf(type);
+    //   let typeIndex = this.controller.attributeScales.edge.type.domain.indexOf(type);
 
-    //   //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]]);
+    //   //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.attributeScales.edge.type.range[typeIndex]]);
     //   //let otherColors = ['#064B6E', '#4F0664', '#000000']
 
-    //   let scale = d3.scaleSqrt().domain(extent).range("white", this.controller.configuration.attributeScales.edge.type.range[typeIndex]);
+    //   let scale = d3.scaleSqrt().domain(extent).range("white", this.controller.attributeScales.edge.type.range[typeIndex]);
 
     //   scale.clamp(true);
     //   // store scales
@@ -786,9 +786,9 @@ class View {
     let yOffset = 10;
     let xOffset = 10;
 
-    if (this.controller.configuration.adjMatrix.edgeBars && this.controller.configuration.isMultiEdge) {
+    if (this.controller.adjMatrix.edgeBars && this.controller.isMultiEdge) {
       let legendFile = 'assets/adj-matrix/';
-      legendFile += this.controller.configuration.isMultiEdge ? 'nestedSquaresLegend' : 'edgeBarsLegendSingleEdge'
+      legendFile += this.controller.isMultiEdge ? 'nestedSquaresLegend' : 'edgeBarsLegendSingleEdge'
       legendFile += '.png';
       d3.select('#legend-svg').append('g').append("svg:image")
         .attr('x', 0)
@@ -816,9 +816,9 @@ class View {
       .attr("id", "legendLinear" + type)
       .attr("transform", (d, i) => "translate(" + xOffset + "," + yOffset + ")")
       .on('click', (d, i, nodes) => {
-        if (this.controller.configuration.adjMatrix.selectEdgeType == true) { //
-          let edgeType = this.controller.configuration.state.adjMatrix.selectedEdgeType == type ? 'all' : type;
-          this.controller.configuration.state.adjMatrix.selectedEdgeType = edgeType;
+        if (this.controller.adjMatrix.selectEdgeType == true) { //
+          let edgeType = this.controller.state.adjMatrix.selectedEdgeType == type ? 'all' : type;
+          this.controller.state.adjMatrix.selectedEdgeType = edgeType;
           this.setSquareColors(edgeType);
           if (edgeType == "all") {
             d3.selectAll('.selectedEdgeType').classed('selectedEdgeType', false);
@@ -892,7 +892,7 @@ class View {
   generateColorLegend() {
     let counter = 0;
     for (let type in this.edgeScales) {
-      if (this.controller.configuration.isMultiEdge) {
+      if (this.controller.isMultiEdge) {
         if (type == "interacted") {
           continue;
         }
@@ -978,12 +978,12 @@ class View {
     for (let i = 0; i < this.matrix[0].length; i++) {
       if (this.matrix[i][nodeIndex].z > 0) {
         let nodeID = this.matrix[i][nodeIndex].rowid;
-        if (this.controller.configuration.state.adjMatrix.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].includes(addingNode)) {
+        if (this.controller.state.adjMatrix.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.state.adjMatrix.highlightedNodes[nodeID].includes(addingNode)) {
           // if array exists, add it
-          this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].push(addingNode);
+          this.controller.state.adjMatrix.highlightedNodes[nodeID].push(addingNode);
         } else {
           // if array non exist, create it and add node
-          this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID] = [addingNode];
+          this.controller.state.adjMatrix.highlightedNodes[nodeID] = [addingNode];
         }
       }
     }
@@ -1004,15 +1004,15 @@ class View {
   removeHighlightNode(removingNode: string) {
     // remove from selected nodes
 
-    for (let nodeID in this.controller.configuration.state.adjMatrix.highlightedNodes) {
+    for (let nodeID in this.controller.state.adjMatrix.highlightedNodes) {
       //finds the position of removing node in the nodes array
-      let index = this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].indexOf(removingNode);
+      let index = this.controller.state.adjMatrix.highlightedNodes[nodeID].indexOf(removingNode);
       // keep on removing all places of removing node
       if (index > -1) {
-        this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].splice(index, 1);
+        this.controller.state.adjMatrix.highlightedNodes[nodeID].splice(index, 1);
         // delete properties if no nodes left
-        if (this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID].length == 0) {
-          delete this.controller.configuration.state.adjMatrix.highlightedNodes[nodeID];
+        if (this.controller.state.adjMatrix.highlightedNodes[nodeID].length == 0) {
+          delete this.controller.state.adjMatrix.highlightedNodes[nodeID];
         }
       }
     }
@@ -1095,12 +1095,12 @@ class View {
 
 
   selectNode(nodeID: string) {
-    let index = this.controller.configuration.state.selectedNodes.indexOf(nodeID)
+    let index = this.controller.state.selectedNodes.indexOf(nodeID)
 
     if (index > -1) {
-      this.controller.configuration.state.selectedNodes.splice(index, 1);
+      this.controller.state.selectedNodes.splice(index, 1);
     } else {
-      this.controller.configuration.state.selectedNodes.push(nodeID);
+      this.controller.state.selectedNodes.push(nodeID);
     }
 
     let attrRow = d3.selectAll('attr' + 'Row' + nodeID);
@@ -1122,27 +1122,27 @@ class View {
    * @return        [description]
    */
   selectNeighborNodes(nodeID) {
-    let nodeIndex = this.controller.configuration.state.adjMatrix.columnSelectedNodes.indexOf(nodeID);
+    let nodeIndex = this.controller.state.adjMatrix.columnSelectedNodes.indexOf(nodeID);
     if (nodeIndex > -1) {
       // find all neighbors and remove them
-      this.controller.configuration.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1)
+      this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1)
       this.removeHighlightNode(nodeID);
-      this.controller.configuration.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
+      this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
       // remove node from column selected nodes
     } else {
       this.addHighlightNode(nodeID);
-      this.controller.configuration.state.adjMatrix.columnSelectedNodes.push(nodeID);
+      this.controller.state.adjMatrix.columnSelectedNodes.push(nodeID);
     }
     this.renderNeighborHighlightNodes();
-    /*let index = this.controller.configuration.state.selectedNodes.indexOf(nodeID);
+    /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
 
     if(index > -1){ // if in selected node, remove it (unless it is )
-      this.controller.configuration.state.selectedNodes.splice(index,1);
+      this.controller.state.selectedNodes.splice(index,1);
       //find all partner nodes
       // if still exists keep,
     } else {
       // add node
-      this.controller.configuration.state.selectedNodes.push(nodeID);
+      this.controller.state.selectedNodes.push(nodeID);
 
     }
 
@@ -1266,10 +1266,10 @@ class View {
   }
 
   updateCheckBox(state) {
-    if (this.controller.configuration.attributeScales.node.selected == undefined) {
+    if (this.controller.attributeScales.node.selected == undefined) {
       return;
     }
-    let color = this.controller.configuration.attributeScales.node.selected.range[0];
+    let color = this.controller.attributeScales.node.selected.range[0];
 
     d3.selectAll('.answerBox').selectAll('rect').transition().duration(250)
       .style("fill", d => {
@@ -1278,10 +1278,10 @@ class View {
       })
   }
   updateAnswerToggles(state) {
-    if (this.controller.configuration.attributeScales.node.selected == undefined) {
+    if (this.controller.attributeScales.node.selected == undefined) {
       return;
     }
-    let color = this.controller.configuration.attributeScales.node.selected.range[0];
+    let color = this.controller.attributeScales.node.selected.range[0];
     d3.selectAll('.answerBox').selectAll('circle').transition().duration(500)
       .attr("cx", d => {
         let answerStatus = d[this.datumID] in state.selections.answerBox;
@@ -1400,7 +1400,7 @@ class View {
 
 
 
-    let columns = this.controller.configuration.nodeAttributes;
+    let columns = this.controller.nodeAttributes;
 
     //columns.unshift('selected'); // ANSWER COLUMNS
 
@@ -1426,7 +1426,7 @@ class View {
     columns.forEach((col, index) => {
       // calculate range
       columnRange.push(xRange);
-      let domain = this.controller.configuration.attributeScales.node[col].domain;
+      let domain = this.controller.attributeScales.node[col].domain;
 
       if (quantitativeAttributes.indexOf(col) > -1) {
 
@@ -1436,7 +1436,7 @@ class View {
       } else {
         // append colored blocks
         // placeholder scale
-        let range = this.controller.configuration.attributeScales.node[col].range;
+        let range = this.controller.attributeScales.node[col].range;
         let scale = d3.scaleOrdinal().domain(domain).range(range);
         //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
 
@@ -1545,7 +1545,7 @@ class View {
           .attr("class", "answerBox")
           .attr("id", d => "answerBox" + d[this.datumID])
           .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
-        if (this.controller.configuration.adjMatrix.toggle) {
+        if (this.controller.adjMatrix.toggle) {
           let rect = answerBox.append("rect")
             .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
             .attr("y", barMargin.top)
@@ -1582,13 +1582,13 @@ class View {
 
         answerBox
           .on('click', (d, i, nodes) => {
-            let color = this.controller.configuration.attributeScales.node.selected.range[0];
+            let color = this.controller.attributeScales.node.selected.range[0];
             //if already answer
             let nodeID = this.determineID(d);
 
             /*Visual chagne */
             let answerStatus = false; // TODO, remove?
-            if (this.controller.configuration.adjMatrix.toggle) {
+            if (this.controller.adjMatrix.toggle) {
               d3.select(nodes[i]).selectAll('circle').transition().duration(500)
                 .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
                 .style("fill", answerStatus ? color : "white");
@@ -1832,7 +1832,7 @@ class View {
       let column = columns[i];
       // if column is categorical
       if (this.isCategorical(column)) {
-        let width = itemSize * (this.controller.configuration.attributeScales.node[column].domain.length + 1.5) + 20
+        let width = itemSize * (this.controller.attributeScales.node[column].domain.length + 1.5) + 20
 
         if (column == "selected") {
           width = 60;
@@ -1870,7 +1870,7 @@ class View {
     let height = this.orderingScale.bandwidth() - 2 * topMargin;
     let bandwidthScale = this.nodes.length < 50 ? (1 / 3) : 2;
     let width = this.orderingScale.bandwidth() * bandwidthScale
-    let numberCategories = this.controller.configuration.attributeScales.node[column].domain.length
+    let numberCategories = this.controller.attributeScales.node[column].domain.length
 
     let legendItemSize = (this.columnWidths[column]) / (numberCategories + 1.5)///bandwidth * bandwidthScale;
 
@@ -1916,9 +1916,9 @@ class View {
   }
 
   generateCategoricalLegend(attribute, legendWidth) {
-    let numberCategories = this.controller.configuration.attributeScales.node[attribute].domain.length
+    let numberCategories = this.controller.attributeScales.node[attribute].domain.length
 
-    let attributeInfo = this.controller.configuration.attributeScales.node[attribute];
+    let attributeInfo = this.controller.attributeScales.node[attribute];
     let dividers = attributeInfo.domain.length;
 
     let legendHeight = d3.min([25, this.orderingScale.bandwidth()]);
