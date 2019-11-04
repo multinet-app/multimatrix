@@ -59,17 +59,17 @@ class View {
     this.mouseoverEvents = [];
     this.datumID = controller.datumID;
 
-    // this.clickFunction = (d, i, nodes) => {
+    this.clickFunction = (d, i, nodes) => {
 
-    //   let nodeID = this.controller.view.determineID(d);
-    //   // remove hover or clicked from the class name of the objects that are interacted
-    //   // this is necessary as the click events are attached to the hovered rect in attrRow
-    //   let interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
+      let nodeID = this.controller.view.determineID(d);
+      // remove hover or clicked from the class name of the objects that are interacted
+      // this is necessary as the click events are attached to the hovered rect in attrRow
+      let interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
 
-    //   let action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
-    //   this.controller.model.provenance.applyAction(action);
+      let action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
+      this.controller.model.provenance.applyAction(action);
 
-    // };
+    };
 
     // set up loading screen
 
@@ -233,9 +233,9 @@ class View {
         this.unhoverEdge(cell);
       })
       // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
-      .on('click', (d) => {
+      .on('click', (d, i, nodes) => {
         // only trigger click if edge exists
-        nodeClick(d);
+        this.clickFunction(d, i ,nodes);
 
       })
       .attr('cursor', 'pointer')

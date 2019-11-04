@@ -1,18 +1,19 @@
 // Work on importing class file
 var View = /** @class */ (function () {
     function View(controller) {
+        var _this = this;
         this.controller = controller;
         this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
         this.mouseoverEvents = [];
         this.datumID = controller.datumID;
-        // this.clickFunction = (d, i, nodes) => {
-        //   let nodeID = this.controller.view.determineID(d);
-        //   // remove hover or clicked from the class name of the objects that are interacted
-        //   // this is necessary as the click events are attached to the hovered rect in attrRow
-        //   let interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
-        //   let action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
-        //   this.controller.model.provenance.applyAction(action);
-        // };
+        this.clickFunction = function (d, i, nodes) {
+            var nodeID = _this.controller.view.determineID(d);
+            // remove hover or clicked from the class name of the objects that are interacted
+            // this is necessary as the click events are attached to the hovered rect in attrRow
+            var interaction = _this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
+            var action = _this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
+            _this.controller.model.provenance.applyAction(action);
+        };
         // set up loading screen
         // Add scroll handler to containers
         /*d3.selectAll('.container').on('mousewheel', scrollHandler);
@@ -171,9 +172,9 @@ var View = /** @class */ (function () {
             _this.unhoverEdge(cell);
         })
             // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
-            .on('click', function (d) {
+            .on('click', function (d, i, nodes) {
             // only trigger click if edge exists
-            nodeClick(d);
+            _this.clickFunction(d, i, nodes);
         })
             .attr('cursor', 'pointer');
         this.controller.answerRow = {};
