@@ -34,44 +34,6 @@ class Controller {
 
   }
 
-  
-
-  private tasks: any;
-  private taskNum: number;
-
-  loadTask(taskNum) {
-    // edgeBars = true;
-    // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
-    //   if (!this.nodeAttributes.includes('selected')) {
-    //     this.nodeAttributes.unshift('selected');
-        let obj = {
-          "domain": [true, false],
-          "range": ["#e86b45", '#fff'],
-          "labels": ['answer', 'not answer'],
-          'glyph': 'rect',
-          'label': 'selected'
-        }
-    //     this.attributeScales.node['selected'] = obj;
-
-    //   }
-
-
-    // }
-    // this.adjMatrix['toggle'] = false;
-    // //this.adjMatrix.neighborSelect = true;
-
-    // this.attrWidth = d3.min([150 * this.nodeAttributes.length, 650]);
-
-    // this.state = {}
-    // this.state.adjMatrix = {};
-    // if (this.adjMatrix.sortKey == null || this.adjMatrix.sortKey == '') {
-    let sortKey = 'name'
-    // }
-
-    this.sizeLayout();
-    //this.adjMatrix.sortKey
-  }
-
   private clickedCells: any;
   clear() {
 
@@ -164,9 +126,8 @@ class Controller {
 
     this.model = new Model(this); // start reading in data
 
-    this.model.reload();
-
     d3.select('.loading').style('display', 'block');
+    this.model.reload();
   }
 
   clearView() {
@@ -175,19 +136,6 @@ class Controller {
     d3.select('#attributes').selectAll('*').remove();
     d3.select('#legend-svg').selectAll('*').remove();
 
-  }
-
-  reload() {
-    this.clearView();
-    d3.select('.loading').style('display', 'block');
-
-    this.view = new View(this);
-    this.model = new Model(this);
-    startTime = Date.now();
-
-    this.loadData();
-
-    //this.model = new Model(this); // start reading in data
   }
 
   /**

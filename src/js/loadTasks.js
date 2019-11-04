@@ -28,7 +28,6 @@ async function resetPanel() {
     graph = await load_data(workspace, graph)
 
     makeController()
-    window.controller.loadTask(0);
 }
 
 async function loadNewGraph(fileName) {

@@ -171,7 +171,6 @@ var View = /** @class */ (function () {
                 .style("opacity", 0);
             _this.unhoverEdge(cell);
         })
-            // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
             .on('click', function (d, i, nodes) {
             // only trigger click if edge exists
             _this.clickFunction(d, i, nodes);
@@ -239,8 +238,8 @@ var View = /** @class */ (function () {
             .attr("x", 0) //d => this.orderingScale(d.x))
             //.filter(d=>{return d.item >0})
             .attr("width", this.orderingScale.bandwidth())
-            .attr("height", this.orderingScale.bandwidth())
-            .style("fill", 'white');
+            .attr("height", this.orderingScale.bandwidth());
+        // .style("fill", 'white')
         squares
             .filter(function (d) { return d.z == 0; })
             .style("fill-opacity", function (d) {
@@ -252,7 +251,7 @@ var View = /** @class */ (function () {
                 return outcome;
             })
                 .reduce(function (a, b) { return a + b; }, 0);
-            return 1 - numConnections;
+            return numConnections;
         });
         this.setSquareColors('all');
     };

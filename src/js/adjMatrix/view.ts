@@ -232,7 +232,6 @@ class View {
 
         this.unhoverEdge(cell);
       })
-      // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
       .on('click', (d, i, nodes) => {
         // only trigger click if edge exists
         this.clickFunction(d, i ,nodes);
@@ -308,7 +307,7 @@ class View {
       //.filter(d=>{return d.item >0})
       .attr("width", this.orderingScale.bandwidth())
       .attr("height", this.orderingScale.bandwidth())
-      .style("fill", 'white')
+      // .style("fill", 'white')
     squares
       .filter(d => d.z == 0)
       .style("fill-opacity", d => { 
@@ -322,7 +321,7 @@ class View {
           })
             .reduce((a, b) => a + b, 0)
           
-          return 1 - numConnections
+          return numConnections
          });
 
     this.setSquareColors('all');
