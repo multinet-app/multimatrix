@@ -301,7 +301,7 @@ class Model {
       provenance.addObserver("selections.search", updateHighlights)
       provenance.addObserver("selections.answerBox", updateHighlights)
 
-      provenance.addObserver("clicked", classAllHighlights)
+      provenance.addObserver("clicked", updateHighlights)
     }
     setUpObservers();
 

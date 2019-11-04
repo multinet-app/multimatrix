@@ -232,7 +232,7 @@ var Model = /** @class */ (function () {
             provenance.addObserver("selections.cellcol", updateCellClicks);
             provenance.addObserver("selections.search", updateHighlights);
             provenance.addObserver("selections.answerBox", updateHighlights);
-            provenance.addObserver("clicked", classAllHighlights);
+            provenance.addObserver("clicked", updateHighlights);
         }
         setUpObservers();
         return [app, provenance];
