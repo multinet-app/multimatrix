@@ -21,7 +21,9 @@ async function resetPanel() {
 
     // Add the toggle for the control panel button
     d3.select('#panelControl').on("click", () => window.controller.configToggle = toggleConfig(window.controller.configToggle));
-
+    
+    // Add the toggle for the control panel button
+    d3.select('#searchButton').on("click", () => searchForNode());
 
     graph = await load_data(workspace, graph)
 

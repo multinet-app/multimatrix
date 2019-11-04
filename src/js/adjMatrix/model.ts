@@ -213,9 +213,15 @@ class Model {
 
     function classAllHighlights(state) {
 
+      console.log("classallhighlights state", state)
+
       let clickedElements = new Set();
       let answerElements = new Set();
       let neighborElements = new Set();
+
+      for (node of state.clicked) {
+        clickedElements.add('#colLabel' + node)
+      }
 
       // go through each interacted element, and determine which rows/columns should
       // be highlighted due to it's interaction
@@ -225,9 +231,7 @@ class Model {
           let selectionElement = elementNamesFromSelection[selectionType][index];
 
           for (let node in state.selections[selectionType]) {
-            if (selectionType == 'answerBox') {
-              answerElements.add('#' + selectionElement + node)
-            } else if (selectionType == 'neighborSelect') {
+            if (selectionType == 'neighborSelect') {
               neighborElements.add('#' + selectionElement + node)
             } else {
 
@@ -236,7 +240,7 @@ class Model {
                 if (node in state.selections['attrRow'] && node in state.selections['rowLabel']) continue;
               }
 
-              clickedElements.add('#' + selectionElement + node)
+              // clickedElements.add('#' + selectionElement + node)
             }
           }
 
@@ -244,12 +248,13 @@ class Model {
       }
 
       let clickedSelectorQuery = Array.from(clickedElements).join(',')
-      let answerSelectorQuery = Array.from(answerElements).join(',')
-      let neighborSelectQuery = Array.from(neighborElements).join(',')
+      console.log(clickedSelectorQuery)
+      // let answerSelectorQuery = Array.from(answerElements).join(',')
+      // let neighborSelectQuery = Array.from(neighborElements).join(',')
 
       clickedSelectorQuery != [] ? d3.selectAll(clickedSelectorQuery).classed('clicked', true) : null;
-      answerSelectorQuery != [] ? d3.selectAll(answerSelectorQuery).classed('answer', true) : null;
-      neighborSelectQuery != [] ? d3.selectAll(neighborSelectQuery).classed('neighbor', true) : null;
+      // answerSelectorQuery != [] ? d3.selectAll(answerSelectorQuery).classed('answer', true) : null;
+      // neighborSelectQuery != [] ? d3.selectAll(neighborSelectQuery).classed('neighbor', true) : null;
 
       return;
     }
@@ -294,6 +299,7 @@ class Model {
       provenance.addObserver("selections.search", updateHighlights)
       provenance.addObserver("selections.answerBox", updateHighlights)
 
+      provenance.addObserver("clicked", classAllHighlights)
     }
     setUpObservers();
 
