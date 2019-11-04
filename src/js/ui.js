@@ -79,7 +79,7 @@ function nodeClick(node, search = false) {
 
     const currentState = window.controller.model.getApplicationState();
     let clicked = currentState.clicked;
-    let wasSelected = false; //isSelected(node);
+    let wasSelected = isSelected(node);
 
     if (wasSelected) {
         clicked = clicked.filter(s => s !== node.id);

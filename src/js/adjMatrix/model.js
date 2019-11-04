@@ -164,6 +164,8 @@ var Model = /** @class */ (function () {
             for (var _i = 0, _a = state.clicked; _i < _a.length; _i++) {
                 node = _a[_i];
                 clickedElements.add('#colLabel' + node);
+                clickedElements.add('#topoCol' + node);
+                clickedElements.add('#topoRow' + node);
             }
             // go through each interacted element, and determine which rows/columns should
             // be highlighted due to it's interaction
