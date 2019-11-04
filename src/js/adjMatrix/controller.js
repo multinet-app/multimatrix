@@ -9,8 +9,8 @@ var Controller = /** @class */ (function () {
         this.sizeLayout();
         this.view = new View(this); // initalize view,
         this.model = new Model(this); // start reading in data
-        this.model.reload();
         d3.select('.loading').style('display', 'block');
+        this.model.reload();
     }
     Controller.prototype.setupExports = function (base, task) {
         d3.select("#exportBaseConfig").on("click", function () {
@@ -35,32 +35,6 @@ var Controller = /** @class */ (function () {
           let ruleString = "fill :" + base.style.selectedNodeColor +" !important;";
           sheet.addRule(".rect.selected", ruleString, 1);
           */
-    };
-    Controller.prototype.loadTask = function (taskNum) {
-        // edgeBars = true;
-        // if (this.task.replyType.includes('singleNodeSelection') || this.task.replyType.includes('multipleNodeSelection')) {
-        //   if (!this.nodeAttributes.includes('selected')) {
-        //     this.nodeAttributes.unshift('selected');
-        var obj = {
-            "domain": [true, false],
-            "range": ["#e86b45", '#fff'],
-            "labels": ['answer', 'not answer'],
-            'glyph': 'rect',
-            'label': 'selected'
-        };
-        //     this.attributeScales.node['selected'] = obj;
-        //   }
-        // }
-        // this.adjMatrix['toggle'] = false;
-        // //this.adjMatrix.neighborSelect = true;
-        // this.attrWidth = d3.min([150 * this.nodeAttributes.length, 650]);
-        // this.state = {}
-        // this.state.adjMatrix = {};
-        // if (this.adjMatrix.sortKey == null || this.adjMatrix.sortKey == '') {
-        var sortKey = 'name';
-        // }
-        this.sizeLayout();
-        //this.adjMatrix.sortKey
     };
     Controller.prototype.clear = function () {
         var _this = this;
@@ -126,15 +100,6 @@ var Controller = /** @class */ (function () {
         d3.select('#topology').selectAll('*').remove();
         d3.select('#attributes').selectAll('*').remove();
         d3.select('#legend-svg').selectAll('*').remove();
-    };
-    Controller.prototype.reload = function () {
-        this.clearView();
-        d3.select('.loading').style('display', 'block');
-        this.view = new View(this);
-        this.model = new Model(this);
-        startTime = Date.now();
-        this.loadData();
-        //this.model = new Model(this); // start reading in data
     };
     /**
      * Passes the processed edge and node data to the view.

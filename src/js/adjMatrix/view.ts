@@ -232,10 +232,9 @@ class View {
 
         this.unhoverEdge(cell);
       })
-      // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
       .on('click', (d, i, nodes) => {
         // only trigger click if edge exists
-        this.clickFunction(d, i, nodes);
+        this.clickFunction(d, i ,nodes);
 
       })
       .attr('cursor', 'pointer')
@@ -308,7 +307,7 @@ class View {
       //.filter(d=>{return d.item >0})
       .attr("width", this.orderingScale.bandwidth())
       .attr("height", this.orderingScale.bandwidth())
-      .style("fill", 'white')
+      // .style("fill", 'white')
     squares
       .filter(d => d.z == 0)
       .style("fill-opacity", d => { 
@@ -322,7 +321,7 @@ class View {
           })
             .reduce((a, b) => a + b, 0)
           
-          return 1 - numConnections
+          return numConnections
          });
 
     this.setSquareColors('all');
@@ -439,9 +438,9 @@ class View {
       .text((d, i) => this.nodes[i].name)
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
-      .on('click', (d, i, nodes) => {
+      .on('click', (d) => {
         //d3.select(nodes[i]).classed('clicked',!d3.select(nodes[i]).classed('clicked'))
-        this.clickFunction(d, i, nodes);
+        nodeClick(d);
       })
 
     let verticalOffset = 3;
@@ -456,9 +455,9 @@ class View {
         })
         //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
         .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
-        .on('click', (d, i, nodes) => {
+        .on('click', (d) => {
           this.sort(d[0].rowid);
-          //this.clickFunction(d, i, nodes);
+          //nodeClick(d);
           /*var e = document.createEvent('UIEvents');
           e.initUIEvent('click', true, true, /* ... *///);
           /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
@@ -484,14 +483,14 @@ class View {
       .attr("text-anchor", "start")
       .style("font-size", labelSize)
       .text((d, i) => this.nodes[i].name)
-      .on('click', (d, i, nodes) => {
+      .on('click', (d) => {
         if (true /*this.controller.adjMatrix.neighborSelect*/) {
           //this.sort(d[0].rowid)
-          this.clickFunction(d, i, nodes);
-          let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-          this.controller.model.provenance.applyAction(action);
+          nodeClick(d);
+          // let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+          // this.controller.model.provenance.applyAction(action);
         } else {
-          this.clickFunction(d, i, nodes);
+          nodeClick(d);
         }
       })
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
@@ -815,7 +814,7 @@ class View {
     let svg = d3.select('#legend-svg').append("g")
       .attr("id", "legendLinear" + type)
       .attr("transform", (d, i) => "translate(" + xOffset + "," + yOffset + ")")
-      .on('click', (d, i, nodes) => {
+      .on('click', (d) => {
         if (this.controller.adjMatrix.selectEdgeType == true) { //
           let edgeType = this.controller.state.adjMatrix.selectedEdgeType == type ? 'all' : type;
           this.controller.state.adjMatrix.selectedEdgeType = edgeType;
@@ -1581,7 +1580,7 @@ class View {
         }
 
         answerBox
-          .on('click', (d, i, nodes) => {
+          .on('click', (d) => {
             let color = this.controller.attributeScales.node.selected.range[0];
             //if already answer
             let nodeID = this.determineID(d);
@@ -1599,7 +1598,7 @@ class View {
             }
 
 
-            this.clickFunction(d, i, nodes);
+            nodeClick(d);
 
             //let action = this.changeInteractionWrapper(nodeID, i, nodes);
             //this.controller.model.provenance.applyAction(action);
@@ -1744,7 +1743,7 @@ class View {
         // return this.controller.model.icons[variable].d;
       }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
       .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
-      .on('click', (d, i, nodes) => {this.sort(d);})
+      .on('click', (d) => {this.sort(d);})
       .attr('cursor', 'pointer');
     }
 

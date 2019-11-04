@@ -171,7 +171,6 @@ var View = /** @class */ (function () {
                 .style("opacity", 0);
             _this.unhoverEdge(cell);
         })
-            // .filter(d => d.interacted != 0 || d.retweet != 0 || d.mentions != 0)
             .on('click', function (d, i, nodes) {
             // only trigger click if edge exists
             _this.clickFunction(d, i, nodes);
@@ -239,8 +238,8 @@ var View = /** @class */ (function () {
             .attr("x", 0) //d => this.orderingScale(d.x))
             //.filter(d=>{return d.item >0})
             .attr("width", this.orderingScale.bandwidth())
-            .attr("height", this.orderingScale.bandwidth())
-            .style("fill", 'white');
+            .attr("height", this.orderingScale.bandwidth());
+        // .style("fill", 'white')
         squares
             .filter(function (d) { return d.z == 0; })
             .style("fill-opacity", function (d) {
@@ -252,7 +251,7 @@ var View = /** @class */ (function () {
                 return outcome;
             })
                 .reduce(function (a, b) { return a + b; }, 0);
-            return 1 - numConnections;
+            return numConnections;
         });
         this.setSquareColors('all');
     };
@@ -356,9 +355,9 @@ var View = /** @class */ (function () {
             .text(function (d, i) { return _this.nodes[i].name; })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
-            .on('click', function (d, i, nodes) {
+            .on('click', function (d) {
             //d3.select(nodes[i]).classed('clicked',!d3.select(nodes[i]).classed('clicked'))
-            _this.clickFunction(d, i, nodes);
+            nodeClick(d);
         });
         var verticalOffset = 3;
         if (true /*this.controller.adjMatrix.neighborSelect*/) {
@@ -372,9 +371,9 @@ var View = /** @class */ (function () {
             })
                 //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
                 .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
-                .on('click', function (d, i, nodes) {
+                .on('click', function (d) {
                 _this.sort(d[0].rowid);
-                //this.clickFunction(d, i, nodes);
+                //nodeClick(d);
                 /*var e = document.createEvent('UIEvents');
                 e.initUIEvent('click', true, true, /* ... */ //);
                 /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
@@ -398,15 +397,15 @@ var View = /** @class */ (function () {
             .attr("text-anchor", "start")
             .style("font-size", labelSize)
             .text(function (d, i) { return _this.nodes[i].name; })
-            .on('click', function (d, i, nodes) {
+            .on('click', function (d) {
             if (true /*this.controller.adjMatrix.neighborSelect*/) {
                 //this.sort(d[0].rowid)
-                _this.clickFunction(d, i, nodes);
-                var action = _this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-                _this.controller.model.provenance.applyAction(action);
+                nodeClick(d);
+                // let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+                // this.controller.model.provenance.applyAction(action);
             }
             else {
-                _this.clickFunction(d, i, nodes);
+                nodeClick(d);
             }
         })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
@@ -700,7 +699,7 @@ var View = /** @class */ (function () {
         var svg = d3.select('#legend-svg').append("g")
             .attr("id", "legendLinear" + type)
             .attr("transform", function (d, i) { return "translate(" + xOffset + "," + yOffset + ")"; })
-            .on('click', function (d, i, nodes) {
+            .on('click', function (d) {
             if (_this.controller.adjMatrix.selectEdgeType == true) { //
                 var edgeType = _this.controller.state.adjMatrix.selectedEdgeType == type ? 'all' : type;
                 _this.controller.state.adjMatrix.selectedEdgeType = edgeType;
@@ -1337,7 +1336,7 @@ var View = /** @class */ (function () {
                         .on('mouseout', attributeMouseOut);
                 }
                 answerBox
-                    .on('click', function (d, i, nodes) {
+                    .on('click', function (d) {
                     var color = _this.controller.attributeScales.node.selected.range[0];
                     //if already answer
                     var nodeID = _this.determineID(d);
@@ -1352,7 +1351,7 @@ var View = /** @class */ (function () {
                     }
                     else {
                     }
-                    _this.clickFunction(d, i, nodes);
+                    nodeClick(d);
                     //let action = this.changeInteractionWrapper(nodeID, i, nodes);
                     //this.controller.model.provenance.applyAction(action);
                     //d3.select(nodes[i]).transition().duration(500).attr('fill',)
@@ -1479,7 +1478,7 @@ var View = /** @class */ (function () {
                 // return this.controller.model.icons[variable].d;
             }).style('fill', function (d) { return d == _this.controller.model.orderType ? '#EBB769' : '#8B8B8B'; })
                 .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
-                .on('click', function (d, i, nodes) { _this.sort(d); })
+                .on('click', function (d) { _this.sort(d); })
                 .attr('cursor', 'pointer');
         }
         var answerColumn = columnHeaders.selectAll('.header').filter(function (d) { return d == 'selected'; });

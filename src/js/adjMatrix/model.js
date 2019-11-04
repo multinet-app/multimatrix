@@ -157,9 +157,16 @@ var Model = /** @class */ (function () {
             search: rowElements.concat(columnElements)
         };
         function classAllHighlights(state) {
+            console.log("classallhighlights state", state);
             var clickedElements = new Set();
             var answerElements = new Set();
             var neighborElements = new Set();
+            for (var _i = 0, _a = state.clicked; _i < _a.length; _i++) {
+                node = _a[_i];
+                clickedElements.add('#colLabel' + node);
+                clickedElements.add('#topoCol' + node);
+                clickedElements.add('#topoRow' + node);
+            }
             // go through each interacted element, and determine which rows/columns should
             // be highlighted due to it's interaction
             for (var selectionType in state.selections) {
@@ -168,10 +175,7 @@ var Model = /** @class */ (function () {
                 for (var index in elementNamesFromSelection[selectionType]) {
                     var selectionElement = elementNamesFromSelection[selectionType][index];
                     for (var node in state.selections[selectionType]) {
-                        if (selectionType == 'answerBox') {
-                            answerElements.add('#' + selectionElement + node);
-                        }
-                        else if (selectionType == 'neighborSelect') {
+                        if (selectionType == 'neighborSelect') {
                             neighborElements.add('#' + selectionElement + node);
                         }
                         else {
@@ -180,17 +184,18 @@ var Model = /** @class */ (function () {
                                 if (node in state.selections['attrRow'] && node in state.selections['rowLabel'])
                                     continue;
                             }
-                            clickedElements.add('#' + selectionElement + node);
+                            // clickedElements.add('#' + selectionElement + node)
                         }
                     }
                 }
             }
             var clickedSelectorQuery = Array.from(clickedElements).join(',');
-            var answerSelectorQuery = Array.from(answerElements).join(',');
-            var neighborSelectQuery = Array.from(neighborElements).join(',');
+            console.log(clickedSelectorQuery);
+            // let answerSelectorQuery = Array.from(answerElements).join(',')
+            // let neighborSelectQuery = Array.from(neighborElements).join(',')
             clickedSelectorQuery != [] ? d3.selectAll(clickedSelectorQuery).classed('clicked', true) : null;
-            answerSelectorQuery != [] ? d3.selectAll(answerSelectorQuery).classed('answer', true) : null;
-            neighborSelectQuery != [] ? d3.selectAll(neighborSelectQuery).classed('neighbor', true) : null;
+            // answerSelectorQuery != [] ? d3.selectAll(answerSelectorQuery).classed('answer', true) : null;
+            // neighborSelectQuery != [] ? d3.selectAll(neighborSelectQuery).classed('neighbor', true) : null;
             return;
         }
         function setUpObservers() {
@@ -227,6 +232,7 @@ var Model = /** @class */ (function () {
             provenance.addObserver("selections.cellcol", updateCellClicks);
             provenance.addObserver("selections.search", updateHighlights);
             provenance.addObserver("selections.answerBox", updateHighlights);
+            provenance.addObserver("clicked", updateHighlights);
         }
         setUpObservers();
         return [app, provenance];

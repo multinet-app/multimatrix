@@ -15,6 +15,7 @@ function toggleConfig(configToggle) {
 
 // Search for a node in the datalist
 function searchForNode() {
+    console.log("in search")
     let selectedOption = d3.select('.searchInput').property("value").trim();
 
     //empty search box;
@@ -48,7 +49,7 @@ function searchForNode() {
 
 //function that searches for and 'clicks' on node, returns -1 if can't find that node, 0 if nodes is already selected, 1 if node exists and was not selected
 function searchFor(selectedOption) {
-    node = vis.graph_structure.nodes.find(n => n.name.toLowerCase() === selectedOption.toLowerCase());
+    node = window.controller.model.graph.nodes.find(n => n.name.toLowerCase() === selectedOption.toLowerCase());
 
     if (node === undefined) {
         return -1;
@@ -60,26 +61,33 @@ function searchFor(selectedOption) {
     }
 }
 
-//function that checks the state to see if the node is selected
+// function that checks the state to see if the node is selected
 function isSelected(node) {
-    const currentState = app.currentState();
-    let selected = currentState.selected;
-    return selected.includes(node.id);
+    const currentState = window.controller.model.getApplicationState();
+    let clicked = currentState.clicked;
+    return clicked.includes(node.id);
 }
 
 //function that updates the state, and includes a flag for when this was done through a search
 function nodeClick(node, search = false) {
-    const currentState = app.currentState();
-    let selected = currentState.selected;
+    console.log("in nodeclick")
+    // console.log(node[0].rowid)
+
+    if (node[0] != undefined) {
+        node = {"id": node[0].rowid}
+    }
+
+    const currentState = window.controller.model.getApplicationState();
+    let clicked = currentState.clicked;
     let wasSelected = isSelected(node);
 
     if (wasSelected) {
-        selected = selected.filter(s => s !== node.id);
+        clicked = clicked.filter(s => s !== node.id);
     } else {
-        selected.push(node.id);
+        clicked.push(node.id);
     }
 
-    let neighbors_and_edges = tagNeighbors(selected);
+    // let neighbors_and_edges = tagNeighbors(clicked);
 
     let label = search ?
         "Searched for Node" :
@@ -90,25 +98,25 @@ function nodeClick(node, search = false) {
     let action = {
         label: label,
         action: () => {
-            const currentState = app.currentState();
+            const currentState = window.controller.model.getApplicationState();
             //add time stamp to the state graph
             currentState.time = Date.now();
             //Add label describing what the event was
             currentState.event = label;
             //Update actual node data
-            currentState.selected = selected;
-            currentState.userSelectedNeighbors = neighbors_and_edges.neighbors;
-            currentState.userSelectedEdges = neighbors_and_edges.edges;
+            currentState.clicked = clicked;
+            // currentState.userSelectedNeighbors = neighbors_and_edges.neighbors;
+            // currentState.userSelectedEdges = neighbors_and_edges.edges;
             //If node was searched, push him to the search array
-            if (search) {
-                currentState.search.push(node.id);
-            }
+            // if (search) {
+            //     currentState.search.push(node.id);
+            // }
             return currentState;
         },
         args: []
     };
 
-    provenance.applyAction(action);
+    window.controller.model.provenance.applyAction(action);
 }
 
 function populateSearchList() {
