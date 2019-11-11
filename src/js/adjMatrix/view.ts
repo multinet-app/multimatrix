@@ -70,25 +70,6 @@ class View {
       this.controller.model.provenance.applyAction(action);
 
     };
-
-    // set up loading screen
-
-    // Add scroll handler to containers
-    /*d3.selectAll('.container').on('mousewheel', scrollHandler);
-
-    function scrollHandler() {
-      // determine which didn't scroll and update it's scroll.
-      let scrollHeight = d3.select(this).node().scrollTop;
-      if (d3.select(this).attr('id') == "attributes") {
-        // scroll topology
-        let element: any = d3.select('#topology').node();
-        element.scrollTop = scrollHeight;
-      } else {
-        // scroll attributes
-        let element: any = d3.select('#attributes').node()
-        element.scrollTop = scrollHeight;
-      }
-    }*/
   }
 
   /**

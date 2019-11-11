@@ -32,14 +32,16 @@ div.tooltip {
 }
 
 #targetSize {
-    width: 1920px;
-    height: 1080px;
-    /* width:1920px; */
-    /* height:1080px; */
+    width: 100vw;
+}
+
+#vis {
+    height: 100vh;
 }
 
 #visPanel {
-    height: 1060px;
+    width: 25%;
+    height: 100vh;
     overflow-y: scroll;
 }
 

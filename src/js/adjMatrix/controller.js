@@ -70,12 +70,12 @@ var Controller = /** @class */ (function () {
         /*panelDimensions.width = width * 0.245;*/
         panelDimensions.width = 480; //d3.select("#visPanel").style("width")//, panelDimensions.width + "px");
         panelDimensions.height = height - taskBarHeight;
-        d3.select("#visPanel").style("width", panelDimensions.width + "px");
-        d3.select("#visPanel").style("height", panelDimensions.height + "px");
+        d3.select("#visPanel").style("width: 100vw;");
+        d3.select("#visPanel").style("height: 100vh;");
         document.getElementById("visContent").style.width = '100vw';
         document.getElementById("visContent").style.overflowX = "scroll";
         this.visHeight = panelDimensions.height;
-        this.visWidth = width - panelDimensions.width - 10;
+        this.visWidth = width - panelDimensions.width - 15;
         this.edgeWidth = this.visWidth - this.attrWidth;
         var filler = 0;
         if (panelDimensions.height < this.edgeWidth) {
