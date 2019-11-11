@@ -34,7 +34,6 @@ input[type=text] {
 
 #targetSize {
     white-space: nowrap;
-    /* overflow: scroll; */
     /*- whichever suits you;*/
     min-width: 1920px;
 }
