@@ -118,7 +118,7 @@ var View = /** @class */ (function () {
         this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
         // Creates scalable SVG
         this.edges = d3.select('#topology').append("svg")
-            .attr("viewBox", "0 0 " + (width) + " " + height + "")
+            .attr("viewBox", "0 0 " + width + " " + height + "")
             .attr("preserveAspectRatio", "xMinYMin meet")
             .append("g")
             .classed("svg-content", true)
