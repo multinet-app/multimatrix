@@ -73,7 +73,7 @@ var Controller = /** @class */ (function () {
         d3.select("#visPanel").style("width: 100vw;");
         d3.select("#visPanel").style("height: 100vh;");
         document.getElementById("visContent").style.width = '100vw';
-        document.getElementById("visContent").style.overflowX = "scroll";
+        // document.getElementById("visContent").style.overflowX = "scroll";
         this.visHeight = panelDimensions.height;
         this.visWidth = width - panelDimensions.width - 15;
         this.edgeWidth = this.visWidth - this.attrWidth;
