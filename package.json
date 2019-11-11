@@ -14,6 +14,7 @@
         "http-server": "^0.11.1"
     },
     "devDependencies": {
+        "d3": "^5.12.0",
         "jest": "^24.9.0",
         "puppeteer": "^2.0.0"
     }
