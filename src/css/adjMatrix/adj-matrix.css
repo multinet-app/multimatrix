@@ -1,5 +1,3 @@
-/* Search box*/
-
 * {
     box-sizing: border-box;
 }
@@ -36,7 +34,6 @@ input[type=text] {
 
 #targetSize {
     white-space: nowrap;
-    overflow: scroll;
     /*- whichever suits you;*/
     min-width: 1920px;
 }
@@ -49,9 +46,6 @@ input[type=text] {
     fill: #CAFFC7;
     fill-opacity: 1;
 }
-
-
-/*<input type="button" id ="clearButton" value="Clear Selections">*/
 
 .autocomplete-items {
     position: absolute;
@@ -112,12 +106,7 @@ input[type=text] {
 }
 
 .topocontainer {
-    /*
-overflow: scroll;
-display:inline-block;
-height:600px;
-width:600px;
-*/
+    width: 100%;
     float: right;
     display: inline-block;
     position: relative;
@@ -194,9 +183,6 @@ line {
 .clickedCell {
     stroke-width: 2.5;
     stroke: #ee0000;
-    /*rx:5;*
-  width:10;
-  height:10;*/
 }
 
 .input {
@@ -204,11 +190,6 @@ line {
     position: relative;
     display: inline-block;
 }
-
-
-/* .input.searchInput {
-    width:70% !important;
-} */
 
 .clicked {
     font-weight: 800;
@@ -220,9 +201,6 @@ line {
     stroke: red;
     stroke-width: 3;
 }
-
-
-/* most specific */
 
 rect.answer {
     fill: #ea9b0f !important;
@@ -251,12 +229,11 @@ text.clicked {
 text.answer {
     font-weight: 800;
     fill: white;
-    /*fill: #ea9b0f;*/
 }
 
 #visPanel {
     display: inline-block;
-    vertical-align: top
+    vertical-align: top;
 }
 
 .adjMatrix.vis {
@@ -293,9 +270,6 @@ line {
     left: 0;
 }
 
-
-/* Panel Info */
-
 #panelControl {
     background-color: rgb(78, 78, 78);
     color: white;
@@ -317,9 +291,6 @@ line {
 #panelDiv .menu {
     padding: 10px;
 }
-
-
-/* Loading */
 
 @keyframes loading {
     to {
@@ -347,163 +318,6 @@ line {
     position: relative;
 }
 
-
-/*
-.loading {
-position: relative;
-left: 50%;
-top: 70%;
-z-index: 1;
-width: 150px;
-height: 150px;
-margin: -75px 0 0 -75px;
-border: 16px solid #f3f3f3;
-border-radius: 50%;
-border-top: 16px solid #3498db;
-
--webkit-animation: spin 1s linear infinite;
-animation: spin 1s linear infinite;
-
-}
-.loadingOverlay{
-position: relative;
-left:0px;
-top:0px;
-width:100%;
-height:450px;
-background-color: rgba(255,255,255,0.3);
-}
-@-webkit-keyframes spin {
-0% { -webkit-transform: rotate(0deg); }
-100% { -webkit-transform: rotate(360deg); }
-}
-
-@keyframes spin {
-0% { transform: rotate(0deg); }
-100% { transform: rotate(360deg); }
-}
-
-/* Absolute Center Spinner
-
-.loading {
-display:none;
-position: absolute;
-z-index: 999;
-height: 50%;
-width: 100%;
-margin: auto;
-}
-
-/* Transparent Overlay
-.loading:before {
-content: '';
-display: block;
-position: absolute;
-top: 50;
-left: 300;
-bottom: 0;
-right: 0;
-/*width: 100%;
-height: 50%;*/
-
-background-color: rgba(255, 255, 255, 0.3);
-
-}
-
-/* :not(:required) hides these rules from IE9 and below
-.loading:not(:required) {
-/* hide "loading..." text
-font: 0/0 a;
-color: transparent;
-text-shadow: none;
-background-color: transparent;
-border: 0;
-}
-
-.loading:not(:required):after {
-content: '';
-display: block;
-font-size: 10px;
-width: 1em;
-height: 1em;
-margin-top: -0.5em;
--webkit-animation: spinner 1500ms infinite linear;
--moz-animation: spinner 1500ms infinite linear;
--ms-animation: spinner 1500ms infinite linear;
--o-animation: spinner 1500ms infinite linear;
-animation: spinner 1500ms infinite linear;
-border-radius: 0.5em;
--webkit-box-shadow: rgba(0, 0, 0, 0.75) 1.5em 0 0 0, rgba(0, 0, 0, 0.75) 1.1em 1.1em 0 0, rgba(0, 0, 0, 0.75) 0 1.5em 0 0, rgba(0, 0, 0, 0.75) -1.1em 1.1em 0 0, rgba(0, 0, 0, 0.5) -1.5em 0 0 0, rgba(0, 0, 0, 0.5) -1.1em -1.1em 0 0, rgba(0, 0, 0, 0.75) 0 -1.5em 0 0, rgba(0, 0, 0, 0.75) 1.1em -1.1em 0 0;
-box-shadow: rgba(0, 0, 0, 0.75) 1.5em 0 0 0, rgba(0, 0, 0, 0.75) 1.1em 1.1em 0 0, rgba(0, 0, 0, 0.75) 0 1.5em 0 0, rgba(0, 0, 0, 0.75) -1.1em 1.1em 0 0, rgba(0, 0, 0, 0.75) -1.5em 0 0 0, rgba(0, 0, 0, 0.75) -1.1em -1.1em 0 0, rgba(0, 0, 0, 0.75) 0 -1.5em 0 0, rgba(0, 0, 0, 0.75) 1.1em -1.1em 0 0;
-}
-
-/* Animation
-
-@-webkit-keyframes spinner {
-0% {
-  -webkit-transform: rotate(0deg);
-  -moz-transform: rotate(0deg);
-  -ms-transform: rotate(0deg);
-  -o-transform: rotate(0deg);
-  transform: rotate(0deg);
-}
-100% {
-  -webkit-transform: rotate(360deg);
-  -moz-transform: rotate(360deg);
-  -ms-transform: rotate(360deg);
-  -o-transform: rotate(360deg);
-  transform: rotate(360deg);
-}
-}
-@-moz-keyframes spinner {
-0% {
-  -webkit-transform: rotate(0deg);
-  -moz-transform: rotate(0deg);
-  -ms-transform: rotate(0deg);
-  -o-transform: rotate(0deg);
-  transform: rotate(0deg);
-}
-100% {
-  -webkit-transform: rotate(360deg);
-  -moz-transform: rotate(360deg);
-  -ms-transform: rotate(360deg);
-  -o-transform: rotate(360deg);
-  transform: rotate(360deg);
-}
-}
-@-o-keyframes spinner {
-0% {
-  -webkit-transform: rotate(0deg);
-  -moz-transform: rotate(0deg);
-  -ms-transform: rotate(0deg);
-  -o-transform: rotate(0deg);
-  transform: rotate(0deg);
-}
-100% {
-  -webkit-transform: rotate(360deg);
-  -moz-transform: rotate(360deg);
-  -ms-transform: rotate(360deg);
-  -o-transform: rotate(360deg);
-  transform: rotate(360deg);
-}
-}
-@keyframes spinner {
-0% {
-  -webkit-transform: rotate(0deg);
-  -moz-transform: rotate(0deg);
-  -ms-transform: rotate(0deg);
-  -o-transform: rotate(0deg);
-  transform: rotate(0deg);
-}
-100% {
-  -webkit-transform: rotate(360deg);
-  -moz-transform: rotate(360deg);
-  -ms-transform: rotate(360deg);
-  -o-transform: rotate(360deg);
-  transform: rotate(360deg);
-}
-}
-*/
 .rows {
     display: flex;
     flex-direction: column;

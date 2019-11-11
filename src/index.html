@@ -41,58 +41,55 @@
 <body>
     <div class="columns" id="visContent">
         <div id="targetSize">
-            <div class="">
-                <div id="vis">
-                    <div class="card" id="visPanel">
-                        <div id="taskArea">
-                            <div class="card">
-                                <div class="card-content">
-                                    <div class="content">
-                                        <div>
-                                            <!-- <label class="label">Search for Nodes</label> -->
-                                            <input class="input searchInput" type="text" placeholder="Search for node" id="search-input"></input>
-                                            <a class="button is-pulled-right search" id="searchButton">Search</a>
-                                            <p class='searchMsg errorMsg'></p>
-
-                                            <a class="button" id="clear-selection">Clear Selections</a>
-
-                                        </div>
-
-
-
-                                    </div>
-
-                                </div>
-
-
-                            </div>
-
-                            <!-- Legend code -->
-                            <div class="card">
-                                <div class="card-content">
-                                    <div class="content">
-
-                                        <svg id="legend-svg"></svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+            <div id="vis">
+                <div class="card" id="visPanel">
+                    <div id="taskArea">
                         <div class="card">
                             <div class="card-content">
                                 <div class="content">
-                                    <a class="button" id="panelControl">Toggle Control Panel</a> - </div>
+                                    <div>
+                                        <!-- <label class="label">Search for Nodes</label> -->
+                                        <input class="input searchInput" type="text" placeholder="Search for node" id="search-input"></input>
+                                        <a class="button is-pulled-right search" id="searchButton">Search</a>
+                                        <p class='searchMsg errorMsg'></p>
+
+                                        <a class="button" id="clear-selection">Clear Selections</a>
+
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+                        <!-- Legend code -->
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="content">
+
+                                    <svg id="legend-svg"></svg>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="adjMatrix vis">
-                        <div class="loading"></div>
-                        <div class="loadingOverlay"></div>
-                        <div id="interactiveFreeFormMain">
-                            <div id="topology" class="topocontainer" height="700" width="700"> </div>
-                            <div id="attributes" class="attrcontainer" height="700" width="650"> </div>
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="content">
+                                <a class="button" id="panelControl">Toggle Control Panel</a></div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="adjMatrix vis">
+                    <div class="loading"></div>
+                    <div id="interactiveFreeFormMain">
+                        <div id="topology" class="topocontainer" height="700" width="700"> </div>
+                        <div id="attributes" class="attrcontainer" height="700" width="650"> </div>
                     </div>
                 </div>
             </div>

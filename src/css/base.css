@@ -31,16 +31,9 @@ div.tooltip {
     transition: 0.3s;
 }
 
-#targetSize {
-    width: 1920px;
-    height: 1080px;
-    /* width:1920px; */
-    /* height:1080px; */
-}
-
 #visPanel {
-    height: 1060px;
-    overflow-y: scroll;
+    width: 25%;
+    height: 100vh;
 }
 
 #easyLabel {
