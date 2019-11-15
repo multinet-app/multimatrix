@@ -295,13 +295,8 @@ class View {
           let row = d.rowid
           let column = d.colid
 
-          let p = true
           // Get the number of connections, should only be at most 1 with our test data
           let numConnections = graph.links.map(d => { 
-            if (p) {
-            console.log(d, row, column)
-            p = !p
-          }
             let outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0; 
             return outcome;
           })

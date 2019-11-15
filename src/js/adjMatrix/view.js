@@ -228,13 +228,8 @@ var View = /** @class */ (function () {
             .style("fill-opacity", function (d) {
             var row = d.rowid;
             var column = d.colid;
-            var p = true;
             // Get the number of connections, should only be at most 1 with our test data
             var numConnections = graph.links.map(function (d) {
-                if (p) {
-                    console.log(d, row, column);
-                    p = !p;
-                }
                 var outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0;
                 return outcome;
             })
