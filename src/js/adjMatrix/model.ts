@@ -144,7 +144,7 @@ class Model {
     options.exit().remove();
 
     options = optionsEnter.merge(options);
-    options.attr("value", d => d.name);
+    options.attr("value", d => d._key);
     options.attr("id", d => d.id);
 
     d3.select("#search-input")

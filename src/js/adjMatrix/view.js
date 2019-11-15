@@ -226,8 +226,8 @@ var View = /** @class */ (function () {
         squares
             .filter(function (d) { return d.z == 0; })
             .style("fill-opacity", function (d) {
-            var row = d.cellName.split("_")[0].split("cell")[1];
-            var column = d.cellName.split("_")[1];
+            var row = d.rowid;
+            var column = d.colid;
             // Get the number of connections, should only be at most 1 with our test data
             var numConnections = graph.links.map(function (d) {
                 var outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0;
@@ -335,7 +335,7 @@ var View = /** @class */ (function () {
             .attr("dy", ".32em")
             .attr("text-anchor", "end")
             .style("font-size", labelSize)
-            .text(function (d, i) { return _this.nodes[i].name; })
+            .text(function (d, i) { return _this.nodes[i]._key; })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('click', function (d) {
@@ -379,7 +379,7 @@ var View = /** @class */ (function () {
             .attr("dy", ".32em")
             .attr("text-anchor", "start")
             .style("font-size", labelSize)
-            .text(function (d, i) { return _this.nodes[i].name; })
+            .text(function (d, i) { return _this.nodes[i]._key; })
             .on('click', function (d) {
             if (true /*this.controller.adjMatrix.neighborSelect*/) {
                 //this.sort(d[0].rowid)

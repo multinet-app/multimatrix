@@ -292,8 +292,8 @@ class View {
     squares
       .filter(d => d.z == 0)
       .style("fill-opacity", d => { 
-          let row = d.cellName.split("_")[0].split("cell")[1]
-          let column = d.cellName.split("_")[1]
+          let row = d.rowid
+          let column = d.colid
 
           // Get the number of connections, should only be at most 1 with our test data
           let numConnections = graph.links.map(d => { 
@@ -416,7 +416,7 @@ class View {
       .attr("dy", ".32em")
       .attr("text-anchor", "end")
       .style("font-size", labelSize)
-      .text((d, i) => this.nodes[i].name)
+      .text((d, i) => this.nodes[i]._key)
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('click', (d) => {
@@ -463,7 +463,7 @@ class View {
       .attr("dy", ".32em")
       .attr("text-anchor", "start")
       .style("font-size", labelSize)
-      .text((d, i) => this.nodes[i].name)
+      .text((d, i) => this.nodes[i]._key)
       .on('click', (d) => {
         if (true /*this.controller.adjMatrix.neighborSelect*/) {
           //this.sort(d[0].rowid)

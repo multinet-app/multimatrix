@@ -71,10 +71,10 @@ function isSelected(node) {
 //function that updates the state, and includes a flag for when this was done through a search
 function nodeClick(node, search = false) {
     console.log("in nodeclick")
-    // console.log(node[0].rowid)
+        // console.log(node[0].rowid)
 
     if (node[0] != undefined) {
-        node = {"id": node[0].rowid}
+        node = { "id": node[0].rowid }
     }
 
     const currentState = window.controller.model.getApplicationState();
@@ -144,7 +144,7 @@ function populateSearchList() {
 
     options = optionsEnter.merge(options);
 
-    options.attr("value", d => d.name);
+    options.attr("value", d => d._key);
     options.attr("id", d => d.id);
 }
 
