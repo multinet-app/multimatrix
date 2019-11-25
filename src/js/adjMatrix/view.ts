@@ -131,7 +131,7 @@ class View {
 
   /**
    * Takes in the data, hides the loading screen, and
-   * initalizes visualization.
+   * initializes visualization.
    * @param  data [description]
    * @return      [description]
    */
@@ -151,13 +151,13 @@ class View {
     d3.select('.loading').style('display', 'block').style('opacity', 1);
 
     this.initializeEdges();
-    // this.initalizeAttributes();
+    // this.initializeAttributes();
 
     d3.select('.loading').style('display', 'none');
   }
 
   /**
-   * Initalizes the edges view, renders all SVG elements and attaches listeners
+   * initializes the edges view, renders all SVG elements and attaches listeners
    * to elements.
    * @return None
    */
@@ -1303,10 +1303,10 @@ class View {
   private attributeScales: any;
   private columnWidths: any;
   /**
-   * [initalizeAttributes description]
+   * [initializeAttributes description]
    * @return [description]
    */
-  initalizeAttributes() {
+  initializeAttributes() {
 
 
 

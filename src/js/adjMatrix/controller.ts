@@ -122,7 +122,7 @@ class Controller {
 
     this.sizeLayout();
 
-    this.view = new View(this); // initalize view,
+    this.view = new View(this); // initialize view,
 
     this.model = new Model(this); // start reading in data
 

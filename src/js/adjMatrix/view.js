@@ -88,7 +88,7 @@ var View = /** @class */ (function () {
     };
     /**
      * Takes in the data, hides the loading screen, and
-     * initalizes visualization.
+     * initializes visualization.
      * @param  data [description]
      * @return      [description]
      */
@@ -105,11 +105,11 @@ var View = /** @class */ (function () {
     View.prototype.renderView = function () {
         d3.select('.loading').style('display', 'block').style('opacity', 1);
         this.initializeEdges();
-        // this.initalizeAttributes();
+        // this.initializeAttributes();
         d3.select('.loading').style('display', 'none');
     };
     /**
-     * Initalizes the edges view, renders all SVG elements and attaches listeners
+     * initializes the edges view, renders all SVG elements and attaches listeners
      * to elements.
      * @return None
      */
@@ -1117,10 +1117,10 @@ var View = /** @class */ (function () {
         });
     };
     /**
-     * [initalizeAttributes description]
+     * [initializeAttributes description]
      * @return [description]
      */
-    View.prototype.initalizeAttributes = function () {
+    View.prototype.initializeAttributes = function () {
         var _this = this;
         var width = this.controller.visWidth * this.controller.attributeProportion; //this.edgeWidth + this.margins.left + this.margins.right;
         var height = this.controller.visHeight; //this.edgeHeight + this.margins.top + this.margins.bottom;
