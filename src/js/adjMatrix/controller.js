@@ -7,7 +7,7 @@ var Controller = /** @class */ (function () {
         this.clickedCells = new Set();
         this.configToggle = configPanel === "true";
         this.sizeLayout();
-        this.view = new View(this); // initalize view,
+        this.view = new View(this); // initialize view,
         this.model = new Model(this); // start reading in data
         d3.select('.loading').style('display', 'block');
         this.model.reload();
@@ -128,4 +128,5 @@ var Controller = /** @class */ (function () {
 }());
 function makeController() {
     window.controller = new Controller();
+    addConfigPanel();
 }
