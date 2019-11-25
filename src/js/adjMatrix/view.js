@@ -2,7 +2,8 @@
 var View = /** @class */ (function () {
     function View(controller) {
         var _this = this;
-        this.nodeFontSize = 12;
+        this.nodeFontSize = "12";
+        this.labelVar = "_key";
         this.controller = controller;
         this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
         this.mouseoverEvents = [];
@@ -50,12 +51,17 @@ var View = /** @class */ (function () {
         return true;
     };
     View.prototype.updateVis = function () {
+        var _this = this;
+        // Get the row and column labels
         var rows = d3.selectAll(".rowLabel");
         var columns = d3.selectAll(".colLabel");
-        console.log(rows, columns);
-        console.log(this.nodeFontSize);
-        rows.style("font-size", this.nodeFontSize + "pt");
-        columns.style("font-size", this.nodeFontSize + "pt");
+        // Update font size
+        rows = rows.style("font-size", this.nodeFontSize + "pt");
+        columns = columns.style("font-size", this.nodeFontSize + "pt");
+        // Update labels
+        console.log(this.labelVar);
+        rows.text(function (d, i) { return _this.nodes[i][_this.labelVar]; });
+        columns.text(function (d, i) { return _this.nodes[i][_this.labelVar]; });
     };
     /**
      * Searchs for the inputted node according to the data's shortName.

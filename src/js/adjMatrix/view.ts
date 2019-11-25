@@ -25,7 +25,8 @@ class View {
   private visWidth: number;
   private visHeight: number;
 
-  private nodeFontSize: number = 12;
+  private nodeFontSize: string = "12";
+  private labelVar: string = "_key";
   /*
   private edgeSVGWidth: number;
   private edgeSVGHeight: number;
@@ -84,13 +85,18 @@ class View {
   }
 
   updateVis() {
+    // Get the row and column labels
     let rows = d3.selectAll(".rowLabel")
     let columns = d3.selectAll(".colLabel")
-    console.log(rows, columns)
-    console.log(this.nodeFontSize)
 
-    rows.style("font-size", this.nodeFontSize + "pt")
-    columns.style("font-size", this.nodeFontSize + "pt")
+    // Update font size
+    rows = rows.style("font-size", this.nodeFontSize + "pt")
+    columns = columns.style("font-size", this.nodeFontSize + "pt")
+
+    // Update labels
+    console.log(this.labelVar)
+    rows.text((d, i) => this.nodes[i][this.labelVar])
+    columns.text((d, i) => this.nodes[i][this.labelVar])
   }
 
   /**

@@ -140,8 +140,18 @@
                         </ul>
                     </li>
 
+                    <li id="labelSelector">
+                        <a>Attribute for Label</a>
+                        <ul>
+                            <div class="select">
+                                <select>
+                                </select>
+                            </div>
+                        </ul>
+                    </li>
+
                     <li id="labelSize">
-                        <label>Node Label Font Size</label>
+                        <label>Label Font Size</label>
                         <ul>
                             <div class="control is-inline-flex">
                                 <input class="slider" id="fontSlider" step="1" min="8" max="30" value="12" type="range">
@@ -149,9 +159,8 @@
                         </ul>
                     </li>
 
-
-                    <li id="nodeMarkerSize">
-                        <label>Node Size [width,height]</label>
+                    <li id="cellMarkerSize">
+                        <label>Cell Size [width,height]</label>
                         <ul>
                             <div class="control is-inline-flex">
                                 <input width="50%" id="markerSize" class="input" type="text" placeholder="width/height">
@@ -165,7 +174,7 @@
                             <a class="button" id="stop-simulation">Stop Simulation</a>
                             <a class="button" id="start-simulation">Restart Simulation</a>
                             <a class="button" id="release-nodes">Release Pinned Nodes</a>
-                            <a class="button" id="exportGraph">Export Graph to Console</a>
+                            <a class="button" id="exportGraph">Export Graph</a>
                         </div>
 
                         <br/>
@@ -179,22 +188,6 @@
                         <li id="nodeQuantSelect">
                             <a>Edge Types for Nested Cells</a>
                             <ul>
-                            </ul>
-                        </li>
-
-                        <br/>
-
-                        <li id="nodeSizeSelect">
-                            <a>Attribute for Node Size</a>
-                            <ul>
-                                <div class="select">
-                                    <select>
-                                    </select>
-                                </div>
-                                <div class="control is-inline-flex">
-                                    <input width="50%" class="input" type="text" placeholder="[min,max]">
-                                </div>
-
                             </ul>
                         </li>
 

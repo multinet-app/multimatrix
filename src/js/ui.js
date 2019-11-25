@@ -264,29 +264,29 @@ function addConfigPanel() {
     //         }
     //     });
 
-    // // Export graph from control panel 
-    // d3.select("#exportGraph").on("click", () => {
-    //     const a = document.createElement('a');
-    //     a.href = URL.createObjectURL(new Blob([JSON.stringify(multinet.graph_structure)], { type: `text/json` }));
-    //     a.download = name;
-    //     a.click();
-    // });
+    // Export graph from control panel 
+    d3.select("#exportGraph").on("click", () => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(multinet.graph_structure)], { type: `text/json` }));
+        a.download = name;
+        a.click();
+    });
 
-    // // Define the possible node labels
-    // labels = d3.selectAll("#nodeLabel").selectAll("select").selectAll("option")
-    //     .data(Object.keys(vis.graph_structure.nodes[0]))
-    //     .enter()
-    //     .append("option", d => d)
-    //     .attr("value", d => d)
-    //     .attr("selected", d => d === "id" ? "selected" : undefined)
-    //     .text(d => d)
+    // Define the possible node labels
+    labels = d3.selectAll("#labelSelector").selectAll("select").selectAll("option")
+        .data(Object.keys(graph.nodes[0]))
+        .enter()
+        .append("option", d => d)
+        .attr("value", d => d)
+        .attr("selected", d => d === "_key" ? "selected" : undefined)
+        .text(d => d)
 
-    // // Get the node label on change and update the vis
-    // d3.select("#nodeLabel")
-    //     .on("change", async function() {
-    //         vis.nodeLabel = d3.select("#nodeLabel .select > select").property("value")
-    //         updateVis(vis.graph_structure)
-    //     });
+    // Get the node label on change and update the vis
+    d3.select("#labelSelector")
+        .on("change", async function() {
+            window.controller.view.set("labelVar", d3.select("#labelSelector .select > select").property("value"))
+            window.controller.view.updateVis();
+        });
 
     // // Define the possible edge width metrics
     // edge_widthMetrics = d3.selectAll("#edgeWidthSelect").selectAll("select").selectAll("option")
