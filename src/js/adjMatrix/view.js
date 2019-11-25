@@ -2,6 +2,7 @@
 var View = /** @class */ (function () {
     function View(controller) {
         var _this = this;
+        this.nodeFontSize = 12;
         this.controller = controller;
         this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
         this.mouseoverEvents = [];
@@ -39,6 +40,22 @@ var View = /** @class */ (function () {
         interaction = interaction.replace(' answer', '');
         interaction = interaction.replace(' neighbor', '');
         return interaction;
+    };
+    View.prototype.get = function (attribute) {
+        return this[attribute];
+    };
+    ;
+    View.prototype.set = function (attribute, value) {
+        this[attribute] = value;
+        return true;
+    };
+    View.prototype.updateVis = function () {
+        var rows = d3.selectAll(".rowLabel");
+        var columns = d3.selectAll(".colLabel");
+        console.log(rows, columns);
+        console.log(this.nodeFontSize);
+        rows.style("font-size", this.nodeFontSize + "pt");
+        columns.style("font-size", this.nodeFontSize + "pt");
     };
     /**
      * Searchs for the inputted node according to the data's shortName.
@@ -81,7 +98,7 @@ var View = /** @class */ (function () {
      */
     View.prototype.renderView = function () {
         d3.select('.loading').style('display', 'block').style('opacity', 1);
-        this.initalizeEdges();
+        this.initializeEdges();
         // this.initalizeAttributes();
         d3.select('.loading').style('display', 'none');
     };
@@ -90,8 +107,9 @@ var View = /** @class */ (function () {
      * to elements.
      * @return None
      */
-    View.prototype.initalizeEdges = function () {
+    View.prototype.initializeEdges = function () {
         var _this = this;
+        console.log("redrawing");
         // Set width and height based upon the calculated layout size. Grab the smaller of the 2
         var width = this.controller.visWidth;
         var height = this.controller.visHeight;
@@ -321,9 +339,6 @@ var View = /** @class */ (function () {
      */
     View.prototype.appendEdgeLabels = function () {
         var _this = this;
-        var labelSize = //this.controller.nodeAttributes.length > 4 ? 9.5 : 
-         11;
-        this.nodes.length < 50 ? labelSize = labelSize + 2 : null;
         this.edgeRows.append("text")
             .attr('class', 'rowLabel')
             .attr("id", function (d, i) {
@@ -334,7 +349,7 @@ var View = /** @class */ (function () {
             .attr("y", this.orderingScale.bandwidth() / 2)
             .attr("dy", ".32em")
             .attr("text-anchor", "end")
-            .style("font-size", labelSize)
+            .style("font-size", this.nodeFontSize.toString() + "pt")
             .text(function (d, i) { return _this.nodes[i]._key; })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
@@ -378,7 +393,7 @@ var View = /** @class */ (function () {
             .attr('x', verticalOffset)
             .attr("dy", ".32em")
             .attr("text-anchor", "start")
-            .style("font-size", labelSize)
+            .style("font-size", this.nodeFontSize)
             .text(function (d, i) { return _this.nodes[i]._key; })
             .on('click', function (d) {
             if (true /*this.controller.adjMatrix.neighborSelect*/) {
@@ -1418,7 +1433,7 @@ var View = /** @class */ (function () {
             .classed('header', true)
             //.attr('y', -45)
             //.attr('x', (d) => this.columnScale(d) + barMargin.left)
-            .style('font-size', fontSize.toString() + 'px')
+            .style('font-size', this.nodeFontSize.toString() + 'px')
             .attr('text-anchor', 'middle')
             //.attr('transform','rotate(-10)')
             .text(function (d, i) {

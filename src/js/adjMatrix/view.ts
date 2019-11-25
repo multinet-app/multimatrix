@@ -24,6 +24,8 @@ class View {
   private edgeScales: any;
   private visWidth: number;
   private visHeight: number;
+
+  private nodeFontSize: number = 12;
   /*
   private edgeSVGWidth: number;
   private edgeSVGHeight: number;
@@ -70,6 +72,25 @@ class View {
       this.controller.model.provenance.applyAction(action);
 
     };
+  }
+
+  get(attribute) {
+    return this[attribute];
+  };
+
+  set(attribute, value) {
+    this[attribute] = value;
+    return true;
+  }
+
+  updateVis() {
+    let rows = d3.selectAll(".rowLabel")
+    let columns = d3.selectAll(".colLabel")
+    console.log(rows, columns)
+    console.log(this.nodeFontSize)
+
+    rows.style("font-size", this.nodeFontSize + "pt")
+    columns.style("font-size", this.nodeFontSize + "pt")
   }
 
   /**
@@ -123,7 +144,7 @@ class View {
   renderView() {
     d3.select('.loading').style('display', 'block').style('opacity', 1);
 
-    this.initalizeEdges();
+    this.initializeEdges();
     // this.initalizeAttributes();
 
     d3.select('.loading').style('display', 'none');
@@ -134,7 +155,8 @@ class View {
    * to elements.
    * @return None
    */
-  initalizeEdges() {
+  initializeEdges() {
+    console.log("redrawing")
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     let width = this.controller.visWidth
     let height = this.controller.visHeight;
@@ -402,9 +424,6 @@ class View {
    * @return none
    */
   appendEdgeLabels() {
-    let labelSize = //this.controller.nodeAttributes.length > 4 ? 9.5 : 
-    11;
-    this.nodes.length < 50 ? labelSize = labelSize + 2 : null;
     this.edgeRows.append("text")
       .attr('class', 'rowLabel')
       .attr("id", (d, i) => {
@@ -415,7 +434,7 @@ class View {
       .attr("y", this.orderingScale.bandwidth() / 2)
       .attr("dy", ".32em")
       .attr("text-anchor", "end")
-      .style("font-size", labelSize)
+      .style("font-size", this.nodeFontSize.toString() + "pt")
       .text((d, i) => this.nodes[i]._key)
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
@@ -462,7 +481,7 @@ class View {
       .attr('x', verticalOffset)
       .attr("dy", ".32em")
       .attr("text-anchor", "start")
-      .style("font-size", labelSize)
+      .style("font-size", this.nodeFontSize)
       .text((d, i) => this.nodes[i]._key)
       .on('click', (d) => {
         if (true /*this.controller.adjMatrix.neighborSelect*/) {
@@ -968,12 +987,6 @@ class View {
       }
     }
   }
-
-
-
-
-
-
 
   /**
    * [removeHighlightNode description]
@@ -1677,7 +1690,7 @@ class View {
       .classed('header', true)
       //.attr('y', -45)
       //.attr('x', (d) => this.columnScale(d) + barMargin.left)
-      .style('font-size', fontSize.toString() + 'px')
+      .style('font-size', this.nodeFontSize.toString() + 'px')
       .attr('text-anchor', 'middle')
       //.attr('transform','rotate(-10)')
       .text((d, i) => {

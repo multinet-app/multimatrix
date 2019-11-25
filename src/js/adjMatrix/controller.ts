@@ -166,4 +166,5 @@ class Controller {
 
 function makeController() {
   window.controller = new Controller();
+  addConfigPanel();
 }

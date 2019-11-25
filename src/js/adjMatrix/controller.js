@@ -128,4 +128,5 @@ var Controller = /** @class */ (function () {
 }());
 function makeController() {
     window.controller = new Controller();
+    addConfigPanel();
 }
