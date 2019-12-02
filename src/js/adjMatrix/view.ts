@@ -24,6 +24,9 @@ class View {
   private edgeScales: any;
   private visWidth: number;
   private visHeight: number;
+
+  private nodeFontSize: string = "12";
+  private labelVar: string = "_key";
   /*
   private edgeSVGWidth: number;
   private edgeSVGHeight: number;
@@ -72,6 +75,30 @@ class View {
     };
   }
 
+  get(attribute) {
+    return this[attribute];
+  };
+
+  set(attribute, value) {
+    this[attribute] = value;
+    return true;
+  }
+
+  updateVis() {
+    // Get the row and column labels
+    let rows = d3.selectAll(".rowLabel")
+    let columns = d3.selectAll(".colLabel")
+
+    // Update font size
+    rows = rows.style("font-size", this.nodeFontSize + "pt")
+    columns = columns.style("font-size", this.nodeFontSize + "pt")
+
+    // Update labels
+    console.log(this.labelVar)
+    rows.text((d, i) => this.nodes[i][this.labelVar])
+    columns.text((d, i) => this.nodes[i][this.labelVar])
+  }
+
   /**
    * Searchs for the inputted node according to the data's shortName.
    * @param  searchNode string corresponding to the short name to search for.
@@ -104,7 +131,7 @@ class View {
 
   /**
    * Takes in the data, hides the loading screen, and
-   * initalizes visualization.
+   * initializes visualization.
    * @param  data [description]
    * @return      [description]
    */
@@ -123,18 +150,19 @@ class View {
   renderView() {
     d3.select('.loading').style('display', 'block').style('opacity', 1);
 
-    this.initalizeEdges();
-    // this.initalizeAttributes();
+    this.initializeEdges();
+    // this.initializeAttributes();
 
     d3.select('.loading').style('display', 'none');
   }
 
   /**
-   * Initalizes the edges view, renders all SVG elements and attaches listeners
+   * initializes the edges view, renders all SVG elements and attaches listeners
    * to elements.
    * @return None
    */
-  initalizeEdges() {
+  initializeEdges() {
+    console.log("redrawing")
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     let width = this.controller.visWidth
     let height = this.controller.visHeight;
@@ -292,8 +320,8 @@ class View {
     squares
       .filter(d => d.z == 0)
       .style("fill-opacity", d => { 
-          let row = d.cellName.split("_")[0].split("cell")[1]
-          let column = d.cellName.split("_")[1]
+          let row = d.rowid
+          let column = d.colid
 
           // Get the number of connections, should only be at most 1 with our test data
           let numConnections = graph.links.map(d => { 
@@ -402,9 +430,6 @@ class View {
    * @return none
    */
   appendEdgeLabels() {
-    let labelSize = //this.controller.nodeAttributes.length > 4 ? 9.5 : 
-    11;
-    this.nodes.length < 50 ? labelSize = labelSize + 2 : null;
     this.edgeRows.append("text")
       .attr('class', 'rowLabel')
       .attr("id", (d, i) => {
@@ -415,8 +440,8 @@ class View {
       .attr("y", this.orderingScale.bandwidth() / 2)
       .attr("dy", ".32em")
       .attr("text-anchor", "end")
-      .style("font-size", labelSize)
-      .text((d, i) => this.nodes[i].name)
+      .style("font-size", this.nodeFontSize.toString() + "pt")
+      .text((d, i) => this.nodes[i]._key)
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('click', (d) => {
@@ -462,8 +487,8 @@ class View {
       .attr('x', verticalOffset)
       .attr("dy", ".32em")
       .attr("text-anchor", "start")
-      .style("font-size", labelSize)
-      .text((d, i) => this.nodes[i].name)
+      .style("font-size", this.nodeFontSize)
+      .text((d, i) => this.nodes[i]._key)
       .on('click', (d) => {
         if (true /*this.controller.adjMatrix.neighborSelect*/) {
           //this.sort(d[0].rowid)
@@ -969,12 +994,6 @@ class View {
     }
   }
 
-
-
-
-
-
-
   /**
    * [removeHighlightNode description]
    * @param  nodeID       [description]
@@ -1284,10 +1303,10 @@ class View {
   private attributeScales: any;
   private columnWidths: any;
   /**
-   * [initalizeAttributes description]
+   * [initializeAttributes description]
    * @return [description]
    */
-  initalizeAttributes() {
+  initializeAttributes() {
 
 
 
@@ -1677,7 +1696,7 @@ class View {
       .classed('header', true)
       //.attr('y', -45)
       //.attr('x', (d) => this.columnScale(d) + barMargin.left)
-      .style('font-size', fontSize.toString() + 'px')
+      .style('font-size', this.nodeFontSize.toString() + 'px')
       .attr('text-anchor', 'middle')
       //.attr('transform','rotate(-10)')
       .text((d, i) => {

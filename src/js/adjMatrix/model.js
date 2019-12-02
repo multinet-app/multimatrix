@@ -98,7 +98,7 @@ var Model = /** @class */ (function () {
         var optionsEnter = options.enter().append("option");
         options.exit().remove();
         options = optionsEnter.merge(options);
-        options.attr("value", function (d) { return d.name; });
+        options.attr("value", function (d) { return d._key; });
         options.attr("id", function (d) { return d.id; });
         d3.select("#search-input")
             .on("change", function (d, i, nodes) {

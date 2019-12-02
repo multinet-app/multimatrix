@@ -71,10 +71,10 @@ function isSelected(node) {
 //function that updates the state, and includes a flag for when this was done through a search
 function nodeClick(node, search = false) {
     console.log("in nodeclick")
-    // console.log(node[0].rowid)
+        // console.log(node[0].rowid)
 
     if (node[0] != undefined) {
-        node = {"id": node[0].rowid}
+        node = { "id": node[0].rowid }
     }
 
     const currentState = window.controller.model.getApplicationState();
@@ -144,7 +144,7 @@ function populateSearchList() {
 
     options = optionsEnter.merge(options);
 
-    options.attr("value", d => d.name);
+    options.attr("value", d => d._key);
     options.attr("id", d => d.id);
 }
 
@@ -201,6 +201,141 @@ function tagNeighbors(selected) {
     }
 
     return { "neighbors": neighbors, "edges": edges };
+}
+
+function addConfigPanel() {
+
+    // Font size slider
+    d3.select("#fontSlider")
+        .on("input", function() {
+            d3.select("#fontSliderValue").text(this.value);
+            window.controller.view.set("nodeFontSize", this.value)
+        });
+
+    d3.select("#fontSlider")
+        .property("value", window.controller.view.get("nodeFontSize"));
+
+    d3.select("#fontSliderValue")
+        .text(window.controller.view.get("nodeFontSize"));
+
+    d3.select("#fontSlider")
+        .on("change", function() {
+            window.controller.view.updateVis();
+        });
+
+    // // Node size box
+    // d3.select("#markerSize")
+    //     .property("value", vis.nodeMarkerLength + "," + vis.nodeMarkerHeight);
+
+    // d3.select("#markerSize")
+    //     .on("change", function() {
+    //         let markerSize = this.value.split(",");
+
+    //         vis.nodeMarkerLength = markerSize[0];
+    //         vis.nodeMarkerHeight = markerSize[1];
+    //         updateVis(vis.graph_structure);
+    //     });
+
+    // // Select neighbor toggle
+    // d3.selectAll("input[name='selectNeighbors']")
+    //     .filter(() => d3.select(this).property("value") === vis.selectNeighbors.toString())
+    //     .property("checked", "checked");
+
+    // // All radio toggles
+    // d3.select('#panelDiv')
+    //     .selectAll("input[type='radio']")
+    //     .on("change", async function() {
+    //         // If it's the selectNeighbors radio button, update the settings
+    //         if (this.name === 'selectNeighbors') {
+    //             vis.selectNeighbors = this.value === "true";
+    //             return;
+    //         }
+
+    //         // If it's the selectNeighbors radio button, update the settings
+    //         if (this.name === 'isDirected') {
+    //             vis.isDirected = this.value === "true";
+    //             return;
+    //         }
+
+    //         // If it's the selectNeighbors radio button, update the settings
+    //         if (this.name === 'isMultiEdge') {
+    //             vis.isMultiEdge = this.value === "true";
+    //             return;
+    //         }
+    //     });
+
+    // Export graph from control panel 
+    d3.select("#exportGraph").on("click", () => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(multinet.graph_structure)], { type: `text/json` }));
+        a.download = name;
+        a.click();
+    });
+
+    // Define the possible node labels
+    labels = d3.selectAll("#labelSelector").selectAll("select").selectAll("option")
+        .data(Object.keys(graph.nodes[0]))
+        .enter()
+        .append("option", d => d)
+        .attr("value", d => d)
+        .attr("selected", d => d === "_key" ? "selected" : undefined)
+        .text(d => d)
+
+    // Get the node label on change and update the vis
+    d3.select("#labelSelector")
+        .on("change", async function() {
+            window.controller.view.set("labelVar", d3.select("#labelSelector .select > select").property("value"))
+            window.controller.view.updateVis();
+        });
+
+    // // Define the possible edge width metrics
+    // edge_widthMetrics = d3.selectAll("#edgeWidthSelect").selectAll("select").selectAll("option")
+    //     .data(Object.keys(vis.graph_structure.links[0]))
+    //     .enter()
+    //     .append("option", d => d)
+    //     .attr("value", d => d)
+    //     .attr("selected", d => d === "id" ? "selected" : undefined)
+    //     .text(d => d)
+
+    // // Get the edge width metric on change and update the vis
+    // d3.select("#edgeWidthSelect")
+    //     .on("change", async function() {
+    //         vis.attributes.edgeWidthKey = d3.select("#edgeWidthSelect .select > select").property("value")
+    //         updateVis(vis.graph_structure)
+    //     });
+
+    // // Export config
+    // d3.select("#exportConfig")
+    //     .on("click", function() {
+    //         const a = document.createElement('a');
+    //         a.href = URL.createObjectURL(new Blob([JSON.stringify(vis)], { type: `text/json` }));
+    //         a.download = name;
+    //         a.click();
+    //     });
+
+    // // Load config
+    // d3.select("#loadConfig")
+    //     .on("click", function() {
+    //         // Get the JSON from the textarea
+    //         let input = "";
+    //         try {
+    //             input = JSON.parse(d3.select("#config").node().value);
+    //         } catch (error) {
+    //             console.log("Problem parsing the vis object. Is the JSON malformed?");
+    //             return;
+    //         }
+
+    //         // Update the values in vis
+    //         for (key in input) {
+    //             vis[key] = input[key];
+    //         }
+
+    //         // Tell the app that we've loaded from json config
+    //         vis.reloaded = true;
+
+    //         // Trigger a re-render
+    //         updateVis(vis.graph_structure);
+    //     });
 }
 
 module.exports = { searchFor, isSelected };
