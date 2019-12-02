@@ -20,22 +20,6 @@ var Controller = /** @class */ (function () {
             exportConfig(Object.keys(task), Object.keys(task.adjMatrixValues), true);
         });
     };
-    Controller.prototype.setupCSS = function (base) {
-        return;
-        /*set css values for 'clicked' nodes;
-        //set fill or stroke of selected node;
-    
-        //find the appropriate style sheet
-        var sheet = Object.values(document.styleSheets).find(s =>
-          s.href.includes("styles.css")
-        );
-    
-        // sheet.addRule(".node", (nodeIsRect? 'rx: 2; ry:2'  : 'rx:20; ry:20' ) , 1);
-    
-          let ruleString = "fill :" + base.style.selectedNodeColor +" !important;";
-          sheet.addRule(".rect.selected", ruleString, 1);
-          */
-    };
     Controller.prototype.clear = function () {
         var _this = this;
         var action = {

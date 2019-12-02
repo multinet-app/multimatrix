@@ -7,6 +7,9 @@ class Controller {
   private model: any;
   public configToggle: boolean;
   private sortKey: any;
+  private clickedCells: any;
+  private hoverRow: any;
+  private hoverCol: any;
 
   setupExports(base, task) {
     d3.select("#exportBaseConfig").on("click", function() {
@@ -17,66 +20,40 @@ class Controller {
       exportConfig(Object.keys(task), Object.keys(task.adjMatrixValues), true)
     });
   }
-  setupCSS(base) {
-    return;
-    /*set css values for 'clicked' nodes;
-    //set fill or stroke of selected node;
 
-    //find the appropriate style sheet
-    var sheet = Object.values(document.styleSheets).find(s =>
-      s.href.includes("styles.css")
-    );
-
-    // sheet.addRule(".node", (nodeIsRect? 'rx: 2; ry:2'  : 'rx:20; ry:20' ) , 1);
-
-      let ruleString = "fill :" + base.style.selectedNodeColor +" !important;";
-      sheet.addRule(".rect.selected", ruleString, 1);
-      */
-
-  }
-
-  private clickedCells: any;
   clear() {
-
-      let action = {
-        label: 'clear',
-        action: () => {
-          const currentState = this.model.app.currentState();
-          //add time stamp to the state graph
-          currentState.time = Date.now();
-          currentState.event = 'clear';
-          currentState.selections = {
-            answerBox: {},
-            attrRow: {},
-            rowLabel: {},
-            colLabel: {},
-            cellcol: {},
-            cellrow: {},
-            search: {},
-            neighborSelect: {},
-            previousMouseovers: []
-          }
-          return currentState;
-        },
-        args: []
-      }
-      this.model.provenance.applyAction(action);
-
-
+    let action = {
+      label: 'clear',
+      action: () => {
+        const currentState = this.model.app.currentState();
+        //add time stamp to the state graph
+        currentState.time = Date.now();
+        currentState.event = 'clear';
+        currentState.selections = {
+          answerBox: {},
+          attrRow: {},
+          rowLabel: {},
+          colLabel: {},
+          cellcol: {},
+          cellrow: {},
+          search: {},
+          neighborSelect: {},
+          previousMouseovers: []
+        }
+        return currentState;
+      },
+      args: []
+    }
+    this.model.provenance.applyAction(action);
   }
-
-
-  private hoverRow: any;
-  private hoverCol: any;
 
   sizeLayout() {
     let targetDiv = d3.select("#targetSize");
-    let width = targetDiv.style("width").replace("px", ""),
-      height = targetDiv.style("height").replace("px", "");
+    let width = targetDiv.style("width").replace("px", "");
+    let height = targetDiv.style("height").replace("px", "");
     let taskBarHeight = 74;
     let panelDimensions = {}
-    /*panelDimensions.width = width * 0.245;*/
-    panelDimensions.width = 480//d3.select("#visPanel").style("width")//, panelDimensions.width + "px");
+    panelDimensions.width = 480;
     panelDimensions.height = height - taskBarHeight;
     d3.select("#visPanel").style("width: 100vw;");
     d3.select("#visPanel").style("height: 100vh;");
@@ -95,7 +72,6 @@ class Controller {
       this.visWidth = this.visWidth;
     }
 
-
     this.attributeProportion = this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
     this.edgeProportion = this.edgeWidth / (this.edgeWidth + this.attrWidth + filler);
 
@@ -107,7 +83,6 @@ class Controller {
     d3.select('.topocontainer').style('height', (this.visHeight).toString() + 'px');
     d3.select('.attrcontainer').style('width', (100 * this.attributeProportion).toString() + '%');
     d3.select('.attrcontainer').style('height', (this.visHeight).toString() + 'px');
-
 
     //d3.select('.adjMatrix.vis').style('width',width*0.8);
     d3.select('.adjMatrix.vis').style('width', (this.visWidth).toString() + 'px')
@@ -124,19 +99,10 @@ class Controller {
     this.sizeLayout();
 
     this.view = new View(this); // initialize view,
-
     this.model = new Model(this); // start reading in data
 
     d3.select('.loading').style('display', 'block');
     this.model.reload();
-  }
-
-  clearView() {
-    d3.select('.tooltip').remove();
-    d3.select('#topology').selectAll('*').remove();
-    d3.select('#attributes').selectAll('*').remove();
-    d3.select('#legend-svg').selectAll('*').remove();
-
   }
 
   /**
