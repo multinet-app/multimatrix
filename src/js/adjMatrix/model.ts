@@ -17,6 +17,7 @@ class Model {
   private app: any;
   public icons: object;
   public sortKey: string;
+  private maxTracker: any;
 
   constructor(controller: any) {
     this.controller = controller;
@@ -212,7 +213,6 @@ class Model {
     }
 
     function classAllHighlights(state) {
-
       console.log("classallhighlights state", state)
 
       let clickedElements = new Set();
@@ -305,18 +305,15 @@ class Model {
     }
     setUpObservers();
 
-
     return [app, provenance];
-
-
   }
-
-
 
 
   reload() {
     this.controller.loadData(this.nodes, this.edges, this.matrix);
   }
+
+
   /**
    * [changeInteractionWrapper description]
    * @param  nodeID ID of the node being changed with
@@ -368,7 +365,6 @@ class Model {
     type = "edges"
     this.orderType = type;
     if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
-
       var graph = reorder.graph()
         .nodes(this.nodes)
         .links(this.edges)
@@ -383,29 +379,23 @@ class Model {
         let mat = reorder.graph2mat(graph);
         order = reorder.optimal_leaf_order()(mat);
       }
-
-      //
-
       //order = reorder.optimal_leaf_order()(this.scalarMatrix);
-    }
-    else if (this.orderType == 'edges') {
+    } else if (this.orderType == 'edges') {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     } else if (node == true) {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['shortName'].localeCompare(this.nodes[b]['shortName']));
       order = d3.range(this.nodes.length).sort((a, b) => {return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type));});
-    }
-    else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
+    } else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]));
-
     } else {
       order = d3.range(this.nodes.length).sort((a, b) => { return this.nodes[b][type] - this.nodes[a][type]; });
     }
 
     this.order = order;
     return order;
-
   }
-  private maxTracker: any;
+
+
   /**
    * [processData description]
    * @return [description]
@@ -414,29 +404,22 @@ class Model {
     // generate a hashmap of id's?
     // Set up node data
     this.nodes.forEach((rowNode, i) => {
-
-
       /* matrix used for edge attributes, otherwise should we hide */
       this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id+ '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
       this.scalarMatrix[i] = this.nodes.map(function(colNode) { return 0; });
+    });
 
-  });
     function checkEdge(edge) {
-      if (typeof edge.source !== "number") return false
-      if (typeof edge.target !== "number") return false;
-      return true
+      return !(typeof edge.source !== "number" || typeof edge.target !== "number")
     }
+
     this.edges = this.edges.filter(checkEdge);
     this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 }
     // Convert links to matrix; count character occurrences.
     this.edges.forEach((link) => {
-
-
       let addValue = 1;
       this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
-      //
       this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
-
 
       /* could be used for varying edge types */
       //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }

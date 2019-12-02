@@ -303,7 +303,6 @@ var Model = /** @class */ (function () {
                 var mat = reorder.graph2mat(graph);
                 order = reorder.optimal_leaf_order()(mat);
             }
-            //
             //order = reorder.optimal_leaf_order()(this.scalarMatrix);
         }
         else if (this.orderType == 'edges') {
@@ -336,11 +335,7 @@ var Model = /** @class */ (function () {
             _this.scalarMatrix[i] = _this.nodes.map(function (colNode) { return 0; });
         });
         function checkEdge(edge) {
-            if (typeof edge.source !== "number")
-                return false;
-            if (typeof edge.target !== "number")
-                return false;
-            return true;
+            return !(typeof edge.source !== "number" || typeof edge.target !== "number");
         }
         this.edges = this.edges.filter(checkEdge);
         this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 };
@@ -348,7 +343,6 @@ var Model = /** @class */ (function () {
         this.edges.forEach(function (link) {
             var addValue = 1;
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]][link.type] += link.count;
-            //
             _this.scalarMatrix[_this.idMap[link.source]][_this.idMap[link.target]] += link.count;
             /* could be used for varying edge types */
             //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
