@@ -42,14 +42,17 @@ var View = /** @class */ (function () {
         interaction = interaction.replace(' neighbor', '');
         return interaction;
     };
+    // Allows public getting
     View.prototype.get = function (attribute) {
         return this[attribute];
     };
     ;
+    // Allows public setting
     View.prototype.set = function (attribute, value) {
         this[attribute] = value;
         return true;
     };
+    // Update method for all non-data aspects
     View.prototype.updateVis = function () {
         var _this = this;
         // Get the row and column labels
@@ -62,29 +65,6 @@ var View = /** @class */ (function () {
         console.log(this.labelVar);
         rows.text(function (d, i) { return _this.nodes[i][_this.labelVar]; });
         columns.text(function (d, i) { return _this.nodes[i][_this.labelVar]; });
-    };
-    /**
-     * Searchs for the inputted node according to the data's shortName.
-     * @param  searchNode string corresponding to the short name to search for.
-     * @return            1 if short name was found, 0 if already selected, -1 if not found
-     */
-    View.prototype.search = function (searchNode) {
-        var selectedOption = searchNode.toLowerCase(); //d3.select(nodes[i]).property("value");
-        if (selectedOption.length === 0) {
-            return;
-        }
-        //find the right nodeObject
-        var name = this.nodes.filter(function (node) { return node.shortName.toLowerCase() == selectedOption; });
-        if (name[0] == null || name[0][this.datumID] == '')
-            return -1; // node was not found
-        name = name[0][this.datumID];
-        var state = this.controller.model.app.currentState();
-        if (name in state.selections.search) {
-            return 0;
-        }
-        var action = this.controller.view.changeInteractionWrapper(name, null, 'search');
-        this.controller.model.provenance.applyAction(action);
-        return 1;
     };
     /**
      * Takes in the data, hides the loading screen, and

@@ -75,15 +75,18 @@ class View {
     };
   }
 
+  // Allows public getting
   get(attribute) {
     return this[attribute];
   };
 
+  // Allows public setting
   set(attribute, value) {
     this[attribute] = value;
     return true;
   }
 
+  // Update method for all non-data aspects
   updateVis() {
     // Get the row and column labels
     let rows = d3.selectAll(".rowLabel")
@@ -98,36 +101,6 @@ class View {
     rows.text((d, i) => this.nodes[i][this.labelVar])
     columns.text((d, i) => this.nodes[i][this.labelVar])
   }
-
-  /**
-   * Searchs for the inputted node according to the data's shortName.
-   * @param  searchNode string corresponding to the short name to search for.
-   * @return            1 if short name was found, 0 if already selected, -1 if not found
-   */
-  search(searchNode: string) {
-    let selectedOption = searchNode.toLowerCase()//d3.select(nodes[i]).property("value");
-
-    if (selectedOption.length === 0) {
-      return;
-    }
-
-    //find the right nodeObject
-    let name = this.nodes.filter(node => { return node.shortName.toLowerCase() == selectedOption });
-
-    if (name[0] == null || name[0][this.datumID] == '') return -1; // node was not found
-    name = name[0][this.datumID];
-
-    let state = this.controller.model.app.currentState();
-    if (name in state.selections.search) {
-      return 0;
-    }
-
-    let action = this.controller.view.changeInteractionWrapper(name, null, 'search');
-    this.controller.model.provenance.applyAction(action);
-    return 1;
-  }
-
-
 
   /**
    * Takes in the data, hides the loading screen, and
