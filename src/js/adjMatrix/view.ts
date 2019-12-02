@@ -1201,7 +1201,7 @@ class View {
     d3.selectAll(".row")
       .transition()
       .duration(transitionTime)
-      .delay((d , i) => { return this.orderingScale(i) * 4; })
+      // .delay((d , i) => { return this.orderingScale(i) * 4; })
       .attr("transform", (d, i) => {
         console.log(i, this.order.length)
         if (i > this.order.length - 1) return;
@@ -1249,7 +1249,7 @@ class View {
     // }
 
     d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter(d => d == order).style('fill', '#EBB769')
-    if(!nodeIDs.includes(parseInt(order))){
+    if(!nodeIDs.includes(order)){
       let cells = d3.selectAll(".cell")//.selectAll('rect')
         //.transition()
         //.duration(transitionTime)
@@ -1260,7 +1260,6 @@ class View {
         });
     } else {
       d3.select('#sortIcon'+order).style('fill','#EBB769')
-
     }
 
   }

@@ -1032,7 +1032,7 @@ var View = /** @class */ (function () {
         d3.selectAll(".row")
             .transition()
             .duration(transitionTime)
-            .delay(function (d, i) { return _this.orderingScale(i) * 4; })
+            // .delay((d , i) => { return this.orderingScale(i) * 4; })
             .attr("transform", function (d, i) {
             console.log(i, _this.order.length);
             if (i > _this.order.length - 1)
@@ -1071,7 +1071,7 @@ var View = /** @class */ (function () {
         //   this.controller.view.columnGlyphs[order].attr('fill', '#EBB769');
         // }
         d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter(function (d) { return d == order; }).style('fill', '#EBB769');
-        if (!nodeIDs.includes(parseInt(order))) {
+        if (!nodeIDs.includes(order)) {
             var cells = d3.selectAll(".cell") //.selectAll('rect')
                 //.transition()
                 //.duration(transitionTime)
