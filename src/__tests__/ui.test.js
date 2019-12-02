@@ -22,6 +22,7 @@ describe("ui", () => {
             // Arrange
             window.controller = {}
             window.controller.model = {}
+            window.controller.model.provenance = {}
 
             person1 = { "_key": 1, "id": "nodes/1", "name": "Test Testerson" }
             person2 = { "_key": 2, "id": "nodes/2", "name": "Jimmy Test" }
@@ -29,6 +30,15 @@ describe("ui", () => {
             window.controller.model.graph = {
                 "nodes": [person1, person2],
                 "links": [link1]
+            }
+
+            let clickedNodes = [];
+            window.controller.model.getApplicationState = function() {
+                return { "clicked": clickedNodes }
+            }
+
+            window.controller.model.provenance.applyAction = function(action) {
+                clickedNodes = action.action().clicked
             }
 
             // Act 
