@@ -370,9 +370,7 @@ var View = /** @class */ (function () {
             this.edgeColumns.append('path')
                 .attr('id', function (d) { return 'sortIcon' + d[0].rowid; })
                 .attr('class', 'sortIcon')
-                .attr('d', function (d) {
-                return ""; //this.controller.model.icons['cellSort'].d;
-            })
+                .attr('d', this.controller.model.icons['cellSort'].d)
                 //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
                 .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
                 .on('click', function (d) {
@@ -1020,14 +1018,16 @@ var View = /** @class */ (function () {
     View.prototype.sort = function (order) {
         var _this = this;
         var nodeIDs = this.nodes.map(function (node) { return node.id; });
-        if (nodeIDs.includes(parseInt(order))) {
+        console.log(order, this.order, nodeIDs, nodeIDs.includes(order));
+        if (nodeIDs.includes(order)) {
             this.order = this.controller.changeOrder(order, true);
             (order);
         }
         else {
             this.order = this.controller.changeOrder(order);
         }
-        this.orderingScale.domain(this.order);
+        console.log(this.order);
+        // this.orderingScale.domain(this.order);
         var transitionTime = 500;
         d3.selectAll(".row")
             //.transition()
@@ -1038,11 +1038,12 @@ var View = /** @class */ (function () {
                 return;
             return "translate(0," + _this.orderingScale(i) + ")";
         });
-        this.attributeRows
-            //.transition()
-            //.duration(transitionTime)
-            //.delay((d, i) => { return this.orderingScale(i) * 4; })
-            .attr("transform", function (d, i) { return "translate(0," + _this.orderingScale(i) + ")"; });
+        // TODO: Fix this when we add the adjacent attributes
+        // this.attributeRows
+        //   //.transition()
+        //   //.duration(transitionTime)
+        //   //.delay((d, i) => { return this.orderingScale(i) * 4; })
+        //   .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
         // update each highlightRowsIndex
         // if any other method other than neighbors sort
         if (!nodeIDs.includes(parseInt(order))) {
@@ -1063,11 +1064,11 @@ var View = /** @class */ (function () {
           .delay((d, i) => { return this.orderingScale(i) * 4; })
           .attr("transform", (d, i) => { return "translate(" + this.orderingScale(i) + ")rotate(-90)"; });*/
         // change glyph coloring for sort
-        d3.selectAll('.glyph').attr('fill', '#8B8B8B');
-        // for quantitative values, change their color
-        if (this.controller.view.columnGlyphs[order]) {
-            this.controller.view.columnGlyphs[order].attr('fill', '#EBB769');
-        }
+        // d3.selectAll('.glyph').attr('fill', '#8B8B8B');
+        // // for quantitative values, change their color
+        // if (this.controller.view.columnGlyphs[order]) {
+        //   this.controller.view.columnGlyphs[order].attr('fill', '#EBB769');
+        // }
         d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter(function (d) { return d == order; }).style('fill', '#EBB769');
         if (!nodeIDs.includes(parseInt(order))) {
             var cells = d3.selectAll(".cell") //.selectAll('rect')

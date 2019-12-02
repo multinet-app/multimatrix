@@ -328,7 +328,7 @@ class Model {
     return {
       label: 'sort',
       action: (sortKey) => {
-        const currentState = this.controller.model.app.currentState();
+        const currentState = this.controller.model.app.getApplicationState();
         //add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = 'sort';
@@ -354,9 +354,9 @@ class Model {
   changeOrder(type: string, node: boolean = false) {
 
     let action = this.generateSortAction(type);
-    if(this.provenance){
-      this.provenance.applyAction(action);
-    }
+    // if(this.provenance){
+    //   this.provenance.applyAction(action);
+    // }
 
     return this.sortObserver(type,node);
   }
@@ -366,6 +366,7 @@ class Model {
     // this.orderType = type;
     // this.sortKey = type;
     type = "edges"
+    this.orderType = type;
     if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
 
       var graph = reorder.graph()
@@ -388,7 +389,7 @@ class Model {
       //order = reorder.optimal_leaf_order()(this.scalarMatrix);
     }
     else if (this.orderType == 'edges') {
-      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type].length - this.nodes[a][type].length);
+      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     } else if (node == true) {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['shortName'].localeCompare(this.nodes[b]['shortName']));
       order = d3.range(this.nodes.length).sort((a, b) => {return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type));});

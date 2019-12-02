@@ -6,6 +6,7 @@ class Controller {
   private view: any;
   private model: any;
   public configToggle: boolean;
+  private sortKey: any;
 
   setupExports(base, task) {
     d3.select("#exportBaseConfig").on("click", function() {
@@ -159,8 +160,8 @@ class Controller {
    * @return [description]
    */
   changeOrder(order: string, node : boolean = false) {
-    // this.adjMatrix.sortKey = order;
-    // return this.model.changeOrder(order,node);
+    this.sortKey = order;
+    return this.model.changeOrder(order,node);
   }
 }
 

@@ -456,9 +456,7 @@ class View {
       this.edgeColumns.append('path')
       .attr('id', d=>'sortIcon' + d[0].rowid)
       .attr('class', 'sortIcon')
-      .attr('d', (d) => {
-          return "";//this.controller.model.icons['cellSort'].d;
-        })
+      .attr('d', this.controller.model.icons['cellSort'].d)
         //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
         .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
         .on('click', (d) => {
@@ -1188,14 +1186,16 @@ class View {
    */
   sort(order) {
     let nodeIDs = this.nodes.map(node=>node.id);
-    if(nodeIDs.includes(parseInt(order))){
+    console.log(order, this.order, nodeIDs, nodeIDs.includes(order))
+    if(nodeIDs.includes(order)){
       this.order = this.controller.changeOrder(order,true);
       (order);
     } else {
       this.order = this.controller.changeOrder(order);
-
     }
-    this.orderingScale.domain(this.order);
+    console.log(this.order)
+    // this.orderingScale.domain(this.order);
+    
 
     let transitionTime = 500;
     d3.selectAll(".row")
@@ -1209,12 +1209,12 @@ class View {
 
 
 
-
-    this.attributeRows
-      //.transition()
-      //.duration(transitionTime)
-      //.delay((d, i) => { return this.orderingScale(i) * 4; })
-      .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
+    // TODO: Fix this when we add the adjacent attributes
+    // this.attributeRows
+    //   //.transition()
+    //   //.duration(transitionTime)
+    //   //.delay((d, i) => { return this.orderingScale(i) * 4; })
+    //   .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
 
     // update each highlightRowsIndex
 
@@ -1241,11 +1241,11 @@ class View {
       .attr("transform", (d, i) => { return "translate(" + this.orderingScale(i) + ")rotate(-90)"; });*/
 
     // change glyph coloring for sort
-    d3.selectAll('.glyph').attr('fill', '#8B8B8B');
-    // for quantitative values, change their color
-    if (this.controller.view.columnGlyphs[order]) {
-      this.controller.view.columnGlyphs[order].attr('fill', '#EBB769');
-    }
+    // d3.selectAll('.glyph').attr('fill', '#8B8B8B');
+    // // for quantitative values, change their color
+    // if (this.controller.view.columnGlyphs[order]) {
+    //   this.controller.view.columnGlyphs[order].attr('fill', '#EBB769');
+    // }
 
     d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter(d => d == order).style('fill', '#EBB769')
     if(!nodeIDs.includes(parseInt(order))){

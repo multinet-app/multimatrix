@@ -121,8 +121,8 @@ var Controller = /** @class */ (function () {
      */
     Controller.prototype.changeOrder = function (order, node) {
         if (node === void 0) { node = false; }
-        // this.adjMatrix.sortKey = order;
-        // return this.model.changeOrder(order,node);
+        this.sortKey = order;
+        return this.model.changeOrder(order, node);
     };
     return Controller;
 }());

@@ -26,6 +26,12 @@ async function load_data(workspace, graph) {
     // Set the graph structure
     multinet.graph_structure = { "nodes": rename_node_vars(multinet.nodes), "links": rename_link_vars(multinet.links) }
 
+    // Add node degree as 'edges' key on the nodes
+    multinet.graph_structure.links.forEach(d => {
+        node = multinet.graph_structure.nodes.find(a => a.id == d.source)
+        node.edges = node.edges === undefined ? 1 : node.edges + 1;
+    })
+
     return JSON.parse(JSON.stringify(multinet.graph_structure))
 
 };

@@ -252,7 +252,7 @@ var Model = /** @class */ (function () {
         return {
             label: 'sort',
             action: function (sortKey) {
-                var currentState = _this.controller.model.app.currentState();
+                var currentState = _this.controller.model.app.getApplicationState();
                 //add time stamp to the state graph
                 currentState.time = Date.now();
                 currentState.event = 'sort';
@@ -274,9 +274,9 @@ var Model = /** @class */ (function () {
     Model.prototype.changeOrder = function (type, node) {
         if (node === void 0) { node = false; }
         var action = this.generateSortAction(type);
-        if (this.provenance) {
-            this.provenance.applyAction(action);
-        }
+        // if(this.provenance){
+        //   this.provenance.applyAction(action);
+        // }
         return this.sortObserver(type, node);
     };
     Model.prototype.sortObserver = function (type, node) {
@@ -286,6 +286,7 @@ var Model = /** @class */ (function () {
         // this.orderType = type;
         // this.sortKey = type;
         type = "edges";
+        this.orderType = type;
         if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
             var graph = reorder.graph()
                 .nodes(this.nodes)
@@ -306,7 +307,7 @@ var Model = /** @class */ (function () {
             //order = reorder.optimal_leaf_order()(this.scalarMatrix);
         }
         else if (this.orderType == 'edges') {
-            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b][type].length - _this.nodes[a][type].length; });
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b][type] - _this.nodes[a][type]; });
         }
         else if (node == true) {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['shortName'].localeCompare(_this.nodes[b]['shortName']); });
