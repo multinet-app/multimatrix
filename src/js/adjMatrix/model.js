@@ -9,14 +9,14 @@ var Model = /** @class */ (function () {
         this.sortKey = "name";
         this.matrix = [];
         this.scalarMatrix = [];
-        // d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
-        // .then(function(error, svg) {
-        //   this.alphabeticalSortSvg = svg;
-        // })
-        // d3.image('../../assets/adj-matrix/categoricalSort.svg')
-        // .then(function(error, svg) {
-        //   this.categoricalSortSvg = svg;
-        // })
+        d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
+            .then(function (error, svg) {
+            this.alphabeticalSortSvg = svg;
+        });
+        d3.image('../../assets/adj-matrix/categoricalSort.svg')
+            .then(function (error, svg) {
+            this.categoricalSortSvg = svg;
+        });
         // = "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3 C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z";
         this.icons = {
             'quant': {
@@ -252,7 +252,7 @@ var Model = /** @class */ (function () {
         return {
             label: 'sort',
             action: function (sortKey) {
-                var currentState = _this.controller.model.app.getApplicationState();
+                var currentState = _this.getApplicationState();
                 //add time stamp to the state graph
                 currentState.time = Date.now();
                 currentState.event = 'sort';
@@ -274,9 +274,9 @@ var Model = /** @class */ (function () {
     Model.prototype.changeOrder = function (type, node) {
         if (node === void 0) { node = false; }
         var action = this.generateSortAction(type);
-        // if(this.provenance){
-        //   this.provenance.applyAction(action);
-        // }
+        if (this.provenance) {
+            this.provenance.applyAction(action);
+        }
         return this.sortObserver(type, node);
     };
     Model.prototype.sortObserver = function (type, node) {

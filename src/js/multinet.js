@@ -30,6 +30,8 @@ async function load_data(workspace, graph) {
     multinet.graph_structure.links.forEach(d => {
         node = multinet.graph_structure.nodes.find(a => a.id == d.source)
         node.edges = node.edges === undefined ? 1 : node.edges + 1;
+        node = multinet.graph_structure.nodes.find(a => a.id == d.target)
+        node.edges = node.edges === undefined ? 1 : node.edges + 1;
     })
 
     return JSON.parse(JSON.stringify(multinet.graph_structure))

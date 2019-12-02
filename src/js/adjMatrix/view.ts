@@ -1194,15 +1194,16 @@ class View {
       this.order = this.controller.changeOrder(order);
     }
     console.log(this.order)
-    // this.orderingScale.domain(this.order);
+    this.orderingScale.domain(this.order);
     
 
     let transitionTime = 500;
     d3.selectAll(".row")
-      //.transition()
-      //.duration(transitionTime)
-      //.delay((d, i) => { return this.orderingScale(i) * 4; })
+      .transition()
+      .duration(transitionTime)
+      .delay((d , i) => { return this.orderingScale(i) * 4; })
       .attr("transform", (d, i) => {
+        console.log(i, this.order.length)
         if (i > this.order.length - 1) return;
         return "translate(0," + this.orderingScale(i) + ")";
       })
@@ -1220,7 +1221,7 @@ class View {
 
 
     // if any other method other than neighbors sort
-    if(!nodeIDs.includes(parseInt(order))){
+    if(!nodeIDs.includes(order)) {
       var t = this.edges//.transition().duration(transitionTime);
       t.selectAll(".column")
         //.delay((d, i) => { return this.orderingScale(i) * 4; })
@@ -1264,41 +1265,6 @@ class View {
 
   }
 
-  updateCheckBox(state) {
-    if (this.controller.attributeScales.node.selected == undefined) {
-      return;
-    }
-    let color = this.controller.attributeScales.node.selected.range[0];
-
-    d3.selectAll('.answerBox').selectAll('rect').transition().duration(250)
-      .style("fill", d => {
-        let answerStatus = d[this.datumID] in state.selections.answerBox;
-        return answerStatus ? color : "white"
-      })
-  }
-  updateAnswerToggles(state) {
-    if (this.controller.attributeScales.node.selected == undefined) {
-      return;
-    }
-    let color = this.controller.attributeScales.node.selected.range[0];
-    d3.selectAll('.answerBox').selectAll('circle').transition().duration(500)
-      .attr("cx", d => {
-        let answerStatus = d[this.datumID] in state.selections.answerBox;
-        return (answerStatus ? 3 * this.columnWidths['selected'] / 4 : 1.15 * this.columnWidths['selected'] / 4)
-      })
-      .style("fill", d => {
-        let answerStatus = d[this.datumID] in state.selections.answerBox;
-        return answerStatus ? color : "white";
-      })
-
-
-    d3.select('.answerBox').selectAll('rect').transition().duration(500)
-      .style("fill", d => {
-        let answerStatus = d[this.datumID] in state.selections.answerBox;
-        return answerStatus ? "#8B8B8B" : "lightgray"
-      })
-  }
-
   private columnscreen_names: {};
   private attributeScales: any;
   private columnWidths: any;
@@ -1307,8 +1273,6 @@ class View {
    * @return [description]
    */
   initializeAttributes() {
-
-
 
     let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
     let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;

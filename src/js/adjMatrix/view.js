@@ -1027,13 +1027,14 @@ var View = /** @class */ (function () {
             this.order = this.controller.changeOrder(order);
         }
         console.log(this.order);
-        // this.orderingScale.domain(this.order);
+        this.orderingScale.domain(this.order);
         var transitionTime = 500;
         d3.selectAll(".row")
-            //.transition()
-            //.duration(transitionTime)
-            //.delay((d, i) => { return this.orderingScale(i) * 4; })
+            .transition()
+            .duration(transitionTime)
+            .delay(function (d, i) { return _this.orderingScale(i) * 4; })
             .attr("transform", function (d, i) {
+            console.log(i, _this.order.length);
             if (i > _this.order.length - 1)
                 return;
             return "translate(0," + _this.orderingScale(i) + ")";
@@ -1046,7 +1047,7 @@ var View = /** @class */ (function () {
         //   .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
         // update each highlightRowsIndex
         // if any other method other than neighbors sort
-        if (!nodeIDs.includes(parseInt(order))) {
+        if (!nodeIDs.includes(order)) {
             var t = this.edges; //.transition().duration(transitionTime);
             t.selectAll(".column")
                 //.delay((d, i) => { return this.orderingScale(i) * 4; })
@@ -1083,39 +1084,6 @@ var View = /** @class */ (function () {
         else {
             d3.select('#sortIcon' + order).style('fill', '#EBB769');
         }
-    };
-    View.prototype.updateCheckBox = function (state) {
-        var _this = this;
-        if (this.controller.attributeScales.node.selected == undefined) {
-            return;
-        }
-        var color = this.controller.attributeScales.node.selected.range[0];
-        d3.selectAll('.answerBox').selectAll('rect').transition().duration(250)
-            .style("fill", function (d) {
-            var answerStatus = d[_this.datumID] in state.selections.answerBox;
-            return answerStatus ? color : "white";
-        });
-    };
-    View.prototype.updateAnswerToggles = function (state) {
-        var _this = this;
-        if (this.controller.attributeScales.node.selected == undefined) {
-            return;
-        }
-        var color = this.controller.attributeScales.node.selected.range[0];
-        d3.selectAll('.answerBox').selectAll('circle').transition().duration(500)
-            .attr("cx", function (d) {
-            var answerStatus = d[_this.datumID] in state.selections.answerBox;
-            return (answerStatus ? 3 * _this.columnWidths['selected'] / 4 : 1.15 * _this.columnWidths['selected'] / 4);
-        })
-            .style("fill", function (d) {
-            var answerStatus = d[_this.datumID] in state.selections.answerBox;
-            return answerStatus ? color : "white";
-        });
-        d3.select('.answerBox').selectAll('rect').transition().duration(500)
-            .style("fill", function (d) {
-            var answerStatus = d[_this.datumID] in state.selections.answerBox;
-            return answerStatus ? "#8B8B8B" : "lightgray";
-        });
     };
     /**
      * [initializeAttributes description]
