@@ -330,16 +330,6 @@ var Model = /** @class */ (function () {
         // generate a hashmap of id's?
         // Set up node data
         this.nodes.forEach(function (rowNode, i) {
-            rowNode.count = 0;
-            /* Numeric Conversion */
-            rowNode.followers_count = +rowNode.followers_count;
-            rowNode.query_tweet_count = +rowNode.query_tweet_count;
-            rowNode.friends_count = +rowNode.friends_count;
-            rowNode.statuses_count = +rowNode.statuses_count;
-            rowNode.favourites_count = +rowNode.favourites_count;
-            rowNode.count_followers_in_query = +rowNode.count_followers_in_query;
-            //rowNode.id = +rowNode.id;
-            rowNode.y = i;
             /* matrix used for edge attributes, otherwise should we hide */
             _this.matrix[i] = _this.nodes.map(function (colNode) { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id + '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
             _this.scalarMatrix[i] = _this.nodes.map(function (colNode) { return 0; });
