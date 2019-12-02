@@ -1,57 +1,45 @@
-// Import functions
-const ProvenanceLibrary = require("../libs/provenance.min.js")
-window.ProvenanceLibrary = ProvenanceLibrary
-
 const d3 = require("d3")
 window.d3 = d3
 
 const ui = require("../js/ui");
-
-const helperFunctions = require("../js/nodeLink/helperFunctions")
-window.setUpProvenance = helperFunctions.setUpProvenance
-window.setUpObserver = helperFunctions.setUpObserver
-
-const main_nodeLink = require("../js/nodeLink/main_nodeLink")
-window.initializeProvenance = main_nodeLink.initializeProvenance
-    //window.tagNeighbors = main_nodeLink.tagNeighbors
-
-
-// Set global objects
-
-// Mock functions that we don't want to test
-function update() {
-
-}
-window.update = update;
 
 
 describe("ui", () => {
     describe("searchFor", () => {
         it("Searching for node in empty list throws error", () => {
             // Arrange
-            vis = {};
-            vis.graph_structure = {
-                "nodes": [],
-                "links": []
-            }
-            initializeProvenance(vis.graph_structure)
+            window.controller = {}
+            window.controller.model = {}
+            window.controller.model.graph = { nodes: [], links: [] }
 
             // Act + Assert
-            expect(() => searchFor("someone")).toThrow()
+            outcome = ui.searchFor("someone")
+            expect(outcome).toBe(-1)
 
         });
 
         it("Searching for node in a proper graph works as expected", () => {
             // Arrange
+            window.controller = {}
+            window.controller.model = {}
+            window.controller.model.provenance = {}
+
             person1 = { "_key": 1, "id": "nodes/1", "name": "Test Testerson" }
             person2 = { "_key": 2, "id": "nodes/2", "name": "Jimmy Test" }
             link1 = { "_key": 115100, "id": "links/1", "source": "nodes/1", "target": "nodes/2" }
-            vis = {};
-            vis.graph_structure = {
+            window.controller.model.graph = {
                 "nodes": [person1, person2],
                 "links": [link1]
             }
-            initializeProvenance(vis.graph_structure)
+
+            let clickedNodes = [];
+            window.controller.model.getApplicationState = function() {
+                return { "clicked": clickedNodes }
+            }
+
+            window.controller.model.provenance.applyAction = function(action) {
+                clickedNodes = action.action().clicked
+            }
 
             // Act 
             outcome1 = ui.searchFor("Test Testerson")
