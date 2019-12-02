@@ -1228,19 +1228,6 @@ class View {
         .attr("transform", (d, i) => { return "translate(" + this.orderingScale(i) + ",0)rotate(-90)"; });
     }
 
-
-    /*d3.selectAll('.highlightRow') // taken care of as they're apart of row and column groupings already
-      .transition()
-      .duration(transitionTime)
-      .delay((d, i) => { return this.orderingScale(i) * 4; })
-      .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
-
-    d3.selectAll('.highlightCol')
-      .transition()
-      .duration(transitionTime)
-      .delay((d, i) => { return this.orderingScale(i) * 4; })
-      .attr("transform", (d, i) => { return "translate(" + this.orderingScale(i) + ")rotate(-90)"; });*/
-
     // change glyph coloring for sort
     // d3.selectAll('.glyph').attr('fill', '#8B8B8B');
     // // for quantitative values, change their color
