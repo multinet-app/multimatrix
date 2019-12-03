@@ -462,7 +462,7 @@ class View {
       .text((d, i) => this.nodes[i]._key)
       .on('click', (d) => {
         if (true /*this.controller.adjMatrix.neighborSelect*/) {
-          //this.sort(d[0].rowid)
+          this.sort(d[0].rowid)
           nodeClick(d);
           // let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
           // this.controller.model.provenance.applyAction(action);
