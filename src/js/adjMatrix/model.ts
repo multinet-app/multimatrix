@@ -362,7 +362,8 @@ class Model {
     let order;
     // this.orderType = type;
     // this.sortKey = type;
-    type = "edges"
+    console.log(type)
+    // type = "edges"
     this.orderType = type;
     if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
       var graph = reorder.graph()
@@ -383,8 +384,8 @@ class Model {
     } else if (this.orderType == 'edges') {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     } else if (node == true) {
-      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['shortName'].localeCompare(this.nodes[b]['shortName']));
-      order = d3.range(this.nodes.length).sort((a, b) => {return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type));});
+      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['id'].localeCompare(this.nodes[b]['id']));
+      order = d3.range(this.nodes.length).sort((a, b) => {console.log(this.nodes[b]); return this.nodes[b]['neighbors'].includes(type) - this.nodes[a]['neighbors'].includes(type);});
     } else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]));
     } else {

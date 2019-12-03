@@ -285,7 +285,8 @@ var Model = /** @class */ (function () {
         var order;
         // this.orderType = type;
         // this.sortKey = type;
-        type = "edges";
+        console.log(type);
+        // type = "edges"
         this.orderType = type;
         if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
             var graph = reorder.graph()
@@ -309,8 +310,8 @@ var Model = /** @class */ (function () {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b][type] - _this.nodes[a][type]; });
         }
         else if (node == true) {
-            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['shortName'].localeCompare(_this.nodes[b]['shortName']); });
-            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b]['neighbors'].includes(parseInt(type)) - _this.nodes[a]['neighbors'].includes(parseInt(type)); });
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['id'].localeCompare(_this.nodes[b]['id']); });
+            order = d3.range(this.nodes.length).sort(function (a, b) { console.log(_this.nodes[b]); return _this.nodes[b]['neighbors'].includes(type) - _this.nodes[a]['neighbors'].includes(type); });
         }
         else if (false /*!this.isQuant(this.orderType)*/) { // == "screen_name" || this.orderType == "name") {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a][_this.orderType].localeCompare(_this.nodes[b][_this.orderType]); });

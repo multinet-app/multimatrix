@@ -26,12 +26,16 @@ async function load_data(workspace, graph) {
     // Set the graph structure
     multinet.graph_structure = { "nodes": rename_node_vars(multinet.nodes), "links": rename_link_vars(multinet.links) }
 
-    // Add node degree as 'edges' key on the nodes
+    // Add node degree as 'edges' key on the nodes and add the neighbor to the node
     multinet.graph_structure.links.forEach(d => {
         node = multinet.graph_structure.nodes.find(a => a.id == d.source)
         node.edges = node.edges === undefined ? 1 : node.edges + 1;
+        node.neighbors = [].concat(node.neighbors, d.target);
+
+
         node = multinet.graph_structure.nodes.find(a => a.id == d.target)
         node.edges = node.edges === undefined ? 1 : node.edges + 1;
+        node.neighbors = [].concat(node.neighbors, d.source);
     })
 
     return JSON.parse(JSON.stringify(multinet.graph_structure))
@@ -75,6 +79,7 @@ function rename_link_vars(links) {
 function rename_node_vars(nodes) {
     for (row of nodes) {
         row.id = row._id.replace(/\//g, "-");
+        row.neighbors = [];
 
         delete row._id;
     };
