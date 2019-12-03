@@ -1,6 +1,8 @@
 // Work on importing class file
 var Controller = /** @class */ (function () {
     function Controller() {
+        this.columnSelectedNodes = [];
+        this.highlightedNodes = [];
         this.hoverRow = {};
         this.hoverCol = {};
         this.datumID = 'id';

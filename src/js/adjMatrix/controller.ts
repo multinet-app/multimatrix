@@ -10,6 +10,8 @@ class Controller {
   private clickedCells: any;
   private hoverRow: any;
   private hoverCol: any;
+  public columnSelectedNodes: [] = [];
+  public highlightedNodes: [] = [];
 
   setupExports(base, task) {
     d3.select("#exportBaseConfig").on("click", function() {

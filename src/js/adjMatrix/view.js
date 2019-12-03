@@ -379,16 +379,9 @@ var View = /** @class */ (function () {
             .attr("text-anchor", "start")
             .style("font-size", this.nodeFontSize)
             .text(function (d, i) { return _this.nodes[i]._key; })
-            .on('click', function (d) {
-            if (true /*this.controller.adjMatrix.neighborSelect*/) {
-                //this.sort(d[0].rowid)
-                nodeClick(d);
-                // let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-                // this.controller.model.provenance.applyAction(action);
-            }
-            else {
-                nodeClick(d);
-            }
+            .on('click', function (d, i) {
+            nodeClick(d);
+            _this.nodes[i].neighbors.forEach(function (a) { return _this.selectNeighborNodes(a); });
         })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); });
@@ -531,6 +524,7 @@ var View = /** @class */ (function () {
      */
     View.prototype.changeInteractionWrapper = function (nodeID, node, interactionType) {
         var _this = this;
+        console.log(interactionType);
         return {
             label: interactionType,
             action: function (nodeID) {
@@ -812,20 +806,22 @@ var View = /** @class */ (function () {
     //private selectedNodes : any;
     // DOESNT GET ADDED
     View.prototype.addHighlightNode = function (addingNode) {
+        console.log(addingNode);
         // if node is in
         var nodeIndex = this.nodes.findIndex(function (item, i) {
-            return item[this.datumID] == addingNode;
+            return item["id"] == addingNode;
         });
         for (var i = 0; i < this.matrix[0].length; i++) {
+            console.log(i, nodeIndex);
             if (this.matrix[i][nodeIndex].z > 0) {
                 var nodeID = this.matrix[i][nodeIndex].rowid;
-                if (this.controller.state.adjMatrix.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.state.adjMatrix.highlightedNodes[nodeID].includes(addingNode)) {
+                if (this.controller.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.highlightedNodes[nodeID].includes(addingNode)) {
                     // if array exists, add it
-                    this.controller.state.adjMatrix.highlightedNodes[nodeID].push(addingNode);
+                    this.controller.highlightedNodes[nodeID].push(addingNode);
                 }
                 else {
                     // if array non exist, create it and add node
-                    this.controller.state.adjMatrix.highlightedNodes[nodeID] = [addingNode];
+                    this.controller.highlightedNodes[nodeID] = [addingNode];
                 }
             }
         }
@@ -939,19 +935,19 @@ var View = /** @class */ (function () {
      * @return        [description]
      */
     View.prototype.selectNeighborNodes = function (nodeID) {
-        var nodeIndex = this.controller.state.adjMatrix.columnSelectedNodes.indexOf(nodeID);
+        var nodeIndex = this.controller.columnSelectedNodes.indexOf(nodeID);
         if (nodeIndex > -1) {
             // find all neighbors and remove them
-            this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
+            this.controller.columnSelectedNodes.splice(nodeIndex, 1);
             this.removeHighlightNode(nodeID);
-            this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
+            this.controller.columnSelectedNodes.splice(nodeIndex, 1);
             // remove node from column selected nodes
         }
         else {
             this.addHighlightNode(nodeID);
-            this.controller.state.adjMatrix.columnSelectedNodes.push(nodeID);
+            this.controller.columnSelectedNodes.push(nodeID);
         }
-        this.renderNeighborHighlightNodes();
+        // this.renderNeighborHighlightNodes();
         /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
     
         if(index > -1){ // if in selected node, remove it (unless it is )
