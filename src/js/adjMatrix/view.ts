@@ -1009,30 +1009,45 @@ class View {
   }
 
   renderHighlightNodesFromDict(dict, classToRender, rowOrCol: string = 'Row') {
+    console.log("highlighting", dict, classToRender, rowOrCol)
+
     //unhighlight all other nodes
-    d3.selectAll(`.${classToRender}`)
-      .classed(classToRender, false)
+    if (classToRender != "hovered") {
+      d3.selectAll(`.${classToRender}`)
+        .classed(classToRender, false)
+    }
 
     //highlight correct nodes
     let cssSelector = '';
     for (let node in dict) {
-      for (let nodeID of dict[node]) {
-        if (rowOrCol == 'Row') {
-          cssSelector += '#attr' + rowOrCol + nodeID + ',';
+      if(Array.isArray(dict[node])){
+        for (let nodeID of dict[node]) {
+          if (rowOrCol == 'Row') {
+            cssSelector += '#attr' + rowOrCol + nodeID + ',';
+          }
+          cssSelector += '#topo' + rowOrCol + nodeID + ','
+
+          if (rowOrCol == "Row") {
+            cssSelector += '#nodeLabelRow' + nodeID + ','
+          }
         }
-        cssSelector += '#topo' + rowOrCol + nodeID + ','
+      } else {
+        if (rowOrCol == 'Row') {
+          cssSelector += '#attr' + rowOrCol + node + ',';
+        }
+        cssSelector += '#topo' + rowOrCol + node + ','
 
         if (rowOrCol == "Row") {
-          cssSelector += '#nodeLabelRow' + nodeID + ','
+          cssSelector += '#nodeLabelRow' + node + ','
         }
       }
     }
+    console.log(dict, cssSelector)
     // remove last comma
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
     if (cssSelector == '') {
       return;
     }
-    console.log(dict, cssSelector)
     d3.selectAll(cssSelector).classed(classToRender, true);
 
   }

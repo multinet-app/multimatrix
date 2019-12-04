@@ -869,29 +869,43 @@ var View = /** @class */ (function () {
     };
     View.prototype.renderHighlightNodesFromDict = function (dict, classToRender, rowOrCol) {
         if (rowOrCol === void 0) { rowOrCol = 'Row'; }
+        console.log("highlighting", dict, classToRender, rowOrCol);
         //unhighlight all other nodes
-        d3.selectAll("." + classToRender)
-            .classed(classToRender, false);
+        if (classToRender != "hovered") {
+            d3.selectAll("." + classToRender)
+                .classed(classToRender, false);
+        }
         //highlight correct nodes
         var cssSelector = '';
         for (var node in dict) {
-            for (var _i = 0, _a = dict[node]; _i < _a.length; _i++) {
-                var nodeID = _a[_i];
-                if (rowOrCol == 'Row') {
-                    cssSelector += '#attr' + rowOrCol + nodeID + ',';
+            if (Array.isArray(dict[node])) {
+                for (var _i = 0, _a = dict[node]; _i < _a.length; _i++) {
+                    var nodeID = _a[_i];
+                    if (rowOrCol == 'Row') {
+                        cssSelector += '#attr' + rowOrCol + nodeID + ',';
+                    }
+                    cssSelector += '#topo' + rowOrCol + nodeID + ',';
+                    if (rowOrCol == "Row") {
+                        cssSelector += '#nodeLabelRow' + nodeID + ',';
+                    }
                 }
-                cssSelector += '#topo' + rowOrCol + nodeID + ',';
+            }
+            else {
+                if (rowOrCol == 'Row') {
+                    cssSelector += '#attr' + rowOrCol + node + ',';
+                }
+                cssSelector += '#topo' + rowOrCol + node + ',';
                 if (rowOrCol == "Row") {
-                    cssSelector += '#nodeLabelRow' + nodeID + ',';
+                    cssSelector += '#nodeLabelRow' + node + ',';
                 }
             }
         }
+        console.log(dict, cssSelector);
         // remove last comma
         cssSelector = cssSelector.substring(0, cssSelector.length - 1);
         if (cssSelector == '') {
             return;
         }
-        console.log(dict, cssSelector);
         d3.selectAll(cssSelector).classed(classToRender, true);
     };
     View.prototype.selectNode = function (nodeID) {
