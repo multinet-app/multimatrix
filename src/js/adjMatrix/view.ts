@@ -462,7 +462,8 @@ class View {
       .text((d, i) => this.nodes[i]._key)
       .on('click', (d, i) => {
           nodeClick(d);
-          this.nodes[i].neighbors.forEach(a => this.selectNeighborNodes(a))
+          this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors)
+          // this.nodes[i].neighbors.forEach(a => this.selectNeighborNodes(a))
       })
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) });
@@ -960,29 +961,6 @@ class View {
     }
   }
 
-  /**
-   * [removeHighlightNode description]
-   * @param  nodeID       [description]
-   * @param  removingNode [description]
-   * @return              [description]
-   */
-  removeHighlightNode(removingNode: string) {
-    // remove from selected nodes
-
-    for (let nodeID in this.controller.highlightedNodes) {
-      //finds the position of removing node in the nodes array
-      let index = this.controller.highlightedNodes[nodeID].indexOf(removingNode);
-      // keep on removing all places of removing node
-      if (index > -1) {
-        this.controller.highlightedNodes[nodeID].splice(index, 1);
-        // delete properties if no nodes left
-        if (this.controller.highlightedNodes[nodeID].length == 0) {
-          delete this.controller.highlightedNodes[nodeID];
-        }
-      }
-    }
-  }
-
   nodeDictContainsPair(dict, nodeToHighlight, interactedElement) {
     if (nodeToHighlight in dict) {
       return dict[nodeToHighlight].has(interactedElement)
@@ -1038,16 +1016,17 @@ class View {
 
     //highlight correct nodes
     let cssSelector = '';
-    for (let nodeID in dict) {
-      if (rowOrCol == 'Row') {
-        cssSelector += '#attr' + rowOrCol + nodeID + ',';
-      }
-      cssSelector += '#topo' + rowOrCol + nodeID + ','
+    for (let node in dict) {
+      for (let nodeID of dict[node]) {
+        if (rowOrCol == 'Row') {
+          cssSelector += '#attr' + rowOrCol + nodeID + ',';
+        }
+        cssSelector += '#topo' + rowOrCol + nodeID + ','
 
-      if (classToRender == 'answer' && rowOrCol == "Row") {
-        cssSelector += '#nodeLabelRow' + nodeID + ','
+        if (rowOrCol == "Row") {
+          cssSelector += '#nodeLabelRow' + nodeID + ','
+        }
       }
-
     }
     // remove last comma
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
@@ -1088,7 +1067,7 @@ class View {
    * @param  nodeID [description]
    * @return        [description]
    */
-  selectNeighborNodes(nodeID) {
+  selectNeighborNodes(nodeID, neighbors) {
     if (nodeID in this.controller.columnSelectedNodes) {
       console.log("neighbor remove", nodeID) 
 
@@ -1097,7 +1076,7 @@ class View {
     } else {
       this.addHighlightNode(nodeID);
       let newElement = {}
-      newElement[nodeID] = nodeID
+      newElement[nodeID] = neighbors
       this.controller.columnSelectedNodes = Object.assign(this.controller.columnSelectedNodes, newElement)
     }
     this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, "neighbor", "Row");

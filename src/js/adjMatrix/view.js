@@ -382,7 +382,8 @@ var View = /** @class */ (function () {
             .text(function (d, i) { return _this.nodes[i]._key; })
             .on('click', function (d, i) {
             nodeClick(d);
-            _this.nodes[i].neighbors.forEach(function (a) { return _this.selectNeighborNodes(a); });
+            _this.selectNeighborNodes(_this.nodes[i].id, _this.nodes[i].neighbors);
+            // this.nodes[i].neighbors.forEach(a => this.selectNeighborNodes(a))
         })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); });
@@ -825,27 +826,6 @@ var View = /** @class */ (function () {
             }
         }
     };
-    /**
-     * [removeHighlightNode description]
-     * @param  nodeID       [description]
-     * @param  removingNode [description]
-     * @return              [description]
-     */
-    View.prototype.removeHighlightNode = function (removingNode) {
-        // remove from selected nodes
-        for (var nodeID in this.controller.highlightedNodes) {
-            //finds the position of removing node in the nodes array
-            var index = this.controller.highlightedNodes[nodeID].indexOf(removingNode);
-            // keep on removing all places of removing node
-            if (index > -1) {
-                this.controller.highlightedNodes[nodeID].splice(index, 1);
-                // delete properties if no nodes left
-                if (this.controller.highlightedNodes[nodeID].length == 0) {
-                    delete this.controller.highlightedNodes[nodeID];
-                }
-            }
-        }
-    };
     View.prototype.nodeDictContainsPair = function (dict, nodeToHighlight, interactedElement) {
         if (nodeToHighlight in dict) {
             return dict[nodeToHighlight].has(interactedElement);
@@ -895,13 +875,16 @@ var View = /** @class */ (function () {
             .classed(classToRender, false);
         //highlight correct nodes
         var cssSelector = '';
-        for (var nodeID in dict) {
-            if (rowOrCol == 'Row') {
-                cssSelector += '#attr' + rowOrCol + nodeID + ',';
-            }
-            cssSelector += '#topo' + rowOrCol + nodeID + ',';
-            if (classToRender == 'answer' && rowOrCol == "Row") {
-                cssSelector += '#nodeLabelRow' + nodeID + ',';
+        for (var node in dict) {
+            for (var _i = 0, _a = dict[node]; _i < _a.length; _i++) {
+                var nodeID = _a[_i];
+                if (rowOrCol == 'Row') {
+                    cssSelector += '#attr' + rowOrCol + nodeID + ',';
+                }
+                cssSelector += '#topo' + rowOrCol + nodeID + ',';
+                if (rowOrCol == "Row") {
+                    cssSelector += '#nodeLabelRow' + nodeID + ',';
+                }
             }
         }
         // remove last comma
@@ -935,7 +918,7 @@ var View = /** @class */ (function () {
      * @param  nodeID [description]
      * @return        [description]
      */
-    View.prototype.selectNeighborNodes = function (nodeID) {
+    View.prototype.selectNeighborNodes = function (nodeID, neighbors) {
         if (nodeID in this.controller.columnSelectedNodes) {
             console.log("neighbor remove", nodeID);
             // find all neighbors and remove them
@@ -944,7 +927,7 @@ var View = /** @class */ (function () {
         else {
             this.addHighlightNode(nodeID);
             var newElement = {};
-            newElement[nodeID] = nodeID;
+            newElement[nodeID] = neighbors;
             this.controller.columnSelectedNodes = Object.assign(this.controller.columnSelectedNodes, newElement);
         }
         this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, "neighbor", "Row");
