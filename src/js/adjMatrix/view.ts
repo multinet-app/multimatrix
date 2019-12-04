@@ -63,7 +63,6 @@ class View {
     this.datumID = controller.datumID;
 
     this.clickFunction = (d, i, nodes) => {
-
       let nodeID = this.controller.view.determineID(d);
       // remove hover or clicked from the class name of the objects that are interacted
       // this is necessary as the click events are attached to the hovered rect in attrRow
@@ -124,7 +123,7 @@ class View {
     d3.select('.loading').style('display', 'block').style('opacity', 1);
 
     this.initializeEdges();
-    this.initializeAttributes();
+    // this.initializeAttributes();
 
     d3.select('.loading').style('display', 'none');
   }
@@ -440,8 +439,8 @@ class View {
           e.initUIEvent('click', true, true, /* ... *///);
           /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
 
-          //let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-          //this.controller.model.provenance.applyAction(action);
+          let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+          this.controller.model.provenance.applyAction(action);
         }).attr('cursor', 'pointer')
         .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
         .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) });
@@ -943,13 +942,11 @@ class View {
   //private selectedNodes : any;
   // DOESNT GET ADDED
   addHighlightNode(addingNode: string) {
-    console.log(addingNode)
     // if node is in
     let nodeIndex = this.nodes.findIndex(function(item, i) {
       return item["id"] == addingNode;
     });
     for (let i = 0; i < this.matrix[0].length; i++) {
-      console.log(this.matrix[i][nodeIndex])
       if (true /*this.matrix[i][nodeIndex].z > 0*/) {
         let nodeID = this.matrix[i][nodeIndex].rowid;
         if (this.controller.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.highlightedNodes[nodeID].includes(addingNode)) {
@@ -1035,7 +1032,6 @@ class View {
   }
 
   renderHighlightNodesFromDict(dict, classToRender, rowOrCol: string = 'Row') {
-
     //unhighlight all other nodes
 
     //highlight correct nodes
@@ -1056,6 +1052,7 @@ class View {
     if (cssSelector == '') {
       return;
     }
+    console.log(dict, cssSelector)
     d3.selectAll(cssSelector).classed(classToRender, true);
 
   }
@@ -1090,19 +1087,20 @@ class View {
    * @return        [description]
    */
   selectNeighborNodes(nodeID) {
-    let nodeIndex = this.controller.columnSelectedNodes.indexOf(nodeID);
+    let nodeIndex = -1;//this.controller.columnSelectedNodes.indexOf(nodeID);
     if (nodeIndex > -1) {
       // find all neighbors and remove them
       this.controller.columnSelectedNodes.splice(nodeIndex, 1)
-      this.removeHighlightNode(nodeID);
+      // this.removeHighlightNode(nodeID);
       this.controller.columnSelectedNodes.splice(nodeIndex, 1);
       // remove node from column selected nodes
     } else {
       this.addHighlightNode(nodeID);
-      this.controller.columnSelectedNodes.push(nodeID);
+      let newElement = {}
+      newElement[nodeID] = nodeID
+      this.controller.columnSelectedNodes = Object.assign(this.controller.columnSelectedNodes, newElement)
     }
-    console.log("highlight nodes", this.controller.highlightedNodes)
-    this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, "answer", "Row");
+    this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, "neighbor", "Row");
     /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
 
     if(index > -1){ // if in selected node, remove it (unless it is )
@@ -1158,14 +1156,12 @@ class View {
    */
   sort(order) {
     let nodeIDs = this.nodes.map(node=>node.id);
-    console.log(order, this.order, nodeIDs, nodeIDs.includes(order))
     if(nodeIDs.includes(order)){
       this.order = this.controller.changeOrder(order,true);
       (order);
     } else {
       this.order = this.controller.changeOrder(order);
     }
-    console.log(this.order)
     this.orderingScale.domain(this.order);
     
 
@@ -1175,7 +1171,6 @@ class View {
       .duration(transitionTime)
       // .delay((d , i) => { return this.orderingScale(i) * 4; })
       .attr("transform", (d, i) => {
-        console.log(i, this.order.length)
         if (i > this.order.length - 1) return;
         return "translate(0," + this.orderingScale(i) + ")";
       })
@@ -1236,8 +1231,6 @@ class View {
     let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
     this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
     this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
-    
-    console.log(width, height)
 
     this.attributes = d3.select('#attributes').append("svg")
       .attr("viewBox", "0 0 " + (width) + " " + height + "")
@@ -1247,7 +1240,7 @@ class View {
       .attr('id', 'attributeMargin')
       .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
 
-
+    
     // add zebras and highlight rows
     /*
     this.attributes.selectAll('.highlightRow')
@@ -1262,6 +1255,7 @@ class View {
       .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
       */
 
+    console.log(1)
     let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
     let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
 
@@ -1276,6 +1270,7 @@ class View {
 
 
 
+    console.log(2)
     this.attributeRows.append("line")
       .attr("x1", 0)
       .attr("x2", this.controller.attrWidth)
@@ -1323,53 +1318,57 @@ class View {
 
 
 
+    console.log(3)
     let columns = this.controller.nodeAttributes;
 
     //columns.unshift('selected'); // ANSWER COLUMNS
 
     var formatCurrency = d3.format("$,.0f"),
       formatNumber = d3.format(",.0f");
+      console.log(3.1)
 
     // generate scales for each
     let attributeScales = {};
     this.columnScale = d3.scaleOrdinal().domain(columns)
 
-    // Calculate Column Scale
-    let columnRange = []
-    let xRange = 0;
+    // // Calculate Column Scale
+    // let columnRange = []
+    // let xRange = 0;
 
 
-    let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
-    //450 / columns.length;
-    this.columnWidths = columnWidths;
+    // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
+    // //450 / columns.length;
+    // this.columnWidths = columnWidths;
+    console.log(3.2)
 
     let categoricalAttributes = ["type", "continent"]
     let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
 
-    columns.forEach((col, index) => {
-      // calculate range
-      columnRange.push(xRange);
-      let domain = this.controller.attributeScales.node[col].domain;
+    // columns.forEach((col, index) => {
+    //   // calculate range
+    //   columnRange.push(xRange);
+    //   let domain = this.controller.attributeScales.node[col].domain;
 
-      if (quantitativeAttributes.indexOf(col) > -1) {
+    //   if (quantitativeAttributes.indexOf(col) > -1) {
 
-        let scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
-        scale.clamp(true);
-        attributeScales[col] = scale;
-      } else {
-        // append colored blocks
-        // placeholder scale
-        let range = this.controller.attributeScales.node[col].range;
-        let scale = d3.scaleOrdinal().domain(domain).range(range);
-        //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
+    //     let scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
+    //     scale.clamp(true);
+    //     attributeScales[col] = scale;
+    //   } else {
+    //     // append colored blocks
+    //     // placeholder scale
+    //     let range = this.controller.attributeScales.node[col].range;
+    //     let scale = d3.scaleOrdinal().domain(domain).range(range);
+    //     //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
 
-        attributeScales[col] = scale;
-      }
+    //     attributeScales[col] = scale;
+    //   }
 
-      xRange += columnWidths[col];
-    })
-    this.attributeScales = attributeScales;
+    //   xRange += columnWidths[col];
+    // })
+    // this.attributeScales = attributeScales;
 
+    console.log(4)
 
     // need max and min of each column
     /*this.barWidthScale = d3.scaleLinear()
@@ -1406,6 +1405,7 @@ class View {
 
 
     }
+    console.log(5)
 
     this.columnGlyphs = {};
 
