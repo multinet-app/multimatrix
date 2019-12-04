@@ -85,7 +85,7 @@ var View = /** @class */ (function () {
     View.prototype.renderView = function () {
         d3.select('.loading').style('display', 'block').style('opacity', 1);
         this.initializeEdges();
-        // this.initializeAttributes();
+        this.initializeAttributes();
         d3.select('.loading').style('display', 'none');
     };
     /**
@@ -233,12 +233,13 @@ var View = /** @class */ (function () {
             var row = d.rowid;
             var column = d.colid;
             // Get the number of connections, should only be at most 1 with our test data
-            var numConnections = graph.links.map(function (d) {
-                var outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0;
-                return outcome;
-            })
-                .reduce(function (a, b) { return a + b; }, 0);
-            return numConnections;
+            // let numConnections = graph.links.map(d => { 
+            //   let outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0; 
+            //   return outcome;
+            // })
+            //   .reduce((a, b) => a + b, 0)
+            return d.z;
+            // return numConnections
         });
         this.setSquareColors('all');
     };
@@ -812,8 +813,8 @@ var View = /** @class */ (function () {
             return item["id"] == addingNode;
         });
         for (var i = 0; i < this.matrix[0].length; i++) {
-            console.log(i, nodeIndex);
-            if (this.matrix[i][nodeIndex].z > 0) {
+            console.log(this.matrix[i][nodeIndex]);
+            if (true /*this.matrix[i][nodeIndex].z > 0*/) {
                 var nodeID = this.matrix[i][nodeIndex].rowid;
                 if (this.controller.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.highlightedNodes[nodeID].includes(addingNode)) {
                     // if array exists, add it
@@ -947,7 +948,8 @@ var View = /** @class */ (function () {
             this.addHighlightNode(nodeID);
             this.controller.columnSelectedNodes.push(nodeID);
         }
-        // this.renderNeighborHighlightNodes();
+        console.log("highlight nodes", this.controller.highlightedNodes);
+        this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, "answer", "Row");
         /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
     
         if(index > -1){ // if in selected node, remove it (unless it is )
@@ -1056,10 +1058,12 @@ var View = /** @class */ (function () {
      */
     View.prototype.initializeAttributes = function () {
         var _this = this;
+        console.log("in attributes");
         var width = this.controller.visWidth * this.controller.attributeProportion; //this.edgeWidth + this.margins.left + this.margins.right;
         var height = this.controller.visHeight; //this.edgeHeight + this.margins.top + this.margins.bottom;
         this.attributeWidth = width - (this.margins.left + this.margins.right); //* this.controller.attributeProportion;
         this.attributeHeight = height - (this.margins.top + this.margins.bottom); // * this.controller.attributeProportion;
+        console.log(width, height);
         this.attributes = d3.select('#attributes').append("svg")
             .attr("viewBox", "0 0 " + (width) + " " + height + "")
             .attr("preserveAspectRatio", "xMinYMin meet")
@@ -1432,6 +1436,7 @@ var View = /** @class */ (function () {
         var text = ['name', 'cluster', 'interacts'];
         var sortNames = ['shortName', 'clusterLeaf', 'edges'];
         var iconNames = ['alphabetical', 'categorical', 'quant'];
+        console.log("adding buttons");
         var _loop_2 = function (i) {
             var button = this_2.edges.append('g')
                 .attr('transform', 'translate(' + (-this_2.margins.left) + ',' + (initalY) + ')');
@@ -1455,6 +1460,7 @@ var View = /** @class */ (function () {
         for (var i = 0; i < 3; i++) {
             _loop_2(i);
         }
+        console.log("done adding buttons");
         // Append g's for table headers
         // For any data row, add
         /*.on("click", clicked)

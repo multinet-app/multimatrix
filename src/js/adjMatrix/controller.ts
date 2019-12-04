@@ -11,7 +11,10 @@ class Controller {
   private hoverRow: any;
   private hoverCol: any;
   public columnSelectedNodes: [] = [];
-  public highlightedNodes: [] = [];
+  public highlightedNodes: {} = {};
+  public visWidth: number;
+  public visHeigh: number;
+  public attributeProportion: number;
 
   setupExports(base, task) {
     d3.select("#exportBaseConfig").on("click", function() {
@@ -74,7 +77,7 @@ class Controller {
       this.visWidth = this.visWidth;
     }
 
-    this.attributeProportion = this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
+    this.attributeProportion = 1;//this.attrWidth / (this.edgeWidth + this.attrWidth + filler);
     this.edgeProportion = this.edgeWidth / (this.edgeWidth + this.attrWidth + filler);
 
     if (this.edgeWidth < panelDimensions.height) {
@@ -88,6 +91,8 @@ class Controller {
 
     //d3.select('.adjMatrix.vis').style('width',width*0.8);
     d3.select('.adjMatrix.vis').style('width', (this.visWidth).toString() + 'px')
+
+    console.log(this.visWidth, this.visHeight, this.attributeProportion)
   }
 
   constructor() {

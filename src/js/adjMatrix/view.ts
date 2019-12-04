@@ -124,7 +124,7 @@ class View {
     d3.select('.loading').style('display', 'block').style('opacity', 1);
 
     this.initializeEdges();
-    // this.initializeAttributes();
+    this.initializeAttributes();
 
     d3.select('.loading').style('display', 'none');
   }
@@ -297,13 +297,14 @@ class View {
           let column = d.colid
 
           // Get the number of connections, should only be at most 1 with our test data
-          let numConnections = graph.links.map(d => { 
-            let outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0; 
-            return outcome;
-          })
-            .reduce((a, b) => a + b, 0)
+          // let numConnections = graph.links.map(d => { 
+          //   let outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0; 
+          //   return outcome;
+          // })
+          //   .reduce((a, b) => a + b, 0)
           
-          return numConnections
+          return d.z
+          // return numConnections
          });
 
     this.setSquareColors('all');
@@ -948,8 +949,8 @@ class View {
       return item["id"] == addingNode;
     });
     for (let i = 0; i < this.matrix[0].length; i++) {
-      console.log(i, nodeIndex)
-      if (this.matrix[i][nodeIndex].z > 0) {
+      console.log(this.matrix[i][nodeIndex])
+      if (true /*this.matrix[i][nodeIndex].z > 0*/) {
         let nodeID = this.matrix[i][nodeIndex].rowid;
         if (this.controller.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.highlightedNodes[nodeID].includes(addingNode)) {
           // if array exists, add it
@@ -1100,7 +1101,8 @@ class View {
       this.addHighlightNode(nodeID);
       this.controller.columnSelectedNodes.push(nodeID);
     }
-    // this.renderNeighborHighlightNodes();
+    console.log("highlight nodes", this.controller.highlightedNodes)
+    this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, "answer", "Row");
     /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
 
     if(index > -1){ // if in selected node, remove it (unless it is )
@@ -1229,11 +1231,13 @@ class View {
    * @return [description]
    */
   initializeAttributes() {
-
+    console.log("in attributes")
     let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
     let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
     this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
     this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
+    
+    console.log(width, height)
 
     this.attributes = d3.select('#attributes').append("svg")
       .attr("viewBox", "0 0 " + (width) + " " + height + "")
@@ -1686,6 +1690,7 @@ class View {
     let text = ['name', 'cluster', 'interacts'];
     let sortNames = ['shortName', 'clusterLeaf', 'edges']
     let iconNames = ['alphabetical', 'categorical', 'quant']
+    console.log("adding buttons")
     for (let i = 0; i < 3; i++) {
       let button = this.edges.append('g')
         .attr('transform', 'translate(' + (-this.margins.left) + ',' + (initalY) + ')')
@@ -1704,6 +1709,7 @@ class View {
       })
       initalY += buttonHeight + 5;
     }
+    console.log("done adding buttons")
 
 
 

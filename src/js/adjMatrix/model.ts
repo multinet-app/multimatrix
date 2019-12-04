@@ -402,6 +402,7 @@ class Model {
    * @return [description]
    */
   processData() {
+    console.log("Processing data")
     // generate a hashmap of id's?
     // Set up node data
     this.nodes.forEach((rowNode, i) => {
@@ -410,23 +411,20 @@ class Model {
       this.scalarMatrix[i] = this.nodes.map(function(colNode) { return 0; });
     });
 
-    function checkEdge(edge) {
-      return !(typeof edge.source !== "number" || typeof edge.target !== "number")
-    }
-
-    this.edges = this.edges.filter(checkEdge);
     this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 }
     // Convert links to matrix; count character occurrences.
     this.edges.forEach((link) => {
-      let addValue = 1;
       this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
       this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
 
       /* could be used for varying edge types */
       //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += addValue;
+      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
+      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+
 
       this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
+      this.matrix[this.idMap[link.target]][this.idMap[link.source]].count += 1;
       // if not directed, increment the other values
       // if (!isDirected) {
       //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;

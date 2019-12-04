@@ -328,6 +328,7 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.processData = function () {
         var _this = this;
+        console.log("Processing data");
         // generate a hashmap of id's?
         // Set up node data
         this.nodes.forEach(function (rowNode, i) {
@@ -335,20 +336,17 @@ var Model = /** @class */ (function () {
             _this.matrix[i] = _this.nodes.map(function (colNode) { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id + '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
             _this.scalarMatrix[i] = _this.nodes.map(function (colNode) { return 0; });
         });
-        function checkEdge(edge) {
-            return !(typeof edge.source !== "number" || typeof edge.target !== "number");
-        }
-        this.edges = this.edges.filter(checkEdge);
         this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 };
         // Convert links to matrix; count character occurrences.
         this.edges.forEach(function (link) {
-            var addValue = 1;
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]][link.type] += link.count;
             _this.scalarMatrix[_this.idMap[link.source]][_this.idMap[link.target]] += link.count;
             /* could be used for varying edge types */
             //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
-            _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].z += addValue;
+            _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].z += 1;
+            _this.matrix[_this.idMap[link.target]][_this.idMap[link.source]].z += 1;
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].count += 1;
+            _this.matrix[_this.idMap[link.target]][_this.idMap[link.source]].count += 1;
             // if not directed, increment the other values
             // if (!isDirected) {
             //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
