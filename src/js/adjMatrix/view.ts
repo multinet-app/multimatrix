@@ -26,7 +26,7 @@ class View {
   private visHeight: number;
 
   private nodeFontSize: string = "12";
-  private labelVar: string = "_key";
+  public labelVar: string = "_key";
   /*
   private edgeSVGWidth: number;
   private edgeSVGHeight: number;
