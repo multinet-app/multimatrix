@@ -22,6 +22,7 @@ describe("ui", () => {
             // Arrange
             window.controller = {}
             window.controller.view = {}
+            window.controller.view.selectNeighborNodes = function() {}
             window.controller.model = {}
             window.controller.model.provenance = {}
 
