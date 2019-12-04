@@ -73,6 +73,7 @@ function searchFor(selectedOption) {
         return 0
     } else {
         nodeClick(node, true);
+        window.controller.view.selectNeighborNodes(node.id, node.neighbors)
         return 1
     }
 }
