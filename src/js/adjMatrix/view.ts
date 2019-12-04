@@ -965,23 +965,23 @@ class View {
    * @param  nodeID       [description]
    * @param  removingNode [description]
    * @return              [description]
-
+   */
   removeHighlightNode(removingNode: string) {
     // remove from selected nodes
 
-    for (let nodeID in this.controller.state.adjMatrix.highlightedNodes) {
+    for (let nodeID in this.controller.highlightedNodes) {
       //finds the position of removing node in the nodes array
-      let index = this.controller.state.adjMatrix.highlightedNodes[nodeID].indexOf(removingNode);
+      let index = this.controller.highlightedNodes[nodeID].indexOf(removingNode);
       // keep on removing all places of removing node
       if (index > -1) {
-        this.controller.state.adjMatrix.highlightedNodes[nodeID].splice(index, 1);
+        this.controller.highlightedNodes[nodeID].splice(index, 1);
         // delete properties if no nodes left
-        if (this.controller.state.adjMatrix.highlightedNodes[nodeID].length == 0) {
-          delete this.controller.state.adjMatrix.highlightedNodes[nodeID];
+        if (this.controller.highlightedNodes[nodeID].length == 0) {
+          delete this.controller.highlightedNodes[nodeID];
         }
       }
     }
-  }*/
+  }
 
   nodeDictContainsPair(dict, nodeToHighlight, interactedElement) {
     if (nodeToHighlight in dict) {
@@ -1033,6 +1033,8 @@ class View {
 
   renderHighlightNodesFromDict(dict, classToRender, rowOrCol: string = 'Row') {
     //unhighlight all other nodes
+    d3.selectAll(`.${classToRender}`)
+      .classed(classToRender, false)
 
     //highlight correct nodes
     let cssSelector = '';
@@ -1087,13 +1089,11 @@ class View {
    * @return        [description]
    */
   selectNeighborNodes(nodeID) {
-    let nodeIndex = -1;//this.controller.columnSelectedNodes.indexOf(nodeID);
-    if (nodeIndex > -1) {
+    if (nodeID in this.controller.columnSelectedNodes) {
+      console.log("neighbor remove", nodeID) 
+
       // find all neighbors and remove them
-      this.controller.columnSelectedNodes.splice(nodeIndex, 1)
-      // this.removeHighlightNode(nodeID);
-      this.controller.columnSelectedNodes.splice(nodeIndex, 1);
-      // remove node from column selected nodes
+      delete this.controller.columnSelectedNodes[nodeID]
     } else {
       this.addHighlightNode(nodeID);
       let newElement = {}
