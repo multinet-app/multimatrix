@@ -425,7 +425,7 @@ class View {
     let verticalOffset = 3;
     if(true/*this.controller.adjMatrix.neighborSelect*/){
       verticalOffset = 187.5;
-      let horizontalOffset = this.nodes.length < 50 ? 143.75 : 0;
+      let horizontalOffset = this.nodes.length < 50 ? 540 : 0;
       this.edgeColumns.append('path')
       .attr('id', d=>'sortIcon' + d[0].rowid)
       .attr('class', 'sortIcon')

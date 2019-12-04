@@ -15,8 +15,11 @@ function toggleConfig(configToggle) {
 
 // Clear all selections
 function unhighlightAll() {
+    // Deselect all neighbors
     window.controller.columnSelectedNodes = {};
     window.controller.view.renderHighlightNodesFromDict(window.controller.columnSelectedNodes, "neighbor", "Row")
+
+    // Deselect all manually clicked nodes
     let clicked = window.controller.model.getApplicationState().clicked
     for (id of clicked) {
         console.log(node)
