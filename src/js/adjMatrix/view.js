@@ -383,7 +383,6 @@ var View = /** @class */ (function () {
             .on('click', function (d, i) {
             nodeClick(d);
             _this.selectNeighborNodes(_this.nodes[i].id, _this.nodes[i].neighbors);
-            // this.nodes[i].neighbors.forEach(a => this.selectNeighborNodes(a))
         })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); });

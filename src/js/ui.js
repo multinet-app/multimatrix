@@ -13,6 +13,18 @@ function toggleConfig(configToggle) {
     return configToggle;
 }
 
+// Clear all selections
+function unhighlightAll() {
+    window.controller.columnSelectedNodes = {};
+    window.controller.view.renderHighlightNodesFromDict(window.controller.columnSelectedNodes, "neighbor", "Row")
+    let clicked = window.controller.model.getApplicationState().clicked
+    for (id of clicked) {
+        console.log(node)
+        node = window.controller.model.nodes.find(d => d.id == id)
+        nodeClick(node)
+    }
+}
+
 // Search for a node in the datalist
 function searchForNode() {
     console.log("in search")
@@ -50,7 +62,7 @@ function searchForNode() {
 //function that searches for and 'clicks' on node, returns -1 if can't find that node, 0 if nodes is already selected, 1 if node exists and was not selected
 function searchFor(selectedOption) {
     // TODO: Make this use the current label var
-    node = window.controller.model.graph.nodes.find(n => n.name.toLowerCase() === selectedOption.toLowerCase());
+    node = window.controller.model.graph.nodes.find(n => n[this.controller.view.labelVar].toLowerCase() === selectedOption.toLowerCase());
 
     if (node === undefined) {
         return -1;
@@ -71,6 +83,7 @@ function isSelected(node) {
 
 //function that updates the state, and includes a flag for when this was done through a search
 function nodeClick(node, search = false) {
+    console.log("nodeclick")
 
     if (node[0] != undefined) {
         node = { "id": node[0].rowid }
@@ -85,8 +98,6 @@ function nodeClick(node, search = false) {
     } else {
         clicked.push(node.id);
     }
-
-    // let neighbors_and_edges = tagNeighbors(clicked);
 
     let label = search ?
         "Searched for Node" :
@@ -174,34 +185,6 @@ function clearSelections() {
 
 }
 
-function tagNeighbors(selected) {
-    let neighbors = [];
-    let edges = []
-
-    for (clicked_node of selected) {
-        if (!vis.simOn) {
-            neighbor_nodes = vis.graph_structure.links.map((e, i) => e.source === clicked_node ? [e.target, vis.graph_structure.links[i].id] : e.target === clicked_node ? [e.source, vis.graph_structure.links[i].id] : "")
-        } else {
-            neighbor_nodes = vis.graph_structure.links.map((e, i) => e.source.id === clicked_node ? [e.target.id, vis.graph_structure.links[i].id] : e.target.id === clicked_node ? [e.source.id, vis.graph_structure.links[i].id] : "")
-        }
-
-
-        for (node of neighbor_nodes) {
-            // push nodes
-            if (node[0] !== "" && neighbors.indexOf(node[0]) === -1) {
-                neighbors.push(node[0]);
-            }
-
-            // push edges
-            if (node[1] !== "" && edges.indexOf(node[1]) === -1) {
-                edges.push(node[1]);
-            }
-        }
-    }
-
-    return { "neighbors": neighbors, "edges": edges };
-}
-
 function addConfigPanel() {
 
     // Font size slider
@@ -285,6 +268,7 @@ function addConfigPanel() {
         .on("change", async function() {
             window.controller.view.set("labelVar", d3.select("#labelSelector .select > select").property("value"))
             window.controller.view.updateVis();
+            window.controller.model.populateSearchBox();
         });
 
     // // Define the possible edge width metrics

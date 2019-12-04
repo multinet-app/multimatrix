@@ -463,7 +463,6 @@ class View {
       .on('click', (d, i) => {
           nodeClick(d);
           this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors)
-          // this.nodes[i].neighbors.forEach(a => this.selectNeighborNodes(a))
       })
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) });
@@ -1037,8 +1036,6 @@ class View {
     d3.selectAll(cssSelector).classed(classToRender, true);
 
   }
-
-
 
   selectNode(nodeID: string) {
     let index = this.controller.state.selectedNodes.indexOf(nodeID)

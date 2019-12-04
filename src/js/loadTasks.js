@@ -26,8 +26,12 @@ async function resetPanel() {
     // Add the toggle for the control panel button
     d3.select('#panelControl').on("click", () => window.controller.configToggle = toggleConfig(window.controller.configToggle));
 
-    // Add the toggle for the control panel button
+    // Add the search button function
     d3.select('#searchButton').on("click", () => searchForNode());
+
+    // Add the clear selection function
+    d3.select('#clear-selection').on("click", () => unhighlightAll());
+
 }
 
 async function loadNewGraph(fileName) {
