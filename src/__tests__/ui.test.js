@@ -21,6 +21,9 @@ describe("ui", () => {
         it("Searching for node in a proper graph works as expected", () => {
             // Arrange
             window.controller = {}
+            window.controller.view = {}
+            window.controller.view.get = function(varName) { return window.controller.view[varName] }
+            window.controller.view.selectNeighborNodes = function() {}
             window.controller.model = {}
             window.controller.model.provenance = {}
 
@@ -40,6 +43,8 @@ describe("ui", () => {
             window.controller.model.provenance.applyAction = function(action) {
                 clickedNodes = action.action().clicked
             }
+
+            window.controller.view.labelVar = "name"
 
             // Act 
             outcome1 = ui.searchFor("Test Testerson")

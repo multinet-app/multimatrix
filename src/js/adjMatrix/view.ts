@@ -63,7 +63,6 @@ class View {
     this.datumID = controller.datumID;
 
     this.clickFunction = (d, i, nodes) => {
-
       let nodeID = this.controller.view.determineID(d);
       // remove hover or clicked from the class name of the objects that are interacted
       // this is necessary as the click events are attached to the hovered rect in attrRow
@@ -75,15 +74,18 @@ class View {
     };
   }
 
+  // Allows public getting
   get(attribute) {
     return this[attribute];
   };
 
+  // Allows public setting
   set(attribute, value) {
     this[attribute] = value;
     return true;
   }
 
+  // Update method for all non-data aspects
   updateVis() {
     // Get the row and column labels
     let rows = d3.selectAll(".rowLabel")
@@ -94,40 +96,9 @@ class View {
     columns = columns.style("font-size", this.nodeFontSize + "pt")
 
     // Update labels
-    console.log(this.labelVar)
     rows.text((d, i) => this.nodes[i][this.labelVar])
     columns.text((d, i) => this.nodes[i][this.labelVar])
   }
-
-  /**
-   * Searchs for the inputted node according to the data's shortName.
-   * @param  searchNode string corresponding to the short name to search for.
-   * @return            1 if short name was found, 0 if already selected, -1 if not found
-   */
-  search(searchNode: string) {
-    let selectedOption = searchNode.toLowerCase()//d3.select(nodes[i]).property("value");
-
-    if (selectedOption.length === 0) {
-      return;
-    }
-
-    //find the right nodeObject
-    let name = this.nodes.filter(node => { return node.shortName.toLowerCase() == selectedOption });
-
-    if (name[0] == null || name[0][this.datumID] == '') return -1; // node was not found
-    name = name[0][this.datumID];
-
-    let state = this.controller.model.app.currentState();
-    if (name in state.selections.search) {
-      return 0;
-    }
-
-    let action = this.controller.view.changeInteractionWrapper(name, null, 'search');
-    this.controller.model.provenance.applyAction(action);
-    return 1;
-  }
-
-
 
   /**
    * Takes in the data, hides the loading screen, and
@@ -151,7 +122,7 @@ class View {
     d3.select('.loading').style('display', 'block').style('opacity', 1);
 
     this.initializeEdges();
-    // this.initializeAttributes();
+    this.initializeAttributes();
 
     d3.select('.loading').style('display', 'none');
   }
@@ -162,7 +133,6 @@ class View {
    * @return None
    */
   initializeEdges() {
-    console.log("redrawing")
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     let width = this.controller.visWidth
     let height = this.controller.visHeight;
@@ -319,19 +289,7 @@ class View {
       // .style("fill", 'white')
     squares
       .filter(d => d.z == 0)
-      .style("fill-opacity", d => { 
-          let row = d.rowid
-          let column = d.colid
-
-          // Get the number of connections, should only be at most 1 with our test data
-          let numConnections = graph.links.map(d => { 
-            let outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0; 
-            return outcome;
-          })
-            .reduce((a, b) => a + b, 0)
-          
-          return numConnections
-         });
+      .style("fill-opacity", d => d.z);
 
     this.setSquareColors('all');
 
@@ -450,9 +408,8 @@ class View {
       })
 
     let verticalOffset = 3;
-    if(true/*this.controller.adjMatrix.neighborSelect*/){
       verticalOffset = 187.5;
-      let horizontalOffset = this.nodes.length < 50 ? 143.75 : 0;
+      let horizontalOffset = this.nodes.length < 50 ? 540 : 0;
       this.edgeColumns.append('path')
       .attr('id', d=>'sortIcon' + d[0].rowid)
       .attr('class', 'sortIcon')
@@ -466,14 +423,14 @@ class View {
           e.initUIEvent('click', true, true, /* ... *///);
           /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
 
-          //let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-          //this.controller.model.provenance.applyAction(action);
+          let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+          this.controller.model.provenance.applyAction(action);
         }).attr('cursor', 'pointer')
         .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
         .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) });
         ;
       verticalOffset = verticalOffset/12.5 + 3;
-    }
+    
 
     this.edgeColumns.append("text")
       .attr("id", (d, i) => {
@@ -487,15 +444,9 @@ class View {
       .attr("text-anchor", "start")
       .style("font-size", this.nodeFontSize)
       .text((d, i) => this.nodes[i]._key)
-      .on('click', (d) => {
-        if (true /*this.controller.adjMatrix.neighborSelect*/) {
-          //this.sort(d[0].rowid)
+      .on('click', (d, i) => {
           nodeClick(d);
-          // let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-          // this.controller.model.provenance.applyAction(action);
-        } else {
-          nodeClick(d);
-        }
+          this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors)
       })
       .on("mouseout", (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) })
       .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) });
@@ -976,44 +927,21 @@ class View {
   addHighlightNode(addingNode: string) {
     // if node is in
     let nodeIndex = this.nodes.findIndex(function(item, i) {
-      return item[this.datumID] == addingNode;
+      return item["id"] == addingNode;
     });
     for (let i = 0; i < this.matrix[0].length; i++) {
-      if (this.matrix[i][nodeIndex].z > 0) {
+      if (true /*this.matrix[i][nodeIndex].z > 0*/) {
         let nodeID = this.matrix[i][nodeIndex].rowid;
-        if (this.controller.state.adjMatrix.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.state.adjMatrix.highlightedNodes[nodeID].includes(addingNode)) {
+        if (this.controller.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.highlightedNodes[nodeID].includes(addingNode)) {
           // if array exists, add it
-          this.controller.state.adjMatrix.highlightedNodes[nodeID].push(addingNode);
+          this.controller.highlightedNodes[nodeID].push(addingNode);
         } else {
           // if array non exist, create it and add node
-          this.controller.state.adjMatrix.highlightedNodes[nodeID] = [addingNode];
+          this.controller.highlightedNodes[nodeID] = [addingNode];
         }
       }
     }
   }
-
-  /**
-   * [removeHighlightNode description]
-   * @param  nodeID       [description]
-   * @param  removingNode [description]
-   * @return              [description]
-
-  removeHighlightNode(removingNode: string) {
-    // remove from selected nodes
-
-    for (let nodeID in this.controller.state.adjMatrix.highlightedNodes) {
-      //finds the position of removing node in the nodes array
-      let index = this.controller.state.adjMatrix.highlightedNodes[nodeID].indexOf(removingNode);
-      // keep on removing all places of removing node
-      if (index > -1) {
-        this.controller.state.adjMatrix.highlightedNodes[nodeID].splice(index, 1);
-        // delete properties if no nodes left
-        if (this.controller.state.adjMatrix.highlightedNodes[nodeID].length == 0) {
-          delete this.controller.state.adjMatrix.highlightedNodes[nodeID];
-        }
-      }
-    }
-  }*/
 
   nodeDictContainsPair(dict, nodeToHighlight, interactedElement) {
     if (nodeToHighlight in dict) {
@@ -1064,21 +992,36 @@ class View {
   }
 
   renderHighlightNodesFromDict(dict, classToRender, rowOrCol: string = 'Row') {
-
     //unhighlight all other nodes
+    if (classToRender != "hovered") {
+      d3.selectAll(`.${classToRender}`)
+        .classed(classToRender, false)
+    }
 
     //highlight correct nodes
     let cssSelector = '';
-    for (let nodeID in dict) {
-      if (rowOrCol == 'Row') {
-        cssSelector += '#attr' + rowOrCol + nodeID + ',';
-      }
-      cssSelector += '#topo' + rowOrCol + nodeID + ','
+    for (let node in dict) {
+      if(Array.isArray(dict[node])){
+        for (let nodeID of dict[node]) {
+          if (rowOrCol == 'Row') {
+            cssSelector += '#attr' + rowOrCol + nodeID + ',';
+          }
+          cssSelector += '#topo' + rowOrCol + nodeID + ','
 
-      if (classToRender == 'answer' && rowOrCol == "Row") {
-        cssSelector += '#nodeLabelRow' + nodeID + ','
-      }
+          if (rowOrCol == "Row") {
+            cssSelector += '#nodeLabelRow' + nodeID + ','
+          }
+        }
+      } else {
+        if (rowOrCol == 'Row') {
+          cssSelector += '#attr' + rowOrCol + node + ',';
+        }
+        cssSelector += '#topo' + rowOrCol + node + ','
 
+        if (rowOrCol == "Row") {
+          cssSelector += '#nodeLabelRow' + node + ','
+        }
+      }
     }
     // remove last comma
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
@@ -1088,8 +1031,6 @@ class View {
     d3.selectAll(cssSelector).classed(classToRender, true);
 
   }
-
-
 
   selectNode(nodeID: string) {
     let index = this.controller.state.selectedNodes.indexOf(nodeID)
@@ -1118,19 +1059,18 @@ class View {
    * @param  nodeID [description]
    * @return        [description]
    */
-  selectNeighborNodes(nodeID) {
-    let nodeIndex = this.controller.state.adjMatrix.columnSelectedNodes.indexOf(nodeID);
-    if (nodeIndex > -1) {
+  selectNeighborNodes(nodeID, neighbors) {
+    if (nodeID in this.controller.columnSelectedNodes) {
+
       // find all neighbors and remove them
-      this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1)
-      this.removeHighlightNode(nodeID);
-      this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
-      // remove node from column selected nodes
+      delete this.controller.columnSelectedNodes[nodeID]
     } else {
       this.addHighlightNode(nodeID);
-      this.controller.state.adjMatrix.columnSelectedNodes.push(nodeID);
+      let newElement = {}
+      newElement[nodeID] = neighbors
+      this.controller.columnSelectedNodes = Object.assign(this.controller.columnSelectedNodes, newElement)
     }
-    this.renderNeighborHighlightNodes();
+    this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, "neighbor", "Row");
     /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
 
     if(index > -1){ // if in selected node, remove it (unless it is )
@@ -1186,22 +1126,20 @@ class View {
    */
   sort(order) {
     let nodeIDs = this.nodes.map(node=>node.id);
-    console.log(order, this.order, nodeIDs, nodeIDs.includes(order))
     if(nodeIDs.includes(order)){
       this.order = this.controller.changeOrder(order,true);
       (order);
     } else {
       this.order = this.controller.changeOrder(order);
     }
-    console.log(this.order)
-    // this.orderingScale.domain(this.order);
+    this.orderingScale.domain(this.order);
     
 
     let transitionTime = 500;
     d3.selectAll(".row")
-      //.transition()
-      //.duration(transitionTime)
-      //.delay((d, i) => { return this.orderingScale(i) * 4; })
+      .transition()
+      .duration(transitionTime)
+      // .delay((d , i) => { return this.orderingScale(i) * 4; })
       .attr("transform", (d, i) => {
         if (i > this.order.length - 1) return;
         return "translate(0," + this.orderingScale(i) + ")";
@@ -1220,25 +1158,12 @@ class View {
 
 
     // if any other method other than neighbors sort
-    if(!nodeIDs.includes(parseInt(order))){
+    if(!nodeIDs.includes(order)) {
       var t = this.edges//.transition().duration(transitionTime);
       t.selectAll(".column")
         //.delay((d, i) => { return this.orderingScale(i) * 4; })
         .attr("transform", (d, i) => { return "translate(" + this.orderingScale(i) + ",0)rotate(-90)"; });
     }
-
-
-    /*d3.selectAll('.highlightRow') // taken care of as they're apart of row and column groupings already
-      .transition()
-      .duration(transitionTime)
-      .delay((d, i) => { return this.orderingScale(i) * 4; })
-      .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
-
-    d3.selectAll('.highlightCol')
-      .transition()
-      .duration(transitionTime)
-      .delay((d, i) => { return this.orderingScale(i) * 4; })
-      .attr("transform", (d, i) => { return "translate(" + this.orderingScale(i) + ")rotate(-90)"; });*/
 
     // change glyph coloring for sort
     // d3.selectAll('.glyph').attr('fill', '#8B8B8B');
@@ -1248,7 +1173,7 @@ class View {
     // }
 
     d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter(d => d == order).style('fill', '#EBB769')
-    if(!nodeIDs.includes(parseInt(order))){
+    if(!nodeIDs.includes(order)){
       let cells = d3.selectAll(".cell")//.selectAll('rect')
         //.transition()
         //.duration(transitionTime)
@@ -1259,44 +1184,8 @@ class View {
         });
     } else {
       d3.select('#sortIcon'+order).style('fill','#EBB769')
-
     }
 
-  }
-
-  updateCheckBox(state) {
-    if (this.controller.attributeScales.node.selected == undefined) {
-      return;
-    }
-    let color = this.controller.attributeScales.node.selected.range[0];
-
-    d3.selectAll('.answerBox').selectAll('rect').transition().duration(250)
-      .style("fill", d => {
-        let answerStatus = d[this.datumID] in state.selections.answerBox;
-        return answerStatus ? color : "white"
-      })
-  }
-  updateAnswerToggles(state) {
-    if (this.controller.attributeScales.node.selected == undefined) {
-      return;
-    }
-    let color = this.controller.attributeScales.node.selected.range[0];
-    d3.selectAll('.answerBox').selectAll('circle').transition().duration(500)
-      .attr("cx", d => {
-        let answerStatus = d[this.datumID] in state.selections.answerBox;
-        return (answerStatus ? 3 * this.columnWidths['selected'] / 4 : 1.15 * this.columnWidths['selected'] / 4)
-      })
-      .style("fill", d => {
-        let answerStatus = d[this.datumID] in state.selections.answerBox;
-        return answerStatus ? color : "white";
-      })
-
-
-    d3.select('.answerBox').selectAll('rect').transition().duration(500)
-      .style("fill", d => {
-        let answerStatus = d[this.datumID] in state.selections.answerBox;
-        return answerStatus ? "#8B8B8B" : "lightgray"
-      })
   }
 
   private columnscreen_names: {};
@@ -1307,454 +1196,444 @@ class View {
    * @return [description]
    */
   initializeAttributes() {
-
-
-
-    let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
-    let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
-    this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
-    this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
-
-    this.attributes = d3.select('#attributes').append("svg")
-      .attr("viewBox", "0 0 " + (width) + " " + height + "")
-      .attr("preserveAspectRatio", "xMinYMin meet")
-      .append("g")
-      .classed("svg-content", true)
-      .attr('id', 'attributeMargin')
-      .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
-
-
-    // add zebras and highlight rows
-    /*
-    this.attributes.selectAll('.highlightRow')
-      .data(this.nodes)
-      .enter()
-      .append('rect')
-      .classed('highlightRow', true)
-      .attr('x', 0)
-      .attr('y', (d, i) => this.orderingScale(i))
-      .attr('width', this.attributeWidth)
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
-      */
-
-    let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
-    let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
-
-    // Draw each row (translating the y coordinate)
-    this.attributeRows = this.attributes.selectAll(".row")
-      .data(this.nodes)
-      .enter().append("g")
-      .attr("class", "row")
-      .attr("transform", (d, i) => {
-        return "translate(0," + this.orderingScale(i) + ")";
-      });
-
-
-
-    this.attributeRows.append("line")
-      .attr("x1", 0)
-      .attr("x2", this.controller.attrWidth)
-      .attr('stroke', '2px')
-      .attr('stroke-opacity', 0.3);
-
-    let attributeMouseOver = (d) => {
-      this.addHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-      this.addHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-
-      this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d[this.datumID] })
-
-      d3.selectAll('.hovered').classed('hovered', false);
-      this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
-      this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
-    };
-
-    this.attributeMouseOver = attributeMouseOver;
-    let attributeMouseOut = (d) => {
-
-      this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-      this.removeHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-
-      d3.selectAll('.hovered').classed('hovered', false);
-
-      this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
-
-    };
-    this.attributeMouseOut = attributeMouseOut;
-
-    this.attributeRows.append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .classed('attrRow', true)
-      .attr('id', (d, i) => {
-        return "attrRow" + d[this.datumID];
-      })
-      .attr('width', width)
-      .attr('height', this.orderingScale.bandwidth()) // end addition
-      .attr("fill-opacity", 0)
-      .on('mouseover', attributeMouseOver)
-      .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
-
-
-
-
-
-    let columns = this.controller.nodeAttributes;
-
-    //columns.unshift('selected'); // ANSWER COLUMNS
-
-    var formatCurrency = d3.format("$,.0f"),
-      formatNumber = d3.format(",.0f");
-
-    // generate scales for each
-    let attributeScales = {};
-    this.columnScale = d3.scaleOrdinal().domain(columns)
-
-    // Calculate Column Scale
-    let columnRange = []
-    let xRange = 0;
-
-
-    let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
-    //450 / columns.length;
-    this.columnWidths = columnWidths;
-
-    let categoricalAttributes = ["type", "continent"]
-    let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
-
-    columns.forEach((col, index) => {
-      // calculate range
-      columnRange.push(xRange);
-      let domain = this.controller.attributeScales.node[col].domain;
-
-      if (quantitativeAttributes.indexOf(col) > -1) {
-
-        let scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
-        scale.clamp(true);
-        attributeScales[col] = scale;
-      } else {
-        // append colored blocks
-        // placeholder scale
-        let range = this.controller.attributeScales.node[col].range;
-        let scale = d3.scaleOrdinal().domain(domain).range(range);
-        //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
-
-        attributeScales[col] = scale;
-      }
-
-      xRange += columnWidths[col];
-    })
-    this.attributeScales = attributeScales;
-
-
-    // need max and min of each column
-    /*this.barWidthScale = d3.scaleLinear()
-      .domain([0, 1400])
-      .range([0, 140]);*/
-
-
-
-
-
-    let placementScale = {};
-
-    this.columnScale.range(columnRange);
-
-    for (let [column, scale] of Object.entries(attributeScales)) {
-      if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
-        placementScale[column] = this.generateCategoricalLegend(column, columnWidths[column]);
-
-      } else if (quantitativeAttributes.indexOf(column) > -1) {
-        this.attributes.append("g")
-          .attr("class", "attr-axis")
-          .attr("transform", "translate(" + this.columnScale(column) + "," + -15 + ")")
-          .call(d3.axisTop(scale)
-            .tickValues(scale.domain())
-            .tickFormat((d) => {
-              if ((d / 1000) >= 1) {
-                d = Math.round(d / 1000) + "K";
-              }
-              return d;
-            }))
-          .selectAll('text')
-          .style("text-anchor", function(d, i) { return i % 2 ? "end" : "start" });
-      }
-
-
-    }
-
-    this.columnGlyphs = {};
-
-    /* Create data columns data */
-    columns.forEach((column, index) => {
-      let columnPosition = this.columnScale(column);
-
-      if (categoricalAttributes.indexOf(column) > -1) { // if categorical
-        this.createUpsetPlot(column, columnWidths[index], placementScale[column]);
-        return;
-      } else if (quantitativeAttributes.indexOf(column) > -1) { // if quantitative
-        this.columnGlyphs[column] = this.attributeRows
-          .append("rect")
-          .attr("class", "glyph " + column)
-          .attr('height', barHeight)
-          .attr('width', 10) // width changed later on transition
-          .attr('x', columnPosition + barMargin.left)
-          .attr('y', barMargin.top) // as y is set by translate
-          .attr('fill', d => {
-            return this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B'
-          })
-          .on('mouseover', function(d) {
-            //if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-            //that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
-
-            let matrix = this.getScreenCTM()
-              .translate(+this.getAttribute("x"), +this.getAttribute("y"));
-
-            that.tooltip.html(Math.round(d[column]))
-              .style("left", (window.pageXOffset + matrix.e + columnWidths[column] / 2 - 35) + "px")
-              .style("top", (window.pageYOffset + matrix.f - 5) + "px");
-
-            that.tooltip.transition()
-              .duration(200)
-              .style("opacity", .9);
-
-            attributeMouseOver(d);
-            //}
-          })
-          .on('mouseout', (d) => {
-            that.tooltip.transition().duration(25).style("opacity", 0);
-            attributeMouseOut(d);
-          })
-        this.columnGlyphs[column]
-          .transition()
-          .duration(2000)
-          .attr('width', (d, i) => { return attributeScales[column](d[column]); })
-
-
-        this.attributeRows
-          .append("div")
-          .attr("class", "glyphLabel")
-          .text(function(d, i) {
-            return (d);
-          });
-      } else {
-        barMargin.left = 1;
-        let answerBox = this.attributeRows
-          .append('g')
-          .attr("class", "answerBox")
-          .attr("id", d => "answerBox" + d[this.datumID])
-          .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
-        if (this.controller.adjMatrix.toggle) {
-          let rect = answerBox.append("rect")
-            .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
-            .attr("y", barMargin.top)
-            .attr("rx", barHeight / 2)
-            .attr("ry", barHeight / 2)
-            .style("fill", "lightgray")
-            .attr("width", columnWidths[column] / 2)
-            .attr("height", barHeight)
-            .attr('stroke', 'lightgray')
-            .on('mouseover', attributeMouseOver)
-            .on('mouseout', attributeMouseOut);
-
-          let circle = answerBox.append("circle")
-            .attr("cx", (1.15 * columnWidths[column] / 4))
-            .attr("cy", barHeight / 2 + barMargin.top)
-            .attr("r", barHeight / 2)
-            .style("fill", "white")
-            .style('stroke', 'lightgray');
-        } else {
-          let initalHeight = barHeight;
-          let newBarHeight = d3.min([barHeight,15])
-          let rect = answerBox.append("rect")
-            .attr("x", (columnWidths[column] / 2) - newBarHeight / 2) // if column with is 1, we want this at 1/4, and 1/2 being mid point
-            .attr("y", barMargin.top + (initalHeight-newBarHeight)/2)
-            //.attr("rx", barHeight / 2)
-            //.attr("ry", barHeight / 2)
-            .style("fill", "white")
-            .attr("width", newBarHeight)
-            .attr("height", newBarHeight)
-            .attr('stroke', 'lightgray')
-            .on('mouseover', attributeMouseOver)
-            .on('mouseout', attributeMouseOut);
-        }
-
-        answerBox
-          .on('click', (d) => {
-            let color = this.controller.attributeScales.node.selected.range[0];
-            //if already answer
-            let nodeID = this.determineID(d);
-
-            /*Visual chagne */
-            let answerStatus = false; // TODO, remove?
-            if (this.controller.adjMatrix.toggle) {
-              d3.select(nodes[i]).selectAll('circle').transition().duration(500)
-                .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
-                .style("fill", answerStatus ? color : "white");
-              d3.select(nodes[i]).selectAll('rect').transition().duration(500)
-                .style("fill", answerStatus ? "#8B8B8B" : "lightgray");
-            } else {
-
-            }
-
-
-            nodeClick(d);
-
-            //let action = this.changeInteractionWrapper(nodeID, i, nodes);
-            //this.controller.model.provenance.applyAction(action);
-
-
-
-            //d3.select(nodes[i]).transition().duration(500).attr('fill',)
-          })
-
-      }
-    });
-
-    // Add Verticle Dividers
-    this.attributes.selectAll('.column')
-      .data(columns)
-      .enter()
-      .append('line')
-      .style('stroke', '1px')
-      .attr('x1', (d) => this.columnScale(d))
-      .attr("y1", -20)
-      .attr('x2', (d) => this.columnScale(d))
-      .attr("y2", this.attributeHeight + this.margins.bottom)
-      .attr('stroke-opacity', 0.4);
-
-    // Add headers
-
-
-
-    this.columnNames = {
-      "followers_count": "Followers",
-      "query_tweet_count": "On-Topic Tweets", // not going to be used (how active this person was on the conference)
-      "friends_count": "Friends",
-      "statuses_count": "Tweets",
-      "favourites_count": "Liked Tweets",
-      "count_followers_in_query": "In-Network Followers",
-      "continent": "Continent",
-      "type": "Type",
-      "memberFor_days": "Account Age",
-      "listed_count": "In Lists",
-      "selected": "Answer"
-    }
-    let that = this;
-    function calculateMaxChars(numColumns) {
-      switch (numColumns) {
-        case 1:
-          return { "characters": 20, "font": 13 }
-        case 2:
-          return { "characters": 20, "font": 13 }
-        case 3:
-          return { "characters": 20, "font": 12 }
-        case 4:
-          return { "characters": 19, "font": 12 }
-        case 5:
-          return { "characters": 18, "font": 12 }
-        case 6:
-          return { "characters": 16, "font": 11 }
-        case 7:
-          return { "characters": 14, "font": 10 }
-        case 8:
-          return { "characters": 12, "font": 10 }
-        case 9:
-          return { "characters": 10, "font": 10 }
-        case 10:
-          return { "characters": 8, "font": 10 }
-        default:
-          return { "characters": 8, "font": 10 }
-      }
-    }
-    let options = calculateMaxChars(columns.length)// 10 attr => 8
-    let maxcharacters = options.characters;
-    let fontSize = options.font//*1.1;
-
-
-    //this.createColumnHeaders();
-    let columnHeaders = this.attributes.append('g')
-      .classed('column-headers', true)
-    let columnHeaderGroups = columnHeaders.selectAll('.header')
-      .data(columns)
-      .enter()
-      .append('g')
-      .attr('transform', (d) => 'translate(' + (this.columnScale(d)) + ',' + (-65) + ')')
-
-    columnHeaderGroups
-      .append('rect')
-      .attr('width', d => this.columnWidths[d])
-      .attr('height', 20)
-      .attr('y', 0)
-      .attr('x', 0)
-      .attr('fill', 'none')
-      .attr('stroke', 'lightgray')
-      .attr('stroke-width', 1)
-
-    columnHeaderGroups
-      .append('text')
-      .classed('header', true)
-      //.attr('y', -45)
-      //.attr('x', (d) => this.columnScale(d) + barMargin.left)
-      .style('font-size', this.nodeFontSize.toString() + 'px')
-      .attr('text-anchor', 'middle')
-      //.attr('transform','rotate(-10)')
-      .text((d, i) => {
-        if (this.columnNames[d] && this.columnNames[d].length > maxcharacters) {
-          return this.columnNames[d].slice(0, maxcharacters - 2) + '...';// experimentally determine how big
-        }
-        return this.columnNames[d];
-      })
-      .attr('x', d => this.columnWidths[d] / 2)
-      .attr('y', 14)
-      .on('mouseover', function(d) {
-        if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-          that.tooltip.transition().duration(200).style("opacity", .9);
-
-          let matrix = this.getScreenCTM()
-            .translate(+this.getAttribute("x"), +this.getAttribute("y"));
-
-          that.tooltip.transition()
-            .duration(200)
-            .style("opacity", .9);
-
-          that.tooltip.html(that.columnNames[d])
-            .style("left", (window.pageXOffset + matrix.e - 25) + "px")
-            .style("top", (window.pageYOffset + matrix.f - 20) + "px");
-        }
-      })
-      .on('mouseout', function(d) {
-        that.tooltip.transition().duration(250).style("opacity", 0);
-      })
-      .on('click', (d) => {
-        if (d !== 'selected') {
-          this.sort(d);
-        }
-      })
-
-    columnHeaderGroups
-    if (columns.length < 6) {
-      let path = columnHeaderGroups
-        .filter(d => { return d !== 'selected' })
-        .append('path')
-        .attr('class', 'sortIcon')
-        .attr('d', (d) => {
-        // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
-        // return this.controller.model.icons[variable].d;
-      }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
-      .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
-      .on('click', (d) => {this.sort(d);})
-      .attr('cursor', 'pointer');
-    }
-
-
-
-
-    let answerColumn = columnHeaders.selectAll('.header').filter(d => { return d == 'selected' })
-    answerColumn.attr('font-weight', 650)
-
-    let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
-    nonAnswerColumn.attr('cursor', 'pointer');
+    // let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
+    // let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
+    // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
+    // this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
+
+    // this.attributes = d3.select('#attributes').append("svg")
+    //   .attr("viewBox", "0 0 " + (width) + " " + height + "")
+    //   .attr("preserveAspectRatio", "xMinYMin meet")
+    //   .append("g")
+    //   .classed("svg-content", true)
+    //   .attr('id', 'attributeMargin')
+    //   .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
+
+    
+    // // add zebras and highlight rows
+    // /*
+    // this.attributes.selectAll('.highlightRow')
+    //   .data(this.nodes)
+    //   .enter()
+    //   .append('rect')
+    //   .classed('highlightRow', true)
+    //   .attr('x', 0)
+    //   .attr('y', (d, i) => this.orderingScale(i))
+    //   .attr('width', this.attributeWidth)
+    //   .attr('height', this.orderingScale.bandwidth())
+    //   .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
+    //   */
+
+    // let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
+    // let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
+
+    // // Draw each row (translating the y coordinate)
+    // this.attributeRows = this.attributes.selectAll(".row")
+    //   .data(this.nodes)
+    //   .enter().append("g")
+    //   .attr("class", "row")
+    //   .attr("transform", (d, i) => {
+    //     return "translate(0," + this.orderingScale(i) + ")";
+    //   });
+
+    // this.attributeRows.append("line")
+    //   .attr("x1", 0)
+    //   .attr("x2", this.controller.attrWidth)
+    //   .attr('stroke', '2px')
+    //   .attr('stroke-opacity', 0.3);
+
+    // let attributeMouseOver = (d) => {
+    //   this.addHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+    //   this.addHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+
+    //   this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d[this.datumID] })
+
+    //   d3.selectAll('.hovered').classed('hovered', false);
+    //   this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+    //   this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
+    // };
+
+    // this.attributeMouseOver = attributeMouseOver;
+    // let attributeMouseOut = (d) => {
+
+    //   this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+    //   this.removeHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+
+    //   d3.selectAll('.hovered').classed('hovered', false);
+
+    //   this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+
+    // };
+    // this.attributeMouseOut = attributeMouseOut;
+
+    // this.attributeRows.append('rect')
+    //   .attr('x', 0)
+    //   .attr('y', 0)
+    //   .classed('attrRow', true)
+    //   .attr('id', (d, i) => {
+    //     return "attrRow" + d[this.datumID];
+    //   })
+    //   .attr('width', width)
+    //   .attr('height', this.orderingScale.bandwidth()) // end addition
+    //   .attr("fill-opacity", 0)
+    //   .on('mouseover', attributeMouseOver)
+    //   .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
+
+    // let columns = this.controller.nodeAttributes;
+
+    // //columns.unshift('selected'); // ANSWER COLUMNS
+
+    // var formatCurrency = d3.format("$,.0f"),
+    //   formatNumber = d3.format(",.0f");
+
+    // // generate scales for each
+    // let attributeScales = {};
+    // this.columnScale = d3.scaleOrdinal().domain(columns)
+
+    // // // Calculate Column Scale
+    // // let columnRange = []
+    // // let xRange = 0;
+
+
+    // // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
+    // // //450 / columns.length;
+    // // this.columnWidths = columnWidths;
+
+    // let categoricalAttributes = ["type", "continent"]
+    // let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
+
+    // // columns.forEach((col, index) => {
+    // //   // calculate range
+    // //   columnRange.push(xRange);
+    // //   let domain = this.controller.attributeScales.node[col].domain;
+
+    // //   if (quantitativeAttributes.indexOf(col) > -1) {
+
+    // //     let scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
+    // //     scale.clamp(true);
+    // //     attributeScales[col] = scale;
+    // //   } else {
+    // //     // append colored blocks
+    // //     // placeholder scale
+    // //     let range = this.controller.attributeScales.node[col].range;
+    // //     let scale = d3.scaleOrdinal().domain(domain).range(range);
+    // //     //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
+
+    // //     attributeScales[col] = scale;
+    // //   }
+
+    // //   xRange += columnWidths[col];
+    // // })
+    // // this.attributeScales = attributeScales;
+
+    // // need max and min of each column
+    // /*this.barWidthScale = d3.scaleLinear()
+    //   .domain([0, 1400])
+    //   .range([0, 140]);*/
+
+
+
+
+
+    // let placementScale = {};
+
+    // this.columnScale.range(columnRange);
+
+    // for (let [column, scale] of Object.entries(attributeScales)) {
+    //   if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
+    //     placementScale[column] = this.generateCategoricalLegend(column, columnWidths[column]);
+
+    //   } else if (quantitativeAttributes.indexOf(column) > -1) {
+    //     this.attributes.append("g")
+    //       .attr("class", "attr-axis")
+    //       .attr("transform", "translate(" + this.columnScale(column) + "," + -15 + ")")
+    //       .call(d3.axisTop(scale)
+    //         .tickValues(scale.domain())
+    //         .tickFormat((d) => {
+    //           if ((d / 1000) >= 1) {
+    //             d = Math.round(d / 1000) + "K";
+    //           }
+    //           return d;
+    //         }))
+    //       .selectAll('text')
+    //       .style("text-anchor", function(d, i) { return i % 2 ? "end" : "start" });
+    //   }
+
+
+    // }
+
+    // this.columnGlyphs = {};
+
+    // /* Create data columns data */
+    // columns.forEach((column, index) => {
+    //   let columnPosition = this.columnScale(column);
+
+    //   if (categoricalAttributes.indexOf(column) > -1) { // if categorical
+    //     this.createUpsetPlot(column, columnWidths[index], placementScale[column]);
+    //     return;
+    //   } else if (quantitativeAttributes.indexOf(column) > -1) { // if quantitative
+    //     this.columnGlyphs[column] = this.attributeRows
+    //       .append("rect")
+    //       .attr("class", "glyph " + column)
+    //       .attr('height', barHeight)
+    //       .attr('width', 10) // width changed later on transition
+    //       .attr('x', columnPosition + barMargin.left)
+    //       .attr('y', barMargin.top) // as y is set by translate
+    //       .attr('fill', d => {
+    //         return this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B'
+    //       })
+    //       .on('mouseover', function(d) {
+    //         //if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
+    //         //that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
+
+    //         let matrix = this.getScreenCTM()
+    //           .translate(+this.getAttribute("x"), +this.getAttribute("y"));
+
+    //         that.tooltip.html(Math.round(d[column]))
+    //           .style("left", (window.pageXOffset + matrix.e + columnWidths[column] / 2 - 35) + "px")
+    //           .style("top", (window.pageYOffset + matrix.f - 5) + "px");
+
+    //         that.tooltip.transition()
+    //           .duration(200)
+    //           .style("opacity", .9);
+
+    //         attributeMouseOver(d);
+    //         //}
+    //       })
+    //       .on('mouseout', (d) => {
+    //         that.tooltip.transition().duration(25).style("opacity", 0);
+    //         attributeMouseOut(d);
+    //       })
+    //     this.columnGlyphs[column]
+    //       .transition()
+    //       .duration(2000)
+    //       .attr('width', (d, i) => { return attributeScales[column](d[column]); })
+
+
+    //     this.attributeRows
+    //       .append("div")
+    //       .attr("class", "glyphLabel")
+    //       .text(function(d, i) {
+    //         return (d);
+    //       });
+    //   } else {
+    //     barMargin.left = 1;
+    //     let answerBox = this.attributeRows
+    //       .append('g')
+    //       .attr("class", "answerBox")
+    //       .attr("id", d => "answerBox" + d[this.datumID])
+    //       .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
+    //     if (this.controller.adjMatrix.toggle) {
+    //       let rect = answerBox.append("rect")
+    //         .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
+    //         .attr("y", barMargin.top)
+    //         .attr("rx", barHeight / 2)
+    //         .attr("ry", barHeight / 2)
+    //         .style("fill", "lightgray")
+    //         .attr("width", columnWidths[column] / 2)
+    //         .attr("height", barHeight)
+    //         .attr('stroke', 'lightgray')
+    //         .on('mouseover', attributeMouseOver)
+    //         .on('mouseout', attributeMouseOut);
+
+    //       let circle = answerBox.append("circle")
+    //         .attr("cx", (1.15 * columnWidths[column] / 4))
+    //         .attr("cy", barHeight / 2 + barMargin.top)
+    //         .attr("r", barHeight / 2)
+    //         .style("fill", "white")
+    //         .style('stroke', 'lightgray');
+    //     } else {
+    //       let initalHeight = barHeight;
+    //       let newBarHeight = d3.min([barHeight,15])
+    //       let rect = answerBox.append("rect")
+    //         .attr("x", (columnWidths[column] / 2) - newBarHeight / 2) // if column with is 1, we want this at 1/4, and 1/2 being mid point
+    //         .attr("y", barMargin.top + (initalHeight-newBarHeight)/2)
+    //         //.attr("rx", barHeight / 2)
+    //         //.attr("ry", barHeight / 2)
+    //         .style("fill", "white")
+    //         .attr("width", newBarHeight)
+    //         .attr("height", newBarHeight)
+    //         .attr('stroke', 'lightgray')
+    //         .on('mouseover', attributeMouseOver)
+    //         .on('mouseout', attributeMouseOut);
+    //     }
+
+    //     answerBox
+    //       .on('click', (d) => {
+    //         let color = this.controller.attributeScales.node.selected.range[0];
+    //         //if already answer
+    //         let nodeID = this.determineID(d);
+
+    //         /*Visual chagne */
+    //         let answerStatus = false; // TODO, remove?
+    //         if (this.controller.adjMatrix.toggle) {
+    //           d3.select(nodes[i]).selectAll('circle').transition().duration(500)
+    //             .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
+    //             .style("fill", answerStatus ? color : "white");
+    //           d3.select(nodes[i]).selectAll('rect').transition().duration(500)
+    //             .style("fill", answerStatus ? "#8B8B8B" : "lightgray");
+    //         } else {
+
+    //         }
+
+
+    //         nodeClick(d);
+
+    //         //let action = this.changeInteractionWrapper(nodeID, i, nodes);
+    //         //this.controller.model.provenance.applyAction(action);
+
+
+
+    //         //d3.select(nodes[i]).transition().duration(500).attr('fill',)
+    //       })
+
+    //   }
+    // });
+
+    // // Add Verticle Dividers
+    // this.attributes.selectAll('.column')
+    //   .data(columns)
+    //   .enter()
+    //   .append('line')
+    //   .style('stroke', '1px')
+    //   .attr('x1', (d) => this.columnScale(d))
+    //   .attr("y1", -20)
+    //   .attr('x2', (d) => this.columnScale(d))
+    //   .attr("y2", this.attributeHeight + this.margins.bottom)
+    //   .attr('stroke-opacity', 0.4);
+
+    // // Add headers
+
+
+
+    // this.columnNames = {
+    //   "followers_count": "Followers",
+    //   "query_tweet_count": "On-Topic Tweets", // not going to be used (how active this person was on the conference)
+    //   "friends_count": "Friends",
+    //   "statuses_count": "Tweets",
+    //   "favourites_count": "Liked Tweets",
+    //   "count_followers_in_query": "In-Network Followers",
+    //   "continent": "Continent",
+    //   "type": "Type",
+    //   "memberFor_days": "Account Age",
+    //   "listed_count": "In Lists",
+    //   "selected": "Answer"
+    // }
+    // let that = this;
+    // function calculateMaxChars(numColumns) {
+    //   switch (numColumns) {
+    //     case 1:
+    //       return { "characters": 20, "font": 13 }
+    //     case 2:
+    //       return { "characters": 20, "font": 13 }
+    //     case 3:
+    //       return { "characters": 20, "font": 12 }
+    //     case 4:
+    //       return { "characters": 19, "font": 12 }
+    //     case 5:
+    //       return { "characters": 18, "font": 12 }
+    //     case 6:
+    //       return { "characters": 16, "font": 11 }
+    //     case 7:
+    //       return { "characters": 14, "font": 10 }
+    //     case 8:
+    //       return { "characters": 12, "font": 10 }
+    //     case 9:
+    //       return { "characters": 10, "font": 10 }
+    //     case 10:
+    //       return { "characters": 8, "font": 10 }
+    //     default:
+    //       return { "characters": 8, "font": 10 }
+    //   }
+    // }
+    // let options = calculateMaxChars(columns.length)// 10 attr => 8
+    // let maxcharacters = options.characters;
+    // let fontSize = options.font//*1.1;
+
+
+    // //this.createColumnHeaders();
+    // let columnHeaders = this.attributes.append('g')
+    //   .classed('column-headers', true)
+    // let columnHeaderGroups = columnHeaders.selectAll('.header')
+    //   .data(columns)
+    //   .enter()
+    //   .append('g')
+    //   .attr('transform', (d) => 'translate(' + (this.columnScale(d)) + ',' + (-65) + ')')
+
+    // columnHeaderGroups
+    //   .append('rect')
+    //   .attr('width', d => this.columnWidths[d])
+    //   .attr('height', 20)
+    //   .attr('y', 0)
+    //   .attr('x', 0)
+    //   .attr('fill', 'none')
+    //   .attr('stroke', 'lightgray')
+    //   .attr('stroke-width', 1)
+
+    // columnHeaderGroups
+    //   .append('text')
+    //   .classed('header', true)
+    //   //.attr('y', -45)
+    //   //.attr('x', (d) => this.columnScale(d) + barMargin.left)
+    //   .style('font-size', this.nodeFontSize.toString() + 'px')
+    //   .attr('text-anchor', 'middle')
+    //   //.attr('transform','rotate(-10)')
+    //   .text((d, i) => {
+    //     if (this.columnNames[d] && this.columnNames[d].length > maxcharacters) {
+    //       return this.columnNames[d].slice(0, maxcharacters - 2) + '...';// experimentally determine how big
+    //     }
+    //     return this.columnNames[d];
+    //   })
+    //   .attr('x', d => this.columnWidths[d] / 2)
+    //   .attr('y', 14)
+    //   .on('mouseover', function(d) {
+    //     if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
+    //       that.tooltip.transition().duration(200).style("opacity", .9);
+
+    //       let matrix = this.getScreenCTM()
+    //         .translate(+this.getAttribute("x"), +this.getAttribute("y"));
+
+    //       that.tooltip.transition()
+    //         .duration(200)
+    //         .style("opacity", .9);
+
+    //       that.tooltip.html(that.columnNames[d])
+    //         .style("left", (window.pageXOffset + matrix.e - 25) + "px")
+    //         .style("top", (window.pageYOffset + matrix.f - 20) + "px");
+    //     }
+    //   })
+    //   .on('mouseout', function(d) {
+    //     that.tooltip.transition().duration(250).style("opacity", 0);
+    //   })
+    //   .on('click', (d) => {
+    //     if (d !== 'selected') {
+    //       this.sort(d);
+    //     }
+    //   })
+
+    // columnHeaderGroups
+    // if (columns.length < 6) {
+    //   let path = columnHeaderGroups
+    //     .filter(d => { return d !== 'selected' })
+    //     .append('path')
+    //     .attr('class', 'sortIcon')
+    //     .attr('d', (d) => {
+    //     // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
+    //     // return this.controller.model.icons[variable].d;
+    //   }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+    //   .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
+    //   .on('click', (d) => {this.sort(d);})
+    //   .attr('cursor', 'pointer');
+    // }
+
+
+
+
+    // let answerColumn = columnHeaders.selectAll('.header').filter(d => { return d == 'selected' })
+    // answerColumn.attr('font-weight', 650)
+
+    // let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
+    // nonAnswerColumn.attr('cursor', 'pointer');
 
     d3.select('.loading').style('display', 'none');
     this.controller.model.setUpProvenance();

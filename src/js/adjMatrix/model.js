@@ -9,14 +9,14 @@ var Model = /** @class */ (function () {
         this.sortKey = "name";
         this.matrix = [];
         this.scalarMatrix = [];
-        // d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
-        // .then(function(error, svg) {
-        //   this.alphabeticalSortSvg = svg;
-        // })
-        // d3.image('../../assets/adj-matrix/categoricalSort.svg')
-        // .then(function(error, svg) {
-        //   this.categoricalSortSvg = svg;
-        // })
+        d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
+            .then(function (error, svg) {
+            this.alphabeticalSortSvg = svg;
+        });
+        d3.image('../../assets/adj-matrix/categoricalSort.svg')
+            .then(function (error, svg) {
+            this.categoricalSortSvg = svg;
+        });
         // = "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3 C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z";
         this.icons = {
             'quant': {
@@ -157,7 +157,6 @@ var Model = /** @class */ (function () {
             search: rowElements.concat(columnElements)
         };
         function classAllHighlights(state) {
-            console.log("classallhighlights state", state);
             var clickedElements = new Set();
             var answerElements = new Set();
             var neighborElements = new Set();
@@ -190,7 +189,6 @@ var Model = /** @class */ (function () {
                 }
             }
             var clickedSelectorQuery = Array.from(clickedElements).join(',');
-            console.log(clickedSelectorQuery);
             // let answerSelectorQuery = Array.from(answerElements).join(',')
             // let neighborSelectQuery = Array.from(neighborElements).join(',')
             clickedSelectorQuery != [] ? d3.selectAll(clickedSelectorQuery).classed('clicked', true) : null;
@@ -252,7 +250,7 @@ var Model = /** @class */ (function () {
         return {
             label: 'sort',
             action: function (sortKey) {
-                var currentState = _this.controller.model.app.getApplicationState();
+                var currentState = _this.getApplicationState();
                 //add time stamp to the state graph
                 currentState.time = Date.now();
                 currentState.event = 'sort';
@@ -274,18 +272,16 @@ var Model = /** @class */ (function () {
     Model.prototype.changeOrder = function (type, node) {
         if (node === void 0) { node = false; }
         var action = this.generateSortAction(type);
-        // if(this.provenance){
-        //   this.provenance.applyAction(action);
-        // }
+        if (this.provenance) {
+            this.provenance.applyAction(action);
+        }
         return this.sortObserver(type, node);
     };
     Model.prototype.sortObserver = function (type, node) {
         var _this = this;
         if (node === void 0) { node = false; }
         var order;
-        // this.orderType = type;
-        // this.sortKey = type;
-        type = "edges";
+        this.sortKey = type;
         this.orderType = type;
         if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
             var graph = reorder.graph()
@@ -303,15 +299,14 @@ var Model = /** @class */ (function () {
                 var mat = reorder.graph2mat(graph);
                 order = reorder.optimal_leaf_order()(mat);
             }
-            //
             //order = reorder.optimal_leaf_order()(this.scalarMatrix);
         }
         else if (this.orderType == 'edges') {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b][type] - _this.nodes[a][type]; });
         }
         else if (node == true) {
-            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['shortName'].localeCompare(_this.nodes[b]['shortName']); });
-            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b]['neighbors'].includes(parseInt(type)) - _this.nodes[a]['neighbors'].includes(parseInt(type)); });
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['id'].localeCompare(_this.nodes[b]['id']); });
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b]['neighbors'].includes(type) - _this.nodes[a]['neighbors'].includes(type); });
         }
         else if (false /*!this.isQuant(this.orderType)*/) { // == "screen_name" || this.orderType == "name") {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a][_this.orderType].localeCompare(_this.nodes[b][_this.orderType]); });
@@ -335,25 +330,17 @@ var Model = /** @class */ (function () {
             _this.matrix[i] = _this.nodes.map(function (colNode) { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id + '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
             _this.scalarMatrix[i] = _this.nodes.map(function (colNode) { return 0; });
         });
-        function checkEdge(edge) {
-            if (typeof edge.source !== "number")
-                return false;
-            if (typeof edge.target !== "number")
-                return false;
-            return true;
-        }
-        this.edges = this.edges.filter(checkEdge);
         this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 };
         // Convert links to matrix; count character occurrences.
         this.edges.forEach(function (link) {
-            var addValue = 1;
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]][link.type] += link.count;
-            //
             _this.scalarMatrix[_this.idMap[link.source]][_this.idMap[link.target]] += link.count;
             /* could be used for varying edge types */
             //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
-            _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].z += addValue;
+            _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].z += 1;
+            _this.matrix[_this.idMap[link.target]][_this.idMap[link.source]].z += 1;
             _this.matrix[_this.idMap[link.source]][_this.idMap[link.target]].count += 1;
+            _this.matrix[_this.idMap[link.target]][_this.idMap[link.source]].count += 1;
             // if not directed, increment the other values
             // if (!isDirected) {
             //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;

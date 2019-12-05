@@ -42,14 +42,17 @@ var View = /** @class */ (function () {
         interaction = interaction.replace(' neighbor', '');
         return interaction;
     };
+    // Allows public getting
     View.prototype.get = function (attribute) {
         return this[attribute];
     };
     ;
+    // Allows public setting
     View.prototype.set = function (attribute, value) {
         this[attribute] = value;
         return true;
     };
+    // Update method for all non-data aspects
     View.prototype.updateVis = function () {
         var _this = this;
         // Get the row and column labels
@@ -59,32 +62,8 @@ var View = /** @class */ (function () {
         rows = rows.style("font-size", this.nodeFontSize + "pt");
         columns = columns.style("font-size", this.nodeFontSize + "pt");
         // Update labels
-        console.log(this.labelVar);
         rows.text(function (d, i) { return _this.nodes[i][_this.labelVar]; });
         columns.text(function (d, i) { return _this.nodes[i][_this.labelVar]; });
-    };
-    /**
-     * Searchs for the inputted node according to the data's shortName.
-     * @param  searchNode string corresponding to the short name to search for.
-     * @return            1 if short name was found, 0 if already selected, -1 if not found
-     */
-    View.prototype.search = function (searchNode) {
-        var selectedOption = searchNode.toLowerCase(); //d3.select(nodes[i]).property("value");
-        if (selectedOption.length === 0) {
-            return;
-        }
-        //find the right nodeObject
-        var name = this.nodes.filter(function (node) { return node.shortName.toLowerCase() == selectedOption; });
-        if (name[0] == null || name[0][this.datumID] == '')
-            return -1; // node was not found
-        name = name[0][this.datumID];
-        var state = this.controller.model.app.currentState();
-        if (name in state.selections.search) {
-            return 0;
-        }
-        var action = this.controller.view.changeInteractionWrapper(name, null, 'search');
-        this.controller.model.provenance.applyAction(action);
-        return 1;
     };
     /**
      * Takes in the data, hides the loading screen, and
@@ -105,7 +84,7 @@ var View = /** @class */ (function () {
     View.prototype.renderView = function () {
         d3.select('.loading').style('display', 'block').style('opacity', 1);
         this.initializeEdges();
-        // this.initializeAttributes();
+        this.initializeAttributes();
         d3.select('.loading').style('display', 'none');
     };
     /**
@@ -115,7 +94,6 @@ var View = /** @class */ (function () {
      */
     View.prototype.initializeEdges = function () {
         var _this = this;
-        console.log("redrawing");
         // Set width and height based upon the calculated layout size. Grab the smaller of the 2
         var width = this.controller.visWidth;
         var height = this.controller.visHeight;
@@ -249,17 +227,7 @@ var View = /** @class */ (function () {
         // .style("fill", 'white')
         squares
             .filter(function (d) { return d.z == 0; })
-            .style("fill-opacity", function (d) {
-            var row = d.rowid;
-            var column = d.colid;
-            // Get the number of connections, should only be at most 1 with our test data
-            var numConnections = graph.links.map(function (d) {
-                var outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0;
-                return outcome;
-            })
-                .reduce(function (a, b) { return a + b; }, 0);
-            return numConnections;
-        });
+            .style("fill-opacity", function (d) { return d.z; });
         this.setSquareColors('all');
     };
     /**
@@ -364,29 +332,27 @@ var View = /** @class */ (function () {
             nodeClick(d);
         });
         var verticalOffset = 3;
-        if (true /*this.controller.adjMatrix.neighborSelect*/) {
-            verticalOffset = 187.5;
-            var horizontalOffset = this.nodes.length < 50 ? 143.75 : 0;
-            this.edgeColumns.append('path')
-                .attr('id', function (d) { return 'sortIcon' + d[0].rowid; })
-                .attr('class', 'sortIcon')
-                .attr('d', this.controller.model.icons['cellSort'].d)
-                //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
-                .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
-                .on('click', function (d) {
-                _this.sort(d[0].rowid);
-                //nodeClick(d);
-                /*var e = document.createEvent('UIEvents');
-                e.initUIEvent('click', true, true, /* ... */ //);
-                /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
-                //let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-                //this.controller.model.provenance.applyAction(action);
-            }).attr('cursor', 'pointer')
-                .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
-                .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); });
-            ;
-            verticalOffset = verticalOffset / 12.5 + 3;
-        }
+        verticalOffset = 187.5;
+        var horizontalOffset = this.nodes.length < 50 ? 540 : 0;
+        this.edgeColumns.append('path')
+            .attr('id', function (d) { return 'sortIcon' + d[0].rowid; })
+            .attr('class', 'sortIcon')
+            .attr('d', this.controller.model.icons['cellSort'].d)
+            //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+            .attr("transform", "scale(0.075)translate(" + (verticalOffset) + "," + (horizontalOffset) + ")rotate(90)")
+            .on('click', function (d) {
+            _this.sort(d[0].rowid);
+            //nodeClick(d);
+            /*var e = document.createEvent('UIEvents');
+            e.initUIEvent('click', true, true, /* ... */ //);
+            /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
+            var action = _this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+            _this.controller.model.provenance.applyAction(action);
+        }).attr('cursor', 'pointer')
+            .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
+            .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); });
+        ;
+        verticalOffset = verticalOffset / 12.5 + 3;
         this.edgeColumns.append("text")
             .attr("id", function (d, i) {
             return "colLabel" + d[i].rowid;
@@ -399,16 +365,9 @@ var View = /** @class */ (function () {
             .attr("text-anchor", "start")
             .style("font-size", this.nodeFontSize)
             .text(function (d, i) { return _this.nodes[i]._key; })
-            .on('click', function (d) {
-            if (true /*this.controller.adjMatrix.neighborSelect*/) {
-                //this.sort(d[0].rowid)
-                nodeClick(d);
-                // let action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-                // this.controller.model.provenance.applyAction(action);
-            }
-            else {
-                nodeClick(d);
-            }
+            .on('click', function (d, i) {
+            nodeClick(d);
+            _this.selectNeighborNodes(_this.nodes[i].id, _this.nodes[i].neighbors);
         })
             .on("mouseout", function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); })
             .on('mouseover', function (d, i, nodes) { _this.mouseOverLabel(d, i, nodes); });
@@ -834,44 +793,22 @@ var View = /** @class */ (function () {
     View.prototype.addHighlightNode = function (addingNode) {
         // if node is in
         var nodeIndex = this.nodes.findIndex(function (item, i) {
-            return item[this.datumID] == addingNode;
+            return item["id"] == addingNode;
         });
         for (var i = 0; i < this.matrix[0].length; i++) {
-            if (this.matrix[i][nodeIndex].z > 0) {
+            if (true /*this.matrix[i][nodeIndex].z > 0*/) {
                 var nodeID = this.matrix[i][nodeIndex].rowid;
-                if (this.controller.state.adjMatrix.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.state.adjMatrix.highlightedNodes[nodeID].includes(addingNode)) {
+                if (this.controller.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.highlightedNodes[nodeID].includes(addingNode)) {
                     // if array exists, add it
-                    this.controller.state.adjMatrix.highlightedNodes[nodeID].push(addingNode);
+                    this.controller.highlightedNodes[nodeID].push(addingNode);
                 }
                 else {
                     // if array non exist, create it and add node
-                    this.controller.state.adjMatrix.highlightedNodes[nodeID] = [addingNode];
+                    this.controller.highlightedNodes[nodeID] = [addingNode];
                 }
             }
         }
     };
-    /**
-     * [removeHighlightNode description]
-     * @param  nodeID       [description]
-     * @param  removingNode [description]
-     * @return              [description]
-  
-    removeHighlightNode(removingNode: string) {
-      // remove from selected nodes
-  
-      for (let nodeID in this.controller.state.adjMatrix.highlightedNodes) {
-        //finds the position of removing node in the nodes array
-        let index = this.controller.state.adjMatrix.highlightedNodes[nodeID].indexOf(removingNode);
-        // keep on removing all places of removing node
-        if (index > -1) {
-          this.controller.state.adjMatrix.highlightedNodes[nodeID].splice(index, 1);
-          // delete properties if no nodes left
-          if (this.controller.state.adjMatrix.highlightedNodes[nodeID].length == 0) {
-            delete this.controller.state.adjMatrix.highlightedNodes[nodeID];
-          }
-        }
-      }
-    }*/
     View.prototype.nodeDictContainsPair = function (dict, nodeToHighlight, interactedElement) {
         if (nodeToHighlight in dict) {
             return dict[nodeToHighlight].has(interactedElement);
@@ -915,17 +852,35 @@ var View = /** @class */ (function () {
         }
     };
     View.prototype.renderHighlightNodesFromDict = function (dict, classToRender, rowOrCol) {
-        //unhighlight all other nodes
         if (rowOrCol === void 0) { rowOrCol = 'Row'; }
+        //unhighlight all other nodes
+        if (classToRender != "hovered") {
+            d3.selectAll("." + classToRender)
+                .classed(classToRender, false);
+        }
         //highlight correct nodes
         var cssSelector = '';
-        for (var nodeID in dict) {
-            if (rowOrCol == 'Row') {
-                cssSelector += '#attr' + rowOrCol + nodeID + ',';
+        for (var node in dict) {
+            if (Array.isArray(dict[node])) {
+                for (var _i = 0, _a = dict[node]; _i < _a.length; _i++) {
+                    var nodeID = _a[_i];
+                    if (rowOrCol == 'Row') {
+                        cssSelector += '#attr' + rowOrCol + nodeID + ',';
+                    }
+                    cssSelector += '#topo' + rowOrCol + nodeID + ',';
+                    if (rowOrCol == "Row") {
+                        cssSelector += '#nodeLabelRow' + nodeID + ',';
+                    }
+                }
             }
-            cssSelector += '#topo' + rowOrCol + nodeID + ',';
-            if (classToRender == 'answer' && rowOrCol == "Row") {
-                cssSelector += '#nodeLabelRow' + nodeID + ',';
+            else {
+                if (rowOrCol == 'Row') {
+                    cssSelector += '#attr' + rowOrCol + node + ',';
+                }
+                cssSelector += '#topo' + rowOrCol + node + ',';
+                if (rowOrCol == "Row") {
+                    cssSelector += '#nodeLabelRow' + node + ',';
+                }
             }
         }
         // remove last comma
@@ -958,20 +913,18 @@ var View = /** @class */ (function () {
      * @param  nodeID [description]
      * @return        [description]
      */
-    View.prototype.selectNeighborNodes = function (nodeID) {
-        var nodeIndex = this.controller.state.adjMatrix.columnSelectedNodes.indexOf(nodeID);
-        if (nodeIndex > -1) {
+    View.prototype.selectNeighborNodes = function (nodeID, neighbors) {
+        if (nodeID in this.controller.columnSelectedNodes) {
             // find all neighbors and remove them
-            this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
-            this.removeHighlightNode(nodeID);
-            this.controller.state.adjMatrix.columnSelectedNodes.splice(nodeIndex, 1);
-            // remove node from column selected nodes
+            delete this.controller.columnSelectedNodes[nodeID];
         }
         else {
             this.addHighlightNode(nodeID);
-            this.controller.state.adjMatrix.columnSelectedNodes.push(nodeID);
+            var newElement = {};
+            newElement[nodeID] = neighbors;
+            this.controller.columnSelectedNodes = Object.assign(this.controller.columnSelectedNodes, newElement);
         }
-        this.renderNeighborHighlightNodes();
+        this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, "neighbor", "Row");
         /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
     
         if(index > -1){ // if in selected node, remove it (unless it is )
@@ -1018,7 +971,6 @@ var View = /** @class */ (function () {
     View.prototype.sort = function (order) {
         var _this = this;
         var nodeIDs = this.nodes.map(function (node) { return node.id; });
-        console.log(order, this.order, nodeIDs, nodeIDs.includes(order));
         if (nodeIDs.includes(order)) {
             this.order = this.controller.changeOrder(order, true);
             (order);
@@ -1026,13 +978,12 @@ var View = /** @class */ (function () {
         else {
             this.order = this.controller.changeOrder(order);
         }
-        console.log(this.order);
-        // this.orderingScale.domain(this.order);
+        this.orderingScale.domain(this.order);
         var transitionTime = 500;
         d3.selectAll(".row")
-            //.transition()
-            //.duration(transitionTime)
-            //.delay((d, i) => { return this.orderingScale(i) * 4; })
+            .transition()
+            .duration(transitionTime)
+            // .delay((d , i) => { return this.orderingScale(i) * 4; })
             .attr("transform", function (d, i) {
             if (i > _this.order.length - 1)
                 return;
@@ -1046,23 +997,12 @@ var View = /** @class */ (function () {
         //   .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
         // update each highlightRowsIndex
         // if any other method other than neighbors sort
-        if (!nodeIDs.includes(parseInt(order))) {
+        if (!nodeIDs.includes(order)) {
             var t = this.edges; //.transition().duration(transitionTime);
             t.selectAll(".column")
                 //.delay((d, i) => { return this.orderingScale(i) * 4; })
                 .attr("transform", function (d, i) { return "translate(" + _this.orderingScale(i) + ",0)rotate(-90)"; });
         }
-        /*d3.selectAll('.highlightRow') // taken care of as they're apart of row and column groupings already
-          .transition()
-          .duration(transitionTime)
-          .delay((d, i) => { return this.orderingScale(i) * 4; })
-          .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
-    
-        d3.selectAll('.highlightCol')
-          .transition()
-          .duration(transitionTime)
-          .delay((d, i) => { return this.orderingScale(i) * 4; })
-          .attr("transform", (d, i) => { return "translate(" + this.orderingScale(i) + ")rotate(-90)"; });*/
         // change glyph coloring for sort
         // d3.selectAll('.glyph').attr('fill', '#8B8B8B');
         // // for quantitative values, change their color
@@ -1070,7 +1010,7 @@ var View = /** @class */ (function () {
         //   this.controller.view.columnGlyphs[order].attr('fill', '#EBB769');
         // }
         d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter(function (d) { return d == order; }).style('fill', '#EBB769');
-        if (!nodeIDs.includes(parseInt(order))) {
+        if (!nodeIDs.includes(order)) {
             var cells = d3.selectAll(".cell") //.selectAll('rect')
                 //.transition()
                 //.duration(transitionTime)
@@ -1084,412 +1024,373 @@ var View = /** @class */ (function () {
             d3.select('#sortIcon' + order).style('fill', '#EBB769');
         }
     };
-    View.prototype.updateCheckBox = function (state) {
-        var _this = this;
-        if (this.controller.attributeScales.node.selected == undefined) {
-            return;
-        }
-        var color = this.controller.attributeScales.node.selected.range[0];
-        d3.selectAll('.answerBox').selectAll('rect').transition().duration(250)
-            .style("fill", function (d) {
-            var answerStatus = d[_this.datumID] in state.selections.answerBox;
-            return answerStatus ? color : "white";
-        });
-    };
-    View.prototype.updateAnswerToggles = function (state) {
-        var _this = this;
-        if (this.controller.attributeScales.node.selected == undefined) {
-            return;
-        }
-        var color = this.controller.attributeScales.node.selected.range[0];
-        d3.selectAll('.answerBox').selectAll('circle').transition().duration(500)
-            .attr("cx", function (d) {
-            var answerStatus = d[_this.datumID] in state.selections.answerBox;
-            return (answerStatus ? 3 * _this.columnWidths['selected'] / 4 : 1.15 * _this.columnWidths['selected'] / 4);
-        })
-            .style("fill", function (d) {
-            var answerStatus = d[_this.datumID] in state.selections.answerBox;
-            return answerStatus ? color : "white";
-        });
-        d3.select('.answerBox').selectAll('rect').transition().duration(500)
-            .style("fill", function (d) {
-            var answerStatus = d[_this.datumID] in state.selections.answerBox;
-            return answerStatus ? "#8B8B8B" : "lightgray";
-        });
-    };
     /**
      * [initializeAttributes description]
      * @return [description]
      */
     View.prototype.initializeAttributes = function () {
+        // let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
+        // let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
+        // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
+        // this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
         var _this = this;
-        var width = this.controller.visWidth * this.controller.attributeProportion; //this.edgeWidth + this.margins.left + this.margins.right;
-        var height = this.controller.visHeight; //this.edgeHeight + this.margins.top + this.margins.bottom;
-        this.attributeWidth = width - (this.margins.left + this.margins.right); //* this.controller.attributeProportion;
-        this.attributeHeight = height - (this.margins.top + this.margins.bottom); // * this.controller.attributeProportion;
-        this.attributes = d3.select('#attributes').append("svg")
-            .attr("viewBox", "0 0 " + (width) + " " + height + "")
-            .attr("preserveAspectRatio", "xMinYMin meet")
-            .append("g")
-            .classed("svg-content", true)
-            .attr('id', 'attributeMargin')
-            .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
-        // add zebras and highlight rows
-        /*
-        this.attributes.selectAll('.highlightRow')
-          .data(this.nodes)
-          .enter()
-          .append('rect')
-          .classed('highlightRow', true)
-          .attr('x', 0)
-          .attr('y', (d, i) => this.orderingScale(i))
-          .attr('width', this.attributeWidth)
-          .attr('height', this.orderingScale.bandwidth())
-          .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
-          */
-        var barMargin = { top: 1, bottom: 1, left: 5, right: 5 };
-        var barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
-        // Draw each row (translating the y coordinate)
-        this.attributeRows = this.attributes.selectAll(".row")
-            .data(this.nodes)
-            .enter().append("g")
-            .attr("class", "row")
-            .attr("transform", function (d, i) {
-            return "translate(0," + _this.orderingScale(i) + ")";
-        });
-        this.attributeRows.append("line")
-            .attr("x1", 0)
-            .attr("x2", this.controller.attrWidth)
-            .attr('stroke', '2px')
-            .attr('stroke-opacity', 0.3);
-        var attributeMouseOver = function (d) {
-            _this.addHighlightNodesToDict(_this.controller.hoverRow, d[_this.datumID], d[_this.datumID]); // Add row (rowid)
-            _this.addHighlightNodesToDict(_this.controller.hoverCol, d[_this.datumID], d[_this.datumID]); // Add row (rowid)
-            _this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d[_this.datumID] });
-            d3.selectAll('.hovered').classed('hovered', false);
-            _this.renderHighlightNodesFromDict(_this.controller.hoverRow, 'hovered', 'Row');
-            _this.renderHighlightNodesFromDict(_this.controller.hoverCol, 'hovered', 'Col');
-        };
-        this.attributeMouseOver = attributeMouseOver;
-        var attributeMouseOut = function (d) {
-            _this.removeHighlightNodesToDict(_this.controller.hoverRow, d[_this.datumID], d[_this.datumID]); // Add row (rowid)
-            _this.removeHighlightNodesToDict(_this.controller.hoverCol, d[_this.datumID], d[_this.datumID]); // Add row (rowid)
-            d3.selectAll('.hovered').classed('hovered', false);
-            _this.renderHighlightNodesFromDict(_this.controller.hoverRow, 'hovered', 'Row');
-        };
-        this.attributeMouseOut = attributeMouseOut;
-        this.attributeRows.append('rect')
-            .attr('x', 0)
-            .attr('y', 0)
-            .classed('attrRow', true)
-            .attr('id', function (d, i) {
-            return "attrRow" + d[_this.datumID];
-        })
-            .attr('width', width)
-            .attr('height', this.orderingScale.bandwidth()) // end addition
-            .attr("fill-opacity", 0)
-            .on('mouseover', attributeMouseOver)
-            .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
-        var columns = this.controller.nodeAttributes;
-        //columns.unshift('selected'); // ANSWER COLUMNS
-        var formatCurrency = d3.format("$,.0f"), formatNumber = d3.format(",.0f");
-        // generate scales for each
-        var attributeScales = {};
-        this.columnScale = d3.scaleOrdinal().domain(columns);
-        // Calculate Column Scale
-        var columnRange = [];
-        var xRange = 0;
-        var columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
-        //450 / columns.length;
-        this.columnWidths = columnWidths;
-        var categoricalAttributes = ["type", "continent"];
-        var quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"];
-        columns.forEach(function (col, index) {
-            // calculate range
-            columnRange.push(xRange);
-            var domain = _this.controller.attributeScales.node[col].domain;
-            if (quantitativeAttributes.indexOf(col) > -1) {
-                var scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
-                scale.clamp(true);
-                attributeScales[col] = scale;
-            }
-            else {
-                // append colored blocks
-                // placeholder scale
-                var range = _this.controller.attributeScales.node[col].range;
-                var scale = d3.scaleOrdinal().domain(domain).range(range);
-                //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
-                attributeScales[col] = scale;
-            }
-            xRange += columnWidths[col];
-        });
-        this.attributeScales = attributeScales;
-        // need max and min of each column
-        /*this.barWidthScale = d3.scaleLinear()
-          .domain([0, 1400])
-          .range([0, 140]);*/
-        var placementScale = {};
-        this.columnScale.range(columnRange);
-        for (var _i = 0, _a = Object.entries(attributeScales); _i < _a.length; _i++) {
-            var _b = _a[_i], column = _b[0], scale = _b[1];
-            if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
-                placementScale[column] = this.generateCategoricalLegend(column, columnWidths[column]);
-            }
-            else if (quantitativeAttributes.indexOf(column) > -1) {
-                this.attributes.append("g")
-                    .attr("class", "attr-axis")
-                    .attr("transform", "translate(" + this.columnScale(column) + "," + -15 + ")")
-                    .call(d3.axisTop(scale)
-                    .tickValues(scale.domain())
-                    .tickFormat(function (d) {
-                    if ((d / 1000) >= 1) {
-                        d = Math.round(d / 1000) + "K";
-                    }
-                    return d;
-                }))
-                    .selectAll('text')
-                    .style("text-anchor", function (d, i) { return i % 2 ? "end" : "start"; });
-            }
-        }
-        this.columnGlyphs = {};
-        /* Create data columns data */
-        columns.forEach(function (column, index) {
-            var columnPosition = _this.columnScale(column);
-            if (categoricalAttributes.indexOf(column) > -1) { // if categorical
-                _this.createUpsetPlot(column, columnWidths[index], placementScale[column]);
-                return;
-            }
-            else if (quantitativeAttributes.indexOf(column) > -1) { // if quantitative
-                _this.columnGlyphs[column] = _this.attributeRows
-                    .append("rect")
-                    .attr("class", "glyph " + column)
-                    .attr('height', barHeight)
-                    .attr('width', 10) // width changed later on transition
-                    .attr('x', columnPosition + barMargin.left)
-                    .attr('y', barMargin.top) // as y is set by translate
-                    .attr('fill', function (d) {
-                    return _this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B';
-                })
-                    .on('mouseover', function (d) {
-                    //if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-                    //that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
-                    var matrix = this.getScreenCTM()
-                        .translate(+this.getAttribute("x"), +this.getAttribute("y"));
-                    that.tooltip.html(Math.round(d[column]))
-                        .style("left", (window.pageXOffset + matrix.e + columnWidths[column] / 2 - 35) + "px")
-                        .style("top", (window.pageYOffset + matrix.f - 5) + "px");
-                    that.tooltip.transition()
-                        .duration(200)
-                        .style("opacity", .9);
-                    attributeMouseOver(d);
-                    //}
-                })
-                    .on('mouseout', function (d) {
-                    that.tooltip.transition().duration(25).style("opacity", 0);
-                    attributeMouseOut(d);
-                });
-                _this.columnGlyphs[column]
-                    .transition()
-                    .duration(2000)
-                    .attr('width', function (d, i) { return attributeScales[column](d[column]); });
-                _this.attributeRows
-                    .append("div")
-                    .attr("class", "glyphLabel")
-                    .text(function (d, i) {
-                    return (d);
-                });
-            }
-            else {
-                barMargin.left = 1;
-                var answerBox = _this.attributeRows
-                    .append('g')
-                    .attr("class", "answerBox")
-                    .attr("id", function (d) { return "answerBox" + d[_this.datumID]; })
-                    .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
-                if (_this.controller.adjMatrix.toggle) {
-                    var rect = answerBox.append("rect")
-                        .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
-                        .attr("y", barMargin.top)
-                        .attr("rx", barHeight / 2)
-                        .attr("ry", barHeight / 2)
-                        .style("fill", "lightgray")
-                        .attr("width", columnWidths[column] / 2)
-                        .attr("height", barHeight)
-                        .attr('stroke', 'lightgray')
-                        .on('mouseover', attributeMouseOver)
-                        .on('mouseout', attributeMouseOut);
-                    var circle = answerBox.append("circle")
-                        .attr("cx", (1.15 * columnWidths[column] / 4))
-                        .attr("cy", barHeight / 2 + barMargin.top)
-                        .attr("r", barHeight / 2)
-                        .style("fill", "white")
-                        .style('stroke', 'lightgray');
-                }
-                else {
-                    var initalHeight = barHeight;
-                    var newBarHeight = d3.min([barHeight, 15]);
-                    var rect = answerBox.append("rect")
-                        .attr("x", (columnWidths[column] / 2) - newBarHeight / 2) // if column with is 1, we want this at 1/4, and 1/2 being mid point
-                        .attr("y", barMargin.top + (initalHeight - newBarHeight) / 2)
-                        //.attr("rx", barHeight / 2)
-                        //.attr("ry", barHeight / 2)
-                        .style("fill", "white")
-                        .attr("width", newBarHeight)
-                        .attr("height", newBarHeight)
-                        .attr('stroke', 'lightgray')
-                        .on('mouseover', attributeMouseOver)
-                        .on('mouseout', attributeMouseOut);
-                }
-                answerBox
-                    .on('click', function (d) {
-                    var color = _this.controller.attributeScales.node.selected.range[0];
-                    //if already answer
-                    var nodeID = _this.determineID(d);
-                    /*Visual chagne */
-                    var answerStatus = false; // TODO, remove?
-                    if (_this.controller.adjMatrix.toggle) {
-                        d3.select(nodes[i]).selectAll('circle').transition().duration(500)
-                            .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
-                            .style("fill", answerStatus ? color : "white");
-                        d3.select(nodes[i]).selectAll('rect').transition().duration(500)
-                            .style("fill", answerStatus ? "#8B8B8B" : "lightgray");
-                    }
-                    else {
-                    }
-                    nodeClick(d);
-                    //let action = this.changeInteractionWrapper(nodeID, i, nodes);
-                    //this.controller.model.provenance.applyAction(action);
-                    //d3.select(nodes[i]).transition().duration(500).attr('fill',)
-                });
-            }
-        });
-        // Add Verticle Dividers
-        this.attributes.selectAll('.column')
-            .data(columns)
-            .enter()
-            .append('line')
-            .style('stroke', '1px')
-            .attr('x1', function (d) { return _this.columnScale(d); })
-            .attr("y1", -20)
-            .attr('x2', function (d) { return _this.columnScale(d); })
-            .attr("y2", this.attributeHeight + this.margins.bottom)
-            .attr('stroke-opacity', 0.4);
-        // Add headers
-        this.columnNames = {
-            "followers_count": "Followers",
-            "query_tweet_count": "On-Topic Tweets",
-            "friends_count": "Friends",
-            "statuses_count": "Tweets",
-            "favourites_count": "Liked Tweets",
-            "count_followers_in_query": "In-Network Followers",
-            "continent": "Continent",
-            "type": "Type",
-            "memberFor_days": "Account Age",
-            "listed_count": "In Lists",
-            "selected": "Answer"
-        };
-        var that = this;
-        function calculateMaxChars(numColumns) {
-            switch (numColumns) {
-                case 1:
-                    return { "characters": 20, "font": 13 };
-                case 2:
-                    return { "characters": 20, "font": 13 };
-                case 3:
-                    return { "characters": 20, "font": 12 };
-                case 4:
-                    return { "characters": 19, "font": 12 };
-                case 5:
-                    return { "characters": 18, "font": 12 };
-                case 6:
-                    return { "characters": 16, "font": 11 };
-                case 7:
-                    return { "characters": 14, "font": 10 };
-                case 8:
-                    return { "characters": 12, "font": 10 };
-                case 9:
-                    return { "characters": 10, "font": 10 };
-                case 10:
-                    return { "characters": 8, "font": 10 };
-                default:
-                    return { "characters": 8, "font": 10 };
-            }
-        }
-        var options = calculateMaxChars(columns.length); // 10 attr => 8
-        var maxcharacters = options.characters;
-        var fontSize = options.font; //*1.1;
-        //this.createColumnHeaders();
-        var columnHeaders = this.attributes.append('g')
-            .classed('column-headers', true);
-        var columnHeaderGroups = columnHeaders.selectAll('.header')
-            .data(columns)
-            .enter()
-            .append('g')
-            .attr('transform', function (d) { return 'translate(' + (_this.columnScale(d)) + ',' + (-65) + ')'; });
-        columnHeaderGroups
-            .append('rect')
-            .attr('width', function (d) { return _this.columnWidths[d]; })
-            .attr('height', 20)
-            .attr('y', 0)
-            .attr('x', 0)
-            .attr('fill', 'none')
-            .attr('stroke', 'lightgray')
-            .attr('stroke-width', 1);
-        columnHeaderGroups
-            .append('text')
-            .classed('header', true)
-            //.attr('y', -45)
-            //.attr('x', (d) => this.columnScale(d) + barMargin.left)
-            .style('font-size', this.nodeFontSize.toString() + 'px')
-            .attr('text-anchor', 'middle')
-            //.attr('transform','rotate(-10)')
-            .text(function (d, i) {
-            if (_this.columnNames[d] && _this.columnNames[d].length > maxcharacters) {
-                return _this.columnNames[d].slice(0, maxcharacters - 2) + '...'; // experimentally determine how big
-            }
-            return _this.columnNames[d];
-        })
-            .attr('x', function (d) { return _this.columnWidths[d] / 2; })
-            .attr('y', 14)
-            .on('mouseover', function (d) {
-            if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-                that.tooltip.transition().duration(200).style("opacity", .9);
-                var matrix = this.getScreenCTM()
-                    .translate(+this.getAttribute("x"), +this.getAttribute("y"));
-                that.tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                that.tooltip.html(that.columnNames[d])
-                    .style("left", (window.pageXOffset + matrix.e - 25) + "px")
-                    .style("top", (window.pageYOffset + matrix.f - 20) + "px");
-            }
-        })
-            .on('mouseout', function (d) {
-            that.tooltip.transition().duration(250).style("opacity", 0);
-        })
-            .on('click', function (d) {
-            if (d !== 'selected') {
-                _this.sort(d);
-            }
-        });
-        columnHeaderGroups;
-        if (columns.length < 6) {
-            var path = columnHeaderGroups
-                .filter(function (d) { return d !== 'selected'; })
-                .append('path')
-                .attr('class', 'sortIcon')
-                .attr('d', function (d) {
-                // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
-                // return this.controller.model.icons[variable].d;
-            }).style('fill', function (d) { return d == _this.controller.model.orderType ? '#EBB769' : '#8B8B8B'; })
-                .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
-                .on('click', function (d) { _this.sort(d); })
-                .attr('cursor', 'pointer');
-        }
-        var answerColumn = columnHeaders.selectAll('.header').filter(function (d) { return d == 'selected'; });
-        answerColumn.attr('font-weight', 650);
-        var nonAnswerColumn = columnHeaders.selectAll('.header').filter(function (d) { return d !== 'selected'; });
-        nonAnswerColumn.attr('cursor', 'pointer');
+        // this.attributes = d3.select('#attributes').append("svg")
+        //   .attr("viewBox", "0 0 " + (width) + " " + height + "")
+        //   .attr("preserveAspectRatio", "xMinYMin meet")
+        //   .append("g")
+        //   .classed("svg-content", true)
+        //   .attr('id', 'attributeMargin')
+        //   .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
+        // // add zebras and highlight rows
+        // /*
+        // this.attributes.selectAll('.highlightRow')
+        //   .data(this.nodes)
+        //   .enter()
+        //   .append('rect')
+        //   .classed('highlightRow', true)
+        //   .attr('x', 0)
+        //   .attr('y', (d, i) => this.orderingScale(i))
+        //   .attr('width', this.attributeWidth)
+        //   .attr('height', this.orderingScale.bandwidth())
+        //   .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
+        //   */
+        // let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
+        // let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
+        // // Draw each row (translating the y coordinate)
+        // this.attributeRows = this.attributes.selectAll(".row")
+        //   .data(this.nodes)
+        //   .enter().append("g")
+        //   .attr("class", "row")
+        //   .attr("transform", (d, i) => {
+        //     return "translate(0," + this.orderingScale(i) + ")";
+        //   });
+        // this.attributeRows.append("line")
+        //   .attr("x1", 0)
+        //   .attr("x2", this.controller.attrWidth)
+        //   .attr('stroke', '2px')
+        //   .attr('stroke-opacity', 0.3);
+        // let attributeMouseOver = (d) => {
+        //   this.addHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+        //   this.addHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+        //   this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d[this.datumID] })
+        //   d3.selectAll('.hovered').classed('hovered', false);
+        //   this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+        //   this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
+        // };
+        // this.attributeMouseOver = attributeMouseOver;
+        // let attributeMouseOut = (d) => {
+        //   this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+        //   this.removeHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+        //   d3.selectAll('.hovered').classed('hovered', false);
+        //   this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+        // };
+        // this.attributeMouseOut = attributeMouseOut;
+        // this.attributeRows.append('rect')
+        //   .attr('x', 0)
+        //   .attr('y', 0)
+        //   .classed('attrRow', true)
+        //   .attr('id', (d, i) => {
+        //     return "attrRow" + d[this.datumID];
+        //   })
+        //   .attr('width', width)
+        //   .attr('height', this.orderingScale.bandwidth()) // end addition
+        //   .attr("fill-opacity", 0)
+        //   .on('mouseover', attributeMouseOver)
+        //   .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
+        // let columns = this.controller.nodeAttributes;
+        // //columns.unshift('selected'); // ANSWER COLUMNS
+        // var formatCurrency = d3.format("$,.0f"),
+        //   formatNumber = d3.format(",.0f");
+        // // generate scales for each
+        // let attributeScales = {};
+        // this.columnScale = d3.scaleOrdinal().domain(columns)
+        // // // Calculate Column Scale
+        // // let columnRange = []
+        // // let xRange = 0;
+        // // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
+        // // //450 / columns.length;
+        // // this.columnWidths = columnWidths;
+        // let categoricalAttributes = ["type", "continent"]
+        // let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
+        // // columns.forEach((col, index) => {
+        // //   // calculate range
+        // //   columnRange.push(xRange);
+        // //   let domain = this.controller.attributeScales.node[col].domain;
+        // //   if (quantitativeAttributes.indexOf(col) > -1) {
+        // //     let scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
+        // //     scale.clamp(true);
+        // //     attributeScales[col] = scale;
+        // //   } else {
+        // //     // append colored blocks
+        // //     // placeholder scale
+        // //     let range = this.controller.attributeScales.node[col].range;
+        // //     let scale = d3.scaleOrdinal().domain(domain).range(range);
+        // //     //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
+        // //     attributeScales[col] = scale;
+        // //   }
+        // //   xRange += columnWidths[col];
+        // // })
+        // // this.attributeScales = attributeScales;
+        // // need max and min of each column
+        // /*this.barWidthScale = d3.scaleLinear()
+        //   .domain([0, 1400])
+        //   .range([0, 140]);*/
+        // let placementScale = {};
+        // this.columnScale.range(columnRange);
+        // for (let [column, scale] of Object.entries(attributeScales)) {
+        //   if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
+        //     placementScale[column] = this.generateCategoricalLegend(column, columnWidths[column]);
+        //   } else if (quantitativeAttributes.indexOf(column) > -1) {
+        //     this.attributes.append("g")
+        //       .attr("class", "attr-axis")
+        //       .attr("transform", "translate(" + this.columnScale(column) + "," + -15 + ")")
+        //       .call(d3.axisTop(scale)
+        //         .tickValues(scale.domain())
+        //         .tickFormat((d) => {
+        //           if ((d / 1000) >= 1) {
+        //             d = Math.round(d / 1000) + "K";
+        //           }
+        //           return d;
+        //         }))
+        //       .selectAll('text')
+        //       .style("text-anchor", function(d, i) { return i % 2 ? "end" : "start" });
+        //   }
+        // }
+        // this.columnGlyphs = {};
+        // /* Create data columns data */
+        // columns.forEach((column, index) => {
+        //   let columnPosition = this.columnScale(column);
+        //   if (categoricalAttributes.indexOf(column) > -1) { // if categorical
+        //     this.createUpsetPlot(column, columnWidths[index], placementScale[column]);
+        //     return;
+        //   } else if (quantitativeAttributes.indexOf(column) > -1) { // if quantitative
+        //     this.columnGlyphs[column] = this.attributeRows
+        //       .append("rect")
+        //       .attr("class", "glyph " + column)
+        //       .attr('height', barHeight)
+        //       .attr('width', 10) // width changed later on transition
+        //       .attr('x', columnPosition + barMargin.left)
+        //       .attr('y', barMargin.top) // as y is set by translate
+        //       .attr('fill', d => {
+        //         return this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B'
+        //       })
+        //       .on('mouseover', function(d) {
+        //         //if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
+        //         //that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
+        //         let matrix = this.getScreenCTM()
+        //           .translate(+this.getAttribute("x"), +this.getAttribute("y"));
+        //         that.tooltip.html(Math.round(d[column]))
+        //           .style("left", (window.pageXOffset + matrix.e + columnWidths[column] / 2 - 35) + "px")
+        //           .style("top", (window.pageYOffset + matrix.f - 5) + "px");
+        //         that.tooltip.transition()
+        //           .duration(200)
+        //           .style("opacity", .9);
+        //         attributeMouseOver(d);
+        //         //}
+        //       })
+        //       .on('mouseout', (d) => {
+        //         that.tooltip.transition().duration(25).style("opacity", 0);
+        //         attributeMouseOut(d);
+        //       })
+        //     this.columnGlyphs[column]
+        //       .transition()
+        //       .duration(2000)
+        //       .attr('width', (d, i) => { return attributeScales[column](d[column]); })
+        //     this.attributeRows
+        //       .append("div")
+        //       .attr("class", "glyphLabel")
+        //       .text(function(d, i) {
+        //         return (d);
+        //       });
+        //   } else {
+        //     barMargin.left = 1;
+        //     let answerBox = this.attributeRows
+        //       .append('g')
+        //       .attr("class", "answerBox")
+        //       .attr("id", d => "answerBox" + d[this.datumID])
+        //       .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
+        //     if (this.controller.adjMatrix.toggle) {
+        //       let rect = answerBox.append("rect")
+        //         .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
+        //         .attr("y", barMargin.top)
+        //         .attr("rx", barHeight / 2)
+        //         .attr("ry", barHeight / 2)
+        //         .style("fill", "lightgray")
+        //         .attr("width", columnWidths[column] / 2)
+        //         .attr("height", barHeight)
+        //         .attr('stroke', 'lightgray')
+        //         .on('mouseover', attributeMouseOver)
+        //         .on('mouseout', attributeMouseOut);
+        //       let circle = answerBox.append("circle")
+        //         .attr("cx", (1.15 * columnWidths[column] / 4))
+        //         .attr("cy", barHeight / 2 + barMargin.top)
+        //         .attr("r", barHeight / 2)
+        //         .style("fill", "white")
+        //         .style('stroke', 'lightgray');
+        //     } else {
+        //       let initalHeight = barHeight;
+        //       let newBarHeight = d3.min([barHeight,15])
+        //       let rect = answerBox.append("rect")
+        //         .attr("x", (columnWidths[column] / 2) - newBarHeight / 2) // if column with is 1, we want this at 1/4, and 1/2 being mid point
+        //         .attr("y", barMargin.top + (initalHeight-newBarHeight)/2)
+        //         //.attr("rx", barHeight / 2)
+        //         //.attr("ry", barHeight / 2)
+        //         .style("fill", "white")
+        //         .attr("width", newBarHeight)
+        //         .attr("height", newBarHeight)
+        //         .attr('stroke', 'lightgray')
+        //         .on('mouseover', attributeMouseOver)
+        //         .on('mouseout', attributeMouseOut);
+        //     }
+        //     answerBox
+        //       .on('click', (d) => {
+        //         let color = this.controller.attributeScales.node.selected.range[0];
+        //         //if already answer
+        //         let nodeID = this.determineID(d);
+        //         /*Visual chagne */
+        //         let answerStatus = false; // TODO, remove?
+        //         if (this.controller.adjMatrix.toggle) {
+        //           d3.select(nodes[i]).selectAll('circle').transition().duration(500)
+        //             .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
+        //             .style("fill", answerStatus ? color : "white");
+        //           d3.select(nodes[i]).selectAll('rect').transition().duration(500)
+        //             .style("fill", answerStatus ? "#8B8B8B" : "lightgray");
+        //         } else {
+        //         }
+        //         nodeClick(d);
+        //         //let action = this.changeInteractionWrapper(nodeID, i, nodes);
+        //         //this.controller.model.provenance.applyAction(action);
+        //         //d3.select(nodes[i]).transition().duration(500).attr('fill',)
+        //       })
+        //   }
+        // });
+        // // Add Verticle Dividers
+        // this.attributes.selectAll('.column')
+        //   .data(columns)
+        //   .enter()
+        //   .append('line')
+        //   .style('stroke', '1px')
+        //   .attr('x1', (d) => this.columnScale(d))
+        //   .attr("y1", -20)
+        //   .attr('x2', (d) => this.columnScale(d))
+        //   .attr("y2", this.attributeHeight + this.margins.bottom)
+        //   .attr('stroke-opacity', 0.4);
+        // // Add headers
+        // this.columnNames = {
+        //   "followers_count": "Followers",
+        //   "query_tweet_count": "On-Topic Tweets", // not going to be used (how active this person was on the conference)
+        //   "friends_count": "Friends",
+        //   "statuses_count": "Tweets",
+        //   "favourites_count": "Liked Tweets",
+        //   "count_followers_in_query": "In-Network Followers",
+        //   "continent": "Continent",
+        //   "type": "Type",
+        //   "memberFor_days": "Account Age",
+        //   "listed_count": "In Lists",
+        //   "selected": "Answer"
+        // }
+        // let that = this;
+        // function calculateMaxChars(numColumns) {
+        //   switch (numColumns) {
+        //     case 1:
+        //       return { "characters": 20, "font": 13 }
+        //     case 2:
+        //       return { "characters": 20, "font": 13 }
+        //     case 3:
+        //       return { "characters": 20, "font": 12 }
+        //     case 4:
+        //       return { "characters": 19, "font": 12 }
+        //     case 5:
+        //       return { "characters": 18, "font": 12 }
+        //     case 6:
+        //       return { "characters": 16, "font": 11 }
+        //     case 7:
+        //       return { "characters": 14, "font": 10 }
+        //     case 8:
+        //       return { "characters": 12, "font": 10 }
+        //     case 9:
+        //       return { "characters": 10, "font": 10 }
+        //     case 10:
+        //       return { "characters": 8, "font": 10 }
+        //     default:
+        //       return { "characters": 8, "font": 10 }
+        //   }
+        // }
+        // let options = calculateMaxChars(columns.length)// 10 attr => 8
+        // let maxcharacters = options.characters;
+        // let fontSize = options.font//*1.1;
+        // //this.createColumnHeaders();
+        // let columnHeaders = this.attributes.append('g')
+        //   .classed('column-headers', true)
+        // let columnHeaderGroups = columnHeaders.selectAll('.header')
+        //   .data(columns)
+        //   .enter()
+        //   .append('g')
+        //   .attr('transform', (d) => 'translate(' + (this.columnScale(d)) + ',' + (-65) + ')')
+        // columnHeaderGroups
+        //   .append('rect')
+        //   .attr('width', d => this.columnWidths[d])
+        //   .attr('height', 20)
+        //   .attr('y', 0)
+        //   .attr('x', 0)
+        //   .attr('fill', 'none')
+        //   .attr('stroke', 'lightgray')
+        //   .attr('stroke-width', 1)
+        // columnHeaderGroups
+        //   .append('text')
+        //   .classed('header', true)
+        //   //.attr('y', -45)
+        //   //.attr('x', (d) => this.columnScale(d) + barMargin.left)
+        //   .style('font-size', this.nodeFontSize.toString() + 'px')
+        //   .attr('text-anchor', 'middle')
+        //   //.attr('transform','rotate(-10)')
+        //   .text((d, i) => {
+        //     if (this.columnNames[d] && this.columnNames[d].length > maxcharacters) {
+        //       return this.columnNames[d].slice(0, maxcharacters - 2) + '...';// experimentally determine how big
+        //     }
+        //     return this.columnNames[d];
+        //   })
+        //   .attr('x', d => this.columnWidths[d] / 2)
+        //   .attr('y', 14)
+        //   .on('mouseover', function(d) {
+        //     if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
+        //       that.tooltip.transition().duration(200).style("opacity", .9);
+        //       let matrix = this.getScreenCTM()
+        //         .translate(+this.getAttribute("x"), +this.getAttribute("y"));
+        //       that.tooltip.transition()
+        //         .duration(200)
+        //         .style("opacity", .9);
+        //       that.tooltip.html(that.columnNames[d])
+        //         .style("left", (window.pageXOffset + matrix.e - 25) + "px")
+        //         .style("top", (window.pageYOffset + matrix.f - 20) + "px");
+        //     }
+        //   })
+        //   .on('mouseout', function(d) {
+        //     that.tooltip.transition().duration(250).style("opacity", 0);
+        //   })
+        //   .on('click', (d) => {
+        //     if (d !== 'selected') {
+        //       this.sort(d);
+        //     }
+        //   })
+        // columnHeaderGroups
+        // if (columns.length < 6) {
+        //   let path = columnHeaderGroups
+        //     .filter(d => { return d !== 'selected' })
+        //     .append('path')
+        //     .attr('class', 'sortIcon')
+        //     .attr('d', (d) => {
+        //     // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
+        //     // return this.controller.model.icons[variable].d;
+        //   }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+        //   .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
+        //   .on('click', (d) => {this.sort(d);})
+        //   .attr('cursor', 'pointer');
+        // }
+        // let answerColumn = columnHeaders.selectAll('.header').filter(d => { return d == 'selected' })
+        // answerColumn.attr('font-weight', 650)
+        // let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
+        // nonAnswerColumn.attr('cursor', 'pointer');
         d3.select('.loading').style('display', 'none');
         this.controller.model.setUpProvenance();
         window.focus();

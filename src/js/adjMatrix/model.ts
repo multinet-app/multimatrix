@@ -17,6 +17,7 @@ class Model {
   private app: any;
   public icons: object;
   public sortKey: string;
+  private maxTracker: any;
 
   constructor(controller: any) {
     this.controller = controller;
@@ -29,15 +30,15 @@ class Model {
       this.matrix = [];
       this.scalarMatrix = [];
       
-      // d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
-      // .then(function(error, svg) {
-      //   this.alphabeticalSortSvg = svg;
-      // })
+      d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
+      .then(function(error, svg) {
+        this.alphabeticalSortSvg = svg;
+      })
 
-      // d3.image('../../assets/adj-matrix/categoricalSort.svg')
-      // .then(function(error, svg) {
-      //   this.categoricalSortSvg = svg;
-      // })
+      d3.image('../../assets/adj-matrix/categoricalSort.svg')
+      .then(function(error, svg) {
+        this.categoricalSortSvg = svg;
+      })
 
       // = "M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3 C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z";
 
@@ -213,8 +214,6 @@ class Model {
 
     function classAllHighlights(state) {
 
-      console.log("classallhighlights state", state)
-
       let clickedElements = new Set();
       let answerElements = new Set();
       let neighborElements = new Set();
@@ -250,7 +249,6 @@ class Model {
       }
 
       let clickedSelectorQuery = Array.from(clickedElements).join(',')
-      console.log(clickedSelectorQuery)
       // let answerSelectorQuery = Array.from(answerElements).join(',')
       // let neighborSelectQuery = Array.from(neighborElements).join(',')
 
@@ -305,18 +303,15 @@ class Model {
     }
     setUpObservers();
 
-
     return [app, provenance];
-
-
   }
-
-
 
 
   reload() {
     this.controller.loadData(this.nodes, this.edges, this.matrix);
   }
+
+
   /**
    * [changeInteractionWrapper description]
    * @param  nodeID ID of the node being changed with
@@ -328,7 +323,7 @@ class Model {
     return {
       label: 'sort',
       action: (sortKey) => {
-        const currentState = this.controller.model.app.getApplicationState();
+        const currentState = this.getApplicationState();
         //add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = 'sort';
@@ -354,21 +349,18 @@ class Model {
   changeOrder(type: string, node: boolean = false) {
 
     let action = this.generateSortAction(type);
-    // if(this.provenance){
-    //   this.provenance.applyAction(action);
-    // }
+    if(this.provenance){
+      this.provenance.applyAction(action);
+    }
 
     return this.sortObserver(type,node);
   }
 
   sortObserver(type: string, node: boolean = false){
     let order;
-    // this.orderType = type;
-    // this.sortKey = type;
-    type = "edges"
+    this.sortKey = type;
     this.orderType = type;
     if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
-
       var graph = reorder.graph()
         .nodes(this.nodes)
         .links(this.edges)
@@ -383,29 +375,23 @@ class Model {
         let mat = reorder.graph2mat(graph);
         order = reorder.optimal_leaf_order()(mat);
       }
-
-      //
-
       //order = reorder.optimal_leaf_order()(this.scalarMatrix);
-    }
-    else if (this.orderType == 'edges') {
+    } else if (this.orderType == 'edges') {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     } else if (node == true) {
-      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['shortName'].localeCompare(this.nodes[b]['shortName']));
-      order = d3.range(this.nodes.length).sort((a, b) => {return this.nodes[b]['neighbors'].includes(parseInt(type)) - this.nodes[a]['neighbors'].includes(parseInt(type));});
-    }
-    else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
+      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['id'].localeCompare(this.nodes[b]['id']));
+      order = d3.range(this.nodes.length).sort((a, b) => { return this.nodes[b]['neighbors'].includes(type) - this.nodes[a]['neighbors'].includes(type); });
+    } else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]));
-
     } else {
       order = d3.range(this.nodes.length).sort((a, b) => { return this.nodes[b][type] - this.nodes[a][type]; });
     }
 
     this.order = order;
     return order;
-
   }
-  private maxTracker: any;
+
+
   /**
    * [processData description]
    * @return [description]
@@ -414,35 +400,25 @@ class Model {
     // generate a hashmap of id's?
     // Set up node data
     this.nodes.forEach((rowNode, i) => {
-
-
       /* matrix used for edge attributes, otherwise should we hide */
       this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id+ '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
       this.scalarMatrix[i] = this.nodes.map(function(colNode) { return 0; });
+    });
 
-  });
-    function checkEdge(edge) {
-      if (typeof edge.source !== "number") return false
-      if (typeof edge.target !== "number") return false;
-      return true
-    }
-    this.edges = this.edges.filter(checkEdge);
     this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 }
     // Convert links to matrix; count character occurrences.
     this.edges.forEach((link) => {
-
-
-      let addValue = 1;
       this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
-      //
       this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
-
 
       /* could be used for varying edge types */
       //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += addValue;
+      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
+      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+
 
       this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
+      this.matrix[this.idMap[link.target]][this.idMap[link.source]].count += 1;
       // if not directed, increment the other values
       // if (!isDirected) {
       //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
