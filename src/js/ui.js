@@ -62,7 +62,7 @@ function searchForNode() {
 
 //function that searches for and 'clicks' on node, returns -1 if can't find that node, 0 if nodes is already selected, 1 if node exists and was not selected
 function searchFor(selectedOption) {
-    node = window.controller.model.graph.nodes.find(n => n[window.controller.view.labelVar].toLowerCase() === selectedOption.toLowerCase());
+    node = window.controller.model.graph.nodes.find(n => n[window.controller.view.get('labelVar')].toLowerCase() === selectedOption.toLowerCase());
 
     if (node === undefined) {
         return -1;

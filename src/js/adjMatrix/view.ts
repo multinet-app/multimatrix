@@ -26,7 +26,7 @@ class View {
   private visHeight: number;
 
   private nodeFontSize: string = "12";
-  public labelVar: string = "_key";
+  private labelVar: string = "_key";
   /*
   private edgeSVGWidth: number;
   private edgeSVGHeight: number;
@@ -289,20 +289,7 @@ class View {
       // .style("fill", 'white')
     squares
       .filter(d => d.z == 0)
-      .style("fill-opacity", d => { 
-          let row = d.rowid
-          let column = d.colid
-
-          // Get the number of connections, should only be at most 1 with our test data
-          // let numConnections = graph.links.map(d => { 
-          //   let outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0; 
-          //   return outcome;
-          // })
-          //   .reduce((a, b) => a + b, 0)
-          
-          return d.z
-          // return numConnections
-         });
+      .style("fill-opacity", d => d.z);
 
     this.setSquareColors('all');
 

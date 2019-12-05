@@ -227,18 +227,7 @@ var View = /** @class */ (function () {
         // .style("fill", 'white')
         squares
             .filter(function (d) { return d.z == 0; })
-            .style("fill-opacity", function (d) {
-            var row = d.rowid;
-            var column = d.colid;
-            // Get the number of connections, should only be at most 1 with our test data
-            // let numConnections = graph.links.map(d => { 
-            //   let outcome = d.source === row && d.target === column || d.target === row && d.source === column ? 1 : 0; 
-            //   return outcome;
-            // })
-            //   .reduce((a, b) => a + b, 0)
-            return d.z;
-            // return numConnections
-        });
+            .style("fill-opacity", function (d) { return d.z; });
         this.setSquareColors('all');
     };
     /**
