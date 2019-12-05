@@ -62,7 +62,6 @@ var View = /** @class */ (function () {
         rows = rows.style("font-size", this.nodeFontSize + "pt");
         columns = columns.style("font-size", this.nodeFontSize + "pt");
         // Update labels
-        console.log(this.labelVar);
         rows.text(function (d, i) { return _this.nodes[i][_this.labelVar]; });
         columns.text(function (d, i) { return _this.nodes[i][_this.labelVar]; });
     };
@@ -95,7 +94,6 @@ var View = /** @class */ (function () {
      */
     View.prototype.initializeEdges = function () {
         var _this = this;
-        console.log("redrawing");
         // Set width and height based upon the calculated layout size. Grab the smaller of the 2
         var width = this.controller.visWidth;
         var height = this.controller.visHeight;
@@ -523,7 +521,6 @@ var View = /** @class */ (function () {
      */
     View.prototype.changeInteractionWrapper = function (nodeID, node, interactionType) {
         var _this = this;
-        console.log(interactionType);
         return {
             label: interactionType,
             action: function (nodeID) {
@@ -867,7 +864,6 @@ var View = /** @class */ (function () {
     };
     View.prototype.renderHighlightNodesFromDict = function (dict, classToRender, rowOrCol) {
         if (rowOrCol === void 0) { rowOrCol = 'Row'; }
-        console.log("highlighting", dict, classToRender, rowOrCol);
         //unhighlight all other nodes
         if (classToRender != "hovered") {
             d3.selectAll("." + classToRender)
@@ -898,7 +894,6 @@ var View = /** @class */ (function () {
                 }
             }
         }
-        console.log(dict, cssSelector);
         // remove last comma
         cssSelector = cssSelector.substring(0, cssSelector.length - 1);
         if (cssSelector == '') {
@@ -931,7 +926,6 @@ var View = /** @class */ (function () {
      */
     View.prototype.selectNeighborNodes = function (nodeID, neighbors) {
         if (nodeID in this.controller.columnSelectedNodes) {
-            console.log("neighbor remove", nodeID);
             // find all neighbors and remove them
             delete this.controller.columnSelectedNodes[nodeID];
         }
@@ -1046,7 +1040,6 @@ var View = /** @class */ (function () {
      * @return [description]
      */
     View.prototype.initializeAttributes = function () {
-        // console.log("in attributes")
         // let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
         // let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
         // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
@@ -1072,7 +1065,6 @@ var View = /** @class */ (function () {
         //   .attr('height', this.orderingScale.bandwidth())
         //   .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
         //   */
-        // console.log(1)
         // let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
         // let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
         // // Draw each row (translating the y coordinate)
@@ -1083,7 +1075,6 @@ var View = /** @class */ (function () {
         //   .attr("transform", (d, i) => {
         //     return "translate(0," + this.orderingScale(i) + ")";
         //   });
-        // console.log(2)
         // this.attributeRows.append("line")
         //   .attr("x1", 0)
         //   .attr("x2", this.controller.attrWidth)
@@ -1117,12 +1108,10 @@ var View = /** @class */ (function () {
         //   .attr("fill-opacity", 0)
         //   .on('mouseover', attributeMouseOver)
         //   .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
-        // console.log(3)
         // let columns = this.controller.nodeAttributes;
         // //columns.unshift('selected'); // ANSWER COLUMNS
         // var formatCurrency = d3.format("$,.0f"),
         //   formatNumber = d3.format(",.0f");
-        //   console.log(3.1)
         // // generate scales for each
         // let attributeScales = {};
         // this.columnScale = d3.scaleOrdinal().domain(columns)
@@ -1132,7 +1121,6 @@ var View = /** @class */ (function () {
         // // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
         // // //450 / columns.length;
         // // this.columnWidths = columnWidths;
-        // console.log(3.2)
         // let categoricalAttributes = ["type", "continent"]
         // let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
         // // columns.forEach((col, index) => {
@@ -1154,7 +1142,6 @@ var View = /** @class */ (function () {
         // //   xRange += columnWidths[col];
         // // })
         // // this.attributeScales = attributeScales;
-        // console.log(4)
         // // need max and min of each column
         // /*this.barWidthScale = d3.scaleLinear()
         //   .domain([0, 1400])
@@ -1180,7 +1167,6 @@ var View = /** @class */ (function () {
         //       .style("text-anchor", function(d, i) { return i % 2 ? "end" : "start" });
         //   }
         // }
-        // console.log(5)
         // this.columnGlyphs = {};
         // /* Create data columns data */
         // columns.forEach((column, index) => {
@@ -1425,7 +1411,6 @@ var View = /** @class */ (function () {
         var text = ['name', 'cluster', 'interacts'];
         var sortNames = ['shortName', 'clusterLeaf', 'edges'];
         var iconNames = ['alphabetical', 'categorical', 'quant'];
-        console.log("adding buttons");
         var _loop_2 = function (i) {
             var button = this_2.edges.append('g')
                 .attr('transform', 'translate(' + (-this_2.margins.left) + ',' + (initalY) + ')');
@@ -1449,7 +1434,6 @@ var View = /** @class */ (function () {
         for (var i = 0; i < 3; i++) {
             _loop_2(i);
         }
-        console.log("done adding buttons");
         // Append g's for table headers
         // For any data row, add
         /*.on("click", clicked)

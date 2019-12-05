@@ -80,7 +80,6 @@ var Controller = /** @class */ (function () {
         d3.select('.attrcontainer').style('height', (this.visHeight).toString() + 'px');
         //d3.select('.adjMatrix.vis').style('width',width*0.8);
         d3.select('.adjMatrix.vis').style('width', (this.visWidth).toString() + 'px');
-        console.log(this.visWidth, this.visHeight, this.attributeProportion);
     };
     /**
      * Passes the processed edge and node data to the view.

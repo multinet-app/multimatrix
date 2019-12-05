@@ -157,7 +157,6 @@ var Model = /** @class */ (function () {
             search: rowElements.concat(columnElements)
         };
         function classAllHighlights(state) {
-            console.log("classallhighlights state", state);
             var clickedElements = new Set();
             var answerElements = new Set();
             var neighborElements = new Set();
@@ -190,7 +189,6 @@ var Model = /** @class */ (function () {
                 }
             }
             var clickedSelectorQuery = Array.from(clickedElements).join(',');
-            console.log(clickedSelectorQuery);
             // let answerSelectorQuery = Array.from(answerElements).join(',')
             // let neighborSelectQuery = Array.from(neighborElements).join(',')
             clickedSelectorQuery != [] ? d3.selectAll(clickedSelectorQuery).classed('clicked', true) : null;
@@ -283,10 +281,7 @@ var Model = /** @class */ (function () {
         var _this = this;
         if (node === void 0) { node = false; }
         var order;
-        // this.orderType = type;
-        // this.sortKey = type;
-        console.log(type);
-        // type = "edges"
+        this.sortKey = type;
         this.orderType = type;
         if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
             var graph = reorder.graph()
@@ -311,7 +306,7 @@ var Model = /** @class */ (function () {
         }
         else if (node == true) {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a]['id'].localeCompare(_this.nodes[b]['id']); });
-            order = d3.range(this.nodes.length).sort(function (a, b) { console.log(_this.nodes[b]); return _this.nodes[b]['neighbors'].includes(type) - _this.nodes[a]['neighbors'].includes(type); });
+            order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[b]['neighbors'].includes(type) - _this.nodes[a]['neighbors'].includes(type); });
         }
         else if (false /*!this.isQuant(this.orderType)*/) { // == "screen_name" || this.orderType == "name") {
             order = d3.range(this.nodes.length).sort(function (a, b) { return _this.nodes[a][_this.orderType].localeCompare(_this.nodes[b][_this.orderType]); });
