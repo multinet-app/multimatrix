@@ -323,7 +323,6 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.processData = function () {
         var _this = this;
-        console.log("Processing data");
         // generate a hashmap of id's?
         // Set up node data
         this.nodes.forEach(function (rowNode, i) {

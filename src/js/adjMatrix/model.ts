@@ -397,7 +397,6 @@ class Model {
    * @return [description]
    */
   processData() {
-    console.log("Processing data")
     // generate a hashmap of id's?
     // Set up node data
     this.nodes.forEach((rowNode, i) => {
