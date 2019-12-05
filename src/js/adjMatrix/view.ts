@@ -123,7 +123,7 @@ class View {
     d3.select('.loading').style('display', 'block').style('opacity', 1);
 
     this.initializeEdges();
-    // this.initializeAttributes();
+    this.initializeAttributes();
 
     d3.select('.loading').style('display', 'none');
   }
@@ -423,7 +423,6 @@ class View {
       })
 
     let verticalOffset = 3;
-    if(true/*this.controller.adjMatrix.neighborSelect*/){
       verticalOffset = 187.5;
       let horizontalOffset = this.nodes.length < 50 ? 540 : 0;
       this.edgeColumns.append('path')
@@ -446,7 +445,7 @@ class View {
         .on('mouseover', (d, i, nodes) => { this.mouseOverLabel(d, i, nodes) });
         ;
       verticalOffset = verticalOffset/12.5 + 3;
-    }
+    
 
     this.edgeColumns.append("text")
       .attr("id", (d, i) => {
@@ -1217,459 +1216,459 @@ class View {
    * @return [description]
    */
   initializeAttributes() {
-    console.log("in attributes")
-    let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
-    let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
-    this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
-    this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
+    // console.log("in attributes")
+    // let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
+    // let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
+    // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
+    // this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
 
-    this.attributes = d3.select('#attributes').append("svg")
-      .attr("viewBox", "0 0 " + (width) + " " + height + "")
-      .attr("preserveAspectRatio", "xMinYMin meet")
-      .append("g")
-      .classed("svg-content", true)
-      .attr('id', 'attributeMargin')
-      .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
+    // this.attributes = d3.select('#attributes').append("svg")
+    //   .attr("viewBox", "0 0 " + (width) + " " + height + "")
+    //   .attr("preserveAspectRatio", "xMinYMin meet")
+    //   .append("g")
+    //   .classed("svg-content", true)
+    //   .attr('id', 'attributeMargin')
+    //   .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
 
     
-    // add zebras and highlight rows
-    /*
-    this.attributes.selectAll('.highlightRow')
-      .data(this.nodes)
-      .enter()
-      .append('rect')
-      .classed('highlightRow', true)
-      .attr('x', 0)
-      .attr('y', (d, i) => this.orderingScale(i))
-      .attr('width', this.attributeWidth)
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
-      */
+    // // add zebras and highlight rows
+    // /*
+    // this.attributes.selectAll('.highlightRow')
+    //   .data(this.nodes)
+    //   .enter()
+    //   .append('rect')
+    //   .classed('highlightRow', true)
+    //   .attr('x', 0)
+    //   .attr('y', (d, i) => this.orderingScale(i))
+    //   .attr('width', this.attributeWidth)
+    //   .attr('height', this.orderingScale.bandwidth())
+    //   .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
+    //   */
 
-    console.log(1)
-    let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
-    let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
+    // console.log(1)
+    // let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
+    // let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
 
-    // Draw each row (translating the y coordinate)
-    this.attributeRows = this.attributes.selectAll(".row")
-      .data(this.nodes)
-      .enter().append("g")
-      .attr("class", "row")
-      .attr("transform", (d, i) => {
-        return "translate(0," + this.orderingScale(i) + ")";
-      });
-
-
-
-    console.log(2)
-    this.attributeRows.append("line")
-      .attr("x1", 0)
-      .attr("x2", this.controller.attrWidth)
-      .attr('stroke', '2px')
-      .attr('stroke-opacity', 0.3);
-
-    let attributeMouseOver = (d) => {
-      this.addHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-      this.addHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-
-      this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d[this.datumID] })
-
-      d3.selectAll('.hovered').classed('hovered', false);
-      this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
-      this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
-    };
-
-    this.attributeMouseOver = attributeMouseOver;
-    let attributeMouseOut = (d) => {
-
-      this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-      this.removeHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-
-      d3.selectAll('.hovered').classed('hovered', false);
-
-      this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
-
-    };
-    this.attributeMouseOut = attributeMouseOut;
-
-    this.attributeRows.append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .classed('attrRow', true)
-      .attr('id', (d, i) => {
-        return "attrRow" + d[this.datumID];
-      })
-      .attr('width', width)
-      .attr('height', this.orderingScale.bandwidth()) // end addition
-      .attr("fill-opacity", 0)
-      .on('mouseover', attributeMouseOver)
-      .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
+    // // Draw each row (translating the y coordinate)
+    // this.attributeRows = this.attributes.selectAll(".row")
+    //   .data(this.nodes)
+    //   .enter().append("g")
+    //   .attr("class", "row")
+    //   .attr("transform", (d, i) => {
+    //     return "translate(0," + this.orderingScale(i) + ")";
+    //   });
 
 
 
+    // console.log(2)
+    // this.attributeRows.append("line")
+    //   .attr("x1", 0)
+    //   .attr("x2", this.controller.attrWidth)
+    //   .attr('stroke', '2px')
+    //   .attr('stroke-opacity', 0.3);
+
+    // let attributeMouseOver = (d) => {
+    //   this.addHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+    //   this.addHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+
+    //   this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d[this.datumID] })
+
+    //   d3.selectAll('.hovered').classed('hovered', false);
+    //   this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+    //   this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
+    // };
+
+    // this.attributeMouseOver = attributeMouseOver;
+    // let attributeMouseOut = (d) => {
+
+    //   this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+    //   this.removeHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+
+    //   d3.selectAll('.hovered').classed('hovered', false);
+
+    //   this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+
+    // };
+    // this.attributeMouseOut = attributeMouseOut;
+
+    // this.attributeRows.append('rect')
+    //   .attr('x', 0)
+    //   .attr('y', 0)
+    //   .classed('attrRow', true)
+    //   .attr('id', (d, i) => {
+    //     return "attrRow" + d[this.datumID];
+    //   })
+    //   .attr('width', width)
+    //   .attr('height', this.orderingScale.bandwidth()) // end addition
+    //   .attr("fill-opacity", 0)
+    //   .on('mouseover', attributeMouseOver)
+    //   .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
 
 
-    console.log(3)
-    let columns = this.controller.nodeAttributes;
-
-    //columns.unshift('selected'); // ANSWER COLUMNS
-
-    var formatCurrency = d3.format("$,.0f"),
-      formatNumber = d3.format(",.0f");
-      console.log(3.1)
-
-    // generate scales for each
-    let attributeScales = {};
-    this.columnScale = d3.scaleOrdinal().domain(columns)
-
-    // // Calculate Column Scale
-    // let columnRange = []
-    // let xRange = 0;
 
 
-    // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
-    // //450 / columns.length;
-    // this.columnWidths = columnWidths;
-    console.log(3.2)
 
-    let categoricalAttributes = ["type", "continent"]
-    let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
+    // console.log(3)
+    // let columns = this.controller.nodeAttributes;
 
-    // columns.forEach((col, index) => {
-    //   // calculate range
-    //   columnRange.push(xRange);
-    //   let domain = this.controller.attributeScales.node[col].domain;
+    // //columns.unshift('selected'); // ANSWER COLUMNS
 
-    //   if (quantitativeAttributes.indexOf(col) > -1) {
+    // var formatCurrency = d3.format("$,.0f"),
+    //   formatNumber = d3.format(",.0f");
+    //   console.log(3.1)
 
-    //     let scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
-    //     scale.clamp(true);
-    //     attributeScales[col] = scale;
-    //   } else {
-    //     // append colored blocks
-    //     // placeholder scale
-    //     let range = this.controller.attributeScales.node[col].range;
-    //     let scale = d3.scaleOrdinal().domain(domain).range(range);
-    //     //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
+    // // generate scales for each
+    // let attributeScales = {};
+    // this.columnScale = d3.scaleOrdinal().domain(columns)
 
-    //     attributeScales[col] = scale;
+    // // // Calculate Column Scale
+    // // let columnRange = []
+    // // let xRange = 0;
+
+
+    // // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
+    // // //450 / columns.length;
+    // // this.columnWidths = columnWidths;
+    // console.log(3.2)
+
+    // let categoricalAttributes = ["type", "continent"]
+    // let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
+
+    // // columns.forEach((col, index) => {
+    // //   // calculate range
+    // //   columnRange.push(xRange);
+    // //   let domain = this.controller.attributeScales.node[col].domain;
+
+    // //   if (quantitativeAttributes.indexOf(col) > -1) {
+
+    // //     let scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
+    // //     scale.clamp(true);
+    // //     attributeScales[col] = scale;
+    // //   } else {
+    // //     // append colored blocks
+    // //     // placeholder scale
+    // //     let range = this.controller.attributeScales.node[col].range;
+    // //     let scale = d3.scaleOrdinal().domain(domain).range(range);
+    // //     //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
+
+    // //     attributeScales[col] = scale;
+    // //   }
+
+    // //   xRange += columnWidths[col];
+    // // })
+    // // this.attributeScales = attributeScales;
+
+    // console.log(4)
+
+    // // need max and min of each column
+    // /*this.barWidthScale = d3.scaleLinear()
+    //   .domain([0, 1400])
+    //   .range([0, 140]);*/
+
+
+
+
+
+    // let placementScale = {};
+
+    // this.columnScale.range(columnRange);
+
+    // for (let [column, scale] of Object.entries(attributeScales)) {
+    //   if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
+    //     placementScale[column] = this.generateCategoricalLegend(column, columnWidths[column]);
+
+    //   } else if (quantitativeAttributes.indexOf(column) > -1) {
+    //     this.attributes.append("g")
+    //       .attr("class", "attr-axis")
+    //       .attr("transform", "translate(" + this.columnScale(column) + "," + -15 + ")")
+    //       .call(d3.axisTop(scale)
+    //         .tickValues(scale.domain())
+    //         .tickFormat((d) => {
+    //           if ((d / 1000) >= 1) {
+    //             d = Math.round(d / 1000) + "K";
+    //           }
+    //           return d;
+    //         }))
+    //       .selectAll('text')
+    //       .style("text-anchor", function(d, i) { return i % 2 ? "end" : "start" });
     //   }
 
-    //   xRange += columnWidths[col];
-    // })
-    // this.attributeScales = attributeScales;
 
-    console.log(4)
+    // }
+    // console.log(5)
 
-    // need max and min of each column
-    /*this.barWidthScale = d3.scaleLinear()
-      .domain([0, 1400])
-      .range([0, 140]);*/
+    // this.columnGlyphs = {};
 
+    // /* Create data columns data */
+    // columns.forEach((column, index) => {
+    //   let columnPosition = this.columnScale(column);
 
+    //   if (categoricalAttributes.indexOf(column) > -1) { // if categorical
+    //     this.createUpsetPlot(column, columnWidths[index], placementScale[column]);
+    //     return;
+    //   } else if (quantitativeAttributes.indexOf(column) > -1) { // if quantitative
+    //     this.columnGlyphs[column] = this.attributeRows
+    //       .append("rect")
+    //       .attr("class", "glyph " + column)
+    //       .attr('height', barHeight)
+    //       .attr('width', 10) // width changed later on transition
+    //       .attr('x', columnPosition + barMargin.left)
+    //       .attr('y', barMargin.top) // as y is set by translate
+    //       .attr('fill', d => {
+    //         return this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B'
+    //       })
+    //       .on('mouseover', function(d) {
+    //         //if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
+    //         //that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
 
+    //         let matrix = this.getScreenCTM()
+    //           .translate(+this.getAttribute("x"), +this.getAttribute("y"));
 
+    //         that.tooltip.html(Math.round(d[column]))
+    //           .style("left", (window.pageXOffset + matrix.e + columnWidths[column] / 2 - 35) + "px")
+    //           .style("top", (window.pageYOffset + matrix.f - 5) + "px");
 
-    let placementScale = {};
+    //         that.tooltip.transition()
+    //           .duration(200)
+    //           .style("opacity", .9);
 
-    this.columnScale.range(columnRange);
-
-    for (let [column, scale] of Object.entries(attributeScales)) {
-      if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
-        placementScale[column] = this.generateCategoricalLegend(column, columnWidths[column]);
-
-      } else if (quantitativeAttributes.indexOf(column) > -1) {
-        this.attributes.append("g")
-          .attr("class", "attr-axis")
-          .attr("transform", "translate(" + this.columnScale(column) + "," + -15 + ")")
-          .call(d3.axisTop(scale)
-            .tickValues(scale.domain())
-            .tickFormat((d) => {
-              if ((d / 1000) >= 1) {
-                d = Math.round(d / 1000) + "K";
-              }
-              return d;
-            }))
-          .selectAll('text')
-          .style("text-anchor", function(d, i) { return i % 2 ? "end" : "start" });
-      }
-
-
-    }
-    console.log(5)
-
-    this.columnGlyphs = {};
-
-    /* Create data columns data */
-    columns.forEach((column, index) => {
-      let columnPosition = this.columnScale(column);
-
-      if (categoricalAttributes.indexOf(column) > -1) { // if categorical
-        this.createUpsetPlot(column, columnWidths[index], placementScale[column]);
-        return;
-      } else if (quantitativeAttributes.indexOf(column) > -1) { // if quantitative
-        this.columnGlyphs[column] = this.attributeRows
-          .append("rect")
-          .attr("class", "glyph " + column)
-          .attr('height', barHeight)
-          .attr('width', 10) // width changed later on transition
-          .attr('x', columnPosition + barMargin.left)
-          .attr('y', barMargin.top) // as y is set by translate
-          .attr('fill', d => {
-            return this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B'
-          })
-          .on('mouseover', function(d) {
-            //if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-            //that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
-
-            let matrix = this.getScreenCTM()
-              .translate(+this.getAttribute("x"), +this.getAttribute("y"));
-
-            that.tooltip.html(Math.round(d[column]))
-              .style("left", (window.pageXOffset + matrix.e + columnWidths[column] / 2 - 35) + "px")
-              .style("top", (window.pageYOffset + matrix.f - 5) + "px");
-
-            that.tooltip.transition()
-              .duration(200)
-              .style("opacity", .9);
-
-            attributeMouseOver(d);
-            //}
-          })
-          .on('mouseout', (d) => {
-            that.tooltip.transition().duration(25).style("opacity", 0);
-            attributeMouseOut(d);
-          })
-        this.columnGlyphs[column]
-          .transition()
-          .duration(2000)
-          .attr('width', (d, i) => { return attributeScales[column](d[column]); })
+    //         attributeMouseOver(d);
+    //         //}
+    //       })
+    //       .on('mouseout', (d) => {
+    //         that.tooltip.transition().duration(25).style("opacity", 0);
+    //         attributeMouseOut(d);
+    //       })
+    //     this.columnGlyphs[column]
+    //       .transition()
+    //       .duration(2000)
+    //       .attr('width', (d, i) => { return attributeScales[column](d[column]); })
 
 
-        this.attributeRows
-          .append("div")
-          .attr("class", "glyphLabel")
-          .text(function(d, i) {
-            return (d);
-          });
-      } else {
-        barMargin.left = 1;
-        let answerBox = this.attributeRows
-          .append('g')
-          .attr("class", "answerBox")
-          .attr("id", d => "answerBox" + d[this.datumID])
-          .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
-        if (this.controller.adjMatrix.toggle) {
-          let rect = answerBox.append("rect")
-            .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
-            .attr("y", barMargin.top)
-            .attr("rx", barHeight / 2)
-            .attr("ry", barHeight / 2)
-            .style("fill", "lightgray")
-            .attr("width", columnWidths[column] / 2)
-            .attr("height", barHeight)
-            .attr('stroke', 'lightgray')
-            .on('mouseover', attributeMouseOver)
-            .on('mouseout', attributeMouseOut);
+    //     this.attributeRows
+    //       .append("div")
+    //       .attr("class", "glyphLabel")
+    //       .text(function(d, i) {
+    //         return (d);
+    //       });
+    //   } else {
+    //     barMargin.left = 1;
+    //     let answerBox = this.attributeRows
+    //       .append('g')
+    //       .attr("class", "answerBox")
+    //       .attr("id", d => "answerBox" + d[this.datumID])
+    //       .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
+    //     if (this.controller.adjMatrix.toggle) {
+    //       let rect = answerBox.append("rect")
+    //         .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
+    //         .attr("y", barMargin.top)
+    //         .attr("rx", barHeight / 2)
+    //         .attr("ry", barHeight / 2)
+    //         .style("fill", "lightgray")
+    //         .attr("width", columnWidths[column] / 2)
+    //         .attr("height", barHeight)
+    //         .attr('stroke', 'lightgray')
+    //         .on('mouseover', attributeMouseOver)
+    //         .on('mouseout', attributeMouseOut);
 
-          let circle = answerBox.append("circle")
-            .attr("cx", (1.15 * columnWidths[column] / 4))
-            .attr("cy", barHeight / 2 + barMargin.top)
-            .attr("r", barHeight / 2)
-            .style("fill", "white")
-            .style('stroke', 'lightgray');
-        } else {
-          let initalHeight = barHeight;
-          let newBarHeight = d3.min([barHeight,15])
-          let rect = answerBox.append("rect")
-            .attr("x", (columnWidths[column] / 2) - newBarHeight / 2) // if column with is 1, we want this at 1/4, and 1/2 being mid point
-            .attr("y", barMargin.top + (initalHeight-newBarHeight)/2)
-            //.attr("rx", barHeight / 2)
-            //.attr("ry", barHeight / 2)
-            .style("fill", "white")
-            .attr("width", newBarHeight)
-            .attr("height", newBarHeight)
-            .attr('stroke', 'lightgray')
-            .on('mouseover', attributeMouseOver)
-            .on('mouseout', attributeMouseOut);
-        }
+    //       let circle = answerBox.append("circle")
+    //         .attr("cx", (1.15 * columnWidths[column] / 4))
+    //         .attr("cy", barHeight / 2 + barMargin.top)
+    //         .attr("r", barHeight / 2)
+    //         .style("fill", "white")
+    //         .style('stroke', 'lightgray');
+    //     } else {
+    //       let initalHeight = barHeight;
+    //       let newBarHeight = d3.min([barHeight,15])
+    //       let rect = answerBox.append("rect")
+    //         .attr("x", (columnWidths[column] / 2) - newBarHeight / 2) // if column with is 1, we want this at 1/4, and 1/2 being mid point
+    //         .attr("y", barMargin.top + (initalHeight-newBarHeight)/2)
+    //         //.attr("rx", barHeight / 2)
+    //         //.attr("ry", barHeight / 2)
+    //         .style("fill", "white")
+    //         .attr("width", newBarHeight)
+    //         .attr("height", newBarHeight)
+    //         .attr('stroke', 'lightgray')
+    //         .on('mouseover', attributeMouseOver)
+    //         .on('mouseout', attributeMouseOut);
+    //     }
 
-        answerBox
-          .on('click', (d) => {
-            let color = this.controller.attributeScales.node.selected.range[0];
-            //if already answer
-            let nodeID = this.determineID(d);
+    //     answerBox
+    //       .on('click', (d) => {
+    //         let color = this.controller.attributeScales.node.selected.range[0];
+    //         //if already answer
+    //         let nodeID = this.determineID(d);
 
-            /*Visual chagne */
-            let answerStatus = false; // TODO, remove?
-            if (this.controller.adjMatrix.toggle) {
-              d3.select(nodes[i]).selectAll('circle').transition().duration(500)
-                .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
-                .style("fill", answerStatus ? color : "white");
-              d3.select(nodes[i]).selectAll('rect').transition().duration(500)
-                .style("fill", answerStatus ? "#8B8B8B" : "lightgray");
-            } else {
+    //         /*Visual chagne */
+    //         let answerStatus = false; // TODO, remove?
+    //         if (this.controller.adjMatrix.toggle) {
+    //           d3.select(nodes[i]).selectAll('circle').transition().duration(500)
+    //             .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
+    //             .style("fill", answerStatus ? color : "white");
+    //           d3.select(nodes[i]).selectAll('rect').transition().duration(500)
+    //             .style("fill", answerStatus ? "#8B8B8B" : "lightgray");
+    //         } else {
 
-            }
+    //         }
 
 
-            nodeClick(d);
+    //         nodeClick(d);
 
-            //let action = this.changeInteractionWrapper(nodeID, i, nodes);
-            //this.controller.model.provenance.applyAction(action);
+    //         //let action = this.changeInteractionWrapper(nodeID, i, nodes);
+    //         //this.controller.model.provenance.applyAction(action);
 
 
 
-            //d3.select(nodes[i]).transition().duration(500).attr('fill',)
-          })
+    //         //d3.select(nodes[i]).transition().duration(500).attr('fill',)
+    //       })
 
-      }
-    });
+    //   }
+    // });
 
-    // Add Verticle Dividers
-    this.attributes.selectAll('.column')
-      .data(columns)
-      .enter()
-      .append('line')
-      .style('stroke', '1px')
-      .attr('x1', (d) => this.columnScale(d))
-      .attr("y1", -20)
-      .attr('x2', (d) => this.columnScale(d))
-      .attr("y2", this.attributeHeight + this.margins.bottom)
-      .attr('stroke-opacity', 0.4);
+    // // Add Verticle Dividers
+    // this.attributes.selectAll('.column')
+    //   .data(columns)
+    //   .enter()
+    //   .append('line')
+    //   .style('stroke', '1px')
+    //   .attr('x1', (d) => this.columnScale(d))
+    //   .attr("y1", -20)
+    //   .attr('x2', (d) => this.columnScale(d))
+    //   .attr("y2", this.attributeHeight + this.margins.bottom)
+    //   .attr('stroke-opacity', 0.4);
 
-    // Add headers
-
-
-
-    this.columnNames = {
-      "followers_count": "Followers",
-      "query_tweet_count": "On-Topic Tweets", // not going to be used (how active this person was on the conference)
-      "friends_count": "Friends",
-      "statuses_count": "Tweets",
-      "favourites_count": "Liked Tweets",
-      "count_followers_in_query": "In-Network Followers",
-      "continent": "Continent",
-      "type": "Type",
-      "memberFor_days": "Account Age",
-      "listed_count": "In Lists",
-      "selected": "Answer"
-    }
-    let that = this;
-    function calculateMaxChars(numColumns) {
-      switch (numColumns) {
-        case 1:
-          return { "characters": 20, "font": 13 }
-        case 2:
-          return { "characters": 20, "font": 13 }
-        case 3:
-          return { "characters": 20, "font": 12 }
-        case 4:
-          return { "characters": 19, "font": 12 }
-        case 5:
-          return { "characters": 18, "font": 12 }
-        case 6:
-          return { "characters": 16, "font": 11 }
-        case 7:
-          return { "characters": 14, "font": 10 }
-        case 8:
-          return { "characters": 12, "font": 10 }
-        case 9:
-          return { "characters": 10, "font": 10 }
-        case 10:
-          return { "characters": 8, "font": 10 }
-        default:
-          return { "characters": 8, "font": 10 }
-      }
-    }
-    let options = calculateMaxChars(columns.length)// 10 attr => 8
-    let maxcharacters = options.characters;
-    let fontSize = options.font//*1.1;
+    // // Add headers
 
 
-    //this.createColumnHeaders();
-    let columnHeaders = this.attributes.append('g')
-      .classed('column-headers', true)
-    let columnHeaderGroups = columnHeaders.selectAll('.header')
-      .data(columns)
-      .enter()
-      .append('g')
-      .attr('transform', (d) => 'translate(' + (this.columnScale(d)) + ',' + (-65) + ')')
 
-    columnHeaderGroups
-      .append('rect')
-      .attr('width', d => this.columnWidths[d])
-      .attr('height', 20)
-      .attr('y', 0)
-      .attr('x', 0)
-      .attr('fill', 'none')
-      .attr('stroke', 'lightgray')
-      .attr('stroke-width', 1)
+    // this.columnNames = {
+    //   "followers_count": "Followers",
+    //   "query_tweet_count": "On-Topic Tweets", // not going to be used (how active this person was on the conference)
+    //   "friends_count": "Friends",
+    //   "statuses_count": "Tweets",
+    //   "favourites_count": "Liked Tweets",
+    //   "count_followers_in_query": "In-Network Followers",
+    //   "continent": "Continent",
+    //   "type": "Type",
+    //   "memberFor_days": "Account Age",
+    //   "listed_count": "In Lists",
+    //   "selected": "Answer"
+    // }
+    // let that = this;
+    // function calculateMaxChars(numColumns) {
+    //   switch (numColumns) {
+    //     case 1:
+    //       return { "characters": 20, "font": 13 }
+    //     case 2:
+    //       return { "characters": 20, "font": 13 }
+    //     case 3:
+    //       return { "characters": 20, "font": 12 }
+    //     case 4:
+    //       return { "characters": 19, "font": 12 }
+    //     case 5:
+    //       return { "characters": 18, "font": 12 }
+    //     case 6:
+    //       return { "characters": 16, "font": 11 }
+    //     case 7:
+    //       return { "characters": 14, "font": 10 }
+    //     case 8:
+    //       return { "characters": 12, "font": 10 }
+    //     case 9:
+    //       return { "characters": 10, "font": 10 }
+    //     case 10:
+    //       return { "characters": 8, "font": 10 }
+    //     default:
+    //       return { "characters": 8, "font": 10 }
+    //   }
+    // }
+    // let options = calculateMaxChars(columns.length)// 10 attr => 8
+    // let maxcharacters = options.characters;
+    // let fontSize = options.font//*1.1;
 
-    columnHeaderGroups
-      .append('text')
-      .classed('header', true)
-      //.attr('y', -45)
-      //.attr('x', (d) => this.columnScale(d) + barMargin.left)
-      .style('font-size', this.nodeFontSize.toString() + 'px')
-      .attr('text-anchor', 'middle')
-      //.attr('transform','rotate(-10)')
-      .text((d, i) => {
-        if (this.columnNames[d] && this.columnNames[d].length > maxcharacters) {
-          return this.columnNames[d].slice(0, maxcharacters - 2) + '...';// experimentally determine how big
-        }
-        return this.columnNames[d];
-      })
-      .attr('x', d => this.columnWidths[d] / 2)
-      .attr('y', 14)
-      .on('mouseover', function(d) {
-        if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-          that.tooltip.transition().duration(200).style("opacity", .9);
 
-          let matrix = this.getScreenCTM()
-            .translate(+this.getAttribute("x"), +this.getAttribute("y"));
+    // //this.createColumnHeaders();
+    // let columnHeaders = this.attributes.append('g')
+    //   .classed('column-headers', true)
+    // let columnHeaderGroups = columnHeaders.selectAll('.header')
+    //   .data(columns)
+    //   .enter()
+    //   .append('g')
+    //   .attr('transform', (d) => 'translate(' + (this.columnScale(d)) + ',' + (-65) + ')')
 
-          that.tooltip.transition()
-            .duration(200)
-            .style("opacity", .9);
+    // columnHeaderGroups
+    //   .append('rect')
+    //   .attr('width', d => this.columnWidths[d])
+    //   .attr('height', 20)
+    //   .attr('y', 0)
+    //   .attr('x', 0)
+    //   .attr('fill', 'none')
+    //   .attr('stroke', 'lightgray')
+    //   .attr('stroke-width', 1)
 
-          that.tooltip.html(that.columnNames[d])
-            .style("left", (window.pageXOffset + matrix.e - 25) + "px")
-            .style("top", (window.pageYOffset + matrix.f - 20) + "px");
-        }
-      })
-      .on('mouseout', function(d) {
-        that.tooltip.transition().duration(250).style("opacity", 0);
-      })
-      .on('click', (d) => {
-        if (d !== 'selected') {
-          this.sort(d);
-        }
-      })
+    // columnHeaderGroups
+    //   .append('text')
+    //   .classed('header', true)
+    //   //.attr('y', -45)
+    //   //.attr('x', (d) => this.columnScale(d) + barMargin.left)
+    //   .style('font-size', this.nodeFontSize.toString() + 'px')
+    //   .attr('text-anchor', 'middle')
+    //   //.attr('transform','rotate(-10)')
+    //   .text((d, i) => {
+    //     if (this.columnNames[d] && this.columnNames[d].length > maxcharacters) {
+    //       return this.columnNames[d].slice(0, maxcharacters - 2) + '...';// experimentally determine how big
+    //     }
+    //     return this.columnNames[d];
+    //   })
+    //   .attr('x', d => this.columnWidths[d] / 2)
+    //   .attr('y', 14)
+    //   .on('mouseover', function(d) {
+    //     if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
+    //       that.tooltip.transition().duration(200).style("opacity", .9);
 
-    columnHeaderGroups
-    if (columns.length < 6) {
-      let path = columnHeaderGroups
-        .filter(d => { return d !== 'selected' })
-        .append('path')
-        .attr('class', 'sortIcon')
-        .attr('d', (d) => {
-        // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
-        // return this.controller.model.icons[variable].d;
-      }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
-      .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
-      .on('click', (d) => {this.sort(d);})
-      .attr('cursor', 'pointer');
-    }
+    //       let matrix = this.getScreenCTM()
+    //         .translate(+this.getAttribute("x"), +this.getAttribute("y"));
+
+    //       that.tooltip.transition()
+    //         .duration(200)
+    //         .style("opacity", .9);
+
+    //       that.tooltip.html(that.columnNames[d])
+    //         .style("left", (window.pageXOffset + matrix.e - 25) + "px")
+    //         .style("top", (window.pageYOffset + matrix.f - 20) + "px");
+    //     }
+    //   })
+    //   .on('mouseout', function(d) {
+    //     that.tooltip.transition().duration(250).style("opacity", 0);
+    //   })
+    //   .on('click', (d) => {
+    //     if (d !== 'selected') {
+    //       this.sort(d);
+    //     }
+    //   })
+
+    // columnHeaderGroups
+    // if (columns.length < 6) {
+    //   let path = columnHeaderGroups
+    //     .filter(d => { return d !== 'selected' })
+    //     .append('path')
+    //     .attr('class', 'sortIcon')
+    //     .attr('d', (d) => {
+    //     // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
+    //     // return this.controller.model.icons[variable].d;
+    //   }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+    //   .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
+    //   .on('click', (d) => {this.sort(d);})
+    //   .attr('cursor', 'pointer');
+    // }
 
 
 
 
-    let answerColumn = columnHeaders.selectAll('.header').filter(d => { return d == 'selected' })
-    answerColumn.attr('font-weight', 650)
+    // let answerColumn = columnHeaders.selectAll('.header').filter(d => { return d == 'selected' })
+    // answerColumn.attr('font-weight', 650)
 
-    let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
-    nonAnswerColumn.attr('cursor', 'pointer');
+    // let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
+    // nonAnswerColumn.attr('cursor', 'pointer');
 
     d3.select('.loading').style('display', 'none');
     this.controller.model.setUpProvenance();
