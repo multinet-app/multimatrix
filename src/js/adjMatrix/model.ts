@@ -213,7 +213,6 @@ class Model {
     }
 
     function classAllHighlights(state) {
-      console.log("classallhighlights state", state)
 
       let clickedElements = new Set();
       let answerElements = new Set();
@@ -250,7 +249,6 @@ class Model {
       }
 
       let clickedSelectorQuery = Array.from(clickedElements).join(',')
-      console.log(clickedSelectorQuery)
       // let answerSelectorQuery = Array.from(answerElements).join(',')
       // let neighborSelectQuery = Array.from(neighborElements).join(',')
 
@@ -360,10 +358,7 @@ class Model {
 
   sortObserver(type: string, node: boolean = false){
     let order;
-    // this.orderType = type;
-    // this.sortKey = type;
-    console.log(type)
-    // type = "edges"
+    this.sortKey = type;
     this.orderType = type;
     if (type == "clusterSpectral" || type == "clusterBary" || type == "clusterLeaf") {
       var graph = reorder.graph()
@@ -385,7 +380,7 @@ class Model {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     } else if (node == true) {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['id'].localeCompare(this.nodes[b]['id']));
-      order = d3.range(this.nodes.length).sort((a, b) => {console.log(this.nodes[b]); return this.nodes[b]['neighbors'].includes(type) - this.nodes[a]['neighbors'].includes(type);});
+      order = d3.range(this.nodes.length).sort((a, b) => { return this.nodes[b]['neighbors'].includes(type) - this.nodes[a]['neighbors'].includes(type); });
     } else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]));
     } else {

@@ -45,7 +45,6 @@ describe("ui", () => {
 
             window.controller.view.labelVar = "name"
 
-
             // Act 
             outcome1 = ui.searchFor("Test Testerson")
             outcome2 = ui.searchFor("Jimmy Test")

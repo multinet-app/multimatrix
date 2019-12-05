@@ -22,7 +22,6 @@ function unhighlightAll() {
     // Deselect all manually clicked nodes
     let clicked = window.controller.model.getApplicationState().clicked
     for (id of clicked) {
-        console.log(node)
         node = window.controller.model.nodes.find(d => d.id == id)
         nodeClick(node)
     }
@@ -30,7 +29,6 @@ function unhighlightAll() {
 
 // Search for a node in the datalist
 function searchForNode() {
-    console.log("in search")
     let selectedOption = d3.select('.searchInput').property("value").trim();
 
     //empty search box;
@@ -87,7 +85,6 @@ function isSelected(node) {
 
 //function that updates the state, and includes a flag for when this was done through a search
 function nodeClick(node, search = false) {
-    console.log("nodeclick")
 
     if (node[0] != undefined) {
         node = { "id": node[0].rowid }

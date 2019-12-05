@@ -32,7 +32,6 @@ async function load_data(workspace, graph) {
         node.edges = node.edges === undefined ? 1 : node.edges + 1;
         node.neighbors = [].concat(node.neighbors, d.target);
 
-
         node = multinet.graph_structure.nodes.find(a => a.id == d.target)
         node.edges = node.edges === undefined ? 1 : node.edges + 1;
         node.neighbors = [].concat(node.neighbors, d.source);

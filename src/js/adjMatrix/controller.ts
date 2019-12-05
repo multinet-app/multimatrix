@@ -92,8 +92,6 @@ class Controller {
 
     //d3.select('.adjMatrix.vis').style('width',width*0.8);
     d3.select('.adjMatrix.vis').style('width', (this.visWidth).toString() + 'px')
-
-    console.log(this.visWidth, this.visHeight, this.attributeProportion)
   }
 
   constructor() {

@@ -96,7 +96,6 @@ class View {
     columns = columns.style("font-size", this.nodeFontSize + "pt")
 
     // Update labels
-    console.log(this.labelVar)
     rows.text((d, i) => this.nodes[i][this.labelVar])
     columns.text((d, i) => this.nodes[i][this.labelVar])
   }
@@ -134,7 +133,6 @@ class View {
    * @return None
    */
   initializeEdges() {
-    console.log("redrawing")
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     let width = this.controller.visWidth
     let height = this.controller.visHeight;
@@ -619,7 +617,6 @@ class View {
    * @return        [description]
    */
   changeInteractionWrapper(nodeID, node, interactionType) {
-    console.log(interactionType)
     return {
       label: interactionType,
       action: (nodeID) => {
@@ -1008,8 +1005,6 @@ class View {
   }
 
   renderHighlightNodesFromDict(dict, classToRender, rowOrCol: string = 'Row') {
-    console.log("highlighting", dict, classToRender, rowOrCol)
-
     //unhighlight all other nodes
     if (classToRender != "hovered") {
       d3.selectAll(`.${classToRender}`)
@@ -1041,7 +1036,6 @@ class View {
         }
       }
     }
-    console.log(dict, cssSelector)
     // remove last comma
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
     if (cssSelector == '') {
@@ -1080,7 +1074,6 @@ class View {
    */
   selectNeighborNodes(nodeID, neighbors) {
     if (nodeID in this.controller.columnSelectedNodes) {
-      console.log("neighbor remove", nodeID) 
 
       // find all neighbors and remove them
       delete this.controller.columnSelectedNodes[nodeID]
@@ -1216,7 +1209,6 @@ class View {
    * @return [description]
    */
   initializeAttributes() {
-    // console.log("in attributes")
     // let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
     // let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
     // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
@@ -1245,7 +1237,6 @@ class View {
     //   .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
     //   */
 
-    // console.log(1)
     // let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
     // let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
 
@@ -1258,9 +1249,6 @@ class View {
     //     return "translate(0," + this.orderingScale(i) + ")";
     //   });
 
-
-
-    // console.log(2)
     // this.attributeRows.append("line")
     //   .attr("x1", 0)
     //   .attr("x2", this.controller.attrWidth)
@@ -1304,18 +1292,12 @@ class View {
     //   .on('mouseover', attributeMouseOver)
     //   .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
 
-
-
-
-
-    // console.log(3)
     // let columns = this.controller.nodeAttributes;
 
     // //columns.unshift('selected'); // ANSWER COLUMNS
 
     // var formatCurrency = d3.format("$,.0f"),
     //   formatNumber = d3.format(",.0f");
-    //   console.log(3.1)
 
     // // generate scales for each
     // let attributeScales = {};
@@ -1329,7 +1311,6 @@ class View {
     // // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
     // // //450 / columns.length;
     // // this.columnWidths = columnWidths;
-    // console.log(3.2)
 
     // let categoricalAttributes = ["type", "continent"]
     // let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
@@ -1357,8 +1338,6 @@ class View {
     // //   xRange += columnWidths[col];
     // // })
     // // this.attributeScales = attributeScales;
-
-    // console.log(4)
 
     // // need max and min of each column
     // /*this.barWidthScale = d3.scaleLinear()
@@ -1395,7 +1374,6 @@ class View {
 
 
     // }
-    // console.log(5)
 
     // this.columnGlyphs = {};
 
@@ -1680,7 +1658,6 @@ class View {
     let text = ['name', 'cluster', 'interacts'];
     let sortNames = ['shortName', 'clusterLeaf', 'edges']
     let iconNames = ['alphabetical', 'categorical', 'quant']
-    console.log("adding buttons")
     for (let i = 0; i < 3; i++) {
       let button = this.edges.append('g')
         .attr('transform', 'translate(' + (-this.margins.left) + ',' + (initalY) + ')')
@@ -1699,7 +1676,6 @@ class View {
       })
       initalY += buttonHeight + 5;
     }
-    console.log("done adding buttons")
 
 
 
