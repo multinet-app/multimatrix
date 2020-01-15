@@ -1,0 +1,289 @@
+<script>
+// import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
+
+// import { setUpProvenance } from "@/lib/provenance";
+// import { getUrlVars } from "@/lib/utils";
+// import { loadData } from "@/lib/multinet";
+
+/**
+ * Demo Controls.  This component is meant to demo
+ * the capabilities of the NodeLink vis.
+ *
+ * You'll probably want the controls to look or
+ * work differently in your app, so it's recommended that you
+ * implement the controls yourself.
+ */
+export default {
+//   components: {
+//     AdjMatrix,
+//   },
+
+  data() {
+    /**
+     * State shared between the view (NodeLink graph)
+     * and the controller (dialog box or other UI).
+     */
+    return {
+      app: null,
+      provenance: null,
+      graphStructure: {
+        nodes: [],
+        links: []
+      },
+      nodeMarkerSize: 50,
+      nodeMarkerType: "Circle",
+      nodeFontSize: 14,
+      workspace: null,
+      graph: null,
+      selectNeighbors: true,
+      renderNested: false,
+      nestedBarVariables: [],
+      nestedGlyphVariables: [],
+      labelVariable: "_key",
+      colorVariable: "table",
+      linkWidthVariable: null,
+      linkColorVariable: null,
+    };
+  },
+
+  computed: {
+    variableList() {
+      if (typeof this.graphStructure.nodes[0] !== 'undefined') {
+        return Object.keys(this.graphStructure.nodes[0]) 
+      } else {
+        return []
+      }
+    },
+    colorVariableList() {
+      if (typeof this.graphStructure.nodes[0] !== 'undefined') {
+        return Object.keys(this.graphStructure.nodes[0]).concat(["table"]) 
+      } else {
+        return []
+      }
+    },
+    linkVariableList() {
+      if (typeof this.graphStructure.links[0] !== 'undefined') {
+        return Object.keys(this.graphStructure.links[0]).concat([null]).filter(d => d !== "source" && d !== "target")
+      } else {
+        return []
+      }
+    }
+  },
+
+  /**
+   * This is the "entrypoint" into this application.
+   * Notice the v-if dependency in the template above.
+   */
+  async mounted() {
+    const { workspace, graph } = getUrlVars();
+    if (!workspace || !graph) {
+      throw new Error(
+        `Workspace and graph must be set! workspace=${workspace} graph=${graph}`
+      );
+    }
+    this.graphStructure = await loadData(workspace, graph);
+    // const { provenance, app } = setUpProvenance(this.graphStructure.nodes);
+    // this.app = app;
+    // this.provenance = provenance;
+    // this.workspace = workspace;
+    // this.graph = graph;
+  },
+
+  methods: {
+    // startSimulation() {
+    //   this.$refs.nodelink.startSimulation();
+    // },
+
+    // stopSimulation() {
+    //   this.$refs.nodelink.stopSimulation();
+    // },
+
+    // releaseNodes() {
+    //   this.$refs.nodelink.releaseNodes();
+    // },
+
+    // exportGraph() {
+    //   const a = document.createElement('a');
+    //   a.href = URL.createObjectURL(new Blob([JSON.stringify(this.graphStructure)], {
+    //     type: `text/json`
+    //   }));
+    //   a.download = "graph.json";
+    //   a.click();
+    // },
+  },
+};
+</script>
+
+<template>
+  <v-container fluid>
+    <v-row class="flex-nowrap">
+      <!-- control panel content -->
+      <v-col class="mt-4" cols="3">
+        <v-card>
+          <v-card-title class="pb-6">MultiNet Adjacency Matrix Controls</v-card-title>
+
+          <!-- <v-card-text>
+            <v-card-subtitle class="pb-0 pl-0">Marker Type</v-card-subtitle>
+            <v-radio-group v-model="nodeMarkerType">
+              <v-radio name="active" label="Circle" value="Circle" @click="renderNested = false; nodeMarkerType = 'Circle'"></v-radio>
+              <v-radio name="active" label="Rectangle" value="Rectangle"></v-radio>                
+            </v-radio-group>
+
+            <v-divider class="mt-4" />
+
+            <v-card-subtitle class="pb-0 pl-0">Marker Size</v-card-subtitle>
+            <v-slider
+              v-model="nodeMarkerSize"
+              :min="10"
+              :max="100"
+              :label="String(nodeMarkerSize)"
+              inverse-label
+              hide-details
+            />
+
+            <v-divider class="mt-4" />
+
+            <v-card-subtitle class="pb-0 pl-0">Font Size</v-card-subtitle>
+            <v-slider
+              v-model="nodeFontSize"
+              :min="10"
+              :max="30"
+              :label="String(nodeFontSize)"
+              inverse-label
+              hide-details
+            />
+
+            <v-divider class="mt-4" />
+
+            <v-select 
+              v-model="linkWidthVariable"
+              label="Link Width Variable"
+              :items="linkVariableList"
+              :options="linkVariableList"
+            />
+
+            <v-divider class="mt-4" />
+
+            <v-select 
+              v-model="linkColorVariable"
+              label="Link Color Variable"
+              :items="linkVariableList"
+              :options="linkVariableList"
+            />
+
+            <v-divider class="mt-4" />
+
+            <v-select
+              v-model="labelVariable"
+              label="Label Variable"
+              :items="variableList"
+              :options="variableList"
+            />
+
+            <v-divider class="mt-4" />
+
+            <v-select 
+              v-model="colorVariable"
+              label="Color Variable"
+              :items="colorVariableList"
+              :options="colorVariableList"
+            />
+
+            <v-divider class="mt-4" />
+
+            <v-card-subtitle class="pb-0 px-0" style="display: flex; align-items: center; justify-content: space-between">
+              Render Nested Elements
+              <v-switch
+                class="ma-0"
+                v-model="renderNested"
+                :disabled="nodeMarkerType === 'Circle'"
+                hide-details
+              />
+            </v-card-subtitle>
+
+            <v-select
+              v-if="renderNested"
+              v-model="nestedBarVariables"
+              :items="variableList"
+              label="Bar Variables"
+              multiple
+              chips
+              deletable-chips="true"
+              hint="Choose the variables you'd like to model as bars"
+              persistent-hint
+            />
+
+            <v-select
+              v-if="renderNested"
+              v-model="nestedGlyphVariables"
+              :items="variableList"
+              label="Glyph Variables"
+              multiple
+              counter=2
+              chips
+              deletable-chips="true"
+              hint="Choose the variables you'd like to model as glyphs"
+              persistent-hint
+            />
+
+            <v-divider class="mt-4" />
+
+            <v-card-subtitle class="pb-0 px-0" style="display: flex; align-items: center; justify-content: space-between">
+              Autoselect neighbors
+              <v-switch
+                class="ma-0"
+                v-model="selectNeighbors"
+                hide-details
+              />
+            </v-card-subtitle>
+          </v-card-text>
+
+          <v-card-actions>
+            <v-btn small @click="startSimulation">Start Simulation</v-btn>
+          </v-card-actions>
+
+          <v-card-actions>
+            <v-btn small @click="stopSimulation">Stop Simulation</v-btn>
+          </v-card-actions>
+
+          <v-card-actions>
+            <v-btn small @click="releaseNodes">Release Pinned Nodes</v-btn>
+          </v-card-actions>
+
+          <v-card-actions>
+            <v-btn small @click="exportGraph">Export Graph</v-btn>
+          </v-card-actions> -->
+        </v-card>
+
+      </v-col>
+
+      <!-- AdjMatrix component -->
+      <v-col>
+        <v-row row wrap class="ma-0 pa-0">
+          <AdjMatix
+            ref="adjmatrix"
+            v-if="workspace"
+            v-bind="{
+              graphStructure,
+              provenance,
+              app,
+              nodeMarkerHeight: nodeMarkerSize,
+              nodeMarkerLength: nodeMarkerSize,
+              nodeMarkerType,
+              nodeFontSize,
+              selectNeighbors,
+              renderNested,
+              labelVariable,
+              colorVariable,
+              nestedBarVariables,
+              nestedGlyphVariables,
+              linkWidthVariable,
+              linkColorVariable,
+            }"
+            @restart-simulation="hello()"
+            />
+        </v-row>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
