@@ -1,31 +1,37 @@
-// Work on importing class file
-class Controller {
+
+import * as d3 from "d3";
+// import { View } from './view';
+// import { Model } from './model';
+
+export class Controller {
   /*
   The Model handels the loading, sorting, and ordering of the data.
    */
-  private view: any;
-  private model: any;
-  public configToggle: boolean;
-  private sortKey: any;
-  private clickedCells: any;
-  private hoverRow: any;
-  private hoverCol: any;
   public columnSelectedNodes: {} = {};
   public highlightedNodes: {} = {};
   public visWidth: number;
   public visHeigh: number;
   public attributeProportion: number;
   public nodeAttributes: any;
+  public configToggle: boolean;
 
-  setupExports(base, task) {
-    d3.select("#exportBaseConfig").on("click", function() {
-      exportConfig(Object.keys(base), Object.keys(base.adjMatrix), false)
-    });
+  private view: any;
+  private model: any;
+  private sortKey: any;
+  private clickedCells: any;
+  private hoverRow: any;
+  private hoverCol: any;
 
-    d3.select("#exportConfig").on("click", function() {
-      exportConfig(Object.keys(task), Object.keys(task.adjMatrixValues), true)
-    });
-  }
+
+  // setupExports(base, task) {
+  //   d3.select("#exportBaseConfig").on("click", function() {
+  //     exportConfig(Object.keys(base), Object.keys(base.adjMatrix), false)
+  //   });
+
+  //   d3.select("#exportConfig").on("click", function() {
+  //     exportConfig(Object.keys(task), Object.keys(task.adjMatrixValues), true)
+  //   });
+  // }
 
   clear() {
     let action = {
@@ -100,15 +106,15 @@ class Controller {
     this.datumID = 'id';
     this.clickedCells = new Set()
 
-    this.configToggle = configPanel === "true";
+    // this.configToggle = configPanel === "true";
 
-    this.sizeLayout();
+    // this.sizeLayout();
 
-    this.view = new View(this); // initialize view,
-    this.model = new Model(this); // start reading in data
+    // this.view = new View(this); // initialize view,
+    // this.model = new Model(this); // start reading in data
 
     d3.select('.loading').style('display', 'block');
-    this.model.reload();
+    // this.model.reload();
   }
 
   /**
@@ -137,7 +143,7 @@ class Controller {
   }
 }
 
-function makeController() {
+export function makeController() {
   window.controller = new Controller();
   addConfigPanel();
 }

@@ -1,9 +1,10 @@
 <script>
 import * as d3 from "d3";
 
-import * as modelMethods from './model.js';
-import * as viewMethods from './view.js';
-import * as controllerMethods from './controller.js';
+import * as modelMethods from './model';
+import * as viewMethods from './view';
+import * as controllerMethods from './controller';
+import { Controller } from './controller';
 
 export default {
   props: {
@@ -61,7 +62,7 @@ export default {
   },
 
   async mounted() {
-    this.controller = new this.Controller();
+    this.controller = new Controller();
     // this.loadVis();
     // this.provenance.addObserver("selected", state =>
     //   this.highlightSelectedNodes(state)
