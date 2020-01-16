@@ -1,16 +1,12 @@
 <script>
 import * as d3 from "d3";
 
-import * as loadVisMethods from './functionLoadVis';
-import * as updateVisMethods from './functionUpdateVis';
-import * as uiMethods from './functionUi';
+// import * as loadVisMethods from './functionLoadVis';
+// import * as updateVisMethods from './functionUpdateVis';
+// import * as uiMethods from './functionUi';
 
 export default {
   props: {
-    /**
-     * props define properties that should be controlled by
-     * the users or will need to be modified externally.
-     */
     app: {
       type: Object,
       required: true
@@ -88,10 +84,6 @@ export default {
   },
 
   data() {
-    /**
-     * data defines internal state that no external sources
-     * should modify.
-     */
     return {
       browser: {
         height: 0,
@@ -172,27 +164,24 @@ export default {
 
   watch: {
     properties() {
-      this.updateVis();
+    //   this.updateVis();
     }
   },
 
   async mounted() {
-    /**
-     * mounted hook runs after the component is injected into the DOM
-     */
-    this.loadVis();
-    this.provenance.addObserver("selected", state =>
-      this.highlightSelectedNodes(state)
-    );
+    // this.loadVis();
+    // this.provenance.addObserver("selected", state =>
+    //   this.highlightSelectedNodes(state)
+    // );
 
-    this.simulation = this.makeSimulation()
+    // this.simulation = this.makeSimulation()
   },
 
   methods: {
     // define many functions externally
-    ...loadVisMethods,
-    ...updateVisMethods,
-    ...uiMethods,
+    // ...loadVisMethods,
+    // ...updateVisMethods,
+    // ...uiMethods,
   },
 };
 </script>
@@ -204,5 +193,5 @@ export default {
 </template>
 
 <style scoped>
-@import './NodeLink.css';
+@import './adj-matrix.css';
 </style>

@@ -1,28 +1,16 @@
 <script>
-// import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
+import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
-// import { setUpProvenance } from "@/lib/provenance";
-// import { getUrlVars } from "@/lib/utils";
-// import { loadData } from "@/lib/multinet";
+import { setUpProvenance } from "@/lib/provenance";
+import { getUrlVars } from "@/lib/utils";
+import { loadData } from "@/lib/multinet";
 
-/**
- * Demo Controls.  This component is meant to demo
- * the capabilities of the NodeLink vis.
- *
- * You'll probably want the controls to look or
- * work differently in your app, so it's recommended that you
- * implement the controls yourself.
- */
 export default {
-//   components: {
-//     AdjMatrix,
-//   },
+  components: {
+    AdjMatrix,
+  },
 
   data() {
-    /**
-     * State shared between the view (NodeLink graph)
-     * and the controller (dialog box or other UI).
-     */
     return {
       app: null,
       provenance: null,
@@ -70,10 +58,6 @@ export default {
     }
   },
 
-  /**
-   * This is the "entrypoint" into this application.
-   * Notice the v-if dependency in the template above.
-   */
   async mounted() {
     const { workspace, graph } = getUrlVars();
     if (!workspace || !graph) {
@@ -82,11 +66,11 @@ export default {
       );
     }
     this.graphStructure = await loadData(workspace, graph);
-    // const { provenance, app } = setUpProvenance(this.graphStructure.nodes);
-    // this.app = app;
-    // this.provenance = provenance;
-    // this.workspace = workspace;
-    // this.graph = graph;
+    const { provenance, app } = setUpProvenance(this.graphStructure.nodes);
+    this.app = app;
+    this.provenance = provenance;
+    this.workspace = workspace;
+    this.graph = graph;
   },
 
   methods: {
@@ -260,7 +244,7 @@ export default {
       <!-- AdjMatrix component -->
       <v-col>
         <v-row row wrap class="ma-0 pa-0">
-          <AdjMatix
+          <adj-matrix
             ref="adjmatrix"
             v-if="workspace"
             v-bind="{
