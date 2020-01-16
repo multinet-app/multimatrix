@@ -81,7 +81,7 @@ export class Model {
       this.idMap[node.id] = index;
     });
 
-    // this.processData();
+    this.processData();
 
     // if (clusterFlag) {
     //   this.orderType = this.sortKey;
@@ -92,6 +92,46 @@ export class Model {
     // if (this.controller.model) {
     //   this.controller.loadData(this.nodes, this.edges, this.matrix);
     // }
+  }
+
+  /**
+   * [processData description]
+   * @return [description]
+   */
+  public processData() {
+    // generate a hashmap of id's?
+    // Set up node data
+    this.nodes.forEach((rowNode, i) => {
+      /* matrix used for edge attributes, otherwise should we hide */
+      this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id+ '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
+      this.scalarMatrix[i] = this.nodes.map(function(colNode) { return 0; });
+    });
+
+    this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 }
+    // Convert links to matrix; count character occurrences.
+    this.edges.forEach((link) => {
+      console.log(this.idMap, this.idMap[link.source], this.idMap[link.target])
+      this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
+      this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
+
+      /* could be used for varying edge types */
+      //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
+      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
+      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+
+
+      this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
+      this.matrix[this.idMap[link.target]][this.idMap[link.source]].count += 1;
+      // if not directed, increment the other values
+      // if (!isDirected) {
+      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
+      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
+      //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
+
+      // }
+      link.source = this.idMap[link.source];
+      link.target = this.idMap[link.target];
+    });
   }
 
   /**
@@ -383,46 +423,6 @@ export class Model {
 
     this.order = order;
     return order;
-  }
-
-
-  /**
-   * [processData description]
-   * @return [description]
-   */
-  public processData() {
-    // generate a hashmap of id's?
-    // Set up node data
-    this.nodes.forEach((rowNode, i) => {
-      /* matrix used for edge attributes, otherwise should we hide */
-      this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id+ '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
-      this.scalarMatrix[i] = this.nodes.map(function(colNode) { return 0; });
-    });
-
-    this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 }
-    // Convert links to matrix; count character occurrences.
-    this.edges.forEach((link) => {
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
-      this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
-
-      /* could be used for varying edge types */
-      //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
-
-
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].count += 1;
-      // if not directed, increment the other values
-      // if (!isDirected) {
-      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
-      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
-      //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
-
-      // }
-      link.source = this.idMap[link.source];
-      link.target = this.idMap[link.target];
-    });
   }
 
   public getOrder() {

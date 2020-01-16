@@ -94,7 +94,7 @@ export default {
     this.view = new View()
     this.controller = new Controller(this.view, this.model, this.visDimensions, this.panelDimensions);
 
-    this.controller.loadData(this.graphStructure.nodes, this.graphStructure.links, []);
+    this.controller.loadData(this.model.nodes, this.model.links, this.model.matrix);
   },
 
   methods: {
