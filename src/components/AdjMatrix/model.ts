@@ -1,5 +1,6 @@
 /* The Model loads sorts and orders the data. */
 import * as d3 from 'd3';
+import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
 export class Model {
   public graphStructure: any;
@@ -75,7 +76,7 @@ export class Model {
     //   this.nodes = this.nodes.sort((a, b) => { return b[this.orderType] - a[this.orderType]; });
     // }
 
-    this.nodes.forEach((node: {index: number, id: string}, index: number) => {
+    this.nodes.forEach((node: any, index: number) => {
       node.index = index;
       this.idMap[node.id] = index;
     });
@@ -91,9 +92,6 @@ export class Model {
     // if (this.controller.model) {
     //   this.controller.loadData(this.nodes, this.edges, this.matrix);
     // }
-
-    // [this.app, this.provenance] = this.setUpProvenance()
-
   }
 
   /**
@@ -164,12 +162,12 @@ export class Model {
    */
   private setUpProvenance() {
     const initialState = {
-      workerID: workerID, // workerID is a global variable
-      nodes: '',//array of nodes that keep track of their position, whether they were softSelect or hardSelected;
-      search: '', //field to store the id of a searched node;
-      startTime: Date.now(), //time this provenance graph was created and the task initialized;
+      workerID: 1, // workerID is a global variable
+      nodes: '', // array of nodes that keep track of their position, whether they were softSelect or hardSelected;
+      search: '', // field to store the id of a searched node;
+      startTime: Date.now(), // time this provenance graph was created and the task initialized;
       endTime: '', // time the submit button was pressed and the task ended;
-      time: Date.now(), //timestamp for the current state of the graph;
+      time: Date.now(), // timestamp for the current state of the graph;
       count: 0,
       clicked: [],
       sortKey: this.sortKey,

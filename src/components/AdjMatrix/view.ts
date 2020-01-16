@@ -26,35 +26,24 @@ export class View {
 
   private nodeFontSize: string = '12';
   private labelVar: string = '_key';
-  /*
-  private edgeSVGWidth: number;
-  private edgeSVGHeight: number;
-  private edgeSVGMargin: any;
-  private edgeSVG: any;
 
-  private xScale: d3.ScaleBand<string>;
-  private edgeValueScale: d3.ScaleLinear<number,number>;
-  private colorScale: d3.ScaleOrdinal<any,any>;
-  private orders: any;
-*/
+  constructor() {
+    this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
 
-constructor() {
-  this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
+    this.mouseoverEvents = [];
+    // this.datumID = controller.datumID;
 
-  this.mouseoverEvents = [];
-  // this.datumID = controller.datumID;
+    // this.clickFunction = (d, i, nodes) => {
+    //   let nodeID = this.controller.view.determineID(d);
+    //   // remove hover or clicked from the class name of the objects that are interacted
+    //   // this is necessary as the click events are attached to the hovered rect in attrRow
+    //   let interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
 
-  // this.clickFunction = (d, i, nodes) => {
-  //   let nodeID = this.controller.view.determineID(d);
-  //   // remove hover or clicked from the class name of the objects that are interacted
-  //   // this is necessary as the click events are attached to the hovered rect in attrRow
-  //   let interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
+    //   let action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
+    //   this.controller.model.provenance.applyAction(action);
 
-  //   let action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
-  //   this.controller.model.provenance.applyAction(action);
-
-  // };
-}
+    // };
+  }
 
   /**
    * Changes the input string by any conflicting class names given to the
@@ -71,7 +60,7 @@ constructor() {
     return interaction;
   }
 
-  
+
 
   // Allows public getting
   get(attribute) {
@@ -142,7 +131,7 @@ constructor() {
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom)
 
     // Creates scalable SVG
-    this.edges = d3.select('#topology').append('svg')
+    this.edges = d3.select('svg')
       .attr('viewBox', '0 0 ' + width + ' ' + height + '')
       .attr('preserveAspectRatio', 'xMinYMin meet')
       .append('g')

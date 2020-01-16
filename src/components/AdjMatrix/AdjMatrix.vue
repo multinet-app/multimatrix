@@ -93,6 +93,8 @@ export default {
     this.model = new Model(this.graphStructure)
     this.view = new View()
     this.controller = new Controller(this.view, this.model, this.visDimensions, this.panelDimensions);
+
+    this.controller.loadData(this.graphStructure.nodes, this.graphStructure.links, []);
   },
 
   methods: {
