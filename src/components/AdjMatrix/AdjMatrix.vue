@@ -92,14 +92,7 @@ export default {
     // Define the MVC
     this.model = new Model(this.graphStructure)
     this.view = new View()
-    this.controller = new Controller(this.view, this.model, visDimensions, panelDimensions);
-    console.log("Built MVC")
-    // this.loadVis();
-    // this.provenance.addObserver("selected", state =>
-    //   this.highlightSelectedNodes(state)
-    // );
-
-    // this.simulation = this.makeSimulation()
+    this.controller = new Controller(this.view, this.model, this.visDimensions, this.panelDimensions);
   },
 
   methods: {
