@@ -1,12 +1,7 @@
-
-import * as d3 from "d3";
-// import { View } from './view';
-// import { Model } from './model';
+/* The Controller controls the model and tell the model how to manipulate the data */
+import * as d3 from 'd3';
 
 export class Controller {
-  /*
-  The Model handels the loading, sorting, and ordering of the data.
-   */
   public columnSelectedNodes: {} = {};
   public highlightedNodes: {} = {};
   public visWidth: number;
@@ -21,6 +16,23 @@ export class Controller {
   private clickedCells: any;
   private hoverRow: any;
   private hoverCol: any;
+  private datumID: any;
+
+  constructor(view: any, model: any) {
+    this.hoverRow = {};
+    this.hoverCol = {};
+    this.datumID = 'id';
+    this.clickedCells = new Set();
+
+    this.view = view; // initialize view,
+    this.model = model; // start reading in data
+
+    view.controller = this;
+    model.controller = this;
+
+    d3.select('.loading').style('display', 'block');
+    // this.model.reload();
+  }
 
 
   // setupExports(base, task) {
@@ -33,12 +45,12 @@ export class Controller {
   //   });
   // }
 
-  clear() {
-    let action = {
+  private clear() {
+    const action = {
       label: 'clear',
       action: () => {
         const currentState = this.model.app.currentState();
-        //add time stamp to the state graph
+        // add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = 'clear';
         currentState.selections = {
@@ -50,27 +62,27 @@ export class Controller {
           cellrow: {},
           search: {},
           neighborSelect: {},
-          previousMouseovers: []
-        }
+          previousMouseovers: [],
+        };
         return currentState;
       },
-      args: []
-    }
+      args: [],
+    };
     this.model.provenance.applyAction(action);
   }
 
-  sizeLayout() {
-    let targetDiv = d3.select("#targetSize");
-    let width = targetDiv.style("width").replace("px", "");
-    let height = targetDiv.style("height").replace("px", "");
+  private sizeLayout() {
+    let targetDiv = d3.select('#targetSize');
+    let width = targetDiv.style('width').replace('px', '');
+    let height = targetDiv.style('height').replace('px', '');
     let taskBarHeight = 74;
     let panelDimensions = {}
     panelDimensions.width = 480;
     panelDimensions.height = height - taskBarHeight;
-    d3.select("#visPanel").style("width: 100vw;");
-    d3.select("#visPanel").style("height: 100vh;");
+    d3.select('#visPanel').style('width: 100vw;');
+    d3.select('#visPanel').style('height: 100vh;');
 
-    document.getElementById("visContent").style.width = '100vw';
+    document.getElementById('visContent').style.width = '100vw';
     // document.getElementById("visContent").style.overflowX = "scroll";
 
     this.visHeight = panelDimensions.height;
@@ -96,25 +108,7 @@ export class Controller {
     d3.select('.attrcontainer').style('width', (100 * this.attributeProportion).toString() + '%');
     d3.select('.attrcontainer').style('height', (this.visHeight).toString() + 'px');
 
-    //d3.select('.adjMatrix.vis').style('width',width*0.8);
     d3.select('.adjMatrix.vis').style('width', (this.visWidth).toString() + 'px')
-  }
-
-  constructor() {
-    this.hoverRow = {};
-    this.hoverCol = {};
-    this.datumID = 'id';
-    this.clickedCells = new Set()
-
-    // this.configToggle = configPanel === "true";
-
-    // this.sizeLayout();
-
-    // this.view = new View(this); // initialize view,
-    // this.model = new Model(this); // start reading in data
-
-    d3.select('.loading').style('display', 'block');
-    // this.model.reload();
   }
 
   /**
@@ -141,9 +135,4 @@ export class Controller {
     this.sortKey = order;
     return this.model.changeOrder(order,node);
   }
-}
-
-export function makeController() {
-  window.controller = new Controller();
-  addConfigPanel();
 }

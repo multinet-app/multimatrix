@@ -1,9 +1,11 @@
 <script>
 import * as d3 from "d3";
 
-import * as modelMethods from './model';
-import * as viewMethods from './view';
-import * as controllerMethods from './controller';
+// import * as modelMethods from './model';
+// import * as viewMethods from './view';
+// import * as controllerMethods from './controller';
+import { Model } from './model';
+import { View } from './view';
 import { Controller } from './controller';
 
 export default {
@@ -62,7 +64,36 @@ export default {
   },
 
   async mounted() {
-    this.controller = new Controller();
+    // Size the panel
+    this.browser.width = d3
+    .select("body")
+    .style("width")
+    .replace("px", "");
+
+    this.browser.height = d3
+      .select("body")
+      .style("height")
+      .replace("px", "");
+
+    // Set dimensions of the node link
+    this.visDimensions.width = this.browser.width * 0.75;
+    this.visDimensions.height = this.browser.height * 1;
+
+    // Set dimensions of panel
+    this.panelDimensions.width = this.browser.width * 0.25;
+    this.panelDimensions.height = this.browser.height * 1;
+
+    // Size the svg
+    this.svg = d3
+    .select(this.$refs.svg)
+    .attr("width", this.visDimensions.width)
+    .attr("height", this.visDimensions.height);
+
+    // Define the MVC
+    this.model = new Model(this.graphStructure)
+    this.view = new View()
+    this.controller = new Controller(this.view, this.model, visDimensions, panelDimensions);
+    console.log("Built MVC")
     // this.loadVis();
     // this.provenance.addObserver("selected", state =>
     //   this.highlightSelectedNodes(state)
@@ -72,10 +103,6 @@ export default {
   },
 
   methods: {
-    // define many functions externally
-    ...modelMethods,
-    ...viewMethods,
-    ...controllerMethods,
   },
 };
 </script>
