@@ -19,67 +19,9 @@ export default {
       type: Object,
       default: () => {}
     },
-    labelVariable: {
-      type: String,
-      default: "_key"
-    },
-    colorVariable: {
-      type: String,
-      default: "table"
-    },
-    linkWidthVariable: {
-      type: String,
-      default: null
-    },
-    linkColorVariable: {
-      type: String,
-      default: null
-    },
-    nodeFontSize: {
-      type: Number,
-      default: 14
-    },
-    nodeMarkerLength: {
-      type: Number,
-      default: 50
-    },
-    nodeMarkerHeight: {
-      type: Number,
-      default: 50
-    },
-    nodeMarkerType: {
-      type: String,
-      default: "Circle"
-    },
     selectNeighbors: {
       type: Boolean,
       default: true
-    },
-    isDirected: {
-      type: Boolean,
-      default: false
-    },
-    isMultiEdge: {
-      type: Boolean,
-      default: false
-    },
-    attributes: {
-      type: Object,
-      default: () => ({
-        edgeWidthKey: undefined,
-      })
-    },
-    renderNested: {
-      type: Boolean,
-      default: false
-    },
-    nestedBarVariables: {
-      type: Array,
-      default: () => []
-    },
-    nestedGlyphVariables: {
-      type: Array,
-      default: () => []
     },
   },
 
@@ -98,18 +40,6 @@ export default {
         bottom: 25
       },
       svg: undefined,
-      simulation: undefined,
-      scales: {},
-      edgeScale: d3.scaleLinear().domain([0, 1]),
-      circleScale: d3.scaleLinear().domain([0, 1]),
-      colorClasses: [],
-      nodeSizeAttr: undefined,
-      barPadding: 3,
-      straightEdges: false,
-      // distinguish a drag from a click
-      wasDragged: false,
-      nodeColorScale: d3.scaleOrdinal(d3.schemeCategory10),
-      linkColorScale: d3.scaleOrdinal(d3.schemeCategory10),
     };
   },
 
@@ -117,48 +47,10 @@ export default {
     properties() {
       const {
         graphStructure,
-        nodeFontSize,
-        nodeMarkerLength,
-        nodeMarkerHeight,
-        nodeMarkerType,
-        isDirected,
-        isMultiEdge,
-        attributes,
-        renderNested,
-        linkWidthVariable,
-        linkColorVariable,
-        labelVariable,
-        colorVariable,
-        nestedBarVariables,
-        nestedGlyphVariables,
       } = this;
       return {
         graphStructure,
-        nodeFontSize,
-        nodeMarkerLength,
-        nodeMarkerHeight,
-        nodeMarkerType,
-        isDirected,
-        isMultiEdge,
-        attributes,
-        renderNested,
-        linkWidthVariable,
-        linkColorVariable,
-        labelVariable,
-        colorVariable,
-        nestedBarVariables,
-        nestedGlyphVariables,
       };
-    },
-    linkWidthScale() {
-      return d3.scaleLinear()
-        .domain(
-          [
-            d3.min(this.graphStructure.links.map(d => d[this.linkWidthVariable])),
-            d3.max(this.graphStructure.links.map(d => d[this.linkWidthVariable]))
-          ]
-        )
-        .range([2, 20])
     },
   },
 
