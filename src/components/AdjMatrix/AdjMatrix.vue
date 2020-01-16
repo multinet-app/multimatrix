@@ -1,9 +1,9 @@
 <script>
 import * as d3 from "d3";
 
-// import * as loadVisMethods from './functionLoadVis';
-// import * as updateVisMethods from './functionUpdateVis';
-// import * as uiMethods from './functionUi';
+import * as modelMethods from './model.js';
+import * as viewMethods from './view.js';
+import * as controllerMethods from './controller.js';
 
 export default {
   props: {
@@ -61,6 +61,7 @@ export default {
   },
 
   async mounted() {
+    this.controller = new this.Controller();
     // this.loadVis();
     // this.provenance.addObserver("selected", state =>
     //   this.highlightSelectedNodes(state)
@@ -71,9 +72,9 @@ export default {
 
   methods: {
     // define many functions externally
-    // ...loadVisMethods,
-    // ...updateVisMethods,
-    // ...uiMethods,
+    ...modelMethods,
+    ...viewMethods,
+    ...controllerMethods,
   },
 };
 </script>
