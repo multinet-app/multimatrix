@@ -40,11 +40,14 @@ export default {
         bottom: 25
       },
       svg: undefined,
+      model: Model,
+      view: View,
+      controller: Controller,
     };
   },
 
   computed: {
-    properties() {
+    properties(): object {
       const {
         graphStructure,
       } = this;

@@ -20,9 +20,9 @@ async function _loadLinks(workspace, edge_table, apiRoot) {
 
 function _renameLinkVars(links) {
   for (let row of links) {
-    row.id = row._id;
-    row.source = row._from;
-    row.target = row._to;
+    row.id = row._id.replace(/\//g, "");
+    row.source = row._from.replace(/\//g, "");
+    row.target = row._to.replace(/\//g, "");
 
     delete row._id;
     delete row._from;
@@ -33,7 +33,7 @@ function _renameLinkVars(links) {
 
 function _renameNodeVars(nodes) {
   for (let row of nodes) {
-    row.id = row._id;
+    row.id = row._id.replace(/\//g, "");
     delete row._id;
   }
   return nodes;

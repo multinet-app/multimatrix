@@ -30,16 +30,6 @@ export class Model {
     this.matrix = [];
     this.scalarMatrix = [];
 
-    d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
-    .then(function(error: any, svg: any) {
-      this.alphabeticalSortSvg = svg;
-    });
-
-    d3.image('../../assets/adj-matrix/categoricalSort.svg')
-    .then(function(error: any, svg: any) {
-      this.categoricalSortSvg = svg;
-    });
-
     this.icons = {
       quant: {
         d: 'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
@@ -106,7 +96,8 @@ export class Model {
       /* matrix used for edge attributes, otherwise should we hide */
       this.matrix[i] = this.nodes.map((colNode: any) => {
         return {
-          cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id + '_' + rowNode.id,
+          cellName: `cell${rowNode.id}_${colNode.id}`,
+          correspondingCell: `cell${colNode.id}_${rowNode.id}`,
           rowid: rowNode.id,
           colid: colNode.id,
           x: colNode.index,
@@ -117,7 +108,7 @@ export class Model {
           retweet: 0,
           mentions: 0,
         }; });
-      this.scalarMatrix[i] = this.nodes.map(0);
+      this.scalarMatrix[i] = this.nodes.map((d: any) => 0);
     });
 
     this.maxTracker = { reply: 0, retweet: 0, mentions: 0 };
