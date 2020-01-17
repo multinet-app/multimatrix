@@ -1,6 +1,8 @@
 /* The View displays the data given to it by the model. */
 import * as d3 from 'd3';
 
+import { nodeClick } from '@/lib/ui';
+
 export class View {
   public controller: any;
   public selectedCells: any[];
@@ -14,7 +16,7 @@ export class View {
   private datumID: string;
   private mouseoverEvents: any[];
   private clickFunction: any;
-  private columnscreen_names: {};
+  private columnscreenNames: {};
   private attributeScales: any;
   private columnWidths: any;
   private attributeRows: any;
@@ -133,14 +135,14 @@ export class View {
    */
   public selectHighlight(nodeToSelect: any, rowOrCol: string, attrOrTopo: string = 'Attr', orientation: string = 'x') {
     const selection = d3.selectAll('.' + attrOrTopo + rowOrCol)
-      .filter((d, i) => {
-        if (attrOrTopo == 'Attr' && d.index == null) {
+      .filter((d: any, i: number) => {
+        if (attrOrTopo === 'Attr' && d.index === null) {
           // attr
-          return nodeToSelect.index == d[i][orientation];
+          return nodeToSelect.index === d[i][orientation];
         }
-        //topology
-        return nodeToSelect.index == d.index;
-      })
+        // topology
+        return nodeToSelect.index === d.index;
+      });
     return selection;
   }
 
@@ -230,7 +232,7 @@ export class View {
       })
       .on('click', (d: any, i: number, nodes: any) => {
         // only trigger click if edge exists
-        this.clickFunction(d, i ,nodes);
+        this.clickFunction(d, i, nodes);
 
       })
       .attr('cursor', 'pointer');
@@ -338,8 +340,6 @@ export class View {
       .filter((d: any) => d.z === 0)
       .style('fill-opacity', (d: { z: any; }) => d.z);
 
-    this.setSquareColors('all');
-
   }
 
   /**
@@ -354,15 +354,15 @@ export class View {
       .translate(+nodes[i].getAttribute('x'), + nodes[i].getAttribute('y'));
 
     // let interactedMessage = cell.interacted > 0 ? cell.interacted.toString() + " interactions" : '';//
-    // if (cell.interacted == 1) {
+    // if (cell.interacted === 1) {
     //   interactedMessage = interactedMessage.substring(0, interactedMessage.length - 1)
     // }
     // let retweetMessage = cell.retweet > 0 ? cell.retweet.toString() + " retweets" : '';//
-    // if (cell.retweet == 1) {
+    // if (cell.retweet === 1) {
     //   retweetMessage = retweetMessage.substring(0, retweetMessage.length - 1)
     // }
     // let mentionsMessage = cell.mentions > 0 ? cell.mentions.toString() + " mentions" : '';//
-    // if (cell.mentions == 1) {
+    // if (cell.mentions === 1) {
     //   mentionsMessage = mentionsMessage.substring(0, mentionsMessage.length - 1)
     // }
 
@@ -392,9 +392,9 @@ export class View {
     const cellIDs = [cell.cellName, cell.correspondingCell];
 
     this.selectedCells = cellIDs;
-    this.selectedCells.map((cellID: string) => {
-      d3.selectAll('#' + cellID).selectAll('.baseCell').classed('hoveredCell', true);
-    })
+    this.selectedCells.map((elementID: string) => {
+      d3.selectAll('#' + elementID).selectAll('.baseCell').classed('hoveredCell', true);
+    });
     const cellID = cellIDs[0];
 
     this.addHighlightNodesToDict(this.controller.hoverRow, cell.rowid, cellID);  // Add row (rowid)
@@ -404,7 +404,7 @@ export class View {
     }
 
     // add mouseover events
-    this.mouseoverEvents.push({ time: new Date().getTime(), event: cellID })
+    this.mouseoverEvents.push({ time: new Date().getTime(), event: cellID });
 
     this.addHighlightNodesToDict(this.controller.hoverCol, cell.colid, cellID);  // Add col (colid)
     d3.selectAll('.hovered').classed('hovered', false);
@@ -448,37 +448,37 @@ export class View {
       .attr('text-anchor', 'end')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
       .text((d: any, i: string | number) => this.nodes[i]._key)
-      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes) })
-      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes) })
+      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
+      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
       .on('click', (d: any) => {
-        //d3.select(nodes[i]).classed('clicked',!d3.select(nodes[i]).classed('clicked'))
+        // d3.select(nodes[i]).classed('clicked',!d3.select(nodes[i]).classed('clicked'))
         nodeClick(d);
-      })
+      });
 
     let verticalOffset = 3;
-      verticalOffset = 187.5;
-      const horizontalOffset = this.nodes.length < 50 ? 540 : 0;
-      this.edgeColumns.append('path')
-      .attr('id', (d: { rowid: string; }[])=>'sortIcon' + d[0].rowid)
+    verticalOffset = 187.5;
+    const horizontalOffset = this.nodes.length < 50 ? 540 : 0;
+    this.edgeColumns.append('path')
+      .attr('id', (d: Array<{ rowid: string; }>) => 'sortIcon' + d[0].rowid)
       .attr('class', 'sortIcon')
-      .attr('d', this.controller.model.icons['cellSort'].d)
-        //.style('fill', d => {return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+      .attr('d', this.controller.model.icons.cellSort.d)
+        // .style('fill', d => {return d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
         .attr('transform', 'scale(0.075)translate(' + (verticalOffset) + ',' + (horizontalOffset) + ')rotate(90)')
-        .on('click', (d: { rowid: any; }[]) => {
+        .on('click', (d: Array<{ rowid: any; }>) => {
           this.sort(d[0].rowid);
-          //nodeClick(d);
+          // nodeClick(d);
           /*var e = document.createEvent('UIEvents');
-          e.initUIEvent('click', true, true, /* ... *///);
+          e.initUIEvent('click', true, true, /* ... */// );
           /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
 
           const action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
           this.controller.model.provenance.applyAction(action);
         }).attr('cursor', 'pointer')
-        .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes) })
-        .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes) });
-        ;
-      verticalOffset = verticalOffset/12.5 + 3;
-    
+        .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
+        .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
+
+    verticalOffset = verticalOffset / 12.5 + 3;
+
 
     this.edgeColumns.append('text')
       .attr('id', (d: { [x: string]: { rowid: string; }; }, i: string | number) => {
@@ -494,10 +494,10 @@ export class View {
       .text((d: any, i: string | number) => this.nodes[i]._key)
       .on('click', (d: any, i: string | number) => {
           nodeClick(d);
-          this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors)
+          this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
       })
-      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes) })
-      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes) });
+      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
+      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
   }
   /**
    * renders the relevent highlights for mousing over a label. Logs the interaction
@@ -508,14 +508,16 @@ export class View {
    * @return       none
    */
 
-  private mouseOverLabel(data: { rowid: any; }[], i: string | number, nodes: { [x: string]: any; }) {
+  private mouseOverLabel(data: Array<{ rowid: any; }>, i: string | number, nodes: { [x: string]: any; }) {
 
     const elementID = data[0].rowid;
     const flag = this.addHighlightNodesToDict(this.controller.hoverRow, elementID, elementID);
     this.addHighlightNodesToDict(this.controller.hoverCol, elementID, elementID);
 
     // add interaction to mouseover events
-    flag ? this.mouseoverEvents.push({ time: new Date().getTime(), event: d3.select(nodes[i]).attr('id') }) : null;
+    if (flag) {
+      this.mouseoverEvents.push({ time: new Date().getTime(), event: d3.select(nodes[i]).attr('id') });
+    }
 
     d3.selectAll('.hovered').classed('hovered', false);
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
@@ -535,10 +537,12 @@ export class View {
     //   // set up scale
     //   let typeIndex = this.controller.attributeScales.edge.type.domain.indexOf(type);
 
-    //   //let scale = d3.scaleLinear().domain(extent).range(["white", this.controller.attributeScales.edge.type.range[typeIndex]]);
+    //   //let scale = d3.scaleLinear().domain(extent)
+    // .range(["white", this.controller.attributeScales.edge.type.range[typeIndex]]);
     //   //let otherColors = ['#064B6E', '#4F0664', '#000000']
 
-    //   let scale = d3.scaleSqrt().domain(extent).range("white", this.controller.attributeScales.edge.type.range[typeIndex]);
+    //   let scale = d3.scaleSqrt().domain(extent)
+    // .range("white", this.controller.attributeScales.edge.type.range[typeIndex]);
 
     //   scale.clamp(true);
     //   // store scales
@@ -554,17 +558,17 @@ export class View {
   private drawGridLines() {
     const gridLines = this.edges
       .append('g')
-      .attr('class', 'gridLines')
+      .attr('class', 'gridLines');
     const lines = gridLines
       .selectAll('line')
       .data(this.matrix)
-      .enter()
+      .enter();
 
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return 'translate(' + this.orderingScale(i) + ',' + '0' + ')rotate(-90)';
       })
-      .attr('x1', -this.edgeWidth)
+      .attr('x1', -this.edgeWidth);
     /*.attr("stroke-width", 5)
     .attr('stroke','red')*/
 
@@ -572,9 +576,9 @@ export class View {
       .attr('transform', (d: any, i: number) => {
         return 'translate(0,' + this.orderingScale(i) + ')';
       })
-      .attr('x2', this.edgeWidth + this.margins.right)
-    //.attr("stroke-width", 2)
-    //.attr('stroke','blue')
+      .attr('x2', this.edgeWidth + this.margins.right);
+    // .attr("stroke-width", 2)
+    // .attr('stroke','blue')
 
     const one = gridLines
       .append('line')
@@ -583,7 +587,7 @@ export class View {
       .attr('y1', 0)
       .attr('y2', this.edgeHeight + this.margins.bottom)
       .style('stroke', '#aaa')
-      .style('opacity', 0.3)
+      .style('opacity', 0.3);
 
     const two = gridLines
       .append('line')
@@ -592,7 +596,7 @@ export class View {
       .attr('y1', this.edgeHeight + this.margins.bottom)
       .attr('y2', this.edgeHeight + this.margins.bottom)
       .style('stroke', '#aaa')
-      .style('opacity', 0.3)
+      .style('opacity', 0.3);
     // adds column lines
     /*this.edgeColumns.append("line")
       .attr("x1", -this.edgeWidth)
@@ -616,7 +620,7 @@ export class View {
    * Renders the highlight rows and columns for the adjacency matrix.
    * @return [description]
    */
-  
+
 
 
   /**
@@ -629,56 +633,56 @@ export class View {
   private changeInteractionWrapper(nodeID: any, node: any, interactionType: any) {
     return {
       label: interactionType,
-      action: (nodeID: string) => {
+      action: (interactID: string) => {
         const currentState = this.controller.model.getApplicationState();
           // currentState.selections.previousMouseovers = this.mouseoverEvents;
-          this.mouseoverEvents.length = 0;
-        //add time stamp to the state graph
+        this.mouseoverEvents.length = 0;
+        // add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = interactionType;
-        const interactionName = interactionType //cell, search, etc
-        let interactedElement = interactionType
-        if (interactionName == 'cell') {
-          const cellData = d3.select(node).data()[0]; //
-          nodeID = cellData.colid;
-          interactedElement = cellData.cellName;// + cellData.rowid;
+        const interactionName = interactionType; // cell, search, etc
+        let interactedElement = interactionType;
+        if (interactionName === 'cell') {
+          const cellData: any = d3.select(node).data()[0]; //
+          interactID = cellData.colid;
+          interactedElement = cellData.cellName; // + cellData.rowid;
 
-          this.changeInteraction(currentState, nodeID, interactionName + 'col', interactedElement);
-          this.changeInteraction(currentState, nodeID, interactionName + 'row', interactedElement);
-          if (cellData.cellName != cellData.correspondingCell) {
-            interactedElement = cellData.correspondingCell;// + cellData.rowid;
-            nodeID = cellData.rowid;
+          this.changeInteraction(currentState, interactID, interactionName + 'col', interactedElement);
+          this.changeInteraction(currentState, interactID, interactionName + 'row', interactedElement);
+          if (cellData.cellName !== cellData.correspondingCell) {
+            interactedElement = cellData.correspondingCell; // + cellData.rowid;
+            interactID = cellData.rowid;
 
-            this.changeInteraction(currentState, nodeID, interactionName + 'col', interactedElement);
-            this.changeInteraction(currentState, nodeID, interactionName + 'row', interactedElement);
+            this.changeInteraction(currentState, interactID, interactionName + 'col', interactedElement);
+            this.changeInteraction(currentState, interactID, interactionName + 'row', interactedElement);
           }
-          return currentState
+          return currentState;
 
-          //nodeID = cellData.rowid;
-          //interactionName = interactionName + 'row'
-        } else if (interactionName == 'neighborSelect') {
+          // interactID = cellData.rowid;
+          // interactionName = interactionName + 'row'
+        } else if (interactionName === 'neighborSelect') {
 
-          //this.controller.model.provenance.applyAction(action);
+          // this.controller.model.provenance.applyAction(action);
           const columnData = d3.select(node).data()[0];
           interactedElement = 'colClick' + d3.select(node).data()[0][0].rowid;
           columnData.map((node: { mentions: number; interacted: number; retweet: number; colid: any; }) => {
-            if (node.mentions != 0 || node.interacted != 0 || node.retweet != 0) {
+            if (node.mentions !== 0 || node.interacted !== 0 || node.retweet !== 0) {
               const neighbor = node.colid;
               this.changeInteraction(currentState, neighbor, interactionName, interactedElement);
 
             }
-          })
+          });
           return currentState;
 
-        } else if (interactionName == 'attrRow'){
-          interactionName
+        } else if (interactionName === 'attrRow') {
+          return interactionName;
 
         }
-        this.changeInteraction(currentState, nodeID, interactionName, interactedElement);
+        this.changeInteraction(currentState, interactID, interactionName, interactedElement);
         return currentState;
       },
-      args: [nodeID]
-    }
+      // args: [interactID]
+    };
   }
 
   /**
@@ -686,10 +690,10 @@ export class View {
    * @param  data data returned as the first argument of d3 selection
    * @return      a list containing the id (ID's) of data elements
    */
-  private determineID(data: { rowid: any; }[]) {
+  private determineID(data: Array<{ rowid: any; }>) {
     // if attr Row
     if (data[this.datumID]) {
-      return data[this.datumID]
+      return data[this.datumID];
     } else if (data.colid) { // if cell
       return data.colid + data.rowid;
     } else { // if colLabel or rowLabel
@@ -702,11 +706,11 @@ export class View {
     const cellNames = splitCellNames(nodeID);
     let flag = false;
     cellNames.map((name: string | number) => {
-      if (state.selections['cell'][name]) {
-        delete state.selections['cell'][name]
+      if (state.selections.cell[name]) {
+        delete state.selections.cell[name];
         flag = true;
       }
-    })
+    });
     return flag;
   }
 
@@ -719,12 +723,15 @@ export class View {
    * @param  interactionName [description]
    * @return                 [description]
    */
-  private changeInteraction(state: { selections: { [x: string]: { [x: string]: string[]; }; }; }, nodeID: string, interaction: string, interactionName: string = interaction) {
+  private changeInteraction(
+    state: { selections: { [x: string]: { [x: string]: string[]; }; }; },
+    nodeID: string, interaction: string, interactionName: string = interaction,
+  ) {
 
     // if there have been any mouseover events since the last submitted action, log them in provenance
-    //if (this.mouseoverEvents.length > 1) {
+    // if (this.mouseoverEvents.length > 1) {
 
-    //}
+    // }
 
 
     if (nodeID in state.selections[interaction]) {
@@ -732,7 +739,9 @@ export class View {
       const currentIndex = state.selections[interaction][nodeID].indexOf(interactionName);
       if (currentIndex > -1) {
         state.selections[interaction][nodeID].splice(currentIndex, 1);
-        if (state.selections[interaction][nodeID].length == 0) delete state.selections[interaction][nodeID];
+        if (state.selections[interaction][nodeID].length === 0) {
+          delete state.selections[interaction][nodeID];
+        }
       } else {
         state.selections[interaction][nodeID].push(interactionName);
       }
@@ -742,9 +751,9 @@ export class View {
   }
 
   private linspace(startValue: number, stopValue: number, cardinality: number) {
-    var arr = [];
-    var step = (stopValue - startValue) / (cardinality - 1);
-    for (var i = 0; i < cardinality; i++) {
+    const arr = [];
+    const step = (stopValue - startValue) / (cardinality - 1);
+    for (let i = 0; i < cardinality; i++) {
       arr.push(startValue + (step * i));
     }
     return arr;
@@ -756,15 +765,15 @@ export class View {
 
     if (this.controller.adjMatrix.edgeBars && this.controller.isMultiEdge) {
       let legendFile = 'assets/adj-matrix/';
-      legendFile += this.controller.isMultiEdge ? 'nestedSquaresLegend' : 'edgeBarsLegendSingleEdge'
+      legendFile += this.controller.isMultiEdge ? 'nestedSquaresLegend' : 'edgeBarsLegendSingleEdge';
       legendFile += '.png';
       d3.select('#legend-svg').append('g').append('svg:image')
         .attr('x', 0)
         .attr('y', 0)
         .attr('width', 90)
         .attr('height', 120)
-        .attr('xlink:href', legendFile)
-      //return;
+        .attr('xlink:href', legendFile);
+      // return;
       xOffset = 100;
     }
 
@@ -776,7 +785,7 @@ export class View {
 
     const scale = this.edgeScales[type];
     const extent = scale.domain();
-    let number = 5
+    const placeholder = 5;
 
     const sampleNumbers = [0, 1, 3, 5]; // this.linspace(extent[0], extent[1], number);
 
@@ -784,20 +793,19 @@ export class View {
       .attr('id', 'legendLinear' + type)
       .attr('transform', (d, i) => 'translate(' + xOffset + ',' + yOffset + ')')
       .on('click', (d) => {
-        if (this.controller.adjMatrix.selectEdgeType == true) { //
-          const edgeType = this.controller.state.adjMatrix.selectedEdgeType == type ? 'all' : type;
+        if (this.controller.adjMatrix.selectEdgeType === true) { //
+          const edgeType = this.controller.state.adjMatrix.selectedEdgeType === type ? 'all' : type;
           this.controller.state.adjMatrix.selectedEdgeType = edgeType;
-          this.setSquareColors(edgeType);
-          if (edgeType == 'all') {
+          if (edgeType === 'all') {
             d3.selectAll('.selectedEdgeType').classed('selectedEdgeType', false);
           } else {
             d3.selectAll('.selectedEdgeType').classed('selectedEdgeType', false);
-            d3.selectAll('#legendLinear' + type).select('.edgeLegendBorder').classed('selectedEdgeType', true)
+            d3.selectAll('#legendLinear' + type).select('.edgeLegendBorder').classed('selectedEdgeType', true);
 
           }
         }
       });
-    const boxWidth = (number + 1) * rectWidth + 15
+    const boxWidth = (placeholder + 1) * rectWidth + 15;
 
     svg.append('rect')
       .classed('edgeLegendBorder', true)
@@ -809,13 +817,13 @@ export class View {
       .attr('x', 0)
       .attr('y', -9)
       .attr('ry', 2)
-      .attr('rx', 2)
+      .attr('rx', 2);
 
     let pluralType = type;
 
-    if (pluralType == 'retweet') {
+    if (pluralType === 'retweet') {
       pluralType = 'retweets';
-    } else if (pluralType == 'interacted') {
+    } else if (pluralType === 'interacted') {
       pluralType = 'interactions';
     }
 
@@ -823,14 +831,14 @@ export class View {
       .attr('x', boxWidth / 2)
       .attr('y', 8)
       .attr('text-anchor', 'middle')
-      .text('# of ' + pluralType)
-    const sideMargin = ((boxWidth) - (sampleNumbers.length * (rectWidth + 5))) / 2
+      .text('# of ' + pluralType);
+    const sideMargin = ((boxWidth) - (sampleNumbers.length * (rectWidth + 5))) / 2;
 
     const groups = svg.selectAll('g')
       .data(sampleNumbers)
       .enter()
       .append('g')
-      .attr('transform', (d, i) => 'translate(' + (sideMargin + i * (rectWidth + 5)) + ',' + 15 + ')')
+      .attr('transform', (d, i) => 'translate(' + (sideMargin + i * (rectWidth + 5)) + ',' + 15 + ')');
 
     groups
       .append('rect')
@@ -840,17 +848,17 @@ export class View {
         return scale(d);
       })
       .attr('stroke', (d) => {
-        return d == 0 ? '#bbb' : 'white';
-      })
+        return d === 0 ? '#bbb' : 'white';
+      });
 
     groups
       .append('text')
       .attr('x', rectWidth / 2)
       .attr('y', 25)
       .attr('text-anchor', 'middle')
-      .text(d => {
+      .text((d: any) => {
         return Math.round(d);
-      })
+      });
 
 
 
@@ -861,17 +869,17 @@ export class View {
     let counter = 0;
     for (const type in this.edgeScales) {
       if (this.controller.isMultiEdge) {
-        if (type == 'interacted') {
+        if (type === 'interacted') {
           continue;
         }
-        this.generateScaleLegend(type, counter)
+        this.generateScaleLegend(type, counter);
         counter += 1;
 
       } else {
-        if (type != 'interacted') {
+        if (type !== 'interacted') {
           continue;
         }
-        this.generateScaleLegend(type, counter)
+        this.generateScaleLegend(type, counter);
       }
     }
   }
@@ -885,11 +893,11 @@ export class View {
     // select attr and topo highlight
     d3.selectAll('Attr' + rowOrCol + nodeID + ',' + 'Topo' + rowOrCol + nodeID)
       .classed(className, true);
-    //d3.selectAll('#highlight' + 'Topo' + rowOrCol + nodeID)
+    // d3.selectAll('#highlight' + 'Topo' + rowOrCol + nodeID)
     //  .classed(className, true);*
 
     // highlight row text
-    //d3.selectAll('')rowOrCol
+    // d3.selectAll('')rowOrCol
     // else highlight column text
 
   }
@@ -908,7 +916,7 @@ export class View {
    */
   /*highlightRow(node) {
     let nodeID = node[this.datumID];
-    if (nodeID == null) {
+    if (nodeID === null) {
       nodeID = node.rowid;
     }
     // highlight attr
@@ -918,7 +926,7 @@ export class View {
 
   highlightRowAndCol(node) {
     let nodeID = node.screen_name;
-    if (node.screen_name == null) {
+    if (node.screen_name === null) {
       nodeID = node.colid;
     }
 
@@ -933,20 +941,24 @@ export class View {
 
 
 
-  //u: BCC    BCCINVITADOS2019
-  //p:
+  // u: BCC    BCCINVITADOS2019
+  // p:
 
-  //private selectedNodes : any;
+  // private selectedNodes : any;
   // DOESNT GET ADDED
   private addHighlightNode(addingNode: string) {
     // if node is in
-    const nodeIndex = this.nodes.findIndex(function(item: { [x: string]: string; }, i: any) {
-      return item['id'] == addingNode;
+    const nodeIndex = this.nodes.findIndex((item: { [x: string]: string; }, i: any) => {
+      return item.id === addingNode;
     });
+
     for (let i = 0; i < this.matrix[0].length; i++) {
       if (true /*this.matrix[i][nodeIndex].z > 0*/) {
         const nodeID = this.matrix[i][nodeIndex].rowid;
-        if (this.controller.highlightedNodes.hasOwnProperty(nodeID) && !this.controller.highlightedNodes[nodeID].includes(addingNode)) {
+        if (
+          this.controller.highlightedNodes.hasOwnProperty(nodeID) &&
+          !this.controller.highlightedNodes[nodeID].includes(addingNode)
+        ) {
           // if array exists, add it
           this.controller.highlightedNodes[nodeID].push(addingNode);
         } else {
@@ -957,9 +969,12 @@ export class View {
     }
   }
 
-  private nodeDictContainsPair(dict: { [x: string]: { has: (arg0: any) => any; }; }, nodeToHighlight: string, interactedElement: any) {
+  private nodeDictContainsPair(
+    dict: { [x: string]: { has: (arg0: any) => any; }; },
+    nodeToHighlight: string, interactedElement: any,
+  ) {
     if (nodeToHighlight in dict) {
-      return dict[nodeToHighlight].has(interactedElement)
+      return dict[nodeToHighlight].has(interactedElement);
     }
     return false;
   }
@@ -973,10 +988,13 @@ export class View {
    * @param  interactedElement [description]
    * @return            [description]
    */
-  private addHighlightNodesToDict(dict: { [x: string]: { add: (arg0: any) => void; }; }, nodeToHighlight: string, interactedElement: any) {
+  private addHighlightNodesToDict(
+    dict: { [x: string]: { add: (arg0: any) => any; }; },
+    nodeToHighlight: string, interactedElement: any,
+  ) {
     // if node already in highlight, remove it
     if (this.nodeDictContainsPair(dict, nodeToHighlight, interactedElement)) {
-      this.removeHighlightNodesToDict(dict, nodeToHighlight, interactedElement)
+      this.removeHighlightNodesToDict(dict, nodeToHighlight, interactedElement);
       return false;
     }
 
@@ -990,7 +1008,9 @@ export class View {
     return true;
   }
 
-  private removeHighlightNodesToDict(dict: { [x: string]: any; }, nodeToHighlight: string | number, interactedElement: any) {
+  private removeHighlightNodesToDict(
+    dict: { [x: string]: any; }, nodeToHighlight: string, interactedElement: any,
+  ) {
     // if node is not in list, simply return
     if (!this.nodeDictContainsPair(dict, nodeToHighlight, interactedElement)) {
       return;
@@ -999,47 +1019,46 @@ export class View {
     // if there are other elements highlighting the node to highlight
     if (dict[nodeToHighlight].size > 1) { // if set has more than 1 object
       dict[nodeToHighlight].delete(interactedElement); // delete element from set
-    }
-    else {
+    } else {
       delete dict[nodeToHighlight];
     }
   }
 
   private renderHighlightNodesFromDict(dict: { [x: string]: any; }, classToRender: string, rowOrCol: string = 'Row') {
-    //unhighlight all other nodes
-    if (classToRender != 'hovered') {
+    // unhighlight all other nodes
+    if (classToRender !== 'hovered') {
       d3.selectAll(`.${classToRender}`)
-        .classed(classToRender, false)
+        .classed(classToRender, false);
     }
 
-    //highlight correct nodes
+    // highlight correct nodes
     let cssSelector = '';
     for (const node in dict) {
-      if(Array.isArray(dict[node])){
+      if (Array.isArray(dict[node])) {
         for (const nodeID of dict[node]) {
-          if (rowOrCol == 'Row') {
+          if (rowOrCol === 'Row') {
             cssSelector += '#attr' + rowOrCol + nodeID + ',';
           }
-          cssSelector += '#topo' + rowOrCol + nodeID + ','
+          cssSelector += '#topo' + rowOrCol + nodeID + ',';
 
-          if (rowOrCol == 'Row') {
-            cssSelector += '#nodeLabelRow' + nodeID + ','
+          if (rowOrCol === 'Row') {
+            cssSelector += '#nodeLabelRow' + nodeID + ',';
           }
         }
       } else {
-        if (rowOrCol == 'Row') {
+        if (rowOrCol === 'Row') {
           cssSelector += '#attr' + rowOrCol + node + ',';
         }
-        cssSelector += '#topo' + rowOrCol + node + ','
+        cssSelector += '#topo' + rowOrCol + node + ',';
 
-        if (rowOrCol == 'Row') {
-          cssSelector += '#nodeLabelRow' + node + ','
+        if (rowOrCol === 'Row') {
+          cssSelector += '#nodeLabelRow' + node + ',';
         }
       }
     }
     // remove last comma
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
-    if (cssSelector == '') {
+    if (cssSelector === '') {
       return;
     }
     d3.selectAll(cssSelector).classed(classToRender, true);
@@ -1047,7 +1066,7 @@ export class View {
   }
 
   private selectNode(nodeID: string) {
-    const index = this.controller.state.selectedNodes.indexOf(nodeID)
+    const index = this.controller.state.selectedNodes.indexOf(nodeID);
 
     if (index > -1) {
       this.controller.state.selectedNodes.splice(index, 1);
@@ -1077,12 +1096,12 @@ export class View {
     if (nodeID in this.controller.columnSelectedNodes) {
 
       // find all neighbors and remove them
-      delete this.controller.columnSelectedNodes[nodeID]
+      delete this.controller.columnSelectedNodes[nodeID];
     } else {
       this.addHighlightNode(nodeID);
-      const newElement = {}
-      newElement[nodeID] = neighbors
-      this.controller.columnSelectedNodes = Object.assign(this.controller.columnSelectedNodes, newElement)
+      const newElement = {};
+      newElement[nodeID] = neighbors;
+      this.controller.columnSelectedNodes = Object.assign(this.controller.columnSelectedNodes, newElement);
     }
     this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, 'neighbor', 'Row');
     /*let index = this.controller.state.selectedNodes.indexOf(nodeID);
@@ -1128,22 +1147,21 @@ export class View {
 
 
 
-  
+
 
   /**
    * [sort description]
    * @return [description]
    */
   private sort(order: unknown) {
-    const nodeIDs = this.nodes.map((node: { id: any; })=>node.id);
-    if(nodeIDs.includes(order)){
-      this.order = this.controller.changeOrder(order,true);
-      (order);
+    const nodeIDs = this.nodes.map((node: { id: any; }) => node.id);
+    if (nodeIDs.includes(order)) {
+      this.order = this.controller.changeOrder(order, true);
     } else {
       this.order = this.controller.changeOrder(order);
     }
     this.orderingScale.domain(this.order);
-    
+
 
     const transitionTime = 500;
     d3.selectAll('.row')
@@ -1151,9 +1169,12 @@ export class View {
       .duration(transitionTime)
       // .delay((d , i) => { return this.orderingScale(i) * 4; })
       .attr('transform', (d, i) => {
-        if (i > this.order.length - 1) return;
-        return 'translate(0,' + this.orderingScale(i) + ')';
-      })
+        if (i > this.order.length - 1) {
+          return;
+        } else {
+          return 'translate(0,' + this.orderingScale(i) + ')';
+        }
+      });
 
 
 
@@ -1168,11 +1189,11 @@ export class View {
 
 
     // if any other method other than neighbors sort
-    if(!nodeIDs.includes(order)) {
-      var t = this.edges//.transition().duration(transitionTime);
+    if (!nodeIDs.includes(order)) {
+      const t = this.edges; // .transition().duration(transitionTime);
       t.selectAll('.column')
-        //.delay((d, i) => { return this.orderingScale(i) * 4; })
-        .attr('transform', (d: any, i: number) => { return 'translate(' + this.orderingScale(i) + ',0)rotate(-90)'; });
+        // .delay((d, i) => { return this.orderingScale(i) * 4; })
+        .attr('transform', (d: any, i: number) => 'translate(' + this.orderingScale(i) + ',0)rotate(-90)');
     }
 
     // change glyph coloring for sort
@@ -1182,29 +1203,30 @@ export class View {
     //   this.controller.view.columnGlyphs[order].attr('fill', '#EBB769');
     // }
 
-    d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter(d => d == order).style('fill', '#EBB769')
-    if(!nodeIDs.includes(order)){
-      const cells = d3.selectAll('.cell')//.selectAll('rect')
-        //.transition()
-        //.duration(transitionTime)
-        //.delay((d, i) => { return this.orderingScale(i) * 4; })
-        //.delay((d) => { return this.orderingScale(d.x) * 4; })
+    d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
+    if (!nodeIDs.includes(order)) {
+      const cells = d3.selectAll('.cell')// .selectAll('rect')
+        // .transition()
+        // .duration(transitionTime)
+        // .delay((d, i) => { return this.orderingScale(i) * 4; })
+        // .delay((d) => { return this.orderingScale(d.x) * 4; })
         .attr('transform', (d, i) => {
-          return 'translate(' + this.orderingScale(d.x) + ',0)'
+          return 'translate(' + this.orderingScale(d.x) + ',0)';
         });
     } else {
-      d3.select('#sortIcon'+order).style('fill','#EBB769')
+      d3.select('#sortIcon' + order).style('fill', '#EBB769');
     }
 
   }
 
-  
+
   /**
    * [initializeAttributes description]
    * @return [description]
    */
   private initializeAttributes() {
-    // let width = this.controller.visWidth * this.controller.attributeProportion;//this.edgeWidth + this.margins.left + this.margins.right;
+    // let width = this.controller.visWidth * this.controller.attributeProportion;
+    // this.edgeWidth + this.margins.left + this.margins.right;
     // let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
     // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
     // this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
@@ -1217,7 +1239,7 @@ export class View {
     //   .attr('id', 'attributeMargin')
     //   .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
 
-    
+
     // // add zebras and highlight rows
     // /*
     // this.attributes.selectAll('.highlightRow')
@@ -1229,7 +1251,7 @@ export class View {
     //   .attr('y', (d, i) => this.orderingScale(i))
     //   .attr('width', this.attributeWidth)
     //   .attr('height', this.orderingScale.bandwidth())
-    //   .attr('fill', (d, i) => { return i % 2 == 0 ? "#fff" : "#eee" })
+    //   .attr('fill', (d, i) => { return i % 2 === 0 ? "#fff" : "#eee" })
     //   */
 
     // let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
@@ -1264,8 +1286,7 @@ export class View {
     // this.attributeMouseOver = attributeMouseOver;
     // let attributeMouseOut = (d) => {
 
-    //   this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-    //   this.removeHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+    //   this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);
 
     //   d3.selectAll('.hovered').classed('hovered', false);
 
@@ -1308,7 +1329,8 @@ export class View {
     // // this.columnWidths = columnWidths;
 
     // let categoricalAttributes = ["type", "continent"]
-    // let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query", "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
+    // let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query",
+    // "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
 
     // // columns.forEach((col, index) => {
     // //   // calculate range
@@ -1388,7 +1410,7 @@ export class View {
     //       .attr('x', columnPosition + barMargin.left)
     //       .attr('y', barMargin.top) // as y is set by translate
     //       .attr('fill', d => {
-    //         return this.controller.model.orderType == column ? '#EBB769' : '#8B8B8B'
+    //         return this.controller.model.orderType === column ? '#EBB769' : '#8B8B8B'
     //       })
     //       .on('mouseover', function(d) {
     //         //if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
@@ -1433,7 +1455,8 @@ export class View {
     //       .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
     //     if (this.controller.adjMatrix.toggle) {
     //       let rect = answerBox.append("rect")
-    //         .attr("x", (columnWidths[column] / 4)) // if column with is 1, we want this at 1/4, and 1/2 being mid point
+    //         .attr("x", (columnWidths[column] / 4))
+    // if column with is 1, we want this at 1/4, and 1/2 being mid point
     //         .attr("y", barMargin.top)
     //         .attr("rx", barHeight / 2)
     //         .attr("ry", barHeight / 2)
@@ -1454,7 +1477,8 @@ export class View {
     //       let initalHeight = barHeight;
     //       let newBarHeight = d3.min([barHeight,15])
     //       let rect = answerBox.append("rect")
-    //         .attr("x", (columnWidths[column] / 2) - newBarHeight / 2) // if column with is 1, we want this at 1/4, and 1/2 being mid point
+    //         .attr("x", (columnWidths[column] / 2) - newBarHeight / 2)
+    // if column with is 1, we want this at 1/4, and 1/2 being mid point
     //         .attr("y", barMargin.top + (initalHeight-newBarHeight)/2)
     //         //.attr("rx", barHeight / 2)
     //         //.attr("ry", barHeight / 2)
@@ -1628,7 +1652,7 @@ export class View {
     //     .attr('d', (d) => {
     //     // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
     //     // return this.controller.model.icons[variable].d;
-    //   }).style('fill', d => { return d == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
+    //   }).style('fill', d => { return d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
     //   .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
     //   .on('click', (d) => {this.sort(d);})
     //   .attr('cursor', 'pointer');
@@ -1637,7 +1661,7 @@ export class View {
 
 
 
-    // let answerColumn = columnHeaders.selectAll('.header').filter(d => { return d == 'selected' })
+    // let answerColumn = columnHeaders.selectAll('.header').filter(d => { return d === 'selected' })
     // answerColumn.attr('font-weight', 650)
 
     // let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
@@ -1651,24 +1675,24 @@ export class View {
     let initalY = -this.margins.left + 10;
     const buttonHeight = 15;
     const text = ['name', 'cluster', 'interacts'];
-    const sortNames = ['shortName', 'clusterLeaf', 'edges']
-    const iconNames = ['alphabetical', 'categorical', 'quant']
+    const sortNames = ['shortName', 'clusterLeaf', 'edges'];
+    const iconNames = ['alphabetical', 'categorical', 'quant'];
     for (let i = 0; i < 3; i++) {
       const button = this.edges.append('g')
-        .attr('transform', 'translate(' + (-this.margins.left) + ',' + (initalY) + ')')
-      button.attr('cursor', 'pointer')
-      button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1)
+        .attr('transform', 'translate(' + (-this.margins.left) + ',' + (initalY) + ')');
+      button.attr('cursor', 'pointer');
+      button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
       button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
-      const path = button.datum(sortNames[i])
+      const path = button.datum(sortNames[i]);
       const realPath = path
         .append('path').attr('class', 'sortIcon').attr('d', (d: any) => {
           return this.controller.model.icons[iconNames[i]].d;
-        }).style('fill', () => { return sortNames[i] == this.controller.model.orderType ? '#EBB769' : '#8B8B8B' }).attr('transform', 'scale(0.1)translate(' + (-195) + ',' + (-320) + ')')/*.on('click', (d,i,nodes) => {
+        }).style('fill', () => sortNames[i] === this.controller.model.orderType ? '#EBB769' : '#8B8B8B').attr('transform', 'scale(0.1)translate(' + (-195) + ',' + (-320) + ')')/*.on('click', (d,i,nodes) => {
         this.sort(d);
       })*/.attr('cursor', 'pointer');
       button.on('click', () => {
         this.sort(sortNames[i]);
-      })
+      });
       initalY += buttonHeight + 5;
     }
 
@@ -1692,7 +1716,7 @@ export class View {
   }
 
   private isCategorical(column: string) {
-    return column == 'type' || column == 'continent' || column == 'selected';
+    return column === 'type' || column === 'continent' || column === 'selected';
   }
 
   private determineColumnWidths(columns: string | any[]) {
@@ -1705,22 +1729,21 @@ export class View {
     const widthOffset = this.controller.attrWidth / columns.length;
 
     let totalCategoricalWidth = 0;
-    let bandwidthScale = 2
+    let bandwidthScale = 2;
 
     if (this.nodes.length < 50) {
       bandwidthScale = (1 / 3);
     }
-    const itemSize = d3.min([(bandwidthScale * bandwidth), 30]);
     const bandwidth = this.orderingScale.bandwidth();
+    const itemSize = d3.min([(bandwidthScale * bandwidth), 30]);
 
     // fill in categorical column sizes
-    for (let i = 0; i < columns.length; i++) {
-      const column = columns[i];
+    for (const column of columns) {
       // if column is categorical
       if (this.isCategorical(column)) {
-        let width = itemSize * (this.controller.attributeScales.node[column].domain.length + 1.5) + 20
+        let width = itemSize * (this.controller.attributeScales.node[column].domain.length + 1.5) + 20;
 
-        if (column == 'selected') {
+        if (column === 'selected') {
           width = 60;
         }
 
@@ -1731,13 +1754,12 @@ export class View {
       }
     }
 
-    const quantitativeWidth = this.controller.attrWidth - totalCategoricalWidth,
-      quantitativeColumns = columns.length - Object.keys(widths).length,
-      quantitativeColumnSize = quantitativeWidth / quantitativeColumns;
+    const quantitativeWidth = this.controller.attrWidth - totalCategoricalWidth;
+    const quantitativeColumns = columns.length - Object.keys(widths).length;
+    const quantitativeColumnSize = quantitativeWidth / quantitativeColumns;
 
     // fill in remaining columns based off the size remaining for quantitative variables
-    for (let i = 0; i < columns.length; i++) {
-      const column = columns[i];
+    for (const column of columns) {
       if (!(column in widths)) {
         widths[column] = quantitativeColumnSize;
       }
@@ -1755,23 +1777,25 @@ export class View {
     const topMargin = 1;
     const height = this.orderingScale.bandwidth() - 2 * topMargin;
     const bandwidthScale = this.nodes.length < 50 ? (1 / 3) : 2;
-    const width = this.orderingScale.bandwidth() * bandwidthScale
-    const numberCategories = this.controller.attributeScales.node[column].domain.length
+    const width = this.orderingScale.bandwidth() * bandwidthScale;
+    const numberCategories = this.controller.attributeScales.node[column].domain.length;
 
-    const legendItemSize = (this.columnWidths[column]) / (numberCategories + 1.5)///bandwidth * bandwidthScale;
+    const legendItemSize = (this.columnWidths[column]) / (numberCategories + 1.5); // bandwidth * bandwidthScale;
 
-    for (let index = 0; index < placementScaleForAttr.length; index++) {
+    for (const placement of placementScaleForAttr) {
       this.attributeRows
         .append('rect')
-        .attr('x', placementScaleForAttr[index].position)
+        .attr('x', placement.position)
         .attr('y', 1)
         .attr('fill', (d: { [x: string]: any; }) => {
-          return d[column] == placementScaleForAttr[index].value ? this.attributeScales[column](d[column]) : '#dddddd'; // gray version: '#333333'
+          return d[column] === placement.value ? this.attributeScales[column](d[column]) : '#dddddd';
         })
         .attr('width', legendItemSize)
         .attr('height', height)
-        .on('mouseover', (d: { [x: string]: any; }, i: string | number, nodes: { [x: string]: { getAttribute: (arg0: string) => string | number; }; }) => {
-          if (d[column] == placementScaleForAttr[index].value) {
+        .on('mouseover', (d: { [x: string]: any; }, i: string | number,
+                          nodes: { [x: string]: { getAttribute: (arg0: string) => string | number; }; },
+                         ) => {
+          if (d[column] === placement.value) {
             const matrix = nodes[i].getScreenCTM()
               .translate(+nodes[i].getAttribute('x'), +nodes[i].getAttribute('y'));
 
@@ -1791,7 +1815,7 @@ export class View {
           this.tooltip.transition()
             .duration(25)
             .style('opacity', 0);
-          //that.tooltip.transition().duration(25).style("opacity", 0);
+          // that.tooltip.transition().duration(25).style("opacity", 0);
 
           this.attributeMouseOut(d);
         });
@@ -1808,14 +1832,14 @@ export class View {
   }
 
   private generateCategoricalLegend(attribute: string | number, legendWidth: any) {
-    const numberCategories = this.controller.attributeScales.node[attribute].domain.length
+    const numberCategories = this.controller.attributeScales.node[attribute].domain.length;
 
     const attributeInfo = this.controller.attributeScales.node[attribute];
     const dividers = attributeInfo.domain.length;
 
     const legendHeight = d3.min([25, this.orderingScale.bandwidth()]);
 
-    let bandwidthScale = 2
+    let bandwidthScale = 2;
     if (this.nodes.length < 50) {
       bandwidthScale = (1 / 3);
     }
@@ -1824,11 +1848,11 @@ export class View {
 
     const marginEquivalents = 1.5;
 
-    const legendItemSize = (this.columnWidths[attribute] - 5) / (dividers + marginEquivalents)
-    ///bandwidth * bandwidthScale;
+    const legendItemSize = (this.columnWidths[attribute] - 5) / (dividers + marginEquivalents);
+    /// bandwidth * bandwidthScale;
     const height = d3.min([bandwidth * bandwidthScale, legendHeight]);
 
-    //(legendWidth) / (dividers + 3/bandwidthScale);
+    // (legendWidth) / (dividers + 3/bandwidthScale);
     const margin = marginEquivalents * legendItemSize / dividers;
 
     const xRange = [];
@@ -1839,12 +1863,12 @@ export class View {
     for (let i = 0; i < dividers; i++) {
       const rect1 = rects
         .append('g')
-        .attr('transform', 'translate(' + (i * (legendItemSize + margin)) + ',0)')
+        .attr('transform', 'translate(' + (i * (legendItemSize + margin)) + ',0)');
 
       xRange.push({
-        'attr': attribute,
-        'value': attributeInfo.domain[i],
-        'position': (this.columnScale(attribute) + 1 * margin) + (i * (legendItemSize + margin))
+        attr: attribute,
+        value: attributeInfo.domain[i],
+        position: (this.columnScale(attribute) + 1 * margin) + (i * (legendItemSize + margin)),
       });
 
       rect1
@@ -1853,7 +1877,7 @@ export class View {
         .attr('y', 0)
         .attr('fill', attributeInfo.range[i])
         .attr('width', legendItemSize)
-        .attr('height', height)
+        .attr('height', height);
 
       rect1
         .append('text')
@@ -1861,9 +1885,11 @@ export class View {
         .attr('x', legendItemSize / 2)
         .attr('y', -3)
         .attr('text-anchor', 'middle')
-        .style('font-size', 11)
-      //.attr('transform', 'rotate(-90)')
-      rect1.on('mouseover', (d: any, index: string | number, nodes: { [x: string]: { getAttribute: (arg0: string) => string | number; }; }) => {
+        .style('font-size', 11);
+      // .attr('transform', 'rotate(-90)')
+      rect1.on('mouseover', (d: any, index: string | number,
+                             nodes: { [x: string]: { getAttribute: (arg0: string) => string | number; }; },
+                            ) => {
         const matrix = nodes[index].getScreenCTM()
           .translate(+nodes[index].getAttribute('x'), +nodes[index].getAttribute('y'));
 
@@ -1877,7 +1903,7 @@ export class View {
         .on('mouseout', () => {
           this.tooltip.transition(25)
             .style('opacity', 0);
-        })
+        });
     }
 
     return xRange;
