@@ -44,16 +44,16 @@ export class View {
     this.mouseoverEvents = [];
     // this.datumID = controller.datumID;
 
-    // this.clickFunction = (d, i, nodes) => {
-    //   let nodeID = this.controller.view.determineID(d);
-    //   // remove hover or clicked from the class name of the objects that are interacted
-    //   // this is necessary as the click events are attached to the hovered rect in attrRow
-    //   let interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
+    this.clickFunction = (d: any, i: number, nodes: any[]) => {
+      const nodeID = this.controller.view.determineID(d);
+      // remove hover or clicked from the class name of the objects that are interacted
+      // this is necessary as the click events are attached to the hovered rect in attrRow
+      const interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
 
-    //   let action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
-    //   this.controller.model.provenance.applyAction(action);
+      const action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
+      this.controller.model.provenance.applyAction(action);
 
-    // };
+    };
   }
 
   /**

@@ -287,24 +287,24 @@ export class Model {
         if (selectionType === 'previousMouseovers') {
           continue;
         }
-        // for (const index in elementNamesFromSelection[selectionType]) {
-        //   const selectionElement = elementNamesFromSelection[selectionType][index];
+        for (const index in elementNamesFromSelection[selectionType]) {
+          const selectionElement = elementNamesFromSelection[selectionType][index];
 
-        //   for (const node in state.selections[selectionType]) {
-        //     if (selectionType === 'neighborSelect') {
-        //       neighborElements.add('#' + selectionElement + node);
-        //     } else {
+          for (const node in state.selections[selectionType]) {
+            if (selectionType === 'neighborSelect') {
+              neighborElements.add('#' + selectionElement + node);
+            } else {
 
-        //       // if both in attrRow and rowLabel, don't highlight element
-        //       if (selectionType === 'attrRow' || selectionType === 'rowLabel') {
-        //         if (node in state.selections.attrRow && node in state.selections.rowLabel) { continue; }
-        //       }
+              // if both in attrRow and rowLabel, don't highlight element
+              if (selectionType === 'attrRow' || selectionType === 'rowLabel') {
+                if (node in state.selections.attrRow && node in state.selections.rowLabel) { continue; }
+              }
 
-        //       // clickedElements.add('#' + selectionElement + node)
-        //     }
-        //   }
+              clickedElements.add('#' + selectionElement + node)
+            }
+          }
 
-        // }
+        }
       }
 
       const clickedSelectorQuery = Array.from(clickedElements).join(',');
