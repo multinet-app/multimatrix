@@ -318,6 +318,12 @@ export class Model {
       return;
     }
 
+    function splitCellNames(name: any) {
+      const cleanedCellName = name.replace('cell', '');
+      const ids = cleanedCellName.split('_');
+      return ['cell' + ids[0] + '_' + ids[1], 'cell' + ids[1] + '_' + ids[0]];
+  }
+
     function setUpObservers() {
       const updateHighlights = (state: any) => {
         d3.selectAll('.clicked').classed('clicked', false);
