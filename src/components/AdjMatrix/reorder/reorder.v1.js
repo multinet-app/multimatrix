@@ -1,5 +1,7 @@
+import * as science from './science.v1.js';
+
 (function(exports) {
-    reorder = { version: "1.0.2" }; // semver
+    let reorder = { version: "1.0.2" }; // semver
 
     reorder.debug = false;
     // Use as: [4,3,2].sort(reorder.cmp_number_asc);

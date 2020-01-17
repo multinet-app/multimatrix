@@ -145,7 +145,7 @@ export class View {
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
-      .data(this.nodes)
+      .data(this.matrix)
       .enter().append('g')
       .attr('class', 'column')
       .attr('transform', (d, i) => {
@@ -163,7 +163,7 @@ export class View {
 
 
     this.drawGridLines();
-    // this.drawHighlightElements();
+    this.drawHighlightElements();
 
 
     this.edgeScales = this.generateEdgeScales();
@@ -221,6 +221,34 @@ export class View {
       .attr('class', 'tooltip')
       .style('opacity', 0);
   }
+
+  private drawHighlightElements() {
+    // add the highlight rows
+    this.edgeColumns
+      .append('rect')
+      .classed('topoCol', true)
+      .attr('id', (d, i) => {
+        return 'topoCol' + d[i].colid;
+      })
+      .attr('x', -this.edgeHeight - this.margins.bottom)
+      .attr('y', 0)
+      .attr('width', this.edgeHeight + this.margins.bottom + this.margins.top)
+      .attr('height', this.orderingScale.bandwidth())
+      .attr('fill-opacity', 0)
+    // added highlight rows
+    this.edgeRows
+      .append('rect')
+      .classed('topoRow', true)
+      .attr('id', (d, i) => {
+        return 'topoRow' + d[i].rowid;
+      })
+      .attr('x', -this.margins.left)
+      .attr('y', 0)
+      .attr('width', this.edgeWidth + this.margins.right + this.margins.left)
+      .attr('height', this.orderingScale.bandwidth())
+      .attr('fill-opacity', 0)
+  }
+
   /**
    * Draws the nested edge bars
    * @param  cells d3 selection corresponding to the matrix cell groups
@@ -557,32 +585,7 @@ export class View {
    * Renders the highlight rows and columns for the adjacency matrix.
    * @return [description]
    */
-  drawHighlightElements() {
-    // add the highlight rows
-    this.edgeColumns
-      .append('rect')
-      .classed('topoCol', true)
-      .attr('id', (d, i) => {
-        return 'topoCol' + d[i].colid;
-      })
-      .attr('x', -this.edgeHeight - this.margins.bottom)
-      .attr('y', 0)
-      .attr('width', this.edgeHeight + this.margins.bottom + this.margins.top) // these are swapped as the columns have a rotation
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('fill-opacity', 0)
-    // added highlight rows
-    this.edgeRows
-      .append('rect')
-      .classed('topoRow', true)
-      .attr('id', (d, i) => {
-        return 'topoRow' + d[i].rowid;
-      })
-      .attr('x', -this.margins.left)
-      .attr('y', 0)
-      .attr('width', this.edgeWidth + this.margins.right + this.margins.left)
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('fill-opacity', 0)
-  }
+  
 
 
   /**
