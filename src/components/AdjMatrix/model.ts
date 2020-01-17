@@ -33,12 +33,12 @@ export class Model {
     d3.image('../../assets/adj-matrix/alphabeticalSort.svg')
     .then(function(error: any, svg: any) {
       this.alphabeticalSortSvg = svg;
-    })
+    });
 
     d3.image('../../assets/adj-matrix/categoricalSort.svg')
     .then(function(error: any, svg: any) {
       this.categoricalSortSvg = svg;
-    })
+    });
 
     this.icons = {
       quant: {
@@ -102,20 +102,32 @@ export class Model {
   public processData() {
     // generate a hashmap of id's?
     // Set up node data
-    this.nodes.forEach((rowNode, i) => {
+    this.nodes.forEach((rowNode: any, i: number) => {
       /* matrix used for edge attributes, otherwise should we hide */
-      this.matrix[i] = this.nodes.map((colNode) => { return { cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id+ '_' + rowNode.id, rowid: rowNode.id, colid: colNode.id, x: colNode.index, y: rowNode.index, count: 0, z: 0, interacted: 0, retweet: 0, mentions: 0 }; });
-      this.scalarMatrix[i] = this.nodes.map(function(colNode) { return 0; });
+      this.matrix[i] = this.nodes.map((colNode: any) => {
+        return {
+          cellName: 'cell' + rowNode.id + '_' + colNode.id, correspondingCell: 'cell' + colNode.id + '_' + rowNode.id,
+          rowid: rowNode.id,
+          colid: colNode.id,
+          x: colNode.index,
+          y: rowNode.index,
+          count: 0,
+          z: 0,
+          interacted: 0,
+          retweet: 0,
+          mentions: 0,
+        }; });
+      this.scalarMatrix[i] = this.nodes.map(0);
     });
 
-    this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 }
+    this.maxTracker = { reply: 0, retweet: 0, mentions: 0 };
     // Convert links to matrix; count character occurrences.
-    this.edges.forEach((link) => {
+    this.edges.forEach((link: any) => {
       this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
       this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
 
       /* could be used for varying edge types */
-      //this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
+      // this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
       this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
       this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
 
@@ -134,12 +146,32 @@ export class Model {
     });
   }
 
+  public getOrder() {
+    return this.order;
+  }
+
+  /**
+   * Returns the node data.
+   * @return Node data in JSON Array
+   */
+  public getNodes() {
+    return this.nodes;
+  }
+
+  /**
+   * Returns the edge data.
+   * @return Edge data in JSON Array
+   */
+  public getEdges() {
+    return this.edges;
+  }
+
   /**
    * Determines if the attribute is quantitative
    * @param  attr [string that corresponds to attribute type]
    * @return      [description]
    */
-  private isQuant(attr) {
+  private isQuant(attr: any) {
     // if not in list
     // if (!Object.keys(this.controller.attributeScales.node).includes(attr)) {
     //   return false;
@@ -156,8 +188,8 @@ export class Model {
   private populateSearchBox() {
     d3.select('#search-input')
     .attr('list', 'characters');
-    
-    let inputParent = d3.select('#search-input')
+
+    const inputParent = d3.select('#search-input')
     .node()
     .parentNode;
 
@@ -165,7 +197,7 @@ export class Model {
     .selectAll('#characters')
     .data([0]);
 
-    let enterSelection = datalist.enter()
+    const enterSelection = datalist.enter()
     .append('datalist')
     .attr('id', 'characters');
 
@@ -175,16 +207,16 @@ export class Model {
 
     let options = datalist.selectAll('option').data(this.nodes);
 
-    let optionsEnter = options.enter().append('option');
+    const optionsEnter = options.enter().append('option');
     options.exit().remove();
 
     options = optionsEnter.merge(options);
-    options.attr('value', d => d._key);
-    options.attr('id', d => d.id);
+    options.attr('value', (d: any) => d._key);
+    options.attr('id', (d: any) => d.id);
 
     d3.select('#search-input')
-    .on('change', (d,i,nodes) => {
-      let selectedOption = d3.select(nodes[i]).property('value');
+    .on('change', (d, i, nodes) => {
+      const selectedOption = d3.select(nodes[i]).property('value');
     });
   }
 
@@ -193,7 +225,7 @@ export class Model {
    * @return [the provenance state]
    */
   private getApplicationState() {
-    return this.provenance.graph().current.state
+    return this.provenance.graph().current.state;
   }
 
   /**
@@ -220,8 +252,8 @@ export class Model {
         cellcol: {},
         cellrow: {},
         search: {},
-        previousMouseovers: []
-      }
+        previousMouseovers: [],
+      },
     };
 
     const provenance = ProvenanceLibrary.initProvenance(initialState);
@@ -232,10 +264,10 @@ export class Model {
 
     // creates the document with the name and worker ID
 
-    let columnElements = ['topoCol'];
-    let rowElements = ['topoRow', 'attrRow']
+    const columnElements = ['topoCol'];
+    const rowElements = ['topoRow', 'attrRow'];
 
-    let elementNamesFromSelection = {
+    const elementNamesFromSelection = {
       cellcol: rowElements.concat(columnElements),
       colLabel: rowElements.concat(columnElements).concat(['colLabel']),
       rowLabel: rowElements.concat(columnElements).concat(['rowLabel']),
@@ -243,58 +275,60 @@ export class Model {
       cellrow: rowElements.concat(columnElements),
       neighborSelect: rowElements,
       answerBox: rowElements.concat(columnElements),
-      search: rowElements.concat(columnElements)
-    }
+      search: rowElements.concat(columnElements),
+    };
 
-    function classAllHighlights(state) {
+    function classAllHighlights(state: any) {
 
-      let clickedElements = new Set();
-      let answerElements = new Set();
-      let neighborElements = new Set();
+      const clickedElements = new Set();
+      const answerElements = new Set();
+      const neighborElements = new Set();
 
-      for (node of state.clicked) {
-        clickedElements.add('#colLabel' + node)
-        clickedElements.add('#topoCol' + node)
-        clickedElements.add('#topoRow' + node)
+      for (const node of state.clicked) {
+        clickedElements.add('#colLabel' + node);
+        clickedElements.add('#topoCol' + node);
+        clickedElements.add('#topoRow' + node);
       }
 
       // go through each interacted element, and determine which rows/columns should
       // be highlighted due to it's interaction
-      for (let selectionType in state.selections) {
-        if(selectionType == 'previousMouseovers') continue;
-        for (let index in elementNamesFromSelection[selectionType]) {
-          let selectionElement = elementNamesFromSelection[selectionType][index];
-
-          for (let node in state.selections[selectionType]) {
-            if (selectionType == 'neighborSelect') {
-              neighborElements.add('#' + selectionElement + node)
-            } else {
-
-              // if both in attrRow and rowLabel, don't highlight element
-              if (selectionType == 'attrRow' || selectionType == 'rowLabel') {
-                if (node in state.selections['attrRow'] && node in state.selections['rowLabel']) continue;
-              }
-
-              // clickedElements.add('#' + selectionElement + node)
-            }
-          }
-
+      for (const selectionType in state.selections) {
+        if (selectionType === 'previousMouseovers') {
+          continue;
         }
+        // for (const index in elementNamesFromSelection[selectionType]) {
+        //   const selectionElement = elementNamesFromSelection[selectionType][index];
+
+        //   for (const node in state.selections[selectionType]) {
+        //     if (selectionType === 'neighborSelect') {
+        //       neighborElements.add('#' + selectionElement + node);
+        //     } else {
+
+        //       // if both in attrRow and rowLabel, don't highlight element
+        //       if (selectionType === 'attrRow' || selectionType === 'rowLabel') {
+        //         if (node in state.selections.attrRow && node in state.selections.rowLabel) { continue; }
+        //       }
+
+        //       // clickedElements.add('#' + selectionElement + node)
+        //     }
+        //   }
+
+        // }
       }
 
-      let clickedSelectorQuery = Array.from(clickedElements).join(',')
+      const clickedSelectorQuery = Array.from(clickedElements).join(',');
       // let answerSelectorQuery = Array.from(answerElements).join(',')
       // let neighborSelectQuery = Array.from(neighborElements).join(',')
 
-      clickedSelectorQuery != [] ? d3.selectAll(clickedSelectorQuery).classed('clicked', true) : null;
-      // answerSelectorQuery != [] ? d3.selectAll(answerSelectorQuery).classed('answer', true) : null;
-      // neighborSelectQuery != [] ? d3.selectAll(neighborSelectQuery).classed('neighbor', true) : null;
+      d3.selectAll(clickedSelectorQuery).classed('clicked', true);
+      // answerSelectorQuery !== [] ? d3.selectAll(answerSelectorQuery).classed('answer', true) : null;
+      // neighborSelectQuery !== [] ? d3.selectAll(neighborSelectQuery).classed('neighbor', true) : null;
 
       return;
     }
 
     function setUpObservers() {
-      let updateHighlights = (state) => {
+      const updateHighlights = (state: any) => {
         d3.selectAll('.clicked').classed('clicked', false);
         d3.selectAll('.answer').classed('answer', false);
         d3.selectAll('.neighbor').classed('neighbor', false);
@@ -302,38 +336,38 @@ export class Model {
         classAllHighlights(state);
       };
 
-      let updateCellClicks = (state) => {
-        let cellNames = [];
-        Object.keys(state.selections.cellcol).map(key => {
-          let names = state.selections.cellcol[key];
-          names.map(name => {
-            let cellsNames = splitCellNames(name);
-            cellNames = cellNames.concat(cellsNames)
-          })
+      const updateCellClicks = (state: { selections: { cellcol: { [x: string]: any; }; }; }) => {
+        let cellNames: any[] = [];
+        Object.keys(state.selections.cellcol).map((key) => {
+          const names = state.selections.cellcol[key];
+          names.map((name: any) => {
+            const cellsNames = splitCellNames(name);
+            cellNames = cellNames.concat(cellsNames);
+          });
 
-          //names.map(name=>{
-          //})
-        })
-        let cellSelectorQuery = '#' + cellNames.join(',#')
+          // names.map(name=>{
+          // })
+        });
+        const cellSelectorQuery = '#' + cellNames.join(',#');
         // if no cells selected, return
         d3.selectAll('.clickedCell').classed('clickedCell', false);
-        if (cellSelectorQuery == '#') return;
-        d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true)
+        if (cellSelectorQuery === '#') { return; }
+        d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
 
-      }
+      };
 
-      provenance.addObserver('selections.attrRow', updateHighlights)
-      provenance.addObserver('selections.rowLabel', updateHighlights)
-      provenance.addObserver('selections.colLabel', updateHighlights)
-      provenance.addObserver('selections.cellcol', updateHighlights)
-      provenance.addObserver('selections.cellrow', updateHighlights)
-      provenance.addObserver('selections.neighborSelect', updateHighlights)
-      provenance.addObserver('selections.cellcol', updateCellClicks)
+      provenance.addObserver('selections.attrRow', updateHighlights);
+      provenance.addObserver('selections.rowLabel', updateHighlights);
+      provenance.addObserver('selections.colLabel', updateHighlights);
+      provenance.addObserver('selections.cellcol', updateHighlights);
+      provenance.addObserver('selections.cellrow', updateHighlights);
+      provenance.addObserver('selections.neighborSelect', updateHighlights);
+      provenance.addObserver('selections.cellcol', updateCellClicks);
 
-      provenance.addObserver('selections.search', updateHighlights)
-      provenance.addObserver('selections.answerBox', updateHighlights)
+      provenance.addObserver('selections.search', updateHighlights);
+      provenance.addObserver('selections.answerBox', updateHighlights);
 
-      provenance.addObserver('clicked', updateHighlights)
+      provenance.addObserver('clicked', updateHighlights);
     }
     setUpObservers();
 
@@ -353,25 +387,25 @@ export class Model {
    * @param  interactionType class name of element interacted with
    * @return        [description]
    */
-  private generateSortAction(sortKey) {
+  private generateSortAction(sortKey: string) {
     return {
       label: 'sort',
-      action: (sortKey) => {
+      action: (sortKey: any) => {
         const currentState = this.getApplicationState();
-        //add time stamp to the state graph
+        // add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = 'sort';
 
-        currentState.sortKey = sortKey
-        if(this.controller.view,this.controller.view.mouseoverEvents){
+        currentState.sortKey = sortKey;
+        if (this.controller.view !== undefined && this.controller.view.mouseoverEvents !== undefined) {
           currentState.selections.previousMouseovers = this.controller.view.mouseoverEvents;
           this.controller.view.mouseoverEvents.length = 0;
         }
 
         return currentState;
       },
-      args: [sortKey]
-    }
+      args: [sortKey],
+    };
   }
 
 
@@ -382,67 +416,51 @@ export class Model {
    */
   private changeOrder(type: string, node: boolean = false) {
 
-    let action = this.generateSortAction(type);
-    if(this.provenance){
+    const action = this.generateSortAction(type);
+    if (this.provenance) {
       this.provenance.applyAction(action);
     }
 
-    return this.sortObserver(type,node);
+    return this.sortObserver(type, node);
   }
 
-  private sortObserver(type: string, node: boolean = false){
+  private sortObserver(type: string, node: boolean = false) {
     let order;
     this.sortKey = type;
     this.orderType = type;
-    if (type == 'clusterSpectral' || type == 'clusterBary' || type == 'clusterLeaf') {
-      var graph = reorder.graph()
+    if (type === 'clusterSpectral' || type === 'clusterBary' || type === 'clusterLeaf') {
+      const graph = reorder.graph()
         .nodes(this.nodes)
         .links(this.edges)
         .init();
 
-      if (type == 'clusterBary') {
-        var barycenter = reorder.barycenter_order(graph);
+      if (type === 'clusterBary') {
+        const barycenter = reorder.barycenter_order(graph);
         order = reorder.adjacent_exchange(graph, barycenter[0], barycenter[1])[1];
-      } else if (type == 'clusterSpectral') {
+      } else if (type === 'clusterSpectral') {
         order = reorder.spectral_order(graph);
-      } else if (type == 'clusterLeaf') {
-        let mat = reorder.graph2mat(graph);
+      } else if (type === 'clusterLeaf') {
+        const mat = reorder.graph2mat(graph);
         order = reorder.optimal_leaf_order()(mat);
       }
-      //order = reorder.optimal_leaf_order()(this.scalarMatrix);
-    } else if (this.orderType == 'edges') {
+      // order = reorder.optimal_leaf_order()(this.scalarMatrix);
+    } else if (this.orderType === 'edges') {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
-    } else if (node == true) {
-      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a]['id'].localeCompare(this.nodes[b]['id']));
-      order = d3.range(this.nodes.length).sort((a, b) => { return this.nodes[b]['neighbors'].includes(type) - this.nodes[a]['neighbors'].includes(type); });
-    } else if (false /*!this.isQuant(this.orderType)*/) {// == "screen_name" || this.orderType == "name") {
-      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]));
+    } else if (node === true) {
+      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a].id.localeCompare(this.nodes[b].id));
+      order = d3.range(this.nodes.length).sort((a, b) =>
+        this.nodes[b].neighbors.includes(type) - this.nodes[a].neighbors.includes(type),
+      );
+    } else if (false /*!this.isQuant(this.orderType)*/) {// === "screen_name" || this.orderType === "name") {
+      order = d3.range(this.nodes.length).sort((a, b) =>
+        this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]),
+      );
     } else {
-      order = d3.range(this.nodes.length).sort((a, b) => { return this.nodes[b][type] - this.nodes[a][type]; });
+      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     }
 
     this.order = order;
     return order;
-  }
-
-  public getOrder() {
-    return this.order;
-  }
-
-  /**
-   * Returns the node data.
-   * @return Node data in JSON Array
-   */
-  getNodes() {
-    return this.nodes;
-  }
-
-  /**
-   * Returns the edge data.
-   * @return Edge data in JSON Array
-   */
-  getEdges() {
-    return this.edges;
   }
 
 }
