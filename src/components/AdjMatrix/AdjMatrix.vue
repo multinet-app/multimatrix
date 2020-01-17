@@ -1,9 +1,6 @@
 <script>
 import * as d3 from "d3";
 
-// import * as modelMethods from './model';
-// import * as viewMethods from './view';
-// import * as controllerMethods from './controller';
 import { Model } from './model';
 import { View } from './view';
 import { Controller } from './controller';
