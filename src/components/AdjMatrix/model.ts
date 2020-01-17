@@ -110,7 +110,6 @@ export class Model {
     this.maxTracker = { 'reply': 0, 'retweet': 0, 'mentions': 0 }
     // Convert links to matrix; count character occurrences.
     this.edges.forEach((link) => {
-      console.log(this.idMap, this.idMap[link.source], this.idMap[link.target])
       this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
       this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
 

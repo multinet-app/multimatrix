@@ -120,15 +120,16 @@ export class View {
    * to elements.
    * @return None
    */
-  initializeEdges() {
+  private initializeEdges() {
+    console.log(this.nodes, this.edges, this.matrix)
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    let width = this.controller.visWidth
-    let height = this.controller.visHeight;
-    let sideLength = width < height ? width : height
+    const width = this.controller.visDimensions.width;
+    const height = this.controller.visDimensions.height;
+    const sideLength = width < height ? width : height;
 
     // Use the smallest side as the length of the matrix
-    this.edgeWidth = sideLength - (this.margins.left + this.margins.right)
-    this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom)
+    this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
+    this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
 
     // Creates scalable SVG
     this.edges = d3.select('svg')
@@ -144,7 +145,7 @@ export class View {
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
-      .data(this.matrix)
+      .data(this.nodes)
       .enter().append('g')
       .attr('class', 'column')
       .attr('transform', (d, i) => {
@@ -162,7 +163,7 @@ export class View {
 
 
     this.drawGridLines();
-    this.drawHighlightElements();
+    // this.drawHighlightElements();
 
 
     this.edgeScales = this.generateEdgeScales();
@@ -171,7 +172,7 @@ export class View {
     this.generateColorLegend();
 
     var cells = this.edgeRows.selectAll('.cell')
-      .data(d => { return d })
+      .data(d => d)
       .enter().append('g')
       .attr('class', 'cell')
       .attr('id', d => d.cellName)
