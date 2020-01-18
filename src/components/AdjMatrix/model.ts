@@ -46,7 +46,6 @@ export class Model {
 
     };
 
-    // this.populateSearchBox();
     this.idMap = {};
 
     // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
@@ -175,42 +174,6 @@ export class Model {
     return false;
   }
 
-
-  private populateSearchBox() {
-    d3.select('#search-input')
-    .attr('list', 'characters');
-
-    const inputParent = d3.select('#search-input')
-    .node()
-    .parentNode;
-
-    let datalist = d3.select(inputParent)
-    .selectAll('#characters')
-    .data([0]);
-
-    const enterSelection = datalist.enter()
-    .append('datalist')
-    .attr('id', 'characters');
-
-    datalist.exit().remove();
-
-    datalist = enterSelection.merge(datalist);
-
-    let options = datalist.selectAll('option').data(this.nodes);
-
-    const optionsEnter = options.enter().append('option');
-    options.exit().remove();
-
-    options = optionsEnter.merge(options);
-    options.attr('value', (d: any) => d._key);
-    options.attr('id', (d: any) => d.id);
-
-    d3.select('#search-input')
-    .on('change', (d, i, nodes) => {
-      const selectedOption = d3.select(nodes[i]).property('value');
-    });
-  }
-
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
@@ -223,7 +186,7 @@ export class Model {
    * Initializes the provenance library and sets observers.
    * @return [none]
    */
-  private setUpProvenance() {
+  private setUpProvenance(): void {
     const initialState = {
       workerID: 1, // workerID is a global variable
       nodes: '', // array of nodes that keep track of their position, whether they were softSelect or hardSelected;
@@ -308,14 +271,7 @@ export class Model {
       }
 
       const clickedSelectorQuery = Array.from(clickedElements).join(',');
-      // let answerSelectorQuery = Array.from(answerElements).join(',')
-      // let neighborSelectQuery = Array.from(neighborElements).join(',')
-
       d3.selectAll(clickedSelectorQuery).classed('clicked', true);
-      // answerSelectorQuery !== [] ? d3.selectAll(answerSelectorQuery).classed('answer', true) : null;
-      // neighborSelectQuery !== [] ? d3.selectAll(neighborSelectQuery).classed('neighbor', true) : null;
-
-      return;
     }
 
     function splitCellNames(name: any) {

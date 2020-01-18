@@ -21,6 +21,7 @@ export default {
       workspace: null,
       graph: null,
       selectNeighbors: true,
+      searchQuery: null,
     };
   },
 
@@ -62,8 +63,13 @@ export default {
       <v-col class="mt-4" cols="3">
         <v-card>
           <v-card-title class="pb-6">MultiNet Adjacency Matrix Controls</v-card-title>
-
           <v-card-text>
+              
+            <v-text-field
+              label="Search for a node"
+              v-model="searchQuery"
+            ></v-text-field>
+
             <v-card-subtitle class="pb-0 px-0" style="display: flex; align-items: center; justify-content: space-between">
               Autoselect neighbors
               <v-switch
