@@ -70,8 +70,7 @@ export class View {
   }
 
   /**
-   * Takes in the data, hides the loading screen, and
-   * initializes visualization.
+   * Takes in the data, and initializes visualization.
    * @param  data [description]
    * @return      [description]
    */

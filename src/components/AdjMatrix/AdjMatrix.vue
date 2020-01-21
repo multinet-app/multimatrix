@@ -108,6 +108,102 @@ export default {
   </div>
 </template>
 
-<style scoped>
-@import './adj-matrix.css';
+<style>
+  * {
+      box-sizing: border-box;
+  }
+
+  body {
+      font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+      font-weight: 300;
+  }
+
+  .baseCell {
+      fill-opacity: 0;
+  }
+
+  .hoveredCell {
+      stroke-width: 1px;
+      stroke: darkgray;
+  }
+
+  .neighbor rect {
+      fill: #CAFFC7;
+      fill-opacity: 1;
+  }
+
+  .neighbor {
+      fill: #CAFFC7;
+      fill-opacity: 1;
+  }
+
+  .colLabel {
+      cursor: pointer;
+      fill: black !important;
+  }
+
+  .rowLabel {
+      cursor: pointer;
+      fill: black !important;
+  }
+
+  .highlightedCell {
+      fill: #FFF4D3;
+      fill-opacity: 1 !important;
+  }
+
+  .highlightCol {
+      pointer-events: auto;
+  }
+
+  div.tooltip {
+      position: absolute;
+      text-align: center;
+      font-size: 12.5px;
+      color: black;
+      width: 100px;
+      border-radius: 5px;
+      padding: 2px;
+      background: white;
+      border: 0px;
+      pointer-events: none;
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+      transition: 0.3s;
+  }
+
+  .hovered {
+      fill: #fde8ca;
+      fill-opacity: 1 !important;
+  }
+
+  .clickedCell {
+      stroke-width: 2.5;
+      stroke: #ee0000;
+  }
+
+  .clicked {
+      font-weight: 800;
+      fill: #F8CF91 !important;
+      fill-opacity: 1 !important;
+  }
+
+  .clickedCell {
+      stroke: red;
+      stroke-width: 3;
+  }
+
+  text.hovered {
+      font-weight: 450;
+  }
+
+  text.clicked {
+      font-weight: 650;
+      fill: black !important;
+  }
+
+  line {
+      pointer-events: none;
+      stroke: #aaa;
+      opacity: 0.3;
+  }
 </style>
