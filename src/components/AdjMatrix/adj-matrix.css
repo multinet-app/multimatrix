@@ -81,10 +81,6 @@ input[type=text] {
     fill: black !important;
 }
 
-.answerBox {
-    cursor: pointer;
-}
-
 .autocomplete-active {
     /*when navigating through the items using the arrow keys:*/
     background-color: DodgerBlue !important;
@@ -202,11 +198,6 @@ line {
     stroke-width: 3;
 }
 
-rect.answer {
-    fill: #ea9b0f !important;
-    fill-opacity: 1 !important;
-}
-
 text {
     text-rendering: optimizeLegibility;
 }
@@ -224,11 +215,6 @@ text.hovered {
 text.clicked {
     font-weight: 650;
     fill: black !important;
-}
-
-text.answer {
-    font-weight: 800;
-    fill: white;
 }
 
 #visPanel {

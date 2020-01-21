@@ -198,7 +198,6 @@ export class Model {
       clicked: [],
       sortKey: this.sortKey,
       selections: {
-        answerBox: {},
         attrRow: {},
         rowLabel: {},
         colLabel: {},
@@ -228,14 +227,12 @@ export class Model {
       attrRow: rowElements.concat(['rowLabel']),
       cellrow: rowElements.concat(columnElements),
       neighborSelect: rowElements,
-      answerBox: rowElements.concat(columnElements),
       search: rowElements.concat(columnElements),
     };
 
     function classAllHighlights(state: any) {
 
       const clickedElements = new Set();
-      const answerElements = new Set();
       const neighborElements = new Set();
 
       for (const node of state.clicked) {
@@ -281,7 +278,6 @@ export class Model {
     function setUpObservers() {
       const updateHighlights = (state: any) => {
         d3.selectAll('.clicked').classed('clicked', false);
-        d3.selectAll('.answer').classed('answer', false);
         d3.selectAll('.neighbor').classed('neighbor', false);
 
         classAllHighlights(state);
@@ -316,7 +312,6 @@ export class Model {
       provenance.addObserver('selections.cellcol', updateCellClicks);
 
       provenance.addObserver('selections.search', updateHighlights);
-      provenance.addObserver('selections.answerBox', updateHighlights);
 
       provenance.addObserver('clicked', updateHighlights);
     }

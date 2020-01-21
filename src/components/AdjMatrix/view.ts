@@ -50,7 +50,6 @@ export class View {
     interaction = interaction.replace(' hoveredCell', '');
     interaction = interaction.replace(' hovered', '');
     interaction = interaction.replace(' clicked', '');
-    interaction = interaction.replace(' answer', '');
     interaction = interaction.replace(' neighbor', '');
     return interaction;
   }
@@ -208,7 +207,6 @@ export class View {
       })
       .attr('cursor', 'pointer');
 
-    this.controller.answerRow = {};
     this.controller.hoverRow = {};
     this.controller.hoverCol = {};
 
@@ -1091,26 +1089,14 @@ export class View {
 
     // if any other method other than neighbors sort
     if (!nodeIDs.includes(order)) {
-      const t = this.edges; // .transition().duration(transitionTime);
+      const t = this.edges;
       t.selectAll('.column')
-        // .delay((d, i) => { return this.orderingScale(i) * 4; })
         .attr('transform', (d: any, i: number) => 'translate(' + this.orderingScale(i) + ',0)rotate(-90)');
     }
 
-    // change glyph coloring for sort
-    // d3.selectAll('.glyph').attr('fill', '#8B8B8B');
-    // // for quantitative values, change their color
-    // if (this.controller.view.columnGlyphs[order]) {
-    //   this.controller.view.columnGlyphs[order].attr('fill', '#EBB769');
-    // }
-
     d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
     if (!nodeIDs.includes(order)) {
-      const cells = d3.selectAll('.cell')// .selectAll('rect')
-        // .transition()
-        // .duration(transitionTime)
-        // .delay((d, i) => { return this.orderingScale(i) * 4; })
-        // .delay((d) => { return this.orderingScale(d.x) * 4; })
+      const cells = d3.selectAll('.cell')
         .attr('transform', (d: any, i: number) => {
           return 'translate(' + this.orderingScale(d.x) + ',0)';
         });
@@ -1211,7 +1197,6 @@ export class View {
 
     // let columns = this.controller.nodeAttributes;
 
-    // //columns.unshift('selected'); // ANSWER COLUMNS
 
     // var formatCurrency = d3.format("$,.0f"),
     //   formatNumber = d3.format(",.0f");

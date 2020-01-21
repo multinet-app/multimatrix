@@ -49,7 +49,6 @@ export class Controller {
         currentState.time = Date.now();
         currentState.event = 'clear';
         currentState.selections = {
-          answerBox: {},
           attrRow: {},
           rowLabel: {},
           colLabel: {},
