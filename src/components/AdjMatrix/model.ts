@@ -220,7 +220,7 @@ export class Model {
     const columnElements = ['topoCol'];
     const rowElements = ['topoRow', 'attrRow'];
 
-    const elementNamesFromSelection = {
+    const elementNamesFromSelection: any = {
       cellcol: rowElements.concat(columnElements),
       colLabel: rowElements.concat(columnElements).concat(['colLabel']),
       rowLabel: rowElements.concat(columnElements).concat(['rowLabel']),
