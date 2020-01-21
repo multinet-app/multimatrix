@@ -3,54 +3,40 @@ import * as d3 from 'd3';
 
 export class View {
   public controller: any;
-  public selectedCells: any[];
+  public selectedCells: any[] = [];
+
   private nodes: any;
   private edges: any;
   private matrix: any;
-  private edgeWidth: number;
-  private edgeHeight: number;
-  private attributeWidth: number;
-  private attributeHeight: number;
-  private datumID: string;
+  private edgeWidth: number = 0;
+  private edgeHeight: number = 0;
   private mouseoverEvents: any[];
   private clickFunction: any;
-  private columnscreenNames: {};
   private attributeScales: any;
   private columnWidths: any;
   private attributeRows: any;
   private tooltip: any;
-  private barWidthScale: any;
   private columnScale: any;
   private order: any;
-
   private margins: { left: number, top: number, right: number, bottom: number };
-  private orderings: [number];
   private attributes: any;
-  private orderingScale: d3.ScaleBand<number>;
+  private orderingScale!: d3.ScaleBand<number>;
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales: any;
-  private visWidth: number;
-  private visHeight: number;
-
   private nodeFontSize: string = '12';
   private labelVar: string = '_key';
+  private datumID: string = '';
 
   constructor() {
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
-
     this.mouseoverEvents = [];
-    // this.datumID = controller.datumID;
 
     this.clickFunction = (d: any, i: number, nodes: any[]) => {
-      const nodeID = this.controller.view.determineID(d);
-      // remove hover or clicked from the class name of the objects that are interacted
-      // this is necessary as the click events are attached to the hovered rect in attrRow
+      const nodeID = d.id;
       const interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
-
-      const action = this.controller.view.changeInteractionWrapper(nodeID, nodes[i], interaction);
+      const action = this.changeInteractionWrapper(nodeID, nodes[i], interaction);
       this.controller.model.provenance.applyAction(action);
-
     };
   }
 
@@ -449,14 +435,9 @@ export class View {
       .attr('d', this.controller.model.icons.cellSort.d)
         // .style('fill', d => {return d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
         .attr('transform', 'scale(0.075)translate(' + (verticalOffset) + ',' + (horizontalOffset) + ')rotate(90)')
-        .on('click', (d: Array<{ rowid: any; }>) => {
+        .on('click', (d: Array<{ rowid: any; }>, i: number, nodes: any[]) => {
           this.sort(d[0].rowid);
-          // this.nodeClick(d);
-          /*var e = document.createEvent('UIEvents');
-          e.initUIEvent('click', true, true, /* ... */// );
-          /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
-
-          const action = this.controller.view.changeInteractionWrapper(null, this.nodes[i], 'neighborSelect');
+          const action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
           this.controller.model.provenance.applyAction(action);
         }).attr('cursor', 'pointer')
         .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
@@ -582,22 +563,6 @@ export class View {
       .attr('y2', this.edgeHeight + this.margins.bottom)
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
-    // adds column lines
-    /*this.edgeColumns.append("line")
-      .attr("x1", -this.edgeWidth)
-      .attr("z-index", 10);
-    // append final line to end of topology matrix
-
-    this.edges
-      .append("line")
-      .attr("x1", this.edgeWidth)
-      .attr("x2", this.edgeWidth)
-      .attr("y1", 0)
-      .attr("y2", this.edgeHeight)
-
-    // append horizontal grid lines
-    this.edgeRows.append("line")
-    .attr("x2", this.edgeWidth + this.margins.right);*/
 
   }
 
@@ -645,20 +610,6 @@ export class View {
 
           // interactID = cellData.rowid;
           // interactionName = interactionName + 'row'
-        } else if (interactionName === 'neighborSelect') {
-
-          // this.controller.model.provenance.applyAction(action);
-          const columnData: any = d3.select(node).data()[0];
-          interactedElement = 'colClick' + d3.select(node).data()[0][0].rowid;
-          columnData.map((node: { mentions: number; interacted: number; retweet: number; colid: any; }) => {
-            if (node.mentions !== 0 || node.interacted !== 0 || node.retweet !== 0) {
-              const neighbor = node.colid;
-              this.changeInteraction(currentState, neighbor, interactionName, interactedElement);
-
-            }
-          });
-          return currentState;
-
         } else if (interactionName === 'attrRow') {
           return interactionName;
 
@@ -666,24 +617,7 @@ export class View {
         this.changeInteraction(currentState, interactID, interactionName, interactedElement);
         return currentState;
       },
-      // args: [interactID]
     };
-  }
-
-  /**
-   * Used to determine the ID based upon the datum element.
-   * @param  data data returned as the first argument of d3 selection
-   * @return      a list containing the id (ID's) of data elements
-   */
-  private determineID(data: Array<{ rowid: any; }>) {
-    // if attr Row
-    if (data[this.datumID]) {
-      return data[this.datumID];
-    } else if (data.colid) { // if cell
-      return data.colid + data.rowid;
-    } else { // if colLabel or rowLabel
-      return data[0].rowid;
-    }
   }
 
 
@@ -1067,8 +1001,7 @@ export class View {
       delete this.controller.columnSelectedNodes[nodeID];
     } else {
       this.addHighlightNode(nodeID);
-      const newElement = {};
-      newElement[nodeID] = neighbors;
+      const newElement = { [nodeID]: neighbors};
       this.controller.columnSelectedNodes = Object.assign(this.controller.columnSelectedNodes, newElement);
     }
     this.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, 'neighbor', 'Row');
@@ -1324,11 +1257,6 @@ export class View {
     // // })
     // // this.attributeScales = attributeScales;
 
-    // // need max and min of each column
-    // /*this.barWidthScale = d3.scaleLinear()
-    //   .domain([0, 1400])
-    //   .range([0, 140]);*/
-
 
 
 
@@ -1462,7 +1390,7 @@ export class View {
     //       .on('click', (d) => {
     //         let color = this.controller.attributeScales.node.selected.range[0];
     //         //if already answer
-    //         let nodeID = this.determineID(d);
+    //         let nodeID = d.id;
 
     //         /*Visual chagne */
     //         let answerStatus = false; // TODO, remove?
@@ -1694,8 +1622,8 @@ export class View {
     node = { id: node[0].rowid };
   }
 
-  const currentState = this.controller.model.getApplicationState();
-  let clicked = currentState.clicked;
+  const previousState = this.controller.model.getApplicationState();
+  let clicked = previousState.clicked;
   const wasSelected = this.isSelected(node);
 
   if (wasSelected) {
