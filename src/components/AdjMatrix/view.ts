@@ -88,12 +88,8 @@ export class View {
    * @return none
    */
   public renderView() {
-    d3.select('.loading').style('display', 'block').style('opacity', 1);
-
     this.initializeEdges();
     this.initializeAttributes();
-
-    d3.select('.loading').style('display', 'none');
   }
 
   /**
@@ -1547,8 +1543,6 @@ export class View {
 
     // let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
     // nonAnswerColumn.attr('cursor', 'pointer');
-
-    d3.select('.loading').style('display', 'none');
     this.controller.model.setUpProvenance();
     window.focus();
 
