@@ -51,7 +51,7 @@ export class Model {
     // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
     // let clusterFlag = false;
     // if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
-    //   this.orderType = 'shortName';//this.controller.sortKey;
+    this.orderType = 'shortName'; // this.controller.sortKey;
     //   clusterFlag = true;
     // } else {
     //   // this.orderType = this.controller.sortKey;
@@ -186,7 +186,7 @@ export class Model {
    * Initializes the provenance library and sets observers.
    * @return [none]
    */
-  private setUpProvenance(): void {
+  private setUpProvenance(): any[] {
     const initialState = {
       workerID: 1, // workerID is a global variable
       nodes: '', // array of nodes that keep track of their position, whether they were softSelect or hardSelected;
@@ -250,9 +250,7 @@ export class Model {
         if (selectionType === 'previousMouseovers') {
           continue;
         }
-        for (const index in elementNamesFromSelection[selectionType]) {
-          const selectionElement = elementNamesFromSelection[selectionType][index];
-
+        for (const selectionElement of elementNamesFromSelection[selectionType]) {
           for (const node in state.selections[selectionType]) {
             if (selectionType === 'neighborSelect') {
               neighborElements.add('#' + selectionElement + node);
@@ -263,7 +261,7 @@ export class Model {
                 if (node in state.selections.attrRow && node in state.selections.rowLabel) { continue; }
               }
 
-              clickedElements.add('#' + selectionElement + node)
+              clickedElements.add('#' + selectionElement + node);
             }
           }
 

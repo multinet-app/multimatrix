@@ -1,8 +1,6 @@
 /* The View displays the data given to it by the model. */
 import * as d3 from 'd3';
 
-import { nodeClick } from '@/lib/ui';
-
 export class View {
   public controller: any;
   public selectedCells: any[];
@@ -69,19 +67,6 @@ export class View {
     interaction = interaction.replace(' answer', '');
     interaction = interaction.replace(' neighbor', '');
     return interaction;
-  }
-
-
-
-  // Allows public getting
-  public get(attribute: string) {
-    return this[attribute];
-  }
-
-  // Allows public setting
-  public set(attribute: string, value: any) {
-    this[attribute] = value;
-    return true;
   }
 
   // Update method for all non-data aspects
@@ -452,7 +437,7 @@ export class View {
       .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
       .on('click', (d: any) => {
         // d3.select(nodes[i]).classed('clicked',!d3.select(nodes[i]).classed('clicked'))
-        nodeClick(d);
+        this.nodeClick(d);
       });
 
     let verticalOffset = 3;
@@ -466,12 +451,12 @@ export class View {
         .attr('transform', 'scale(0.075)translate(' + (verticalOffset) + ',' + (horizontalOffset) + ')rotate(90)')
         .on('click', (d: Array<{ rowid: any; }>) => {
           this.sort(d[0].rowid);
-          // nodeClick(d);
+          // this.nodeClick(d);
           /*var e = document.createEvent('UIEvents');
           e.initUIEvent('click', true, true, /* ... */// );
           /*d3.select('#colLabel'+d[0].rowid).node().dispatchEvent(e);*/
 
-          const action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+          const action = this.controller.view.changeInteractionWrapper(null, this.nodes[i], 'neighborSelect');
           this.controller.model.provenance.applyAction(action);
         }).attr('cursor', 'pointer')
         .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
@@ -493,8 +478,8 @@ export class View {
       .style('font-size', this.nodeFontSize)
       .text((d: any, i: string | number) => this.nodes[i]._key)
       .on('click', (d: any, i: string | number) => {
-          nodeClick(d);
-          this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+        this.nodeClick(d);
+        this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
       })
       .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
       .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
@@ -663,7 +648,7 @@ export class View {
         } else if (interactionName === 'neighborSelect') {
 
           // this.controller.model.provenance.applyAction(action);
-          const columnData = d3.select(node).data()[0];
+          const columnData: any = d3.select(node).data()[0];
           interactedElement = 'colClick' + d3.select(node).data()[0][0].rowid;
           columnData.map((node: { mentions: number; interacted: number; retweet: number; colid: any; }) => {
             if (node.mentions !== 0 || node.interacted !== 0 || node.retweet !== 0) {
@@ -699,19 +684,6 @@ export class View {
     } else { // if colLabel or rowLabel
       return data[0].rowid;
     }
-  }
-
-
-  private alreadyCellInState(state: { selections: { [x: string]: { [x: string]: any; }; }; }, nodeID: any) {
-    const cellNames = splitCellNames(nodeID);
-    let flag = false;
-    cellNames.map((name: string | number) => {
-      if (state.selections.cell[name]) {
-        delete state.selections.cell[name];
-        flag = true;
-      }
-    });
-    return flag;
   }
 
 
@@ -1083,10 +1055,6 @@ export class View {
       .classed('selected', !topoRow.classed('selected'));
   }
 
-  private selectColumnNode(nodeID: any) {
-    // highlight
-  }
-
   /**
    * Old implementation to select the neighboring nodes.
    * @param  nodeID [description]
@@ -1168,9 +1136,9 @@ export class View {
       .transition()
       .duration(transitionTime)
       // .delay((d , i) => { return this.orderingScale(i) * 4; })
-      .attr('transform', (d, i) => {
+      .attr('transform', (d: any, i: number) => {
         if (i > this.order.length - 1) {
-          return;
+          return'translate(0, 0)';
         } else {
           return 'translate(0,' + this.orderingScale(i) + ')';
         }
@@ -1210,7 +1178,7 @@ export class View {
         // .duration(transitionTime)
         // .delay((d, i) => { return this.orderingScale(i) * 4; })
         // .delay((d) => { return this.orderingScale(d.x) * 4; })
-        .attr('transform', (d, i) => {
+        .attr('transform', (d: any, i: number) => {
           return 'translate(' + this.orderingScale(d.x) + ',0)';
         });
     } else {
@@ -1509,7 +1477,7 @@ export class View {
     //         }
 
 
-    //         nodeClick(d);
+    //         this.nodeClick(d);
 
     //         //let action = this.changeInteractionWrapper(nodeID, i, nodes);
     //         //this.controller.model.provenance.applyAction(action);
@@ -1719,193 +1687,96 @@ export class View {
     return column === 'type' || column === 'continent' || column === 'selected';
   }
 
-  private determineColumnWidths(columns: string | any[]) {
+  // function that updates the state, and includes a flag for when this was done through a search
+ private nodeClick(node: any, search: boolean = false) {
 
-    const widths = {};
-    // set all column widths to 0
-    // set all categorical column width to their width, keep track of total width
-    // set all other columns widths based off width - categorical
+  if (node[0] !== undefined) {
+    node = { id: node[0].rowid };
+  }
 
-    const widthOffset = this.controller.attrWidth / columns.length;
+  const currentState = this.controller.model.getApplicationState();
+  let clicked = currentState.clicked;
+  const wasSelected = this.isSelected(node);
 
-    let totalCategoricalWidth = 0;
-    let bandwidthScale = 2;
+  if (wasSelected) {
+    clicked = clicked.filter((s: any) => s !== node.id);
+  } else {
+    clicked.push(node.id);
+  }
 
-    if (this.nodes.length < 50) {
-      bandwidthScale = (1 / 3);
-    }
-    const bandwidth = this.orderingScale.bandwidth();
-    const itemSize = d3.min([(bandwidthScale * bandwidth), 30]);
+  const label = search ?
+    'Searched for Node' :
+    wasSelected ?
+    'Unselect Node' :
+    'Select Node';
 
-    // fill in categorical column sizes
-    for (const column of columns) {
-      // if column is categorical
-      if (this.isCategorical(column)) {
-        let width = itemSize * (this.controller.attributeScales.node[column].domain.length + 1.5) + 20;
+  const action = {
+    label,
+    action: () => {
+      const currentState = this.controller.model.getApplicationState();
+      // Add time stamp to the state graph
+      currentState.time = Date.now();
+      // Add label describing what the event was
+      currentState.event = label;
+      // Update actual node data
+      currentState.clicked = clicked;
+      // currentState.userSelectedNeighbors = neighbors_and_edges.neighbors;
+      // currentState.userSelectedEdges = neighbors_and_edges.edges;
+      // If node was searched, push him to the search array
+      // if (search) {
+      //     currentState.search.push(node.id);
+      // }
+      return currentState;
+    },
+    args: [],
+  };
 
-        if (column === 'selected') {
-          width = 60;
-        }
+  this.controller.model.provenance.applyAction(action);
+  }
 
-        // place max size of width
-        width = d3.min([160, width]);
-        widths[column] = width;
-        totalCategoricalWidth += width; // add width
+  private isSelected(node: any) {
+    const currentState = this.controller.model.getApplicationState();
+    const clicked = currentState.clicked;
+    return clicked.includes(node.id);
+  }
+
+  private unhighlightAll() {
+      // Deselect all neighbors
+      this.controller.columnSelectedNodes = {};
+      this.controller.view.renderHighlightNodesFromDict(this.controller.columnSelectedNodes, 'neighbor', 'Row');
+
+      // Deselect all manually clicked nodes
+      const clicked = this.controller.model.getApplicationState().clicked;
+      for (const id of clicked) {
+        const node = this.controller.model.nodes.find((d: { id: any; }) => d.id === id);
+        this.nodeClick(node);
       }
-    }
-
-    const quantitativeWidth = this.controller.attrWidth - totalCategoricalWidth;
-    const quantitativeColumns = columns.length - Object.keys(widths).length;
-    const quantitativeColumnSize = quantitativeWidth / quantitativeColumns;
-
-    // fill in remaining columns based off the size remaining for quantitative variables
-    for (const column of columns) {
-      if (!(column in widths)) {
-        widths[column] = quantitativeColumnSize;
-      }
-    }
-    return widths;
-
-
-    // add categorical column width
   }
 
 
+  private clearSelections() {
+    const selected: any[] = [];
+    const neighbors: any[] = [];
+    const edges: any[] = [];
+    const label = 'Cleared selections';
 
-  private createUpsetPlot(column: string | number, columnWidth: any, placementScaleForAttr: string | any[]) {
-    const columnPosition = this.columnScale(column);
-    const topMargin = 1;
-    const height = this.orderingScale.bandwidth() - 2 * topMargin;
-    const bandwidthScale = this.nodes.length < 50 ? (1 / 3) : 2;
-    const width = this.orderingScale.bandwidth() * bandwidthScale;
-    const numberCategories = this.controller.attributeScales.node[column].domain.length;
+    const action = {
+      label,
+      action: () => {
+        const currentState = this.controller.model.getApplicationState();
+        // add time stamp to the state graph
+        currentState.time = Date.now();
+        // Add label describing what the event was
+        currentState.event = label;
+        // Update actual node data
+        currentState.selected = selected;
+        currentState.userSelectedNeighbors = neighbors;
+        currentState.userSelectedEdges = edges;
+        return currentState;
+      },
+      args: [],
+    };
 
-    const legendItemSize = (this.columnWidths[column]) / (numberCategories + 1.5); // bandwidth * bandwidthScale;
-
-    for (const placement of placementScaleForAttr) {
-      this.attributeRows
-        .append('rect')
-        .attr('x', placement.position)
-        .attr('y', 1)
-        .attr('fill', (d: { [x: string]: any; }) => {
-          return d[column] === placement.value ? this.attributeScales[column](d[column]) : '#dddddd';
-        })
-        .attr('width', legendItemSize)
-        .attr('height', height)
-        .on('mouseover', (d: { [x: string]: any; }, i: string | number,
-                          nodes: { [x: string]: { getAttribute: (arg0: string) => string | number; }; },
-                         ) => {
-          if (d[column] === placement.value) {
-            const matrix = nodes[i].getScreenCTM()
-              .translate(+nodes[i].getAttribute('x'), +nodes[i].getAttribute('y'));
-
-            this.tooltip.html(d[column])
-              .style('left', (window.pageXOffset + matrix.e - 25) + 'px')
-              .style('top', (window.pageYOffset + matrix.f - 25) + 'px');
-
-            this.tooltip.transition()
-              .duration(200)
-              .style('opacity', .9);
-          }
-
-
-          this.attributeMouseOver(d);
-        })
-        .on('mouseout', (d: any, i: any, nodes: any) => {
-          this.tooltip.transition()
-            .duration(25)
-            .style('opacity', 0);
-          // that.tooltip.transition().duration(25).style("opacity", 0);
-
-          this.attributeMouseOut(d);
-        });
-    }
-
-
-    return;
-  }
-  private attributeMouseOver(d: { [x: string]: any; }) {
-    throw new Error('Method not implemented.');
-  }
-  private attributeMouseOut(d: any) {
-    throw new Error('Method not implemented.');
-  }
-
-  private generateCategoricalLegend(attribute: string | number, legendWidth: any) {
-    const numberCategories = this.controller.attributeScales.node[attribute].domain.length;
-
-    const attributeInfo = this.controller.attributeScales.node[attribute];
-    const dividers = attributeInfo.domain.length;
-
-    const legendHeight = d3.min([25, this.orderingScale.bandwidth()]);
-
-    let bandwidthScale = 2;
-    if (this.nodes.length < 50) {
-      bandwidthScale = (1 / 3);
-    }
-
-    const bandwidth = this.orderingScale.bandwidth();
-
-    const marginEquivalents = 1.5;
-
-    const legendItemSize = (this.columnWidths[attribute] - 5) / (dividers + marginEquivalents);
-    /// bandwidth * bandwidthScale;
-    const height = d3.min([bandwidth * bandwidthScale, legendHeight]);
-
-    // (legendWidth) / (dividers + 3/bandwidthScale);
-    const margin = marginEquivalents * legendItemSize / dividers;
-
-    const xRange = [];
-
-    const rects = this.attributes.append('g')
-      .attr('transform', 'translate(' + (this.columnScale(attribute) + 1 * margin) + ',' + (-legendHeight - 5) + ')');
-
-    for (let i = 0; i < dividers; i++) {
-      const rect1 = rects
-        .append('g')
-        .attr('transform', 'translate(' + (i * (legendItemSize + margin)) + ',0)');
-
-      xRange.push({
-        attr: attribute,
-        value: attributeInfo.domain[i],
-        position: (this.columnScale(attribute) + 1 * margin) + (i * (legendItemSize + margin)),
-      });
-
-      rect1
-        .append('rect')
-        .attr('x', 0)// (legendItemSize + margin)/2 -this.orderingScale.bandwidth()
-        .attr('y', 0)
-        .attr('fill', attributeInfo.range[i])
-        .attr('width', legendItemSize)
-        .attr('height', height);
-
-      rect1
-        .append('text')
-        .text(attributeInfo.legendLabels[i])
-        .attr('x', legendItemSize / 2)
-        .attr('y', -3)
-        .attr('text-anchor', 'middle')
-        .style('font-size', 11);
-      // .attr('transform', 'rotate(-90)')
-      rect1.on('mouseover', (d: any, index: string | number,
-                             nodes: { [x: string]: { getAttribute: (arg0: string) => string | number; }; },
-                            ) => {
-        const matrix = nodes[index].getScreenCTM()
-          .translate(+nodes[index].getAttribute('x'), +nodes[index].getAttribute('y'));
-
-        this.tooltip.html(attributeInfo.domain[i])
-          .style('left', (window.pageXOffset + matrix.e - 45) + 'px')
-          .style('top', (window.pageYOffset + matrix.f - 20) + 'px');
-        this.tooltip.transition()
-          .duration(200)
-          .style('opacity', .9);
-      })
-        .on('mouseout', () => {
-          this.tooltip.transition(25)
-            .style('opacity', 0);
-        });
-    }
-
-    return xRange;
+    this.controller.model.provenance.applyAction(action);
   }
 }

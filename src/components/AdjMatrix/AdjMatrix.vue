@@ -47,7 +47,7 @@ export default {
   },
 
   computed: {
-    properties(): object {
+    properties(): {} {
       const {
         graphStructure,
       } = this;
@@ -65,15 +65,15 @@ export default {
 
   async mounted() {
     // Size the panel
-    this.browser.width = d3
+    this.browser.width = parseInt(d3
     .select("body")
     .style("width")
-    .replace("px", "");
+    .replace("px", ""));
 
-    this.browser.height = d3
+    this.browser.height = parseInt(d3
       .select("body")
       .style("height")
-      .replace("px", "");
+      .replace("px", ""));
 
     // Set dimensions of the node link
     this.visDimensions.width = this.browser.width * 0.75;
