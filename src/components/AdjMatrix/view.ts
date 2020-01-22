@@ -357,11 +357,12 @@ export class View {
 
     this.selectedCells = cellIDs;
     this.selectedCells.map((elementID: string) => {
-      d3.selectAll('#' + elementID).selectAll('.baseCell').classed('hoveredCell', true);
+      d3.selectAll(`[id="${elementID}"]`).selectAll('.baseCell').classed('hoveredCell', true);
     });
     const cellID = cellIDs[0];
 
     this.addHighlightNodesToDict(this.controller.hoverRow, cell.rowid, cellID);  // Add row (rowid)
+
     if (cell.colid !== cell.rowid) {
       this.addHighlightNodesToDict(this.controller.hoverRow, cell.colid, cellID);  // Add row (colid)
       this.addHighlightNodesToDict(this.controller.hoverCol, cell.rowid, cellID);  // Add col (rowid)
@@ -375,6 +376,7 @@ export class View {
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
     this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
   }
+
   /**
    * Removes interaction highlight from a cell mouseover
    * @param  cell d3 datum element corresponding to the cell's data
@@ -936,22 +938,22 @@ export class View {
       if (Array.isArray(dict[node])) {
         for (const nodeID of dict[node]) {
           if (rowOrCol === 'Row') {
-            cssSelector += '#attr' + rowOrCol + nodeID + ',';
+            cssSelector += `[id="attr${rowOrCol}${nodeID}"],`;
           }
-          cssSelector += '#topo' + rowOrCol + nodeID + ',';
+          cssSelector += `[id="topo${rowOrCol}${nodeID}"],`;
 
           if (rowOrCol === 'Row') {
-            cssSelector += '#nodeLabelRow' + nodeID + ',';
+            cssSelector += `[id="nodeLabelRow${nodeID}"],`;
           }
         }
       } else {
         if (rowOrCol === 'Row') {
-          cssSelector += '#attr' + rowOrCol + node + ',';
+          cssSelector += `[id="attr${rowOrCol}${node}"],`;
         }
-        cssSelector += '#topo' + rowOrCol + node + ',';
+        cssSelector += `[id="topo${rowOrCol}${node}"],`;
 
         if (rowOrCol === 'Row') {
-          cssSelector += '#nodeLabelRow' + node + ',';
+          cssSelector += `[id="nodeLabelRow${node}"],`;
         }
       }
     }
@@ -961,7 +963,6 @@ export class View {
       return;
     }
     d3.selectAll(cssSelector).classed(classToRender, true);
-
   }
 
   private selectNode(nodeID: string) {

@@ -236,9 +236,9 @@ export class Model {
       const neighborElements = new Set();
 
       for (const node of state.clicked) {
-        clickedElements.add('#colLabel' + node);
-        clickedElements.add('#topoCol' + node);
-        clickedElements.add('#topoRow' + node);
+        clickedElements.add(`[id="colLabel${node}"]`);
+        clickedElements.add(`[id="topoCol${node}"]`);
+        clickedElements.add(`[id="topoRow${node}"]`);
       }
 
       // go through each interacted element, and determine which rows/columns should
@@ -258,7 +258,7 @@ export class Model {
                 if (node in state.selections.attrRow && node in state.selections.rowLabel) { continue; }
               }
 
-              clickedElements.add('#' + selectionElement + node);
+              clickedElements.add(`[id="${selectionElement}${node}"]`);
             }
           }
 
