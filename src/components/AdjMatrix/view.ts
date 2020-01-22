@@ -1050,7 +1050,6 @@ export class View {
    */
   private sort(order: unknown) {
     const nodeIDs = this.nodes.map((node: { id: any; }) => node.id);
-    console.log("in sort", nodeIDs, order)
 
     if (nodeIDs.includes(order)) {
       this.order = this.controller.changeOrder(order, true);
@@ -1099,7 +1098,7 @@ export class View {
           return 'translate(' + this.orderingScale(d.x) + ',0)';
         });
     } else {
-      d3.select('#sortIcon' + order).style('fill', '#EBB769');
+      d3.select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
     }
 
   }
@@ -1568,7 +1567,6 @@ export class View {
         this.sort(d);
       })*/.attr('cursor', 'pointer');
       button.on('click', () => {
-        console.log("clicked")
         this.sort(sortNames[i]);
       });
       initalY += buttonHeight + 5;

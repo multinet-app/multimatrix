@@ -20,9 +20,9 @@ async function _loadLinks(workspace, edge_table, apiRoot) {
 
 function _renameLinkVars(links) {
   for (let row of links) {
-    row.id = row._id.replace(/\//g, "");
-    row.source = row._from.replace(/\//g, "");
-    row.target = row._to.replace(/\//g, "");
+    row.id = row._id;
+    row.source = row._from;
+    row.target = row._to;
 
     delete row._id;
     delete row._from;
@@ -33,8 +33,17 @@ function _renameLinkVars(links) {
 
 function _renameNodeVars(nodes) {
   for (let row of nodes) {
-    row.id = row._id.replace(/\//g, "");
+    row.id = row._id;
     delete row._id;
+  }
+  return nodes;
+}
+
+function _defineNeighbors(nodes, links) {
+  nodes.map((d) => d.neighbors = [])
+  for (let link of links) {
+    nodes.filter((d) => d._id === link._from)[0].neighbors.push(link._to)
+    nodes.filter((d) => d._id === link._to)[0].neighbors.push(link._from)
   }
   return nodes;
 }
@@ -63,11 +72,15 @@ async function loadData(workspace, graph, apiRoot = "https://multinet.app/api") 
   const linkTable = await _loadLinks(workspace, edge_table, apiRoot);
   multinet.links = [].concat(multinet.links, linkTable);
 
+  // Define neighbors
+  multinet.nodes = _defineNeighbors(multinet.nodes, multinet.links)
+
   // Set the graph structure
   multinet.graph_structure = {
     "nodes": _renameNodeVars(multinet.nodes),
     "links": _renameLinkVars(multinet.links),
   };
+  console.log(multinet.graph_structure)
   return JSON.parse(JSON.stringify(multinet.graph_structure))
 }
 

@@ -47,7 +47,7 @@ export default {
   },
 
   computed: {
-    properties(): {} {
+    properties() {
       const { graphStructure } = this;
       return {
         graphStructure
