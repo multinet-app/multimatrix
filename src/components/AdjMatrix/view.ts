@@ -1050,6 +1050,8 @@ export class View {
    */
   private sort(order: unknown) {
     const nodeIDs = this.nodes.map((node: { id: any; }) => node.id);
+    console.log("in sort", nodeIDs, order)
+
     if (nodeIDs.includes(order)) {
       this.order = this.controller.changeOrder(order, true);
     } else {
@@ -1559,13 +1561,14 @@ export class View {
       button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
       button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
       const path = button.datum(sortNames[i]);
-      const realPath = path
+      path
         .append('path').attr('class', 'sortIcon').attr('d', (d: any) => {
           return this.controller.model.icons[iconNames[i]].d;
         }).style('fill', () => sortNames[i] === this.controller.model.orderType ? '#EBB769' : '#8B8B8B').attr('transform', 'scale(0.1)translate(' + (-195) + ',' + (-320) + ')')/*.on('click', (d,i,nodes) => {
         this.sort(d);
       })*/.attr('cursor', 'pointer');
       button.on('click', () => {
+        console.log("clicked")
         this.sort(sortNames[i]);
       });
       initalY += buttonHeight + 5;

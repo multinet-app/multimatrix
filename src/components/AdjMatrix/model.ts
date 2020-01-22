@@ -267,7 +267,9 @@ export class Model {
       }
 
       const clickedSelectorQuery = Array.from(clickedElements).join(',');
-      d3.selectAll(clickedSelectorQuery).classed('clicked', true);
+      if (clickedSelectorQuery !== '') {
+        d3.selectAll(clickedSelectorQuery).classed('clicked', true);
+      }
     }
 
     function splitCellNames(name: any) {
