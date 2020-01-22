@@ -100,12 +100,6 @@ export default {
       this.visDimensions,
       this.panelDimensions
     );
-
-    this.controller.loadData(
-      this.model.nodes,
-      this.model.links,
-      this.model.matrix
-    );
   },
 
   methods: {}

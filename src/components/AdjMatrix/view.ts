@@ -117,6 +117,7 @@ export class View {
    * @return None
    */
   private initializeEdges() {
+    console.log("initializing edges")
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     const width = this.controller.visDimensions.width;
     const height = this.controller.visDimensions.height;
@@ -428,15 +429,16 @@ export class View {
       .attr('id', (d: Array<{ rowid: string; }>) => 'sortIcon' + d[0].rowid)
       .attr('class', 'sortIcon')
       .attr('d', this.controller.model.icons.cellSort.d)
-        // .style('fill', d => {return d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
-        .attr('transform', 'scale(0.075)translate(' + (verticalOffset) + ',' + (horizontalOffset) + ')rotate(90)')
-        .on('click', (d: Array<{ rowid: any; }>, i: number, nodes: any[]) => {
-          this.sort(d[0].rowid);
-          const action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-          this.controller.model.provenance.applyAction(action);
-        }).attr('cursor', 'pointer')
-        .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
-        .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
+      .style('fill', (d: any) => d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B')
+      .attr('transform', 'scale(0.075)translate(' + (verticalOffset) + ',' + (horizontalOffset) + ')rotate(90)')
+      .on('click', (d: Array<{ rowid: any; }>, i: number, nodes: any[]) => {
+        this.sort(d[0].rowid);
+        const action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+        this.controller.model.provenance.applyAction(action);
+      })
+      .attr('cursor', 'pointer')
+      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
+      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
 
     verticalOffset = verticalOffset / 12.5 + 3;
 
