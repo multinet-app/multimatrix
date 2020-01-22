@@ -8813,6 +8813,14 @@ renderkid@^2.0.1:
     strip-ansi "^3.0.0"
     utila "^0.4.0"
 
+reorder.js@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/reorder.js/-/reorder.js-1.0.6.tgz#9526cdfb01d32e808ab932c34420d20264973a21"
+  integrity sha512-8ZzRIdO2JTfIVCT0otQo8JoK2N4fpPuyumktBNTJevw1H2/zMz1vKpCTrnVFGlP+kSokCB2sUKZY6/M+OdSAqw==
+  dependencies:
+    science "1.9.2"
+    tiny-queue "0.2.1"
+
 repeat-element@^1.1.2:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/repeat-element/-/repeat-element-1.1.3.tgz#782e0d825c0c5a3bb39731f84efee6b742e6b1ce"
@@ -9090,6 +9098,16 @@ schema-utils@^2.0.0, schema-utils@^2.5.0, schema-utils@^2.6.0, schema-utils@^2.6
   dependencies:
     ajv "^6.10.2"
     ajv-keywords "^3.4.1"
+
+science@1.9.2:
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/science/-/science-1.9.2.tgz#5e55a9fb4a765aa0a47e4b47787e80b74fcd435a"
+  integrity sha1-XlWp+0p2WqCkfktHeH6At0/NQ1o=
+
+science@^1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/science/-/science-1.9.3.tgz#ec89bac44aeff2e5a2d749aa496f377089903dd4"
+  integrity sha1-7Im6xErv8uWi10mqSW83cImQPdQ=
 
 select-hose@^2.0.0:
   version "2.0.0"
@@ -9932,6 +9950,11 @@ timsort@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/timsort/-/timsort-0.3.0.tgz#405411a8e7e6339fe64db9a234de11dc31e02bd4"
   integrity sha1-QFQRqOfmM5/mTbmiNN4R3DHgK9Q=
+
+tiny-queue@0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/tiny-queue/-/tiny-queue-0.2.1.tgz#25a67f2c6e253b2ca941977b5ef7442ef97a6046"
+  integrity sha1-JaZ/LG4lOyypQZd7XvdELvl6YEY=
 
 tmp@^0.0.33:
   version "0.0.33"

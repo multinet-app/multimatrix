@@ -1,7 +1,8 @@
 /* The Model loads sorts and orders the data. */
 import * as d3 from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
-// import * as reorder from './reorder/reorder.v1.js';
+import 'science';
+import 'reorder.js';
 
 export class Model {
   public graphStructure: any;
