@@ -10,7 +10,6 @@ export class Model {
   public controller: any;
   public sortKey: string;
 
-  private data: any;
   private matrix: any;
   private nodes: any;
   private edges: any;
@@ -20,7 +19,6 @@ export class Model {
   private scalarMatrix: any;
   private provenance: any;
   private app: any;
-  private maxTracker: any;
 
   constructor(graphStructure: {nodes: object[], links: object[]}) {
     this.graphStructure = graphStructure;
@@ -78,11 +76,6 @@ export class Model {
     //   this.orderType = this.sortKey;
     //   this.order = this.changeOrder(this.orderType);
     // }
-
-    // Check if the model exists yet. If not, we shouldn't be loading in the data
-    // if (this.controller.model) {
-    //   this.controller.loadData(this.nodes, this.edges, this.matrix);
-    // }
   }
 
   /**
@@ -111,14 +104,12 @@ export class Model {
       this.scalarMatrix[i] = this.nodes.map((d: any) => 0);
     });
 
-    this.maxTracker = { reply: 0, retweet: 0, mentions: 0 };
     // Convert links to matrix; count character occurrences.
     this.edges.forEach((link: any) => {
       this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
       this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
 
       /* could be used for varying edge types */
-      // this.maxTracker = { 'reply': 3, 'retweet': 3, 'mentions': 2 }
       this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
       this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
 
@@ -137,13 +128,17 @@ export class Model {
     });
   }
 
+  /**
+   * Returns the order data.
+   * @return Node data in Array
+   */
   public getOrder() {
     return this.order;
   }
 
   /**
    * Returns the node data.
-   * @return Node data in JSON Array
+   * @return Node data in Array
    */
   public getNodes() {
     return this.nodes;
@@ -216,8 +211,6 @@ export class Model {
     const app = this.getApplicationState();
     this.app = app;
 
-    // creates the document with the name and worker ID
-
     const columnElements = ['topoCol'];
     const rowElements = ['topoRow', 'attrRow'];
 
@@ -253,16 +246,13 @@ export class Model {
             if (selectionType === 'neighborSelect') {
               neighborElements.add('#' + selectionElement + node);
             } else {
-
               // if both in attrRow and rowLabel, don't highlight element
               if (selectionType === 'attrRow' || selectionType === 'rowLabel') {
                 if (node in state.selections.attrRow && node in state.selections.rowLabel) { continue; }
               }
-
               clickedElements.add(`[id="${selectionElement}${node}"]`);
             }
           }
-
         }
       }
 
@@ -294,9 +284,6 @@ export class Model {
             const cellsNames = splitCellNames(name);
             cellNames = cellNames.concat(cellsNames);
           });
-
-          // names.map(name=>{
-          // })
         });
         const cellSelectorQuery = '#' + cellNames.join(',#');
         // if no cells selected, return
@@ -314,13 +301,10 @@ export class Model {
       provenance.addObserver('selections.cellrow', updateHighlights);
       provenance.addObserver('selections.neighborSelect', updateHighlights);
       // provenance.addObserver('selections.cellcol', updateCellClicks);
-
       provenance.addObserver('selections.search', updateHighlights);
-
       provenance.addObserver('clicked', updateHighlights);
     }
     setUpObservers();
-
     return [app, provenance];
   }
 
@@ -365,12 +349,10 @@ export class Model {
    * @return      A numerical range in corrected order.
    */
   private changeOrder(type: string, node: boolean = false) {
-
     const action = this.generateSortAction(type);
     if (this.provenance) {
       this.provenance.applyAction(action);
     }
-
     return this.sortObserver(type, node);
   }
 
@@ -408,9 +390,7 @@ export class Model {
     } else {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     }
-
     this.order = order;
     return order;
   }
-
 }
