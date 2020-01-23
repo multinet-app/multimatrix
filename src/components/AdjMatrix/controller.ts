@@ -44,7 +44,7 @@ export class Controller {
     const action = {
       label: 'clear',
       action: () => {
-        const currentState = this.model.app.currentState();
+        const currentState = this.model.getApplicationState();
         // add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = 'clear';

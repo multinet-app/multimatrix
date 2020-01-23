@@ -1115,7 +1115,6 @@ export class View {
     //   .attr('id', 'attributeMargin')
     //   .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
 
-
     // // add zebras and highlight rows
     // /*
     // this.attributes.selectAll('.highlightRow')
@@ -1186,7 +1185,6 @@ export class View {
 
     // let columns = this.controller.nodeAttributes;
 
-
     // var formatCurrency = d3.format("$,.0f"),
     //   formatNumber = d3.format(",.0f");
 
@@ -1197,7 +1195,6 @@ export class View {
     // // // Calculate Column Scale
     // // let columnRange = []
     // // let xRange = 0;
-
 
     // // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
     // // //450 / columns.length;
@@ -1231,10 +1228,6 @@ export class View {
     // // })
     // // this.attributeScales = attributeScales;
 
-
-
-
-
     // let placementScale = {};
 
     // this.columnScale.range(columnRange);
@@ -1258,8 +1251,6 @@ export class View {
     //       .selectAll('text')
     //       .style("text-anchor", function(d, i) { return i % 2 ? "end" : "start" });
     //   }
-
-
     // }
 
     // this.columnGlyphs = {};
@@ -1309,86 +1300,13 @@ export class View {
     //       .duration(2000)
     //       .attr('width', (d, i) => { return attributeScales[column](d[column]); })
 
-
     //     this.attributeRows
     //       .append("div")
     //       .attr("class", "glyphLabel")
     //       .text(function(d, i) {
     //         return (d);
     //       });
-    //   } else {
-    //     barMargin.left = 1;
-    //     let answerBox = this.attributeRows
-    //       .append('g')
-    //       .attr("class", "answerBox")
-    //       .attr("id", d => "answerBox" + d[this.datumID])
-    //       .attr('transform', 'translate(' + (columnPosition + barMargin.left) + ',' + 0 + ')');
-    //     if (this.controller.adjMatrix.toggle) {
-    //       let rect = answerBox.append("rect")
-    //         .attr("x", (columnWidths[column] / 4))
-    // if column with is 1, we want this at 1/4, and 1/2 being mid point
-    //         .attr("y", barMargin.top)
-    //         .attr("rx", barHeight / 2)
-    //         .attr("ry", barHeight / 2)
-    //         .style("fill", "lightgray")
-    //         .attr("width", columnWidths[column] / 2)
-    //         .attr("height", barHeight)
-    //         .attr('stroke', 'lightgray')
-    //         .on('mouseover', attributeMouseOver)
-    //         .on('mouseout', attributeMouseOut);
-
-    //       let circle = answerBox.append("circle")
-    //         .attr("cx", (1.15 * columnWidths[column] / 4))
-    //         .attr("cy", barHeight / 2 + barMargin.top)
-    //         .attr("r", barHeight / 2)
-    //         .style("fill", "white")
-    //         .style('stroke', 'lightgray');
-    //     } else {
-    //       let initalHeight = barHeight;
-    //       let newBarHeight = d3.min([barHeight,15])
-    //       let rect = answerBox.append("rect")
-    //         .attr("x", (columnWidths[column] / 2) - newBarHeight / 2)
-    // if column with is 1, we want this at 1/4, and 1/2 being mid point
-    //         .attr("y", barMargin.top + (initalHeight-newBarHeight)/2)
-    //         //.attr("rx", barHeight / 2)
-    //         //.attr("ry", barHeight / 2)
-    //         .style("fill", "white")
-    //         .attr("width", newBarHeight)
-    //         .attr("height", newBarHeight)
-    //         .attr('stroke', 'lightgray')
-    //         .on('mouseover', attributeMouseOver)
-    //         .on('mouseout', attributeMouseOut);
-    //     }
-
-    //     answerBox
-    //       .on('click', (d) => {
-    //         let color = this.controller.attributeScales.node.selected.range[0];
-    //         //if already answer
-    //         let nodeID = d.id;
-
-    //         /*Visual chagne */
-    //         let answerStatus = false; // TODO, remove?
-    //         if (this.controller.adjMatrix.toggle) {
-    //           d3.select(nodes[i]).selectAll('circle').transition().duration(500)
-    //             .attr("cx", (answerStatus ? 3 * columnWidths[column] / 4 : 1.15 * columnWidths[column] / 4))
-    //             .style("fill", answerStatus ? color : "white");
-    //           d3.select(nodes[i]).selectAll('rect').transition().duration(500)
-    //             .style("fill", answerStatus ? "#8B8B8B" : "lightgray");
-    //         } else {
-
-    //         }
-
-
-    //         this.nodeClick(d);
-
-    //         //let action = this.changeInteractionWrapper(nodeID, i, nodes);
-    //         //this.controller.model.provenance.applyAction(action);
-
-
-
-    //         //d3.select(nodes[i]).transition().duration(500).attr('fill',)
-    //       })
-
+    //   }
     //   }
     // });
 
@@ -1405,8 +1323,6 @@ export class View {
     //   .attr('stroke-opacity', 0.4);
 
     // // Add headers
-
-
 
     // this.columnNames = {
     //   "followers_count": "Followers",
@@ -1536,8 +1452,6 @@ export class View {
 
     // let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
     // nonAnswerColumn.attr('cursor', 'pointer');
-    this.controller.model.setUpProvenance();
-    window.focus();
 
     // Draw buttons for alternative sorts
     let initalY = -this.margins.left + 10;
@@ -1564,13 +1478,6 @@ export class View {
       initalY += buttonHeight + 5;
     }
 
-
-
-
-
-
-
-
     // Append g's for table headers
     // For any data row, add
 
@@ -1579,12 +1486,6 @@ export class View {
     .classed("g-table-column-" + (sortOrder === d3.ascending ? "ascending" : "descending"), function(d) {
       return d === sortKey;
     });*/
-
-
-  }
-
-  private isCategorical(column: string) {
-    return column === 'type' || column === 'continent' || column === 'selected';
   }
 
   // function that updates the state, and includes a flag for when this was done through a search
