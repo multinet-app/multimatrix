@@ -431,11 +431,8 @@ export class View {
       .style('fill', (d: any) => d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B')
       .attr('transform', 'scale(0.075)translate(' + (verticalOffset) + ',' + (horizontalOffset) + ')rotate(90)')
       .on('click', (d: Array<{ rowid: any; }>, i: number, nodes: any[]) => {
-        console.log("sorting")
         this.sort(d[0].rowid);
-        console.log("define action")
         const action = this.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
-        console.log("apply action")
         this.controller.model.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
@@ -869,7 +866,7 @@ export class View {
   }
 
   private nodeDictContainsPair(
-    dict: { [x: string]: { has: (arg0: any) => any; }; },
+    dict: { [x: string]: { add: (arg0: any) => any, has: (arg0: any) => any; }; },
     nodeToHighlight: string, interactedElement: any,
   ) {
     if (nodeToHighlight in dict) {
@@ -888,7 +885,7 @@ export class View {
    * @return            [description]
    */
   private addHighlightNodesToDict(
-    dict: { [x: string]: { add: (arg0: any) => any; }; },
+    dict: { [x: string]: { add: (arg0: any) => any, has: (arg0: any) => any; }; },
     nodeToHighlight: string, interactedElement: any,
   ) {
     // if node already in highlight, remove it
@@ -1038,10 +1035,6 @@ export class View {
   }
 
 
-
-
-
-
   /**
    * [sort description]
    * @return [description]
@@ -1054,7 +1047,6 @@ export class View {
     } else {
       this.order = this.controller.changeOrder(order);
     }
-    console.log(this.order)
     this.orderingScale.domain(this.order);
 
 
@@ -1063,9 +1055,8 @@ export class View {
     d3.selectAll('g .row')
       .transition()
       .duration(transitionTime)
-      .delay((d , i) =>  this.orderingScale(i) * 4)
+      // .delay((d, i) =>  this.orderingScale(i))
       .attr('transform', (d: any, i: number) => {
-        console.log(this.orderingScale(i), i)
         if (i > this.order.length - 1) {
           return'translate(0, 0)';
         } else {

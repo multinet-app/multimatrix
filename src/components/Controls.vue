@@ -1,4 +1,4 @@
-<script>
+<script lang='ts'>
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
 import { setUpProvenance } from "@/lib/provenance";
