@@ -1,35 +1,35 @@
 <script lang='ts'>
-import * as d3 from "d3";
+import * as d3 from 'd3';
 
-import { Model } from "./model";
-import { View } from "./view";
-import { Controller } from "./controller";
+import { Model } from './model';
+import { View } from './view';
+import { Controller } from './controller';
 
 export default {
   props: {
     app: {
       type: Object,
-      required: true
+      required: true,
     },
     provenance: {
       type: Object,
-      required: true
+      required: true,
     },
     graphStructure: {
       type: Object,
-      default: () => {}
+      default: () => undefined,
     },
     selectNeighbors: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
 
   data() {
     return {
       browser: {
         height: 0,
-        width: 0
+        width: 0,
       },
       panelDimensions: { width: 0, height: 0 },
       visDimensions: { width: 0, height: 0 },
@@ -37,12 +37,12 @@ export default {
         left: 25,
         right: 25,
         top: 25,
-        bottom: 25
+        bottom: 25,
       },
       svg: undefined,
       model: Model,
       view: View,
-      controller: Controller
+      controller: Controller,
     };
   },
 
@@ -50,31 +50,33 @@ export default {
     properties() {
       const { graphStructure } = this;
       return {
-        graphStructure
+        graphStructure,
       };
-    }
+    },
   },
 
   watch: {
     properties() {
       //   this.updateVis();
-    }
+    },
   },
 
   async mounted() {
     // Size the panel
     this.browser.width = parseInt(
       d3
-        .select("body")
-        .style("width")
-        .replace("px", "")
+        .select('body')
+        .style('width')
+        .replace('px', ''),
+      0,
     );
 
     this.browser.height = parseInt(
       d3
-        .select("body")
-        .style("height")
-        .replace("px", "")
+        .select('body')
+        .style('height')
+        .replace('px', ''),
+      0,
     );
 
     // Set dimensions of the node link
@@ -88,8 +90,8 @@ export default {
     // Size the svg
     this.svg = d3
       .select(this.$refs.svg)
-      .attr("width", this.visDimensions.width)
-      .attr("height", this.visDimensions.height);
+      .attr('width', this.visDimensions.width)
+      .attr('height', this.visDimensions.height);
 
     // Define the MVC
     this.model = new Model(this.graphStructure);
@@ -98,11 +100,11 @@ export default {
       this.view,
       this.model,
       this.visDimensions,
-      this.panelDimensions
+      this.panelDimensions,
     );
   },
 
-  methods: {}
+  methods: {},
 };
 </script>
 

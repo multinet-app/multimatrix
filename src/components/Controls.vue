@@ -1,9 +1,9 @@
 <script lang='ts'>
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
-import { setUpProvenance } from "@/lib/provenance";
-import { getUrlVars } from "@/lib/utils";
-import { loadData } from "@/lib/multinet";
+import { setUpProvenance } from '@/lib/provenance';
+import { getUrlVars } from '@/lib/utils';
+import { loadData } from '@/lib/multinet';
 
 export default {
   components: {
@@ -16,7 +16,7 @@ export default {
       provenance: null,
       graphStructure: {
         nodes: [],
-        links: []
+        links: [],
       },
       workspace: null,
       graph: null,
@@ -32,7 +32,7 @@ export default {
     const { workspace, graph } = getUrlVars();
     if (!workspace || !graph) {
       throw new Error(
-        `Workspace and graph must be set! workspace=${workspace} graph=${graph}`
+        `Workspace and graph must be set! workspace=${workspace} graph=${graph}`,
       );
     }
     this.graphStructure = await loadData(workspace, graph);
@@ -47,9 +47,9 @@ export default {
     exportGraph() {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([JSON.stringify(this.graphStructure)], {
-        type: `text/json`
+        type: `text/json`,
       }));
-      a.download = "graph.json";
+      a.download = 'graph.json';
       a.click();
     },
   },
