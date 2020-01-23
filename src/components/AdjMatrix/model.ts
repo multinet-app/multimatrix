@@ -313,7 +313,7 @@ export class Model {
       provenance.addObserver('selections.cellcol', updateHighlights);
       provenance.addObserver('selections.cellrow', updateHighlights);
       provenance.addObserver('selections.neighborSelect', updateHighlights);
-      provenance.addObserver('selections.cellcol', updateCellClicks);
+      // provenance.addObserver('selections.cellcol', updateCellClicks);
 
       provenance.addObserver('selections.search', updateHighlights);
 
