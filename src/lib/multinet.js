@@ -80,7 +80,6 @@ async function loadData(workspace, graph, apiRoot = "https://multinet.app/api") 
     "nodes": _renameNodeVars(multinet.nodes),
     "links": _renameLinkVars(multinet.links),
   };
-  console.log(multinet.graph_structure)
   return JSON.parse(JSON.stringify(multinet.graph_structure))
 }
 

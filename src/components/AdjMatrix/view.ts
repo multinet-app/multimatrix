@@ -20,7 +20,7 @@ export class View {
   private order: any;
   private margins: { left: number, top: number, right: number, bottom: number };
   private attributes: any;
-  private orderingScale!: d3.ScaleBand<number>;
+  private orderingScale: d3.ScaleBand<number> = d3.scaleBand<number>();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales: any;
@@ -117,7 +117,6 @@ export class View {
    * @return None
    */
   private initializeEdges() {
-    console.log("initializing edges")
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     const width = this.controller.visDimensions.width;
     const height = this.controller.visDimensions.height;
@@ -265,9 +264,9 @@ export class View {
       cells
         .append('rect')
         .classed('nestedEdges nestedEdges' + type, true)
-        .attr('x', offset) // index * this.orderingScale.bandwidth() / dividers })
+        .attr('x', offset)
         .attr('y', (d: any) => {
-          return offset; // this.orderingScale.bandwidth() - scale(d[type]);
+          return offset;
         })
         .attr('height', squareSize)
         .attr('width', squareSize)
@@ -432,8 +431,11 @@ export class View {
       .style('fill', (d: any) => d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B')
       .attr('transform', 'scale(0.075)translate(' + (verticalOffset) + ',' + (horizontalOffset) + ')rotate(90)')
       .on('click', (d: Array<{ rowid: any; }>, i: number, nodes: any[]) => {
+        console.log("sorting")
         this.sort(d[0].rowid);
-        const action = this.controller.view.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+        console.log("define action")
+        const action = this.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+        console.log("apply action")
         this.controller.model.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
@@ -610,9 +612,10 @@ export class View {
         } else if (interactionName === 'attrRow') {
           return interactionName;
 
+        } else {
+          this.changeInteraction(currentState, interactID, interactionName, interactedElement);
+          return currentState;
         }
-        this.changeInteraction(currentState, interactID, interactionName, interactedElement);
-        return currentState;
       },
     };
   }
@@ -630,13 +633,6 @@ export class View {
     state: { selections: { [x: string]: { [x: string]: string[]; }; }; },
     nodeID: string, interaction: string, interactionName: string = interaction,
   ) {
-
-    // if there have been any mouseover events since the last submitted action, log them in provenance
-    // if (this.mouseoverEvents.length > 1) {
-
-    // }
-
-
     if (nodeID in state.selections[interaction]) {
       // Remove element if in list, if list is empty, delete key
       const currentIndex = state.selections[interaction][nodeID].indexOf(interactionName);
@@ -1058,15 +1054,18 @@ export class View {
     } else {
       this.order = this.controller.changeOrder(order);
     }
+    console.log(this.order)
     this.orderingScale.domain(this.order);
 
 
     const transitionTime = 500;
-    d3.selectAll('.row')
+
+    d3.selectAll('g .row')
       .transition()
       .duration(transitionTime)
-      // .delay((d , i) => { return this.orderingScale(i) * 4; })
+      .delay((d , i) =>  this.orderingScale(i) * 4)
       .attr('transform', (d: any, i: number) => {
+        console.log(this.orderingScale(i), i)
         if (i > this.order.length - 1) {
           return'translate(0, 0)';
         } else {

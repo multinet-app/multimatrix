@@ -301,8 +301,9 @@ export class Model {
         const cellSelectorQuery = '#' + cellNames.join(',#');
         // if no cells selected, return
         d3.selectAll('.clickedCell').classed('clickedCell', false);
-        if (cellSelectorQuery === '#') { return; }
-        d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
+        if (cellSelectorQuery !== '#') {
+          d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
+        }
 
       };
 
