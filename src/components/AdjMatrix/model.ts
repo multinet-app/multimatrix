@@ -29,6 +29,8 @@ export class Model {
     this.matrix = [];
     this.scalarMatrix = [];
 
+    [ this.app, this.provenance ] = this.setUpProvenance();
+
     this.icons = {
       quant: {
         d: 'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
@@ -266,7 +268,7 @@ export class Model {
       const cleanedCellName = name.replace('cell', '');
       const ids = cleanedCellName.split('_');
       return ['cell' + ids[0] + '_' + ids[1], 'cell' + ids[1] + '_' + ids[0]];
-  }
+    }
 
     function setUpObservers() {
       const updateHighlights = (state: any) => {
@@ -324,13 +326,13 @@ export class Model {
   private generateSortAction(sortKey: string) {
     return {
       label: 'sort',
-      action: (sortKey: any) => {
+      action: (key: any) => {
         const currentState = this.getApplicationState();
         // add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = 'sort';
 
-        currentState.sortKey = sortKey;
+        currentState.sortKey = key;
         if (this.controller.view !== undefined && this.controller.view.mouseoverEvents !== undefined) {
           currentState.selections.previousMouseovers = this.controller.view.mouseoverEvents;
           this.controller.view.mouseoverEvents.length = 0;
