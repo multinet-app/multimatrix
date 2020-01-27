@@ -1,4 +1,4 @@
-# vue-nodelink
+# vue-adjmatrix
 
 ## Project setup
 ```

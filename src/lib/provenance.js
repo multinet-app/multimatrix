@@ -1,6 +1,6 @@
 /**
  * This module contains various utilities for
- * creating, updatating, and managing a nodelink graph.
+ * creating, updatating, and managing a adjacency matrix.
  */
 import * as Provenance from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 

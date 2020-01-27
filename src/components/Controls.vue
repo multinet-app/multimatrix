@@ -12,8 +12,8 @@ export default {
 
   data() {
     return {
-      app: null,
-      provenance: null,
+      app: { currentState: () => {} },
+      provenance: Provenance<{ order: string; nodePos: {}; userSelectedNeighbors: never[]; userSelectedEdges: never[]; selected: never[]; hardSelected: never[]; search: never[]; startTime: Date; event: string; time: Date; },
       graphStructure: {
         nodes: [],
         links: [],

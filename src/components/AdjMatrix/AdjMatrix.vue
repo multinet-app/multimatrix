@@ -40,14 +40,14 @@ export default {
         bottom: 25,
       },
       svg: undefined,
-      model: Model,
-      view: View,
-      controller: Controller,
+      model: typeof Model,
+      view: undefined,
+      controller: undefined,
     };
   },
 
   computed: {
-    properties() {
+    properties(): { graphStructure: any } {
       const { graphStructure } = this;
       return {
         graphStructure,
@@ -88,10 +88,10 @@ export default {
     this.panelDimensions.height = this.browser.height * 1;
 
     // Size the svg
-    this.svg = d3
-      .select(this.$refs.svg)
-      .attr('width', this.visDimensions.width)
-      .attr('height', this.visDimensions.height);
+    // this.svg = d3
+    //   .select(this.$refs.svg)
+    //   .attr('width', this.visDimensions.width)
+    //   .attr('height', this.visDimensions.height);
 
     // Define the MVC
     this.model = new Model(this.graphStructure);
