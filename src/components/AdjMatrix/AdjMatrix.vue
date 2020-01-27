@@ -34,8 +34,7 @@ export default {
     model: Model|undefined,
     view: View|undefined,
     controller: Controller|undefined,
-    } 
-    {
+    } {
     return {
       browser: {
         height: 0,

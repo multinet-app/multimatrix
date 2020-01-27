@@ -18,8 +18,7 @@ export default {
     graph: any,
     selectNeighbors: boolean,
     searchQuery: any,
-  } 
-  {
+  } {
     return {
       app: undefined,
       provenance: null,
