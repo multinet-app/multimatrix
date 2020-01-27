@@ -10,9 +10,18 @@ export default {
     AdjMatrix,
   },
 
-  data() {
+  data(): {
+    app: { currentState: () => {} }|undefined,
+    provenance: any,
+    graphStructure: any,
+    workspace: any,
+    graph: any,
+    selectNeighbors: boolean,
+    searchQuery: any,
+  } 
+  {
     return {
-      app: { currentState: () => {} },
+      app: undefined,
       provenance: null,
       graphStructure: {
         nodes: [],

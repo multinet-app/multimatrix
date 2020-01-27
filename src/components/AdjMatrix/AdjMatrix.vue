@@ -25,7 +25,17 @@ export default {
     },
   },
 
-  data() {
+  data(): {
+    browser: any,
+    panelDimensions: any,
+    visDimensions: any,
+    visMargins: any,
+    svg: any,
+    model: Model|undefined,
+    view: View|undefined,
+    controller: Controller|undefined,
+    } 
+    {
     return {
       browser: {
         height: 0,
@@ -40,7 +50,7 @@ export default {
         bottom: 25,
       },
       svg: undefined,
-      model: typeof Model,
+      model: undefined,
       view: undefined,
       controller: undefined,
     };
@@ -88,10 +98,10 @@ export default {
     this.panelDimensions.height = this.browser.height * 1;
 
     // Size the svg
-    // this.svg = d3
-    //   .select(this.$refs.svg)
-    //   .attr('width', this.visDimensions.width)
-    //   .attr('height', this.visDimensions.height);
+    this.svg = d3
+      .select(this.$refs.svg)
+      .attr('width', this.visDimensions.width)
+      .attr('height', this.visDimensions.height);
 
     // Define the MVC
     this.model = new Model(this.graphStructure);
