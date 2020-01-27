@@ -1,11 +1,11 @@
-<script>
-import Controls from "./components/Controls.vue";
+<script lang="ts">
+import Controls from './components/Controls.vue';
 
 export default {
-  name: "app",
+  name: 'app',
 
   components: {
-    Controls
+    Controls,
   },
 };
 </script>
