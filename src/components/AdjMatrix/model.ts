@@ -4,6 +4,8 @@ import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/
 import 'science';
 import 'reorder.js';
 
+declare var reorder: any;
+
 export class Model {
   public graphStructure: any;
   public icons: object;

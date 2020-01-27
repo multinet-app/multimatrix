@@ -1,17 +1,18 @@
 <script lang='ts'>
+import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
 import { setUpProvenance } from '@/lib/provenance';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 
-export default {
+export default Vue.extend({
   components: {
     AdjMatrix,
   },
 
   data(): {
-    app: { currentState: () => {} }|undefined,
+    app: any,
     provenance: any,
     graphStructure: any,
     workspace: any,
@@ -61,7 +62,7 @@ export default {
       a.click();
     },
   },
-};
+});
 </script>
 
 <template>

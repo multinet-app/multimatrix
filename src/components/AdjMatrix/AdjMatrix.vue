@@ -1,11 +1,12 @@
 <script lang='ts'>
 import * as d3 from 'd3';
+import Vue from 'vue';
 
 import { Model } from './model';
 import { View } from './view';
 import { Controller } from './controller';
 
-export default {
+export default Vue.extend({
   props: {
     app: {
       type: Object,
@@ -56,7 +57,7 @@ export default {
   },
 
   computed: {
-    properties(): { graphStructure: any } {
+    properties(this: any) {
       const { graphStructure } = this;
       return {
         graphStructure,
@@ -70,7 +71,7 @@ export default {
     },
   },
 
-  async mounted() {
+  async mounted(this: any) {
     // Size the panel
     this.browser.width = parseInt(
       d3
@@ -114,7 +115,7 @@ export default {
   },
 
   methods: {},
-};
+});
 </script>
 
 <template>
