@@ -13,7 +13,7 @@ export default {
   data() {
     return {
       app: { currentState: () => {} },
-      provenance: Provenance<{ order: string; nodePos: {}; userSelectedNeighbors: never[]; userSelectedEdges: never[]; selected: never[]; hardSelected: never[]; search: never[]; startTime: Date; event: string; time: Date; },
+      provenance: null,
       graphStructure: {
         nodes: [],
         links: [],
