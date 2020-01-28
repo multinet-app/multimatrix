@@ -275,7 +275,6 @@ export class Model {
     function setUpObservers() {
       const updateHighlights = (state: any) => {
         d3.selectAll('.clicked').classed('clicked', false);
-        d3.selectAll('.neighbor').classed('neighbor', false);
 
         classAllHighlights(state);
       };
