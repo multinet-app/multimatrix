@@ -88,7 +88,7 @@ export default Vue.extend({
 
     // Set dimensions of the node link
     this.visDimensions.width = this.browser.width * 0.75;
-    this.visDimensions.height = this.browser.height * 1;
+    this.visDimensions.height = this.browser.height - 24;
 
     // Size the svg
     this.svg = d3
@@ -111,9 +111,7 @@ export default Vue.extend({
 </script>
 
 <template>
-  <div>
-    <svg ref="svg" width="800" height="900" />
-  </div>
+  <svg ref="svg" width="800" height="900" />
 </template>
 
 <style>
