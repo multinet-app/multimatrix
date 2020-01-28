@@ -235,7 +235,7 @@ export class View {
       .append('rect')
       .classed('topoRow', true)
       .attr('id', (d: any, i: number) => {
-        return `topoCol${d[i].rowid}`;
+        return `topoRow${d[i].rowid}`;
       })
       .attr('x', -this.margins.left)
       .attr('y', 0)
@@ -416,9 +416,7 @@ export class View {
       .text((d: any, i: string | number) => this.nodes[i]._key)
       .on('mouseout', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
       .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
-      .on('click', (d: any) => {
-        this.nodeClick(d);
-      });
+      .on('click', (d: any) => this.nodeClick(d));
 
     let verticalOffset = 3;
     verticalOffset = 187.5;
@@ -684,7 +682,7 @@ export class View {
       .attr('id', `legendLinear${type}`)
       .attr('transform', (d, i) => `translate(${xOffset},${yOffset})`)
       .on('click', (d) => {
-        if (this.controller.adjMatrix.selectEdgeType === true) { //
+        if (this.controller.adjMatrix.selectEdgeType === true) {
           const edgeType = this.controller.state.adjMatrix.selectedEdgeType === type ? 'all' : type;
           this.controller.state.adjMatrix.selectedEdgeType = edgeType;
           if (edgeType === 'all') {
