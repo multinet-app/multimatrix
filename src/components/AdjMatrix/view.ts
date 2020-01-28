@@ -99,7 +99,7 @@ export class View {
    * @return                 [description]
    */
   public selectHighlight(nodeToSelect: any, rowOrCol: string, attrOrTopo: string = 'Attr', orientation: string = 'x') {
-    const selection = d3.selectAll('.' + attrOrTopo + rowOrCol)
+    const selection = d3.selectAll(`.${attrOrTopo}${rowOrCol}`)
       .filter((d: any, i: number) => {
         if (attrOrTopo === 'Attr' && d.index === null) {
           // attr
@@ -128,12 +128,12 @@ export class View {
 
     // Creates scalable SVG
     this.edges = d3.select('svg')
-      .attr('viewBox', '0 0 ' + width + ' ' + height + '')
+      .attr('viewBox', `0 0 ${width} ${height}`)
       .attr('preserveAspectRatio', 'xMinYMin meet')
       .append('g')
       .classed('svg-content', true)
       .attr('id', 'edgeMargin')
-      .attr('transform', 'translate(' + this.margins.left + ',' + this.margins.top + ')');
+      .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
 
     // sets the vertical scale
     this.orderingScale = d3.scaleBand<number>().range([0, this.edgeHeight]).domain(d3.range(this.nodes.length));
@@ -144,7 +144,7 @@ export class View {
       .enter().append('g')
       .attr('class', 'column')
       .attr('transform', (d: any, i: number) => {
-        return 'translate(' + this.orderingScale(i) + ')rotate(-90)';
+        return `translate(${this.orderingScale(i)})rotate(-90)`;
       });
 
     // Draw each row
@@ -153,7 +153,7 @@ export class View {
       .enter().append('g')
       .attr('class', 'row')
       .attr('transform', (d: any, i: number) => {
-        return 'translate(0,' + this.orderingScale(i) + ')';
+        return `translate(0,${this.orderingScale(i)})`;
       });
 
 
@@ -171,7 +171,7 @@ export class View {
       .enter().append('g')
       .attr('class', 'cell')
       .attr('id', (d: any) => d.cellName)
-      .attr('transform', (d: any) => 'translate(' + this.orderingScale(d.x) + ',0)');
+      .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
 
     cells
       .append('rect')
@@ -222,7 +222,7 @@ export class View {
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: any, i: number) => {
-        return 'topoCol' + d[i].colid;
+        return `topoCol${d[i].colid}`;
       })
       .attr('x', -this.edgeHeight - this.margins.bottom)
       .attr('y', 0)
@@ -235,7 +235,7 @@ export class View {
       .append('rect')
       .classed('topoRow', true)
       .attr('id', (d: any, i: number) => {
-        return 'topoRow' + d[i].rowid;
+        return `topoCol${d[i].rowid}`;
       })
       .attr('x', -this.margins.left)
       .attr('y', 0)
@@ -263,7 +263,7 @@ export class View {
 
       cells
         .append('rect')
-        .classed('nestedEdges nestedEdges' + type, true)
+        .classed(`nestedEdges nestedEdges${type}`, true)
         .attr('x', offset)
         .attr('y', (d: any) => {
           return offset;
@@ -405,7 +405,7 @@ export class View {
     this.edgeRows.append('text')
       .attr('class', 'rowLabel')
       .attr('id', (d: { [x: string]: { rowid: string; }; }, i: string | number) => {
-        return 'rowLabel' + d[i].rowid;
+        return `rowLabel${d[i].rowid}`;
       })
       .attr('z-index', 30)
       .attr('x', -3)
@@ -414,10 +414,9 @@ export class View {
       .attr('text-anchor', 'end')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
       .text((d: any, i: string | number) => this.nodes[i]._key)
-      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
-      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
+      .on('mouseout', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
+      .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
       .on('click', (d: any) => {
-        // d3.select(nodes[i]).classed('clicked',!d3.select(nodes[i]).classed('clicked'))
         this.nodeClick(d);
       });
 
@@ -425,11 +424,11 @@ export class View {
     verticalOffset = 187.5;
     const horizontalOffset = this.nodes.length < 50 ? 540 : 0;
     this.edgeColumns.append('path')
-      .attr('id', (d: Array<{ rowid: string; }>) => 'sortIcon' + d[0].rowid)
+      .attr('id', (d: Array<{ rowid: string; }>) => `sortIcon${d[0].rowid}`)
       .attr('class', 'sortIcon')
       .attr('d', this.controller.model.icons.cellSort.d)
       .style('fill', (d: any) => d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B')
-      .attr('transform', 'scale(0.075)translate(' + (verticalOffset) + ',' + (horizontalOffset) + ')rotate(90)')
+      .attr('transform', `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`)
       .on('click', (d: Array<{ rowid: any; }>, i: number, nodes: any[]) => {
         this.sort(d[0].rowid);
         const action = this.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
@@ -444,7 +443,7 @@ export class View {
 
     this.edgeColumns.append('text')
       .attr('id', (d: { [x: string]: { rowid: string; }; }, i: string | number) => {
-        return 'colLabel' + d[i].rowid;
+        return `colLabel${d[i].rowid}`;
       })
       .attr('class', 'colLabel')
       .attr('z-index', 30)
@@ -528,19 +527,15 @@ export class View {
 
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
-        return 'translate(' + this.orderingScale(i) + ',' + '0' + ')rotate(-90)';
+        return `translate(${this.orderingScale(i)},0)rotate(-90)`;
       })
       .attr('x1', -this.edgeWidth);
-    /*.attr("stroke-width", 5)
-    .attr('stroke','red')*/
 
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
-        return 'translate(0,' + this.orderingScale(i) + ')';
+        return `translate(0,${this.orderingScale(i)})`;
       })
       .attr('x2', this.edgeWidth + this.margins.right);
-    // .attr("stroke-width", 2)
-    // .attr('stroke','blue')
 
     const one = gridLines
       .append('line')
@@ -686,8 +681,8 @@ export class View {
     const sampleNumbers = [0, 1, 3, 5]; // this.linspace(extent[0], extent[1], number);
 
     const svg = d3.select('#legend-svg').append('g')
-      .attr('id', 'legendLinear' + type)
-      .attr('transform', (d, i) => 'translate(' + xOffset + ',' + yOffset + ')')
+      .attr('id', `legendLinear${type}`)
+      .attr('transform', (d, i) => `translate(${xOffset},${yOffset})`)
       .on('click', (d) => {
         if (this.controller.adjMatrix.selectEdgeType === true) { //
           const edgeType = this.controller.state.adjMatrix.selectedEdgeType === type ? 'all' : type;
@@ -696,7 +691,7 @@ export class View {
             d3.selectAll('.selectedEdgeType').classed('selectedEdgeType', false);
           } else {
             d3.selectAll('.selectedEdgeType').classed('selectedEdgeType', false);
-            d3.selectAll('#legendLinear' + type).select('.edgeLegendBorder').classed('selectedEdgeType', true);
+            d3.selectAll(`#legendLinear${type}`).select('.edgeLegendBorder').classed('selectedEdgeType', true);
 
           }
         }
@@ -727,14 +722,14 @@ export class View {
       .attr('x', boxWidth / 2)
       .attr('y', 8)
       .attr('text-anchor', 'middle')
-      .text('# of ' + pluralType);
+      .text(`# of ${pluralType}`);
     const sideMargin = ((boxWidth) - (sampleNumbers.length * (rectWidth + 5))) / 2;
 
     const groups = svg.selectAll('g')
       .data(sampleNumbers)
       .enter()
       .append('g')
-      .attr('transform', (d, i) => 'translate(' + (sideMargin + i * (rectWidth + 5)) + ',' + 15 + ')');
+      .attr('transform', (d, i) => `translate(${sideMargin + i * (rectWidth + 5)},15)`);
 
     groups
       .append('rect')
@@ -787,22 +782,9 @@ export class View {
    */
   private classHighlights(nodeID: string, rowOrCol: string = 'Row', className: string) {
     // select attr and topo highlight
-    d3.selectAll('Attr' + rowOrCol + nodeID + ',' + 'Topo' + rowOrCol + nodeID)
+    d3.selectAll(`Attr${rowOrCol}${nodeID},Topo${rowOrCol}${nodeID}`)
       .classed(className, true);
-    // d3.selectAll('#highlight' + 'Topo' + rowOrCol + nodeID)
-    //  .classed(className, true);*
-
-    // highlight row text
-    // d3.selectAll('')rowOrCol
-    // else highlight column text
-
   }
-
-
-
-
-
-
 
 
   /**
@@ -969,11 +951,11 @@ export class View {
       this.controller.state.selectedNodes.push(nodeID);
     }
 
-    const attrRow = d3.selectAll('attr' + 'Row' + nodeID);
+    const attrRow = d3.selectAll(`attrRow${nodeID}`);
     attrRow
       .classed('selected', !attrRow.classed('selected'));
 
-    const topoRow = d3.selectAll('topo' + 'Row' + nodeID);
+    const topoRow = d3.selectAll(`topoRow${nodeID}`);
     topoRow
       .classed('selected', !topoRow.classed('selected'));
   }
@@ -1060,7 +1042,7 @@ export class View {
         if (i > this.order.length - 1) {
           return'translate(0, 0)';
         } else {
-          return 'translate(0,' + this.orderingScale(i) + ')';
+          return `translate(0,${this.orderingScale(i)})`;
         }
       });
 
@@ -1080,14 +1062,14 @@ export class View {
     if (!nodeIDs.includes(order)) {
       const t = this.edges;
       t.selectAll('.column')
-        .attr('transform', (d: any, i: number) => 'translate(' + this.orderingScale(i) + ',0)rotate(-90)');
+        .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`);
     }
 
     d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
     if (!nodeIDs.includes(order)) {
       const cells = d3.selectAll('.cell')
         .attr('transform', (d: any, i: number) => {
-          return 'translate(' + this.orderingScale(d.x) + ',0)';
+          return `translate(${this.orderingScale(d.x)},0)`;
         });
     } else {
       d3.select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
@@ -1461,7 +1443,7 @@ export class View {
     const iconNames = ['alphabetical', 'categorical', 'quant'];
     for (let i = 0; i < 3; i++) {
       const button = this.edges.append('g')
-        .attr('transform', 'translate(' + (-this.margins.left) + ',' + (initalY) + ')');
+        .attr('transform', `translate(${-this.margins.left},${initalY})`);
       button.attr('cursor', 'pointer');
       button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
       button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
@@ -1469,9 +1451,10 @@ export class View {
       path
         .append('path').attr('class', 'sortIcon').attr('d', (d: any) => {
           return this.controller.model.icons[iconNames[i]].d;
-        }).style('fill', () => sortNames[i] === this.controller.model.orderType ? '#EBB769' : '#8B8B8B').attr('transform', 'scale(0.1)translate(' + (-195) + ',' + (-320) + ')')/*.on('click', (d,i,nodes) => {
-        this.sort(d);
-      })*/.attr('cursor', 'pointer');
+        })
+        .style('fill', () => sortNames[i] === this.controller.model.orderType ? '#EBB769' : '#8B8B8B')
+        .attr('transform', 'scale(0.1)translate(-195,-320)')
+        .attr('cursor', 'pointer');
       button.on('click', () => {
         this.sort(sortNames[i]);
       });
