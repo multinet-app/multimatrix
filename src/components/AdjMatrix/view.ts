@@ -302,7 +302,7 @@ export class View {
 
     squares
       .filter((d: any) => d.z === 0)
-      .style('fill-opacity', (d: { z: any; }) => d.z);
+      .style('fill-opacity', (d: { z: number; }) => d.z);
 
   }
 

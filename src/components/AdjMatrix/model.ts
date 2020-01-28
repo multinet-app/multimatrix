@@ -17,7 +17,6 @@ export class Model {
   private edges: any;
   private order: any;
   private idMap: { [id: string]: number};
-  private scalarMatrix: any;
   private provenance: any;
   private app: any;
 
@@ -28,7 +27,6 @@ export class Model {
     this.sortKey = 'name';
 
     this.matrix = [];
-    this.scalarMatrix = [];
 
     [ this.app, this.provenance ] = this.setUpProvenance();
 
@@ -81,27 +79,13 @@ export class Model {
           retweet: 0,
           mentions: 0,
         }; });
-      this.scalarMatrix[i] = this.nodes.map((d: any) => 0);
     });
 
-    // Convert links to matrix; count character occurrences.
+    // Count occurences of links and store it in the matrix
     this.edges.forEach(
       (link: {target: string | number, source: string | number}) => {
-        this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += 1;
-
-        /* could be used for varying edge types */
         this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
         this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
-
-
-        this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
-        this.matrix[this.idMap[link.target]][this.idMap[link.source]].count += 1;
-        // if not directed, increment the other values
-        // if (!isDirected) {
-        //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
-        //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
-        //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
-        // }
       });
   }
 
@@ -354,7 +338,6 @@ export class Model {
         const mat = reorder.graph2mat(graph);
         order = reorder.optimal_leaf_order()(mat);
       }
-      // order = reorder.optimal_leaf_order()(this.scalarMatrix);
     } else if (this.orderType === 'edges') {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     } else if (node === true) {
