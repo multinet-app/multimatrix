@@ -28,7 +28,6 @@ export default Vue.extend({
 
   data(): {
     browser: any,
-    panelDimensions: any,
     visDimensions: any,
     visMargins: any,
     svg: any,
@@ -41,7 +40,6 @@ export default Vue.extend({
         height: 0,
         width: 0,
       },
-      panelDimensions: { width: 0, height: 0 },
       visDimensions: { width: 0, height: 0 },
       visMargins: {
         left: 25,
@@ -72,7 +70,6 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    // Size the panel
     this.browser.width = parseInt(
       d3
         .select('body')
@@ -93,10 +90,6 @@ export default Vue.extend({
     this.visDimensions.width = this.browser.width * 0.75;
     this.visDimensions.height = this.browser.height * 1;
 
-    // Set dimensions of panel
-    this.panelDimensions.width = this.browser.width * 0.25;
-    this.panelDimensions.height = this.browser.height * 1;
-
     // Size the svg
     this.svg = d3
       .select(this.$refs.svg)
@@ -110,7 +103,6 @@ export default Vue.extend({
       this.view,
       this.model,
       this.visDimensions,
-      this.panelDimensions,
     );
   },
 
