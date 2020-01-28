@@ -29,8 +29,8 @@ export class Controller {
     this.view = view;
     this.model = model;
 
-    view.controller = this;
-    model.controller = this;
+    this.view.controller = this;
+    this.model.controller = this;
 
     d3.select('.topocontainer').style('width', '100%');
     d3.select('.topocontainer').style('height', (this.visDimensions.height).toString() + 'px');
@@ -38,6 +38,8 @@ export class Controller {
     d3.select('.attrcontainer').style('height', (this.visDimensions.height).toString() + 'px');
 
     this.model.reload();
+
+    this.changeOrder('shortName', false);
   }
 
   public clear() {

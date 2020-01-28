@@ -4,10 +4,10 @@ import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/
 import 'science';
 import 'reorder.js';
 
-declare var reorder: any;
+declare const reorder: any;
 
 export class Model {
-  public graphStructure: any;
+  public graphStructure: {nodes: object[], links: object[]};
   public icons: object;
   public controller: any;
   public sortKey: string;
@@ -16,8 +16,7 @@ export class Model {
   private nodes: any;
   private edges: any;
   private order: any;
-  private idMap: any;
-  private orderType: string;
+  private idMap: { [id: string]: number};
   private scalarMatrix: any;
   private provenance: any;
   private app: any;
@@ -51,35 +50,12 @@ export class Model {
 
     this.idMap = {};
 
-    // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
-    // let clusterFlag = false;
-    // if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
-    this.orderType = 'shortName'; // this.controller.sortKey;
-    //   clusterFlag = true;
-    // } else {
-    //   // this.orderType = this.controller.sortKey;
-    // }
-
-    // this.order = this.changeOrder(this.orderType);
-
-    // sorts quantitative by descending value, sorts qualitative by alphabetical
-    // if (!this.isQuant(this.orderType)) {
-    //   this.nodes = this.nodes.sort((a, b) => a[this.orderType].localeCompare(b[this.orderType]));
-    // } else {
-    //   this.nodes = this.nodes.sort((a, b) => { return b[this.orderType] - a[this.orderType]; });
-    // }
-
-    this.nodes.forEach((node: any, index: number) => {
+    this.nodes.forEach((node: {id: string, index: undefined | number}, index: number) => {
       node.index = index;
       this.idMap[node.id] = index;
     });
 
     this.processData();
-
-    // if (clusterFlag) {
-    //   this.orderType = this.sortKey;
-    //   this.order = this.changeOrder(this.orderType);
-    // }
   }
 
   /**
@@ -109,27 +85,24 @@ export class Model {
     });
 
     // Convert links to matrix; count character occurrences.
-    this.edges.forEach((link: any) => {
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
-      this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
+    this.edges.forEach(
+      (link: {target: string | number, source: string | number}) => {
+        this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += 1;
 
-      /* could be used for varying edge types */
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+        /* could be used for varying edge types */
+        this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
+        this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
 
 
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].count += 1;
-      // if not directed, increment the other values
-      // if (!isDirected) {
-      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
-      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
-      //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
-
-      // }
-      link.source = this.idMap[link.source];
-      link.target = this.idMap[link.target];
-    });
+        this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
+        this.matrix[this.idMap[link.target]][this.idMap[link.source]].count += 1;
+        // if not directed, increment the other values
+        // if (!isDirected) {
+        //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
+        //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
+        //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
+        // }
+      });
   }
 
   /**
@@ -213,7 +186,6 @@ export class Model {
     this.provenance = provenance;
 
     const app = this.getApplicationState();
-    this.app = app;
 
     const columnElements = ['topoCol'];
     const rowElements = ['topoRow', 'attrRow'];
