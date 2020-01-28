@@ -280,7 +280,7 @@ export class Model {
       };
 
       // Updates individual cell highlighting
-      const updateCellClicks = (state: { selections: { cellcol: { [x: string]: any; }; }; }) => {
+      const updateCellClicks = (state: any) => {
         let cellNames: any[] = [];
 
         // Go through each highlighted cell (both sides of matrix) and add cell to highlight
