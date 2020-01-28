@@ -5,11 +5,11 @@ export class Controller {
   public columnSelectedNodes: {} = {};
   public highlightedNodes: {} = {};
   public attributeProportion: number;
+  public sortKey: string;
   public nodeAttributes: any;
 
   private view: any;
   private model: any;
-  private sortKey: any;
   private clickedCells: any;
   private hoverRow: any;
   private hoverCol: any;
