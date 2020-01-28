@@ -15,11 +15,9 @@ export class Controller {
   private hoverCol: any;
   private datumID: any;
   private visDimensions: any;
-  private panelDimensions: any;
 
-  constructor(view: any, model: any, visDimensions: any, panelDimensions: any) {
+  constructor(view: any, model: any, visDimensions: any) {
     this.visDimensions = visDimensions;
-    this.panelDimensions = panelDimensions;
     this.hoverRow = {};
     this.hoverCol = {};
     this.datumID = 'id';
