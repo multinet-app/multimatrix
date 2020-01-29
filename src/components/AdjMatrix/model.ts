@@ -248,7 +248,7 @@ export class Model {
         for (const selectionElement of elementNamesFromSelection[selectionType]) {
           for (const node in state.selections[selectionType]) {
             if (selectionType === 'neighborSelect') {
-              neighborElements.add('#' + selectionElement + node);
+              neighborElements.add(`[id="${selectionElement}${node}"]`);
             } else {
               // if both in attrRow and rowLabel, don't highlight element
               if (selectionType === 'attrRow' || selectionType === 'rowLabel') {
@@ -269,33 +269,36 @@ export class Model {
     function splitCellNames(name: any) {
       const cleanedCellName = name.replace('cell', '');
       const ids = cleanedCellName.split('_');
-      return ['cell' + ids[0] + '_' + ids[1], 'cell' + ids[1] + '_' + ids[0]];
+      return [`cell${ids[0]}_${ids[1]}`, `cell${ids[1]}_${ids[0]}`];
     }
 
     function setUpObservers() {
       const updateHighlights = (state: any) => {
         d3.selectAll('.clicked').classed('clicked', false);
-        d3.selectAll('.neighbor').classed('neighbor', false);
 
         classAllHighlights(state);
       };
 
-      const updateCellClicks = (state: { selections: { cellcol: { [x: string]: any; }; }; }) => {
+      // Updates individual cell highlighting
+      const updateCellClicks = (state: any) => {
         let cellNames: any[] = [];
+
+        // Go through each highlighted cell (both sides of matrix) and add cell to highlight
         Object.keys(state.selections.cellcol).map((key) => {
           const names = state.selections.cellcol[key];
-          names.map((name: any) => {
-            const cellsNames = splitCellNames(name);
-            cellNames = cellNames.concat(cellsNames);
-          });
+          cellNames = cellNames.concat(names);
         });
-        const cellSelectorQuery = '#' + cellNames.join(',#');
-        // if no cells selected, return
+
+        // Concat all the cells to highlight into one query
+        const cellSelectorQuery = `[id="${cellNames.join('"],[id="')}"]`;
+
+        // Set all cells to unclicked
         d3.selectAll('.clickedCell').classed('clickedCell', false);
-        if (cellSelectorQuery !== '#') {
+
+        // Highlight cells if we have any in our query, else do nothing
+        if (cellSelectorQuery !== '[id=""]') {
           d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
         }
-
       };
 
       provenance.addObserver('selections.attrRow', updateHighlights);
@@ -304,7 +307,7 @@ export class Model {
       provenance.addObserver('selections.cellcol', updateHighlights);
       provenance.addObserver('selections.cellrow', updateHighlights);
       provenance.addObserver('selections.neighborSelect', updateHighlights);
-      // provenance.addObserver('selections.cellcol', updateCellClicks);
+      provenance.addObserver('selections.cellcol', updateCellClicks);
       provenance.addObserver('selections.search', updateHighlights);
       provenance.addObserver('clicked', updateHighlights);
     }
