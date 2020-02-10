@@ -101,7 +101,28 @@ export class Model {
    * returns an object containing the current provenance state.
    * @return [the provenance state]
    */
-  private getApplicationState() {
+  private getApplicationState(): {
+    workerID: number;
+    nodes: string;
+    search: string;
+    startTime: number;
+    endTime: string;
+    time: number;
+    event: string;
+    count: number;
+    clicked: never[];
+    sortKey: string;
+    selections: {
+        attrRow: {};
+        rowLabel: {};
+        colLabel: {};
+        neighborSelect: {},
+        cellcol: {},
+        cellrow: {},
+        search: {},
+        previousMouseovers: [],
+    };
+  } {
     return this.provenance.graph().current.state;
   }
 
