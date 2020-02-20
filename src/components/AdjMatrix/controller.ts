@@ -2,12 +2,6 @@
 import * as d3 from 'd3';
 
 export class Controller {
-  public columnSelectedNodes: {} = {};
-  public highlightedNodes: {} = {};
-  public attributeProportion: number;
-  public sortKey: string;
-  public nodeAttributes: any;
-
   private view: any;
   private model: any;
   private clickedCells: any;
@@ -15,6 +9,11 @@ export class Controller {
   private hoverCol: any;
   private datumID: any;
   private visDimensions: any;
+  private columnSelectedNodes: {} = {};
+  private sortKey: string;
+  private nodeAttributes: any;
+  private highlightedNodes: {} = {};
+  private attributeProportion: number;
 
   constructor(view: any, model: any, visDimensions: any) {
     this.visDimensions = visDimensions;
@@ -37,7 +36,8 @@ export class Controller {
 
     this.model.reload();
 
-    this.changeOrder('shortName', false);
+    this.sortKey = 'shortName';
+    this.changeOrder(this.sortKey, false);
   }
 
   public clear() {
