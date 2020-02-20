@@ -40,7 +40,7 @@ export class Controller {
     this.changeOrder(this.sortKey, false);
   }
 
-  public clear() {
+  public clear(): void {
     const action = {
       label: 'clear',
       action: () => {
@@ -69,7 +69,7 @@ export class Controller {
    * Passes the processed edge and node data to the view.
    * @return None
    */
-  public loadData(nodes: any, edges: any, matrix: any) {
+  public loadData(nodes: any, edges: any, matrix: any): void {
     this.view.loadData(nodes, edges, matrix);
   }
 
@@ -77,7 +77,7 @@ export class Controller {
    * Obtains the order from the model and returns it to the view.
    * @return [description]
    */
-  public getOrder() {
+  public getOrder(): string {
     return this.model.getOrder();
   }
 
@@ -85,7 +85,7 @@ export class Controller {
    * Obtains the order from the model and returns it to the view.
    * @return [description]
    */
-  public changeOrder(order: string, node: boolean = false) {
+  public changeOrder(order: string, node: boolean = false): number[] {
     this.sortKey = order;
     return this.model.changeOrder(order, node);
   }

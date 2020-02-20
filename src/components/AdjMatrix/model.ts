@@ -169,7 +169,7 @@ export class Model {
       search: rowElements.concat(columnElements),
     };
 
-    function classAllHighlights(state: any) {
+    function classAllHighlights(state: any): void {
 
       const clickedElements = new Set();
       const neighborElements = new Set();
