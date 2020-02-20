@@ -2,19 +2,17 @@
 import * as d3 from 'd3';
 
 export class Controller {
-  public columnSelectedNodes: {} = {};
-  public highlightedNodes: {} = {};
-  public attributeProportion: number;
-  public nodeAttributes: any;
-
   private view: any;
   private model: any;
-  private sortKey: any;
   private clickedCells: any;
   private hoverRow: any;
   private hoverCol: any;
   private datumID: any;
   private visDimensions: any;
+  private columnSelectedNodes: {} = {};
+  private sortKey: string;
+  private highlightedNodes: { [key: string]: Array<{ [key: string]: any}> } = {};
+  private attributeProportion: number;
 
   constructor(view: any, model: any, visDimensions: any) {
     this.visDimensions = visDimensions;
@@ -27,8 +25,8 @@ export class Controller {
     this.view = view;
     this.model = model;
 
-    view.controller = this;
-    model.controller = this;
+    this.view.controller = this;
+    this.model.controller = this;
 
     d3.select('.topocontainer').style('width', '100%');
     d3.select('.topocontainer').style('height', (this.visDimensions.height).toString() + 'px');
@@ -36,9 +34,12 @@ export class Controller {
     d3.select('.attrcontainer').style('height', (this.visDimensions.height).toString() + 'px');
 
     this.model.reload();
+
+    this.sortKey = 'shortName';
+    this.changeOrder(this.sortKey, false);
   }
 
-  public clear() {
+  public clear(): void {
     const action = {
       label: 'clear',
       action: () => {
@@ -67,7 +68,7 @@ export class Controller {
    * Passes the processed edge and node data to the view.
    * @return None
    */
-  public loadData(nodes: any, edges: any, matrix: any) {
+  public loadData(nodes: any, edges: any, matrix: any): void {
     this.view.loadData(nodes, edges, matrix);
   }
 
@@ -75,7 +76,7 @@ export class Controller {
    * Obtains the order from the model and returns it to the view.
    * @return [description]
    */
-  public getOrder() {
+  public getOrder(): string {
     return this.model.getOrder();
   }
 
@@ -83,7 +84,7 @@ export class Controller {
    * Obtains the order from the model and returns it to the view.
    * @return [description]
    */
-  public changeOrder(order: string, node: boolean = false) {
+  public changeOrder(order: string, node: boolean = false): number[] {
     this.sortKey = order;
     return this.model.changeOrder(order, node);
   }

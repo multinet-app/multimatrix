@@ -1,5 +1,5 @@
 // Get the url querystring variables
-export function getUrlVars() {
+export function getUrlVars(): { [key: string]: string} {
   const workspace: string = '';
   const graph: string = '';
   const vars: { [key: string]: string} = {workspace, graph};

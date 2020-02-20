@@ -4,23 +4,28 @@ import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/
 import 'science';
 import 'reorder.js';
 
-declare var reorder: any;
+declare const reorder: any;
 
 export class Model {
-  public graphStructure: any;
+  public graphStructure: {nodes: object[], links: object[]};
   public icons: object;
   public controller: any;
   public sortKey: string;
 
-  private matrix: any;
+  private matrix: Array<Array<{
+    cellName: string,
+    correspondingCell: string,
+    rowid: string,
+    colid: string,
+    x: number,
+    y: number,
+    z: number,
+  }>>;
   private nodes: any;
   private edges: any;
   private order: any;
-  private idMap: any;
-  private orderType: string;
-  private scalarMatrix: any;
+  private idMap: { [id: string]: number};
   private provenance: any;
-  private app: any;
 
   constructor(graphStructure: {nodes: object[], links: object[]}) {
     this.graphStructure = graphStructure;
@@ -29,9 +34,8 @@ export class Model {
     this.sortKey = 'name';
 
     this.matrix = [];
-    this.scalarMatrix = [];
 
-    [ this.app, this.provenance ] = this.setUpProvenance();
+    this.provenance = this.setUpProvenance();
 
     this.icons = {
       quant: {
@@ -51,46 +55,20 @@ export class Model {
 
     this.idMap = {};
 
-    // sorts adjacency matrix, if a cluster method, sort by shortname, then cluster later
-    // let clusterFlag = false;
-    // if ("clusterBary" in ['clusterBary', 'clusterLeaf', 'clusterSpectral']) {
-    this.orderType = 'shortName'; // this.controller.sortKey;
-    //   clusterFlag = true;
-    // } else {
-    //   // this.orderType = this.controller.sortKey;
-    // }
-
-    // this.order = this.changeOrder(this.orderType);
-
-    // sorts quantitative by descending value, sorts qualitative by alphabetical
-    // if (!this.isQuant(this.orderType)) {
-    //   this.nodes = this.nodes.sort((a, b) => a[this.orderType].localeCompare(b[this.orderType]));
-    // } else {
-    //   this.nodes = this.nodes.sort((a, b) => { return b[this.orderType] - a[this.orderType]; });
-    // }
-
-    this.nodes.forEach((node: any, index: number) => {
+    this.nodes.forEach((node: {id: string, index: undefined | number}, index: number) => {
       node.index = index;
       this.idMap[node.id] = index;
     });
 
     this.processData();
-
-    // if (clusterFlag) {
-    //   this.orderType = this.sortKey;
-    //   this.order = this.changeOrder(this.orderType);
-    // }
   }
 
   /**
-   * [processData description]
+   * Initializes the matrix and fills it with link occurences.
    * @return [description]
    */
-  public processData() {
-    // generate a hashmap of id's?
-    // Set up node data
+  public processData(): void {
     this.nodes.forEach((rowNode: any, i: number) => {
-      /* matrix used for edge attributes, otherwise should we hide */
       this.matrix[i] = this.nodes.map((colNode: any) => {
         return {
           cellName: `cell${rowNode.id}_${colNode.id}`,
@@ -99,86 +77,52 @@ export class Model {
           colid: colNode.id,
           x: colNode.index,
           y: rowNode.index,
-          count: 0,
           z: 0,
-          interacted: 0,
-          retweet: 0,
-          mentions: 0,
         }; });
-      this.scalarMatrix[i] = this.nodes.map((d: any) => 0);
     });
 
-    // Convert links to matrix; count character occurrences.
-    this.edges.forEach((link: any) => {
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]][link.type] += link.count;
-      this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
-
-      /* could be used for varying edge types */
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
-
-
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].count += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].count += 1;
-      // if not directed, increment the other values
-      // if (!isDirected) {
-      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += addValue;
-      //   this.matrix[this.idMap[link.target]][this.idMap[link.source]][link.type] += link.count;
-      //   this.scalarMatrix[this.idMap[link.source]][this.idMap[link.target]] += link.count;
-
-      // }
-      link.source = this.idMap[link.source];
-      link.target = this.idMap[link.target];
-    });
+    // Count occurences of links and store it in the matrix
+    this.edges.forEach(
+      (link: {target: string | number, source: string | number}) => {
+        this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
+        this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+      });
   }
 
   /**
    * Returns the order data.
    * @return Node data in Array
    */
-  public getOrder() {
+  public getOrder(): string {
     return this.order;
-  }
-
-  /**
-   * Returns the node data.
-   * @return Node data in Array
-   */
-  public getNodes() {
-    return this.nodes;
-  }
-
-  /**
-   * Returns the edge data.
-   * @return Edge data in JSON Array
-   */
-  public getEdges() {
-    return this.edges;
-  }
-
-  /**
-   * Determines if the attribute is quantitative
-   * @param  attr [string that corresponds to attribute type]
-   * @return      [description]
-   */
-  private isQuant(attr: any) {
-    // if not in list
-    // if (!Object.keys(this.controller.attributeScales.node).includes(attr)) {
-    //   return false;
-    // } else if (this.controller.attributeScales.node[attr].range === undefined) {
-    //   return true;
-    // } else {
-    //   return false;
-    // }
-
-    return false;
   }
 
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
    */
-  private getApplicationState() {
+  private getApplicationState(): {
+    workerID: number;
+    nodes: string;
+    search: string;
+    startTime: number;
+    endTime: string;
+    time: number;
+    event: string;
+    count: number;
+    clicked: never[];
+    sortKey: string;
+    selections: {
+        attrRow: {};
+        rowLabel: {};
+        colLabel: {};
+        neighborSelect: {},
+        cellcol: {},
+        cellrow: {},
+        search: {},
+        previousMouseovers: [],
+    };
+  } {
     return this.provenance.graph().current.state;
   }
 
@@ -186,7 +130,7 @@ export class Model {
    * Initializes the provenance library and sets observers.
    * @return [none]
    */
-  private setUpProvenance(): any[] {
+  private setUpProvenance(): any {
     const initialState = {
       workerID: 1, // workerID is a global variable
       nodes: '', // array of nodes that keep track of their position, whether they were softSelect or hardSelected;
@@ -212,9 +156,6 @@ export class Model {
     const provenance = ProvenanceLibrary.initProvenance(initialState);
     this.provenance = provenance;
 
-    const app = this.getApplicationState();
-    this.app = app;
-
     const columnElements = ['topoCol'];
     const rowElements = ['topoRow', 'attrRow'];
 
@@ -228,7 +169,7 @@ export class Model {
       search: rowElements.concat(columnElements),
     };
 
-    function classAllHighlights(state: any) {
+    function classAllHighlights(state: any): void {
 
       const clickedElements = new Set();
       const neighborElements = new Set();
@@ -266,13 +207,13 @@ export class Model {
       }
     }
 
-    function splitCellNames(name: any) {
+    function splitCellNames(name: any): string[] {
       const cleanedCellName = name.replace('cell', '');
       const ids = cleanedCellName.split('_');
       return [`cell${ids[0]}_${ids[1]}`, `cell${ids[1]}_${ids[0]}`];
     }
 
-    function setUpObservers() {
+    function setUpObservers(): any {
       const updateHighlights = (state: any) => {
         d3.selectAll('.clicked').classed('clicked', false);
 
@@ -312,11 +253,11 @@ export class Model {
       provenance.addObserver('clicked', updateHighlights);
     }
     setUpObservers();
-    return [app, provenance];
+    return provenance;
   }
 
 
-  private reload() {
+  private reload(): void {
     this.controller.loadData(this.nodes, this.edges, this.matrix);
   }
 
@@ -328,7 +269,7 @@ export class Model {
    * @param  interactionType class name of element interacted with
    * @return        [description]
    */
-  private generateSortAction(sortKey: string) {
+  private generateSortAction(sortKey: string): {label: string, action: any, args: any[]} {
     return {
       label: 'sort',
       action: (key: any) => {
@@ -355,7 +296,7 @@ export class Model {
    * @param  type A string corresponding to the attribute screen_name to sort by.
    * @return      A numerical range in corrected order.
    */
-  private changeOrder(type: string, node: boolean = false) {
+  private changeOrder(type: string, node: boolean = false): number[] {
     const action = this.generateSortAction(type);
     if (this.provenance) {
       this.provenance.applyAction(action);
@@ -363,10 +304,10 @@ export class Model {
     return this.sortObserver(type, node);
   }
 
-  private sortObserver(type: string, node: boolean = false) {
+  private sortObserver(type: string, node: boolean = false): number[] {
     let order;
     this.sortKey = type;
-    this.orderType = type;
+    this.controller.sortKey = type;
     if (type === 'clusterSpectral' || type === 'clusterBary' || type === 'clusterLeaf') {
       const graph = reorder.graph()
         .nodes(this.nodes)
@@ -382,17 +323,16 @@ export class Model {
         const mat = reorder.graph2mat(graph);
         order = reorder.optimal_leaf_order()(mat);
       }
-      // order = reorder.optimal_leaf_order()(this.scalarMatrix);
-    } else if (this.orderType === 'edges') {
+    } else if (this.controller.sortKey === 'edges') {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
     } else if (node === true) {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a].id.localeCompare(this.nodes[b].id));
       order = d3.range(this.nodes.length).sort((a, b) =>
         this.nodes[b].neighbors.includes(type) - this.nodes[a].neighbors.includes(type),
       );
-    } else if (false /*!this.isQuant(this.orderType)*/) {// === "screen_name" || this.orderType === "name") {
+    } else if (false) {
       order = d3.range(this.nodes.length).sort((a, b) =>
-        this.nodes[a][this.orderType].localeCompare(this.nodes[b][this.orderType]),
+        this.nodes[a][this.controller.sortKey].localeCompare(this.nodes[b][this.controller.sortKey]),
       );
     } else {
       order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);

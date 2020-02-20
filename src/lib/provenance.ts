@@ -6,12 +6,12 @@ import * as Provenance from 'provenance-lib-core/lib/src/provenance-core/Provena
 
 // Initialize the state object for node positions;
 function _nodePositionMap(nodes: any[]) {
-  const nodeMap: {[id: string]: any} = {};
-  nodes.map((n: { id: string | number; x: any; y: any; }) => nodeMap[n.id] = { x: n.x, y: n.y });
+  const nodeMap: {[id: string]: { x: number; y: number }} = {};
+  nodes.map((n: { id: string | number; x: number; y: number; }) => nodeMap[n.id] = { x: n.x, y: n.y });
   return nodeMap;
 }
 
-export function setUpProvenance(nodes: any, order = 'noOrder') {
+export function setUpProvenance(nodes: any[], order = 'noOrder') {
   const nodePos = _nodePositionMap(nodes);
 
   const initialState = {
