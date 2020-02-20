@@ -11,8 +11,7 @@ export class Controller {
   private visDimensions: any;
   private columnSelectedNodes: {} = {};
   private sortKey: string;
-  private nodeAttributes: any;
-  private highlightedNodes: {} = {};
+  private highlightedNodes: { [key: string]: Array<{ [key: string]: any}> } = {};
   private attributeProportion: number;
 
   constructor(view: any, model: any, visDimensions: any) {
