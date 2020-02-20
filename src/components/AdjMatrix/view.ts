@@ -22,7 +22,7 @@ export class View {
   private orderingScale: d3.ScaleBand<number> = d3.scaleBand<number>();
   private edgeRows: any;
   private edgeColumns: any;
-  private edgeScales: any;
+  private edgeScales!: { [key: string]: any };
   private nodeFontSize: string = '12';
   private labelVar: string = '_key';
   private datumID: string = '';
@@ -140,7 +140,7 @@ export class View {
     this.drawHighlightElements();
 
 
-    this.generateColorLegend();
+    // this.generateColorLegend();
 
     const cells = this.edgeRows.selectAll('.cell')
       .data((d: any) => d)
@@ -471,7 +471,7 @@ export class View {
       })
       .attr('x2', this.edgeWidth + this.margins.right);
 
-   gridLines
+    gridLines
       .append('line')
       .attr('x1', this.edgeWidth)
       .attr('x2', this.edgeWidth)
@@ -581,7 +581,6 @@ export class View {
         .attr('width', 90)
         .attr('height', 120)
         .attr('xlink:href', legendFile);
-      // return;
       xOffset = 100;
     }
 
@@ -767,7 +766,7 @@ export class View {
   }
 
   private renderHighlightNodesFromDict(
-    dict: { [x: string]: any; }, classToRender: string, rowOrCol: string = 'Row'
+    dict: { [x: string]: any; }, classToRender: string, rowOrCol: string = 'Row',
   ): void {
     // unhighlight all other nodes
     if (classToRender !== 'hovered') {
