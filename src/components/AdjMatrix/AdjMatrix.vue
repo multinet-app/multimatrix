@@ -30,7 +30,8 @@ export default Vue.extend({
     browser: any,
     visDimensions: any,
     visMargins: any,
-    svg: any,
+    matrix: any,
+    attributes: any,
     model: Model|undefined,
     view: View|undefined,
     controller: Controller|undefined,
@@ -47,7 +48,8 @@ export default Vue.extend({
         top: 25,
         bottom: 25,
       },
-      svg: undefined,
+      matrix: undefined,
+      attributes: undefined,
       model: undefined,
       view: undefined,
       controller: undefined,
@@ -90,11 +92,18 @@ export default Vue.extend({
     this.visDimensions.width = this.browser.width * 0.75;
     this.visDimensions.height = this.browser.height - 24;
 
-    // Size the svg
-    this.svg = d3
-      .select(this.$refs.svg)
-      .attr('width', this.visDimensions.width)
-      .attr('height', this.visDimensions.height);
+    // Size the svgs
+    this.matrix = d3
+      .select(this.$refs.matrix)
+      .attr('width', this.visDimensions.width * 0.75 - 30)
+      .attr('height', this.visDimensions.height)
+      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.75 - 30} ${this.visDimensions.height}`);
+
+    this.attributes = d3
+      .select(this.$refs.attributes)
+      .attr('width', this.visDimensions.width * 0.25 - 30)
+      .attr('height', this.visDimensions.height)
+      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 30} ${this.visDimensions.height}`);
 
     // Define the MVC
     this.model = new Model(this.graphStructure);
@@ -111,7 +120,10 @@ export default Vue.extend({
 </script>
 
 <template>
-  <svg ref="svg" width="800" height="900" />
+  <div>
+    <svg id="matrix" ref="matrix" width="800" height="900" />
+    <svg id="attributes" ref="attributes" width="300" height="900" />
+  </div>
 </template>
 
 <style>

@@ -106,12 +106,8 @@ export class View {
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
 
     // Creates scalable SVG
-    this.edges = d3.select('svg')
-      .attr('viewBox', `0 0 ${width} ${height}`)
-      .attr('preserveAspectRatio', 'xMinYMin meet')
+    this.edges = d3.select('#matrix')
       .append('g')
-      .classed('svg-content', true)
-      .attr('id', 'edgeMargin')
       .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
 
     // sets the vertical scale
@@ -891,81 +887,76 @@ export class View {
     // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
     // this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
 
-    // this.attributes = d3.select('#attributes').append("svg")
-    //   .attr("viewBox", "0 0 " + (width) + " " + height + "")
-    //   .attr("preserveAspectRatio", "xMinYMin meet")
-    //   .append("g")
-    //   .classed("svg-content", true)
-    //   .attr('id', 'attributeMargin')
-    //   .attr("transform", "translate(" + 0 + "," + this.margins.top + ")");
+    const width = 300;
+    const height = 300;
+    const attributeWidth = 300;
+    const attributeHeight = 300;
 
-    // // add zebras and highlight rows
-    // /*
-    // this.attributes.selectAll('.highlightRow')
-    //   .data(this.nodes)
-    //   .enter()
-    //   .append('rect')
-    //   .classed('highlightRow', true)
-    //   .attr('x', 0)
-    //   .attr('y', (d, i) => this.orderingScale(i))
-    //   .attr('width', this.attributeWidth)
-    //   .attr('height', this.orderingScale.bandwidth())
-    //   .attr('fill', (d, i) => { return i % 2 === 0 ? "#fff" : "#eee" })
-    //   */
+    this.attributes = d3.select('#attributes')
+      .append('g')
+      .attr('transform', `translate(0,${this.margins.top})`);
 
-    // let barMargin = { top: 1, bottom: 1, left: 5, right: 5 }
-    // let barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
+    // add zebras and highlight rows
+    this.attributes.selectAll('.highlightRow')
+      .data(this.nodes)
+      .enter()
+      .append('rect')
+      .classed('highlightRow', true)
+      .attr('x', 0)
+      .attr('y', (d: any, i: number) => this.orderingScale(i))
+      .attr('width', attributeWidth)
+      .attr('height', this.orderingScale.bandwidth())
+      .attr('fill', (d: any, i: number) => i % 2 === 0 ? '#fff' : '#eee');
 
-    // // Draw each row (translating the y coordinate)
-    // this.attributeRows = this.attributes.selectAll(".row")
-    //   .data(this.nodes)
-    //   .enter().append("g")
-    //   .attr("class", "row")
-    //   .attr("transform", (d, i) => {
-    //     return "translate(0," + this.orderingScale(i) + ")";
-    //   });
 
-    // this.attributeRows.append("line")
-    //   .attr("x1", 0)
-    //   .attr("x2", this.controller.attrWidth)
-    //   .attr('stroke', '2px')
-    //   .attr('stroke-opacity', 0.3);
+    const barMargin = { top: 1, bottom: 1, left: 5, right: 5 };
+    const barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
 
-    // let attributeMouseOver = (d) => {
-    //   this.addHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
-    //   this.addHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+    // Draw each row (translating the y coordinate)
+    this.attributeRows = this.attributes
+      .selectAll('.row')
+      .data(this.nodes)
+      .enter()
+      .append('g')
+      .attr('class', 'row')
+      .attr('transform', (d: any, i: number) => `translate(0,${this.orderingScale(i)})`);
 
-    //   this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d[this.datumID] })
+    this.attributeRows
+      .append('line')
+      .attr('x1', 0)
+      .attr('x2', attributeWidth)
+      .attr('stroke', '2px')
+      .attr('stroke-opacity', 0.3);
 
-    //   d3.selectAll('.hovered').classed('hovered', false);
-    //   this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
-    //   this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
-    // };
+    const attributeMouseOver = (d: any) => {
+      this.addHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);  // Add row (rowid)
+      this.addHighlightNodesToDict(this.controller.hoverCol, d[this.datumID], d[this.datumID]);  // Add row (rowid)
 
-    // this.attributeMouseOver = attributeMouseOver;
-    // let attributeMouseOut = (d) => {
+      this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d[this.datumID] });
 
-    //   this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);
+      d3.selectAll('.hovered').classed('hovered', false);
+      this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+      this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
+    };
 
-    //   d3.selectAll('.hovered').classed('hovered', false);
+    const attributeMouseOut = (d: any) => {
+      this.removeHighlightNodesToDict(this.controller.hoverRow, d[this.datumID], d[this.datumID]);
+      d3.selectAll('.hovered').classed('hovered', false);
+      this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+    };
 
-    //   this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
-
-    // };
-    // this.attributeMouseOut = attributeMouseOut;
-
-    // this.attributeRows.append('rect')
-    //   .attr('x', 0)
-    //   .attr('y', 0)
-    //   .classed('attrRow', true)
-    //   .attr('id', (d, i) => {
-    //     return "attrRow" + d[this.datumID];
-    //   })
-    //   .attr('width', width)
-    //   .attr('height', this.orderingScale.bandwidth()) // end addition
-    //   .attr("fill-opacity", 0)
-    //   .on('mouseover', attributeMouseOver)
-    //   .on('mouseout', attributeMouseOut).on('click', this.clickFunction);
+    this.attributeRows
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .classed('attrRow', true)
+      .attr('id', (d: any, i: number) => `attrRow${d.id}`)
+      .attr('width', width)
+      .attr('height', this.orderingScale.bandwidth()) // end addition
+      .attr('fill-opacity', 0)
+      .on('mouseover', attributeMouseOver)
+      .on('mouseout', attributeMouseOut);
+      // .on('click', this.clickFunction);
 
     // let columns = this.controller.nodeAttributes;
 
