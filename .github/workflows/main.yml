@@ -34,4 +34,3 @@ jobs:
     - run: ls
 
     - run: yarn lint
-
