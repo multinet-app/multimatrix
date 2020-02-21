@@ -961,11 +961,6 @@ export class View {
       .on('mouseout', (d: any) => attributeMouseOut(d))
       .on('click', this.clickFunction);
 
-    // let columns = this.controller.nodeAttributes;
-
-    // var formatCurrency = d3.format("$,.0f"),
-    //   formatNumber = d3.format(",.0f");
-
     // // generate scales for each
     // let attributeScales = {};
     // this.columnScale = d3.scaleOrdinal().domain(columns)
