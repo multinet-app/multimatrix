@@ -23,14 +23,10 @@ jobs:
       id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
       with:
         path: /home/runner/work/view-adjmatrix/view-adjmatrix/node_modules
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}123
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}-cache
 
     - name: Install yarn packages
       if: steps.yarn-cache.outputs.cache-hit != 'true'
       run: yarn install
-
-    - run: pwd
-
-    - run: ls
 
     - run: yarn lint
