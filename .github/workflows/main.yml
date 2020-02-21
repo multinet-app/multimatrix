@@ -19,17 +19,18 @@ jobs:
       with:
         node-version: '10.x'
 
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-
     - uses: actions/cache@v1
       id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
       with:
         path: /home/runner/view-adjmatrix/node_modules
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}1
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}0
 
     - name: Install yarn packages
+      if: steps.yarn-cache.outputs.cache-hit != 'true'
       run: yarn install
+
+    - run: pwd
+
+    - run: ls
 
     - run: yarn lint
