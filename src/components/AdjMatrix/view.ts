@@ -941,8 +941,11 @@ export class View {
 
     const attributeMouseOut = (d: any) => {
       this.removeHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);
+      this.removeHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);
+
       d3.selectAll('.hovered').classed('hovered', false);
       this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+      this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
     };
 
     this.attributeRows
@@ -955,7 +958,7 @@ export class View {
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
       .on('mouseover', (d: any) => attributeMouseOver(d))
-      .on('mouseout', attributeMouseOut)
+      .on('mouseout', (d: any) => attributeMouseOut(d))
       .on('click', this.clickFunction);
 
     // let columns = this.controller.nodeAttributes;
