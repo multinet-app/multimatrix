@@ -24,6 +24,10 @@ export default Vue.extend({
       type: Boolean,
       default: true,
     },
+    attributeVariables: {
+      type: Array,
+      default: ["hey"],
+    },
   },
 
   data(): {
@@ -58,16 +62,20 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { graphStructure } = this;
+      const { 
+        graphStructure,
+        attributeVariables,
+      } = this;
       return {
         graphStructure,
+        attributeVariables,
       };
     },
   },
 
   watch: {
     properties() {
-      //   this.updateVis();
+      this.updateVis();
     },
   },
 
@@ -115,7 +123,13 @@ export default Vue.extend({
     );
   },
 
-  methods: {},
+  methods: {
+    updateVis() {
+      if (this.view) {
+        this.view.attributeVars = this.attributeVariables as string[];
+      }
+    },
+  },
 });
 </script>
 

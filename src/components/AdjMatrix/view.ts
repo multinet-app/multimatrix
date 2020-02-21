@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 export class View {
   public controller: any;
   public selectedCells: any[] = [];
+  public attributeVars: string[] = [];
 
   private nodes: any;
   private edges: any;
@@ -30,6 +31,7 @@ export class View {
   constructor() {
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
     this.mouseoverEvents = [];
+    this.columnScale = d3.scaleBand().range([0, 3]);
   }
 
   /**
@@ -961,22 +963,6 @@ export class View {
       .on('mouseout', (d: any) => attributeMouseOut(d))
       .on('click', this.clickFunction);
 
-    // // generate scales for each
-    // let attributeScales = {};
-    // this.columnScale = d3.scaleOrdinal().domain(columns)
-
-    // // // Calculate Column Scale
-    // // let columnRange = []
-    // // let xRange = 0;
-
-    // // let columnWidths = this.determineColumnWidths(columns); // ANSWER COLUMNS
-    // // //450 / columns.length;
-    // // this.columnWidths = columnWidths;
-
-    // let categoricalAttributes = ["type", "continent"]
-    // let quantitativeAttributes = ["followers_count", "friends_count", "statuses_count", "count_followers_in_query",
-    // "favourites_count", "listed_count", "memberFor_days", "query_tweet_count"]
-
     // // columns.forEach((col, index) => {
     // //   // calculate range
     // //   columnRange.push(xRange);
@@ -1003,7 +989,7 @@ export class View {
 
     // let placementScale = {};
 
-    // this.columnScale.range(columnRange);
+    this.columnScale.range([0, this.attributeVars.length]);
 
     // for (let [column, scale] of Object.entries(attributeScales)) {
     //   if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
@@ -1083,124 +1069,82 @@ export class View {
     //   }
     // });
 
-    // // Add Verticle Dividers
-    // this.attributes.selectAll('.column')
-    //   .data(columns)
-    //   .enter()
-    //   .append('line')
-    //   .style('stroke', '1px')
-    //   .attr('x1', (d) => this.columnScale(d))
-    //   .attr("y1", -20)
-    //   .attr('x2', (d) => this.columnScale(d))
-    //   .attr("y2", this.attributeHeight + this.margins.bottom)
-    //   .attr('stroke-opacity', 0.4);
-
-    // // Add headers
-
-    // this.columnNames = {
-    //   "followers_count": "Followers",
-    //   "query_tweet_count": "On-Topic Tweets", // not going to be used (how active this person was on the conference)
-    //   "friends_count": "Friends",
-    //   "statuses_count": "Tweets",
-    //   "favourites_count": "Liked Tweets",
-    //   "count_followers_in_query": "In-Network Followers",
-    //   "continent": "Continent",
-    //   "type": "Type",
-    //   "memberFor_days": "Account Age",
-    //   "listed_count": "In Lists",
-    //   "selected": "Answer"
-    // }
-    // let that = this;
-    // function calculateMaxChars(numColumns) {
-    //   switch (numColumns) {
-    //     case 1:
-    //       return { "characters": 20, "font": 13 }
-    //     case 2:
-    //       return { "characters": 20, "font": 13 }
-    //     case 3:
-    //       return { "characters": 20, "font": 12 }
-    //     case 4:
-    //       return { "characters": 19, "font": 12 }
-    //     case 5:
-    //       return { "characters": 18, "font": 12 }
-    //     case 6:
-    //       return { "characters": 16, "font": 11 }
-    //     case 7:
-    //       return { "characters": 14, "font": 10 }
-    //     case 8:
-    //       return { "characters": 12, "font": 10 }
-    //     case 9:
-    //       return { "characters": 10, "font": 10 }
-    //     case 10:
-    //       return { "characters": 8, "font": 10 }
-    //     default:
-    //       return { "characters": 8, "font": 10 }
-    //   }
-    // }
-    // let options = calculateMaxChars(columns.length)// 10 attr => 8
-    // let maxcharacters = options.characters;
-    // let fontSize = options.font//*1.1;
+    // Add Vertical Dividers
+    this.attributes.selectAll('.column')
+      .data(this.attributeVars)
+      .enter()
+      .append('line')
+      .style('stroke', '1px')
+      .attr('x1', (d: any, i: number) => this.columnScale(i))
+      .attr('y1', -20)
+      .attr('x2', (d: any, i: number) => this.columnScale(i))
+      .attr('y2', attributeHeight + this.margins.bottom)
+      .attr('stroke-opacity', 0.4);
 
 
-    // //this.createColumnHeaders();
-    // let columnHeaders = this.attributes.append('g')
-    //   .classed('column-headers', true)
-    // let columnHeaderGroups = columnHeaders.selectAll('.header')
-    //   .data(columns)
-    //   .enter()
-    //   .append('g')
-    //   .attr('transform', (d) => 'translate(' + (this.columnScale(d)) + ',' + (-65) + ')')
+    // this.createColumnHeaders();
+    this.attributeVars = ["hey"]
+    console.log(this.attributeVars)
+    const columnHeaders = this.attributes.append('g')
+      .classed('column-headers', true);
 
-    // columnHeaderGroups
-    //   .append('rect')
-    //   .attr('width', d => this.columnWidths[d])
-    //   .attr('height', 20)
-    //   .attr('y', 0)
-    //   .attr('x', 0)
-    //   .attr('fill', 'none')
-    //   .attr('stroke', 'lightgray')
-    //   .attr('stroke-width', 1)
+    const columnHeaderGroups = columnHeaders.selectAll('.headers')
+      .data(this.attributeVars)
+      .enter()
+      .append('g')
+      .attr('transform', (d: any, i: number) => {console.log(d); return `translate(0,-65)`; });
 
-    // columnHeaderGroups
-    //   .append('text')
-    //   .classed('header', true)
-    //   //.attr('y', -45)
-    //   //.attr('x', (d) => this.columnScale(d) + barMargin.left)
-    //   .style('font-size', this.nodeFontSize.toString() + 'px')
-    //   .attr('text-anchor', 'middle')
-    //   //.attr('transform','rotate(-10)')
-    //   .text((d, i) => {
-    //     if (this.columnNames[d] && this.columnNames[d].length > maxcharacters) {
-    //       return this.columnNames[d].slice(0, maxcharacters - 2) + '...';// experimentally determine how big
-    //     }
-    //     return this.columnNames[d];
-    //   })
-    //   .attr('x', d => this.columnWidths[d] / 2)
-    //   .attr('y', 14)
-    //   .on('mouseover', function(d) {
-    //     if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-    //       that.tooltip.transition().duration(200).style("opacity", .9);
+    columnHeaderGroups
+      .append('rect')
+      .attr('width', d => 100) //this.columnWidths[d])
+      .attr('height', 20)
+      .attr('y', 0)
+      .attr('x', 0)
+      .attr('fill', 'none')
+      .attr('stroke', 'lightgray')
+      .attr('stroke-width', 1);
 
-    //       let matrix = this.getScreenCTM()
-    //         .translate(+this.getAttribute("x"), +this.getAttribute("y"));
+    columnHeaderGroups
+      .append('text')
+      .classed('header', true)
+      // .attr('y', -45)
+      // .attr('x', (d) => this.columnScale(d) + barMargin.left)
+      .style('font-size', '20px')
+      .attr('text-anchor', 'middle')
+      // .attr('transform','rotate(-10)')
+      .text((d, i) => {
+        // if (this.columnNames[d] && this.columnNames[d].length > maxcharacters) {
+        //   return this.columnNames[d].slice(0, maxcharacters - 2) + '...';// experimentally determine how big
+        // }
+        // return this.columnNames[d];
+        return d;
+      })
+      .attr('x', d => 20) // this.columnWidths[d] / 2)
+      .attr('y', 14)
+      // .on('mouseover', function(d) {
+      //   if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
+      //     that.tooltip.transition().duration(200).style("opacity", .9);
 
-    //       that.tooltip.transition()
-    //         .duration(200)
-    //         .style("opacity", .9);
+      //     let matrix = this.getScreenCTM()
+      //       .translate(+this.getAttribute("x"), +this.getAttribute("y"));
 
-    //       that.tooltip.html(that.columnNames[d])
-    //         .style("left", (window.pageXOffset + matrix.e - 25) + "px")
-    //         .style("top", (window.pageYOffset + matrix.f - 20) + "px");
-    //     }
-    //   })
-    //   .on('mouseout', function(d) {
-    //     that.tooltip.transition().duration(250).style("opacity", 0);
-    //   })
-    //   .on('click', (d) => {
-    //     if (d !== 'selected') {
-    //       this.sort(d);
-    //     }
-    //   })
+      //     that.tooltip.transition()
+      //       .duration(200)
+      //       .style("opacity", .9);
+
+      //     that.tooltip.html(that.columnNames[d])
+      //       .style("left", (window.pageXOffset + matrix.e - 25) + "px")
+      //       .style("top", (window.pageYOffset + matrix.f - 20) + "px");
+      //   }
+      // })
+      // .on('mouseout', function(d) {
+      //   that.tooltip.transition().duration(250).style("opacity", 0);
+      // })
+      // .on('click', (d) => {
+      //   if (d !== 'selected') {
+      //     this.sort(d);
+      //   }
+      // })
 
     // columnHeaderGroups
     // if (columns.length < 6) {
@@ -1216,15 +1160,6 @@ export class View {
     //   .on('click', (d) => {this.sort(d);})
     //   .attr('cursor', 'pointer');
     // }
-
-
-
-
-    // let answerColumn = columnHeaders.selectAll('.header').filter(d => { return d === 'selected' })
-    // answerColumn.attr('font-weight', 650)
-
-    // let nonAnswerColumn = columnHeaders.selectAll('.header').filter(d => { return d !== 'selected' })
-    // nonAnswerColumn.attr('cursor', 'pointer');
 
     // Draw buttons for alternative sorts
     let initalY = -this.margins.left + 10;
