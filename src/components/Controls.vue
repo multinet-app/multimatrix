@@ -128,6 +128,7 @@ export default Vue.extend({
               app,
               selectNeighbors,
               attributeVariables,
+              variableList
             }"
             @restart-simulation="hello()"
             />

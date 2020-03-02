@@ -4,7 +4,8 @@ import * as d3 from 'd3';
 export class View {
   public controller: any;
   public selectedCells: any[] = [];
-  public attributeVars: string[] = [];
+  public variableList: string[] = [];
+  public attributeVariables: string[] = [];
 
   private nodes: any;
   private edges: any;
@@ -27,6 +28,7 @@ export class View {
   private nodeFontSize: string = '12';
   private labelVar: string = '_key';
   private datumID: string = '';
+  private columnHeaders: any;
 
   constructor() {
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
@@ -83,6 +85,52 @@ export class View {
   public renderView(): void {
     this.initializeEdges();
     this.initializeAttributes();
+  }
+
+  public updateAttributes(): void {
+    console.log('updating attrs', this.attributeVariables)
+
+    // Update the attribute widths
+    this.columnScale.range([0, this.attributeVariables.length]);
+
+    const columnHeaderGroups = this.columnHeaders
+      .selectAll('.headers')
+      .data(this.attributeVariables);
+
+    columnHeaderGroups
+      .exit()
+      .remove();
+
+    const columnHeaderGroupsEnter = columnHeaderGroups
+      .enter()
+      .append('g')
+      .attr('transform', (d: any, i: number) => `translate(0,-65)`)
+      .classed('headers', true);
+
+    columnHeaderGroupsEnter
+      .append('rect')
+      .attr('width', 100)
+      .attr('height', 20)
+      .attr('y', 0)
+      .attr('x', (d: any, i: number) => 105 * i)
+      .attr('fill', 'none')
+      .attr('stroke', 'lightgray')
+      .attr('stroke-width', 1);
+
+    columnHeaderGroupsEnter
+      .append('text')
+      .attr('x', (d: any, i: number) => 105 * i)
+      .style('font-size', '20px')
+      .attr('text-anchor', 'left')
+      .text((d: string) => d)
+      // .attr('x', 20) // this.columnWidths[d] / 2)
+      .attr('y', 16)
+      // .on('click', (d) => {
+      //   if (d !== 'selected') {
+      //     this.sort(d);
+      //   }
+      // })
+
   }
 
   private clickFunction(d: any, i: number, nodes: any[]): void {
@@ -988,9 +1036,6 @@ export class View {
     // // this.attributeScales = attributeScales;
 
     // let placementScale = {};
-
-    this.columnScale.range([0, this.attributeVars.length]);
-
     // for (let [column, scale] of Object.entries(attributeScales)) {
     //   if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
     //     placementScale[column] = this.generateCategoricalLegend(column, columnWidths[column]);
@@ -1071,7 +1116,7 @@ export class View {
 
     // Add Vertical Dividers
     this.attributes.selectAll('.column')
-      .data(this.attributeVars)
+      .data(this.attributeVariables)
       .enter()
       .append('line')
       .style('stroke', '1px')
@@ -1081,71 +1126,9 @@ export class View {
       .attr('y2', attributeHeight + this.margins.bottom)
       .attr('stroke-opacity', 0.4);
 
-
-    // this.createColumnHeaders();
-    this.attributeVars = ["hey"]
-    console.log(this.attributeVars)
-    const columnHeaders = this.attributes.append('g')
+    this.columnHeaders = this.attributes.append('g')
       .classed('column-headers', true);
-
-    const columnHeaderGroups = columnHeaders.selectAll('.headers')
-      .data(this.attributeVars)
-      .enter()
-      .append('g')
-      .attr('transform', (d: any, i: number) => {console.log(d); return `translate(0,-65)`; });
-
-    columnHeaderGroups
-      .append('rect')
-      .attr('width', d => 100) //this.columnWidths[d])
-      .attr('height', 20)
-      .attr('y', 0)
-      .attr('x', 0)
-      .attr('fill', 'none')
-      .attr('stroke', 'lightgray')
-      .attr('stroke-width', 1);
-
-    columnHeaderGroups
-      .append('text')
-      .classed('header', true)
-      // .attr('y', -45)
-      // .attr('x', (d) => this.columnScale(d) + barMargin.left)
-      .style('font-size', '20px')
-      .attr('text-anchor', 'middle')
-      // .attr('transform','rotate(-10)')
-      .text((d, i) => {
-        // if (this.columnNames[d] && this.columnNames[d].length > maxcharacters) {
-        //   return this.columnNames[d].slice(0, maxcharacters - 2) + '...';// experimentally determine how big
-        // }
-        // return this.columnNames[d];
-        return d;
-      })
-      .attr('x', d => 20) // this.columnWidths[d] / 2)
-      .attr('y', 14)
-      // .on('mouseover', function(d) {
-      //   if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-      //     that.tooltip.transition().duration(200).style("opacity", .9);
-
-      //     let matrix = this.getScreenCTM()
-      //       .translate(+this.getAttribute("x"), +this.getAttribute("y"));
-
-      //     that.tooltip.transition()
-      //       .duration(200)
-      //       .style("opacity", .9);
-
-      //     that.tooltip.html(that.columnNames[d])
-      //       .style("left", (window.pageXOffset + matrix.e - 25) + "px")
-      //       .style("top", (window.pageYOffset + matrix.f - 20) + "px");
-      //   }
-      // })
-      // .on('mouseout', function(d) {
-      //   that.tooltip.transition().duration(250).style("opacity", 0);
-      // })
-      // .on('click', (d) => {
-      //   if (d !== 'selected') {
-      //     this.sort(d);
-      //   }
-      // })
-
+    
     // columnHeaderGroups
     // if (columns.length < 6) {
     //   let path = columnHeaderGroups
