@@ -136,6 +136,7 @@ export class View {
     // Calculate the variable scales
     this.attributeVariables.forEach((col, index) => {
       if (this.isQuantitative(col)) {
+        // Get the min and max for 
         const minimum = d3.min(this.nodes.map((node: any) => node[col])) || '0';
         const maximum = d3.max(this.nodes.map((node: any) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
@@ -144,6 +145,7 @@ export class View {
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
+        // Get unique values for the domain
         const domain = [...new Set(this.nodes.map((node: { [key: string]: string }) => node[col]))];
         // append colored blocks
         // placeholder scale
@@ -162,7 +164,7 @@ export class View {
       } else {
         this.attributes.append('g')
           .attr('class', 'attr-axis')
-          .attr('transform', 'translate(' + this.columnScale(col) + ',' + -15 + ')')
+          .attr('transform', (d: any, i: number) => `translate(${105 * i},-15)`)
           .call(d3.axisTop(scale)
             .tickValues(scale.domain())
             .tickFormat((d: any) => {
@@ -180,20 +182,21 @@ export class View {
 
     /* Create data columns data */
     this.attributeVariables.forEach((col, index) => {
-      const columnPosition = this.columnScale(col);
+      const columnPosition = 105 * index;
+      console.log(columnPosition)
 
       if (!this.isQuantitative(col)) { // if categorical
         // this.createUpsetPlot(col, 100, placementScale[col]);
         return;
       } else { // if quantitative
-        console.log("making charts")
+        console.log('making charts')
         this.columnGlyphs[col] = this.attributeRows
           .append('rect')
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('width', (d: any) => this.attributeScales[col](d[col])) // width changed later on transition
+          .attr('width', (d: any) => this.attributeScales[col](d[col]))
           .attr('x', columnPosition)
-          .attr('y', 0) // as y is set by translate
+          .attr('y', 0)
           .attr('fill', (d: any) => this.controller.model.orderType === col ? '#EBB769' : '#8B8B8B')
           .on('mouseover', (d: any) => {
             // if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
@@ -216,13 +219,6 @@ export class View {
             // that.tooltip.transition().duration(25).style('opacity', 0);
             // attributeMouseOut(d);
           });
-
-        // this.columnGlyphs[col]
-        //   .transition()
-        //   .duration(2000)
-        //   .attr('width', (d: any, i: number) => {
-        //     // console.log(d[col], this.attributeScales[col], this.attributeScales[col](d[col]));
-        //   });
 
         // this.attributeRows
         //   .append('div')
