@@ -114,7 +114,7 @@ export class View {
       .style('text-transform', 'capitalize')
       .attr('text-anchor', 'left')
       .attr('transform', 'translate(0,-65)')
-      .text((d: string) => d)
+      .text((d: string) => d.substring(0, 8))
       .attr('y', 16)
       .attr('x', (d: any, i: number) => 105 * i);
 
@@ -157,7 +157,7 @@ export class View {
               if ((d / 1000) >= 1) {
                 d = Math.round(d / 1000) + 'K';
               }
-              return d;
+              return parseFloat(d).toFixed(4);
             }))
           .selectAll('text')
           .style('text-anchor', (d: any, i: number) => i % 2 ? 'end' : 'start');
