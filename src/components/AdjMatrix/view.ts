@@ -206,13 +206,6 @@ export class View {
             // attributeMouseOut(d);
           });
 
-        // this.columnGlyphs[col]
-        //   .transition()
-        //   .duration(2000)
-        //   .attr('width', (d: any, i: number) => {
-        //     // console.log(d[col], this.attributeScales[col], this.attributeScales[col](d[col]));
-        //   });
-
         this.attributeRows
           .append('div')
           .attr('class', 'glyphLabel')
@@ -984,9 +977,7 @@ export class View {
     d3.selectAll('#matrix g .row')
       .transition()
       .duration(transitionTime)
-      // .delay((d, i) =>  this.orderingScale(i))
       .attr('transform', (d: any, i: number) => {
-        console.log(d, i, this.order, this.orderingScale(i))
         if (i > this.order.length - 1) {
           return'translate(0, 0)';
         } else {
@@ -994,14 +985,10 @@ export class View {
         }
       });
 
-    // TODO: Fix this when we add the adjacent attributes
     this.attributeRows
-      // .transition()
-      // .duration(transitionTime)
-      // .delay((d, i) => { return this.orderingScale(i) * 4; })
+      .transition()
+      .duration(transitionTime)
       .attr('transform', (d: any, i: number) =>  `translate(0,${this.orderingScale(i)})`);
-
-    // update each highlightRowsIndex
 
     // if any other method other than neighbors sort
     if (!nodeIDs.includes(order)) {
