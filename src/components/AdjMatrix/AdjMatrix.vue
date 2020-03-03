@@ -66,7 +66,7 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { 
+      const {
         graphStructure,
         variableList,
         attributeVariables,
@@ -138,7 +138,7 @@ export default Vue.extend({
         this.view.variableList = this.variableList as string[];
         this.view.attributeVariables = this.attributeVariables as string[];
 
-        this.view.updateAttributes()
+        this.view.updateAttributes();
       }
     },
   },

@@ -32,16 +32,16 @@ export default Vue.extend({
       graph: null,
       selectNeighbors: true,
       searchQuery: null,
-      attributeVariables: []
+      attributeVariables: [],
     };
   },
 
   computed: {
     variableList() {
       if (typeof this.graphStructure.nodes[0] !== 'undefined') {
-        return Object.keys(this.graphStructure.nodes[0]) 
+        return Object.keys(this.graphStructure.nodes[0]);
       } else {
-        return []
+        return [];
       }
     },
   },

@@ -13,7 +13,6 @@ export class View {
   private edgeWidth: number = 0;
   private edgeHeight: number = 0;
   private mouseoverEvents: any[];
-  private attributeScales: any;
   private columnWidths: any;
   private attributeRows: any;
   private tooltip: any;
@@ -29,6 +28,8 @@ export class View {
   private labelVar: string = '_key';
   private datumID: string = '';
   private columnHeaders: any;
+  private attributeScales: { [key: string]: any } = {};
+  private columnGlyphs: { [key: string]: any } = {};
 
   constructor() {
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
@@ -88,11 +89,15 @@ export class View {
   }
 
   public updateAttributes(): void {
-    console.log('updating attrs', this.attributeVariables)
-
     // Update the attribute widths
     this.columnScale.range([0, this.attributeVariables.length]);
 
+    // Update the variable scales
+    for (const name of this.variableList) {
+      this.attributeScales[name] = d3.scaleLinear();
+    }
+
+    // Update the column headers
     const columnHeaderGroups = this.columnHeaders
       .selectAll('.headers')
       .data(this.attributeVariables);
@@ -101,10 +106,13 @@ export class View {
       .exit()
       .remove();
 
+    columnHeaderGroups
+      .merge(columnHeaderGroups);
+
     const columnHeaderGroupsEnter = columnHeaderGroups
       .enter()
       .append('g')
-      .attr('transform', (d: any, i: number) => `translate(0,-65)`)
+      .attr('transform', 'translate(0,-65)')
       .classed('headers', true);
 
     columnHeaderGroupsEnter
@@ -119,18 +127,115 @@ export class View {
 
     columnHeaderGroupsEnter
       .append('text')
-      .attr('x', (d: any, i: number) => 105 * i)
       .style('font-size', '20px')
       .attr('text-anchor', 'left')
       .text((d: string) => d)
-      // .attr('x', 20) // this.columnWidths[d] / 2)
       .attr('y', 16)
-      // .on('click', (d) => {
-      //   if (d !== 'selected') {
-      //     this.sort(d);
-      //   }
-      // })
+      .attr('x', (d: any, i: number) => 105 * i);
 
+    // Calculate the variable scales
+    this.attributeVariables.forEach((col, index) => {
+
+
+      if (this.isQuantitative(col)) {
+        const minimum = d3.min(this.nodes.map((node: any) => node[col])) || '0';
+        const maximum = d3.max(this.nodes.map((node: any) => node[col])) || '0';
+        const domain = [parseFloat(minimum), parseFloat(maximum)];
+
+        const scale = d3.scaleLinear().domain(domain).range([0, 100]);
+        scale.clamp(true);
+        this.attributeScales[col] = scale;
+      } else {
+        const domain = [...new Set(this.nodes.map((node: { [key: string]: string }) => node[col]))];
+        // append colored blocks
+        // placeholder scale
+        const range = this.controller.attributeScales.node[col].range;
+        // const scale = d3.scaleOrdinal().domain(domain).range(range);
+        // .domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
+
+        // this.attributeScales[col] = scale;
+      }
+    });
+
+    const placementScale = {};
+    for (const [col, scale] of Object.entries(this.attributeScales)) {
+      if (!this.isQuantitative(col)) { // if not selected categorical
+        // placementScale[col] = this.generateCategoricalLegend(col, columnWidths[col]);
+      } else {
+        this.attributes.append('g')
+          .attr('class', 'attr-axis')
+          .attr('transform', 'translate(' + this.columnScale(col) + ',' + -15 + ')')
+          .call(d3.axisTop(scale)
+            .tickValues(scale.domain())
+            .tickFormat((d: any) => {
+              if ((d / 1000) >= 1) {
+                d = Math.round(d / 1000) + 'K';
+              }
+              return d;
+            }))
+          .selectAll('text')
+          .style('text-anchor', (d: any, i: number) => i % 2 ? 'end' : 'start');
+      }
+    }
+
+    this.columnGlyphs = {};
+
+    /* Create data columns data */
+    this.attributeVariables.forEach((col, index) => {
+      const columnPosition = this.columnScale(col);
+
+      if (!this.isQuantitative(col)) { // if categorical
+        // this.createUpsetPlot(col, columnWidths[index], placementScale[col]);
+        return;
+      } else { // if quantitative
+        this.columnGlyphs[col] = this.attributeRows
+          .append('rect')
+          .attr('class', 'glyph ' + col)
+          .attr('height', this.orderingScale.bandwidth())
+          .attr('width', 10) // width changed later on transition
+          .attr('x', columnPosition)
+          .attr('y', 0) // as y is set by translate
+          .attr('fill', (d: any) => this.controller.model.orderType === col ? '#EBB769' : '#8B8B8B')
+          .on('mouseover', (d: any) => {
+            // if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
+            // that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
+
+            // let matrix = this.getScreenCTM()
+            //   .translate(+this.getAttribute('x'), +this.getAttribute('y'));
+
+            // that.tooltip.html(Math.round(d[col]))
+            //   .style('left', (window.pageXOffset + matrix.e + columnWidths[col] / 2 - 35) + 'px')
+            //   .style('top', (window.pageYOffset + matrix.f - 5) + 'px');
+
+            // that.tooltip.transition()
+            //   .duration(200)
+            //   .style('opacity', .9);
+
+            // attributeMouseOver(d);
+          })
+          .on('mouseout', (d: any) => {
+            // that.tooltip.transition().duration(25).style('opacity', 0);
+            // attributeMouseOut(d);
+          });
+
+        this.columnGlyphs[col]
+          .transition()
+          .duration(2000)
+          .attr('width', (d: any, i: number) => {
+            // console.log(d[col], this.attributeScales[col], this.attributeScales[col](d[col]));
+          });
+
+        this.attributeRows
+          .append('div')
+          .attr('class', 'glyphLabel')
+          .text((d: any, i: number) => d);
+        }
+      },
+    );
+  }
+
+  private isQuantitative(varName: string): boolean {
+    return true;
   }
 
   private clickFunction(d: any, i: number, nodes: any[]): void {
@@ -958,10 +1063,6 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill', (d: any, i: number) => i % 2 === 0 ? '#fff' : '#eee');
 
-
-    const barMargin = { top: 1, bottom: 1, left: 5, right: 5 };
-    const barHeight = this.orderingScale.bandwidth() - barMargin.top - barMargin.bottom;
-
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
       .selectAll('.row')
@@ -1011,109 +1112,6 @@ export class View {
       .on('mouseout', (d: any) => attributeMouseOut(d))
       .on('click', this.clickFunction);
 
-    // // columns.forEach((col, index) => {
-    // //   // calculate range
-    // //   columnRange.push(xRange);
-    // //   let domain = this.controller.attributeScales.node[col].domain;
-
-    // //   if (quantitativeAttributes.indexOf(col) > -1) {
-
-    // //     let scale = d3.scaleLinear().domain(domain).range([barMargin.left, columnWidths[col] - barMargin.right]);
-    // //     scale.clamp(true);
-    // //     attributeScales[col] = scale;
-    // //   } else {
-    // //     // append colored blocks
-    // //     // placeholder scale
-    // //     let range = this.controller.attributeScales.node[col].range;
-    // //     let scale = d3.scaleOrdinal().domain(domain).range(range);
-    // //     //.domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
-
-    // //     attributeScales[col] = scale;
-    // //   }
-
-    // //   xRange += columnWidths[col];
-    // // })
-    // // this.attributeScales = attributeScales;
-
-    // let placementScale = {};
-    // for (let [column, scale] of Object.entries(attributeScales)) {
-    //   if (categoricalAttributes.indexOf(column) > -1) { // if not selected categorical
-    //     placementScale[column] = this.generateCategoricalLegend(column, columnWidths[column]);
-
-    //   } else if (quantitativeAttributes.indexOf(column) > -1) {
-    //     this.attributes.append("g")
-    //       .attr("class", "attr-axis")
-    //       .attr("transform", "translate(" + this.columnScale(column) + "," + -15 + ")")
-    //       .call(d3.axisTop(scale)
-    //         .tickValues(scale.domain())
-    //         .tickFormat((d) => {
-    //           if ((d / 1000) >= 1) {
-    //             d = Math.round(d / 1000) + "K";
-    //           }
-    //           return d;
-    //         }))
-    //       .selectAll('text')
-    //       .style("text-anchor", function(d, i) { return i % 2 ? "end" : "start" });
-    //   }
-    // }
-
-    // this.columnGlyphs = {};
-
-    // /* Create data columns data */
-    // columns.forEach((column, index) => {
-    //   let columnPosition = this.columnScale(column);
-
-    //   if (categoricalAttributes.indexOf(column) > -1) { // if categorical
-    //     this.createUpsetPlot(column, columnWidths[index], placementScale[column]);
-    //     return;
-    //   } else if (quantitativeAttributes.indexOf(column) > -1) { // if quantitative
-    //     this.columnGlyphs[column] = this.attributeRows
-    //       .append("rect")
-    //       .attr("class", "glyph " + column)
-    //       .attr('height', barHeight)
-    //       .attr('width', 10) // width changed later on transition
-    //       .attr('x', columnPosition + barMargin.left)
-    //       .attr('y', barMargin.top) // as y is set by translate
-    //       .attr('fill', d => {
-    //         return this.controller.model.orderType === column ? '#EBB769' : '#8B8B8B'
-    //       })
-    //       .on('mouseover', function(d) {
-    //         //if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-    //         //that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
-
-    //         let matrix = this.getScreenCTM()
-    //           .translate(+this.getAttribute("x"), +this.getAttribute("y"));
-
-    //         that.tooltip.html(Math.round(d[column]))
-    //           .style("left", (window.pageXOffset + matrix.e + columnWidths[column] / 2 - 35) + "px")
-    //           .style("top", (window.pageYOffset + matrix.f - 5) + "px");
-
-    //         that.tooltip.transition()
-    //           .duration(200)
-    //           .style("opacity", .9);
-
-    //         attributeMouseOver(d);
-    //         //}
-    //       })
-    //       .on('mouseout', (d) => {
-    //         that.tooltip.transition().duration(25).style("opacity", 0);
-    //         attributeMouseOut(d);
-    //       })
-    //     this.columnGlyphs[column]
-    //       .transition()
-    //       .duration(2000)
-    //       .attr('width', (d, i) => { return attributeScales[column](d[column]); })
-
-    //     this.attributeRows
-    //       .append("div")
-    //       .attr("class", "glyphLabel")
-    //       .text(function(d, i) {
-    //         return (d);
-    //       });
-    //   }
-    //   }
-    // });
-
     // Add Vertical Dividers
     this.attributes.selectAll('.column')
       .data(this.attributeVariables)
@@ -1128,7 +1126,7 @@ export class View {
 
     this.columnHeaders = this.attributes.append('g')
       .classed('column-headers', true);
-    
+
     // columnHeaderGroups
     // if (columns.length < 6) {
     //   let path = columnHeaderGroups
@@ -1169,15 +1167,6 @@ export class View {
       });
       initalY += buttonHeight + 5;
     }
-
-    // Append g's for table headers
-    // For any data row, add
-
-    /*.on("click", clicked)
-    .select(".g-table-column")
-    .classed("g-table-column-" + (sortOrder === d3.ascending ? "ascending" : "descending"), function(d) {
-      return d === sortKey;
-    });*/
   }
 
   // function that updates the state, and includes a flag for when this was done through a search
