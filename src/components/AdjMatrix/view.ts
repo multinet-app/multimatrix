@@ -29,6 +29,7 @@ export class View {
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private columnGlyphs: { [key: string]: any } = {};
+  private colMargin: number = 5;
 
   constructor() {
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
@@ -88,9 +89,9 @@ export class View {
   }
 
   public updateAttributes(): void {
-    // Set the column widths
-    const colMargin = 5;
-    const colWidth = (parseFloat(d3.select('#attributes').attr('width')) / this.attributeVariables.length) - colMargin;
+    // Set the column widths and margin
+    const attrWidth = parseFloat(d3.select('#attributes').attr('width'));
+    const colWidth = attrWidth / this.attributeVariables.length - this.colMargin;
 
     // Update the variable scales
     for (const name of this.variableList) {
@@ -110,13 +111,15 @@ export class View {
       .enter()
       .append('text')
       .merge(columnHeaderGroups)
-      .style('font-size', '20px')
+      .style('font-size', '14px')
       .style('text-transform', 'capitalize')
+      .style('word-wrap', 'break-word')
       .attr('text-anchor', 'left')
       .attr('transform', 'translate(0,-65)')
       .text((d: string) => d.substring(0, 8))
       .attr('y', 16)
-      .attr('x', (d: any, i: number) => (colWidth + colMargin) * i);
+      .attr('x', (d: any, i: number) => (colWidth + this.colMargin) * i)
+      .attr('width', colWidth);
 
     // Calculate the variable scales
     this.attributeVariables.forEach((col, index) => {
@@ -150,7 +153,7 @@ export class View {
         const barScaleVis = this.attributes
           .append('g')
           .attr('class', 'attr-axis')
-          .attr('transform', `translate(${(colWidth + colMargin) * index},-15)`)
+          .attr('transform', `translate(${(colWidth + this.colMargin) * index},-15)`)
           .call(d3.axisTop(this.attributeScales[col])
             .tickValues(this.attributeScales[col].domain())
             .tickFormat((d: any) => {
@@ -178,7 +181,7 @@ export class View {
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
           .attr('width', (d: any) => this.attributeScales[col](d[col])) // width changed later on transition
-          .attr('x', (colWidth + colMargin) * index)
+          .attr('x', (colWidth + this.colMargin) * index)
           .attr('y', 0) // as y is set by translate
           .attr('fill', (d: any) => '#8B8B8B')
           .on('mouseover', (d: any) => {
@@ -265,7 +268,8 @@ export class View {
     // Draw each row
     this.edgeRows = this.edges.selectAll('.row')
       .data(this.matrix)
-      .enter().append('g')
+      .enter()
+      .append('g')
       .attr('class', 'row')
       .attr('transform', (d: any, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
@@ -280,7 +284,8 @@ export class View {
 
     const cells = this.edgeRows.selectAll('.cell')
       .data((d: any) => d)
-      .enter().append('g')
+      .enter()
+      .append('g')
       .attr('class', 'cell')
       .attr('id', (d: any) => d.cellName)
       .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
@@ -517,9 +522,8 @@ export class View {
       .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
       .on('click', (d: any) => this.nodeClick(d));
 
-    let verticalOffset = 3;
-    verticalOffset = 187.5;
-    const horizontalOffset = this.nodes.length < 50 ? 540 : 0;
+    let verticalOffset = 187.5;
+    const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
     this.edgeColumns.append('path')
       .attr('id', (d: Array<{ rowid: string; }>) => `sortIcon${d[0].rowid}`)
       .attr('class', 'sortIcon')
@@ -535,7 +539,7 @@ export class View {
       .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
       .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
 
-    verticalOffset = verticalOffset / 12.5 + 3;
+    verticalOffset = verticalOffset * 0.075 + 5;
 
 
     this.edgeColumns.append('text')
@@ -977,11 +981,12 @@ export class View {
 
     const transitionTime = 500;
 
-    d3.selectAll('g .row')
+    d3.selectAll('#matrix g .row')
       .transition()
       .duration(transitionTime)
       // .delay((d, i) =>  this.orderingScale(i))
       .attr('transform', (d: any, i: number) => {
+        console.log(d, i, this.order, this.orderingScale(i))
         if (i > this.order.length - 1) {
           return'translate(0, 0)';
         } else {
@@ -990,11 +995,11 @@ export class View {
       });
 
     // TODO: Fix this when we add the adjacent attributes
-    // this.attributeRows
-    //   //.transition()
-    //   //.duration(transitionTime)
-    //   //.delay((d, i) => { return this.orderingScale(i) * 4; })
-    //   .attr("transform", (d, i) => { return "translate(0," + this.orderingScale(i) + ")"; })
+    this.attributeRows
+      // .transition()
+      // .duration(transitionTime)
+      // .delay((d, i) => { return this.orderingScale(i) * 4; })
+      .attr('transform', (d: any, i: number) =>  `translate(0,${this.orderingScale(i)})`);
 
     // update each highlightRowsIndex
 
