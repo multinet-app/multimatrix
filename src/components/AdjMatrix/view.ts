@@ -135,8 +135,6 @@ export class View {
 
     // Calculate the variable scales
     this.attributeVariables.forEach((col, index) => {
-
-
       if (this.isQuantitative(col)) {
         const minimum = d3.min(this.nodes.map((node: any) => node[col])) || '0';
         const maximum = d3.max(this.nodes.map((node: any) => node[col])) || '0';
@@ -185,14 +183,15 @@ export class View {
       const columnPosition = this.columnScale(col);
 
       if (!this.isQuantitative(col)) { // if categorical
-        // this.createUpsetPlot(col, columnWidths[index], placementScale[col]);
+        // this.createUpsetPlot(col, 100, placementScale[col]);
         return;
       } else { // if quantitative
+        console.log("making charts")
         this.columnGlyphs[col] = this.attributeRows
           .append('rect')
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('width', 10) // width changed later on transition
+          .attr('width', (d: any) => this.attributeScales[col](d[col])) // width changed later on transition
           .attr('x', columnPosition)
           .attr('y', 0) // as y is set by translate
           .attr('fill', (d: any) => this.controller.model.orderType === col ? '#EBB769' : '#8B8B8B')
@@ -218,17 +217,17 @@ export class View {
             // attributeMouseOut(d);
           });
 
-        this.columnGlyphs[col]
-          .transition()
-          .duration(2000)
-          .attr('width', (d: any, i: number) => {
-            // console.log(d[col], this.attributeScales[col], this.attributeScales[col](d[col]));
-          });
+        // this.columnGlyphs[col]
+        //   .transition()
+        //   .duration(2000)
+        //   .attr('width', (d: any, i: number) => {
+        //     // console.log(d[col], this.attributeScales[col], this.attributeScales[col](d[col]));
+        //   });
 
-        this.attributeRows
-          .append('div')
-          .attr('class', 'glyphLabel')
-          .text((d: any, i: number) => d);
+        // this.attributeRows
+        //   .append('div')
+        //   .attr('class', 'glyphLabel')
+        //   .text((d: any, i: number) => d);
         }
       },
     );
@@ -1220,5 +1219,56 @@ export class View {
     const currentState = this.controller.model.getApplicationState();
     const clicked = currentState.clicked;
     return clicked.includes(node.id);
+  }
+
+  private createUpsetPlot(column: string, columnWidth: number, placementScaleForAttr: any) {
+    const columnPosition = this.columnScale(column);
+    const topMargin = 1;
+    const height = this.orderingScale.bandwidth() - 2 * topMargin;
+    const bandwidthScale = this.nodes.length < 50 ? (1 / 3) : 2;
+    const width = this.orderingScale.bandwidth() * bandwidthScale;
+    const numberCategories = this.controller.configuration.attributeScales.node[column].domain.length;
+
+    const legendItemSize = (this.columnWidths[column]) / (numberCategories + 1.5); // bandwidth * bandwidthScale;
+
+    for (let index = 0; index < placementScaleForAttr.length; index++) {
+      this.attributeRows
+        .append('rect')
+        .attr('x', placementScaleForAttr[index].position)
+        .attr('y', 1)
+        .attr('fill', (d) => {
+          return d[column] == placementScaleForAttr[index].value ? this.attributeScales[column](d[column]) : '#dddddd'; // gray version: '#333333'
+        })
+        .attr('width', legendItemSize)
+        .attr('height', height)
+        .on('mouseover', (d, i, nodes) => {
+          if (d[column] == placementScaleForAttr[index].value) {
+            const matrix = nodes[i].getScreenCTM()
+              .translate(+nodes[i].getAttribute('x'), +nodes[i].getAttribute('y'));
+
+            this.tooltip.html(d[column])
+              .style('left', (window.pageXOffset + matrix.e - 25) + 'px')
+              .style('top', (window.pageYOffset + matrix.f - 25) + 'px');
+
+            this.tooltip.transition()
+              .duration(200)
+              .style('opacity', .9);
+          }
+
+
+          this.attributeMouseOver(d);
+        })
+        .on('mouseout', (d, i, nodes) => {
+          this.tooltip.transition()
+            .duration(25)
+            .style('opacity', 0);
+          //that.tooltip.transition().duration(25).style("opacity", 0);
+
+          this.attributeMouseOut(d);
+        });
+    }
+
+
+    return;
   }
 }
