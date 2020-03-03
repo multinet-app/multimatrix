@@ -99,7 +99,7 @@ export class View {
 
     // Update the column headers
     const columnHeaderGroups = this.columnHeaders
-      .selectAll('.headers')
+      .selectAll('text')
       .data(this.attributeVariables);
 
     columnHeaderGroups
@@ -107,28 +107,13 @@ export class View {
       .remove();
 
     columnHeaderGroups
-      .merge(columnHeaderGroups);
-
-    const columnHeaderGroupsEnter = columnHeaderGroups
       .enter()
-      .append('g')
-      .attr('transform', 'translate(0,-65)')
-      .classed('headers', true);
-
-    columnHeaderGroupsEnter
-      .append('rect')
-      .attr('width', 100)
-      .attr('height', 20)
-      .attr('y', 0)
-      .attr('x', (d: any, i: number) => 105 * i)
-      .attr('fill', 'none')
-      .attr('stroke', 'lightgray')
-      .attr('stroke-width', 1);
-
-    columnHeaderGroupsEnter
       .append('text')
+      .merge(columnHeaderGroups)
       .style('font-size', '20px')
+      .style('text-transform', 'capitalize')
       .attr('text-anchor', 'left')
+      .attr('transform', 'translate(0,-65)')
       .text((d: string) => d)
       .attr('y', 16)
       .attr('x', (d: any, i: number) => 105 * i);
@@ -136,7 +121,6 @@ export class View {
     // Calculate the variable scales
     this.attributeVariables.forEach((col, index) => {
       if (this.isQuantitative(col)) {
-        // Get the min and max for 
         const minimum = d3.min(this.nodes.map((node: any) => node[col])) || '0';
         const maximum = d3.max(this.nodes.map((node: any) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
@@ -145,7 +129,6 @@ export class View {
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
-        // Get unique values for the domain
         const domain = [...new Set(this.nodes.map((node: { [key: string]: string }) => node[col]))];
         // append colored blocks
         // placeholder scale
@@ -157,16 +140,19 @@ export class View {
       }
     });
 
+    d3.selectAll('.attr-axis').remove();
+
     const placementScale = {};
-    for (const [col, scale] of Object.entries(this.attributeScales)) {
+    this.attributeVariables.forEach((col, index) => {
       if (!this.isQuantitative(col)) { // if not selected categorical
         // placementScale[col] = this.generateCategoricalLegend(col, columnWidths[col]);
       } else {
-        this.attributes.append('g')
+        const barScaleVis = this.attributes
+          .append('g')
           .attr('class', 'attr-axis')
-          .attr('transform', (d: any, i: number) => `translate(${105 * i},-15)`)
-          .call(d3.axisTop(scale)
-            .tickValues(scale.domain())
+          .attr('transform', `translate(${105 * index},-15)`)
+          .call(d3.axisTop(this.attributeScales[col])
+            .tickValues(this.attributeScales[col].domain())
             .tickFormat((d: any) => {
               if ((d / 1000) >= 1) {
                 d = Math.round(d / 1000) + 'K';
@@ -176,28 +162,25 @@ export class View {
           .selectAll('text')
           .style('text-anchor', (d: any, i: number) => i % 2 ? 'end' : 'start');
       }
-    }
+    });
+
+    d3.selectAll('.glyph').remove();
 
     this.columnGlyphs = {};
-
     /* Create data columns data */
     this.attributeVariables.forEach((col, index) => {
-      const columnPosition = 105 * index;
-      console.log(columnPosition)
-
       if (!this.isQuantitative(col)) { // if categorical
-        // this.createUpsetPlot(col, 100, placementScale[col]);
+        // this.createUpsetPlot(col, columnWidths[index], placementScale[col]);
         return;
       } else { // if quantitative
-        console.log('making charts')
         this.columnGlyphs[col] = this.attributeRows
           .append('rect')
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('width', (d: any) => this.attributeScales[col](d[col]))
-          .attr('x', columnPosition)
-          .attr('y', 0)
-          .attr('fill', (d: any) => this.controller.model.orderType === col ? '#EBB769' : '#8B8B8B')
+          .attr('width', (d: any) => this.attributeScales[col](d[col])) // width changed later on transition
+          .attr('x', 105 * index)
+          .attr('y', 0) // as y is set by translate
+          .attr('fill', (d: any) => '#8B8B8B')
           .on('mouseover', (d: any) => {
             // if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
             // that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
@@ -220,10 +203,17 @@ export class View {
             // attributeMouseOut(d);
           });
 
-        // this.attributeRows
-        //   .append('div')
-        //   .attr('class', 'glyphLabel')
-        //   .text((d: any, i: number) => d);
+        // this.columnGlyphs[col]
+        //   .transition()
+        //   .duration(2000)
+        //   .attr('width', (d: any, i: number) => {
+        //     // console.log(d[col], this.attributeScales[col], this.attributeScales[col](d[col]));
+        //   });
+
+        this.attributeRows
+          .append('div')
+          .attr('class', 'glyphLabel')
+          .text((d: any, i: number) => d);
         }
       },
     );
@@ -1215,56 +1205,5 @@ export class View {
     const currentState = this.controller.model.getApplicationState();
     const clicked = currentState.clicked;
     return clicked.includes(node.id);
-  }
-
-  private createUpsetPlot(column: string, columnWidth: number, placementScaleForAttr: any) {
-    const columnPosition = this.columnScale(column);
-    const topMargin = 1;
-    const height = this.orderingScale.bandwidth() - 2 * topMargin;
-    const bandwidthScale = this.nodes.length < 50 ? (1 / 3) : 2;
-    const width = this.orderingScale.bandwidth() * bandwidthScale;
-    const numberCategories = this.controller.configuration.attributeScales.node[column].domain.length;
-
-    const legendItemSize = (this.columnWidths[column]) / (numberCategories + 1.5); // bandwidth * bandwidthScale;
-
-    for (let index = 0; index < placementScaleForAttr.length; index++) {
-      this.attributeRows
-        .append('rect')
-        .attr('x', placementScaleForAttr[index].position)
-        .attr('y', 1)
-        .attr('fill', (d) => {
-          return d[column] == placementScaleForAttr[index].value ? this.attributeScales[column](d[column]) : '#dddddd'; // gray version: '#333333'
-        })
-        .attr('width', legendItemSize)
-        .attr('height', height)
-        .on('mouseover', (d, i, nodes) => {
-          if (d[column] == placementScaleForAttr[index].value) {
-            const matrix = nodes[i].getScreenCTM()
-              .translate(+nodes[i].getAttribute('x'), +nodes[i].getAttribute('y'));
-
-            this.tooltip.html(d[column])
-              .style('left', (window.pageXOffset + matrix.e - 25) + 'px')
-              .style('top', (window.pageYOffset + matrix.f - 25) + 'px');
-
-            this.tooltip.transition()
-              .duration(200)
-              .style('opacity', .9);
-          }
-
-
-          this.attributeMouseOver(d);
-        })
-        .on('mouseout', (d, i, nodes) => {
-          this.tooltip.transition()
-            .duration(25)
-            .style('opacity', 0);
-          //that.tooltip.transition().duration(25).style("opacity", 0);
-
-          this.attributeMouseOut(d);
-        });
-    }
-
-
-    return;
   }
 }
