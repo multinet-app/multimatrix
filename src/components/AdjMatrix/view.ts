@@ -13,7 +13,6 @@ export class View {
   private edgeWidth: number = 0;
   private edgeHeight: number = 0;
   private mouseoverEvents: any[];
-  private columnWidths: any;
   private attributeRows: any;
   private tooltip: any;
   private columnScale: any;
@@ -89,8 +88,9 @@ export class View {
   }
 
   public updateAttributes(): void {
-    // Update the attribute widths
-    this.columnScale.range([0, this.attributeVariables.length]);
+    // Set the column widths
+    const colMargin = 5;
+    const colWidth = (parseFloat(d3.select('#attributes').attr('width')) / this.attributeVariables.length) - colMargin;
 
     // Update the variable scales
     for (const name of this.variableList) {
@@ -116,7 +116,7 @@ export class View {
       .attr('transform', 'translate(0,-65)')
       .text((d: string) => d.substring(0, 8))
       .attr('y', 16)
-      .attr('x', (d: any, i: number) => 105 * i);
+      .attr('x', (d: any, i: number) => (colWidth + colMargin) * i);
 
     // Calculate the variable scales
     this.attributeVariables.forEach((col, index) => {
@@ -125,7 +125,7 @@ export class View {
         const maximum = d3.max(this.nodes.map((node: any) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
 
-        const scale = d3.scaleLinear().domain(domain).range([0, 100]);
+        const scale = d3.scaleLinear().domain(domain).range([0, colWidth]);
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
@@ -150,7 +150,7 @@ export class View {
         const barScaleVis = this.attributes
           .append('g')
           .attr('class', 'attr-axis')
-          .attr('transform', `translate(${105 * index},-15)`)
+          .attr('transform', `translate(${(colWidth + colMargin) * index},-15)`)
           .call(d3.axisTop(this.attributeScales[col])
             .tickValues(this.attributeScales[col].domain())
             .tickFormat((d: any) => {
@@ -178,7 +178,7 @@ export class View {
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
           .attr('width', (d: any) => this.attributeScales[col](d[col])) // width changed later on transition
-          .attr('x', 105 * index)
+          .attr('x', (colWidth + colMargin) * index)
           .attr('y', 0) // as y is set by translate
           .attr('fill', (d: any) => '#8B8B8B')
           .on('mouseover', (d: any) => {
@@ -1027,10 +1027,7 @@ export class View {
     // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
     // this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
 
-    const width = 300;
-    const height = 300;
-    const attributeWidth = 300;
-    const attributeHeight = 300;
+    const attributeWidth = 1000; // Just has to be larger than the attributes panel (so that we render to the edge)
 
     this.attributes = d3.select('#attributes')
       .append('g')
@@ -1090,24 +1087,12 @@ export class View {
       .attr('y', 0)
       .classed('attrRow', true)
       .attr('id', (d: any, i: number) => `attrRow${d.id}`)
-      .attr('width', width)
+      .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
       .on('mouseover', (d: any) => attributeMouseOver(d))
       .on('mouseout', (d: any) => attributeMouseOut(d))
       .on('click', this.clickFunction);
-
-    // Add Vertical Dividers
-    this.attributes.selectAll('.column')
-      .data(this.attributeVariables)
-      .enter()
-      .append('line')
-      .style('stroke', '1px')
-      .attr('x1', (d: any, i: number) => this.columnScale(i))
-      .attr('y1', -20)
-      .attr('x2', (d: any, i: number) => this.columnScale(i))
-      .attr('y2', attributeHeight + this.margins.bottom)
-      .attr('stroke-opacity', 0.4);
 
     this.columnHeaders = this.attributes.append('g')
       .classed('column-headers', true);

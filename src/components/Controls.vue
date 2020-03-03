@@ -141,6 +141,5 @@ export default Vue.extend({
 <style scoped>
   .v-card {
     max-height: calc(100vh - 24px);
-    overflow-y: scroll
   }
 </style>
