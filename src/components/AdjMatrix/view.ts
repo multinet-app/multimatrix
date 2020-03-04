@@ -51,21 +51,6 @@ export class View {
     return interaction;
   }
 
-  // Update method for all non-data aspects
-  public updateVis(): void {
-    // Get the row and column labels
-    let rows = d3.selectAll('.rowLabel');
-    let columns = d3.selectAll('.colLabel');
-
-    // Update font size
-    rows = rows.style('font-size', this.nodeFontSize + 'pt');
-    columns = columns.style('font-size', this.nodeFontSize + 'pt');
-
-    // Update labels
-    rows.text((d, i) => this.nodes[i][this.labelVar]);
-    columns.text((d, i) => this.nodes[i][this.labelVar]);
-  }
-
   /**
    * Takes in the data, and initializes visualization.
    * @param  data [description]
@@ -76,14 +61,6 @@ export class View {
     this.edges = edges;
     this.matrix = matrix;
 
-    this.renderView();
-  }
-
-  /**
-   * Initializes the adjacency matrix and row views with placeholder visualizations
-   * @return none
-   */
-  public renderView(): void {
     this.initializeEdges();
     this.initializeAttributes();
   }
@@ -136,23 +113,20 @@ export class View {
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
-        const domain = [...new Set(this.nodes.map((node: { [key: string]: string }) => node[col]))];
-        // append colored blocks
-        // placeholder scale
-        const range = this.controller.attributeScales.node[col].range;
-        // const scale = d3.scaleOrdinal().domain(domain).range(range);
-        // .domain([true,false]).range([barMargin.left, colWidth-barMargin.right]);
+        const values: string[] = this.nodes.map((node: { [key: string]: string }) => node[col]);
+        const domain = [...new Set(values)];
+        const scale = d3.scaleOrdinal(d3.schemeCategory10).domain(domain);
 
-        // this.attributeScales[col] = scale;
+        this.attributeScales[col] = scale;
       }
     });
 
     d3.selectAll('.attr-axis').remove();
 
-    const placementScale = {};
+    const placementScale: { [key: string]: string } = {};
     this.attributeVariables.forEach((col, index) => {
-      if (!this.isQuantitative(col)) { // if not selected categorical
-        // placementScale[col] = this.generateCategoricalLegend(col, columnWidths[col]);
+      if (!this.isQuantitative(col)) {
+
       } else {
         const barScaleVis = this.attributes
           .append('g')
@@ -177,7 +151,42 @@ export class View {
     /* Create data columns data */
     this.attributeVariables.forEach((col, index) => {
       if (!this.isQuantitative(col)) { // if categorical
-        // this.createUpsetPlot(col, columnWidths[index], placementScale[col]);
+
+        this.attributeRows
+          .append('rect')
+          .attr('class', 'glyph ' + col)
+          .attr('x', (colWidth + this.colMargin) * index)
+          .attr('y', 1)
+          .attr('fill', '#dddddd')
+          .attr('width', colWidth)
+          .attr('height', this.orderingScale.bandwidth())
+          .attr('fill', (d: any) => this.attributeScales[col](d[col]));
+          // .on('mouseover', (d, i, nodes) => {
+          //   if (d[column] == placementScaleForAttr[index].value) {
+          //     const matrix = nodes[i].getScreenCTM()
+          //       .translate(+nodes[i].getAttribute('x'), +nodes[i].getAttribute('y'));
+
+          //     this.tooltip.html(d[column])
+          //       .style('left', (window.pageXOffset + matrix.e - 25) + 'px')
+          //       .style('top', (window.pageYOffset + matrix.f - 25) + 'px');
+
+          //     this.tooltip.transition()
+          //       .duration(200)
+          //       .style('opacity', .9);
+          //   }
+
+
+          //   this.attributeMouseOver(d);
+          // })
+          // .on('mouseout', (d, i, nodes) => {
+          //   this.tooltip.transition()
+          //     .duration(25)
+          //     .style('opacity', 0);
+          //   //that.tooltip.transition().duration(25).style("opacity", 0);
+
+          //   this.attributeMouseOut(d);
+          // });
+
         return;
       } else { // if quantitative
         this.columnGlyphs[col] = this.attributeRows
