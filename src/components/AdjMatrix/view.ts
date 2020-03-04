@@ -116,10 +116,14 @@ export class View {
       .style('word-wrap', 'break-word')
       .attr('text-anchor', 'left')
       .attr('transform', 'translate(0,-65)')
+      .attr('cursor', 'pointer')
       .text((d: string) => d.substring(0, 8))
       .attr('y', 16)
       .attr('x', (d: any, i: number) => (colWidth + this.colMargin) * i)
-      .attr('width', colWidth);
+      .attr('width', colWidth)
+      .on('click', (d: any, i: number) => {
+        this.sort(d);
+      });
 
     // Calculate the variable scales
     this.attributeVariables.forEach((col, index) => {
