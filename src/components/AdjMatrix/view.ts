@@ -117,7 +117,7 @@ export class View {
       .attr('text-anchor', 'left')
       .attr('transform', 'translate(0,-65)')
       .attr('cursor', 'pointer')
-      .text((d: string) => d.substring(0, 8))
+      .text((d: string) => d)
       .attr('y', 16)
       .attr('x', (d: any, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
@@ -220,7 +220,8 @@ export class View {
   }
 
   private isQuantitative(varName: string): boolean {
-    return true;
+    const uniqueValues = [...new Set(this.nodes.map((node: any) => parseFloat(node[varName])))];
+    return uniqueValues.length > 5;
   }
 
   private clickFunction(d: any, i: number, nodes: any[]): void {
