@@ -123,11 +123,9 @@ export class View {
 
     d3.selectAll('.attr-axis').remove();
 
-    const placementScale: { [key: string]: string } = {};
+    // Add the scale bar at the top of the attr column
     this.attributeVariables.forEach((col, index) => {
-      if (!this.isQuantitative(col)) {
-
-      } else {
+      if (this.isQuantitative(col)) {
         const barScaleVis = this.attributes
           .append('g')
           .attr('class', 'attr-axis')
@@ -182,8 +180,23 @@ export class View {
           .attr('class', 'glyphLabel')
           .text((d: any, i: number) => d);
         }
-      },
-    );
+      });
+
+    // TODO: Fix sort icons
+    // if (this.attributeVariables.length < 6) {
+    //   const path = columnHeaderGroups
+    //     .filter((d: any) => d !== 'selected')
+    //     .append('path')
+    //     .attr('class', `sortIcon attr`)
+    //     .attr('d', (d: any) => {
+    //     // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
+    //     // return this.controller.model.icons[variable].d;
+    //   })
+    //   .style('fill', (d: any) => d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B')
+    //   .attr('transform', 'scale(0.1)translate(' + (-50) + ',' + (-300) + ')')
+    //   .on('click', (d: any) => {this.sort(d); })
+    //   .attr('cursor', 'pointer');
+    // }
   }
 
   private isQuantitative(varName: string): boolean {
@@ -1040,21 +1053,6 @@ export class View {
 
     this.columnHeaders = this.attributes.append('g')
       .classed('column-headers', true);
-
-    // columnHeaderGroups
-    // if (columns.length < 6) {
-    //   let path = columnHeaderGroups
-    //     .filter(d => { return d !== 'selected' })
-    //     .append('path')
-    //     .attr('class', 'sortIcon')
-    //     .attr('d', (d) => {
-    //     // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
-    //     // return this.controller.model.icons[variable].d;
-    //   }).style('fill', d => { return d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B' })
-    //   .attr("transform", "scale(0.1)translate(" + (-50) + "," + (-300) + ")")
-    //   .on('click', (d) => {this.sort(d);})
-    //   .attr('cursor', 'pointer');
-    // }
 
     // Draw buttons for alternative sorts
     let initalY = -this.margins.left + 10;
