@@ -160,32 +160,9 @@ export class View {
           .attr('fill', '#dddddd')
           .attr('width', colWidth)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('fill', (d: any) => this.attributeScales[col](d[col]));
-          // .on('mouseover', (d, i, nodes) => {
-          //   if (d[column] == placementScaleForAttr[index].value) {
-          //     const matrix = nodes[i].getScreenCTM()
-          //       .translate(+nodes[i].getAttribute('x'), +nodes[i].getAttribute('y'));
-
-          //     this.tooltip.html(d[column])
-          //       .style('left', (window.pageXOffset + matrix.e - 25) + 'px')
-          //       .style('top', (window.pageYOffset + matrix.f - 25) + 'px');
-
-          //     this.tooltip.transition()
-          //       .duration(200)
-          //       .style('opacity', .9);
-          //   }
-
-
-          //   this.attributeMouseOver(d);
-          // })
-          // .on('mouseout', (d, i, nodes) => {
-          //   this.tooltip.transition()
-          //     .duration(25)
-          //     .style('opacity', 0);
-          //   //that.tooltip.transition().duration(25).style("opacity", 0);
-
-          //   this.attributeMouseOut(d);
-          // });
+          .attr('fill', (d: any) => this.attributeScales[col](d[col]))
+          .on('mouseover', (d: any) => this.attributeMouseOver(d))
+          .on('mouseout', (d: any) => this.attributeMouseOut(d));
 
         return;
       } else { // if quantitative
@@ -197,27 +174,8 @@ export class View {
           .attr('x', (colWidth + this.colMargin) * index)
           .attr('y', 0) // as y is set by translate
           .attr('fill', (d: any) => '#8B8B8B')
-          .on('mouseover', (d: any) => {
-            // if (that.columnNames[d] && that.columnNames[d].length > maxcharacters) {
-            // that.tooltip.transition().delay(1000).duration(200).style("opacity", .9);
-
-            // let matrix = this.getScreenCTM()
-            //   .translate(+this.getAttribute('x'), +this.getAttribute('y'));
-
-            // that.tooltip.html(Math.round(d[col]))
-            //   .style('left', (window.pageXOffset + matrix.e + columnWidths[col] / 2 - 35) + 'px')
-            //   .style('top', (window.pageYOffset + matrix.f - 5) + 'px');
-
-            // that.tooltip.transition()
-            //   .duration(200)
-            //   .style('opacity', .9);
-
-            // attributeMouseOver(d);
-          })
-          .on('mouseout', (d: any) => {
-            // that.tooltip.transition().duration(25).style('opacity', 0);
-            // attributeMouseOut(d);
-          });
+          .on('mouseover', (d: any) => this.attributeMouseOver(d))
+          .on('mouseout', (d: any) => this.attributeMouseOut(d));
 
         this.attributeRows
           .append('div')
@@ -1067,26 +1025,6 @@ export class View {
       .attr('stroke', '2px')
       .attr('stroke-opacity', 0.3);
 
-    const attributeMouseOver = (d: any) => {
-      this.addHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);  // Add row (rowid)
-      this.addHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);  // Add row (rowid)
-
-      this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d.id });
-
-      d3.selectAll('.hovered').classed('hovered', false);
-      this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
-      this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
-    };
-
-    const attributeMouseOut = (d: any) => {
-      this.removeHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);
-      this.removeHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);
-
-      d3.selectAll('.hovered').classed('hovered', false);
-      this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
-      this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
-    };
-
     this.attributeRows
       .append('rect')
       .attr('x', 0)
@@ -1096,8 +1034,8 @@ export class View {
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
-      .on('mouseover', (d: any) => attributeMouseOver(d))
-      .on('mouseout', (d: any) => attributeMouseOut(d))
+      .on('mouseover', (d: any) => this.attributeMouseOver(d))
+      .on('mouseout', (d: any) => this.attributeMouseOut(d))
       .on('click', this.clickFunction);
 
     this.columnHeaders = this.attributes.append('g')
@@ -1196,5 +1134,25 @@ export class View {
     const currentState = this.controller.model.getApplicationState();
     const clicked = currentState.clicked;
     return clicked.includes(node.id);
+  }
+
+  private attributeMouseOver(d: any) {
+    this.addHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);  // Add row (rowid)
+    this.addHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);  // Add row (rowid)
+
+    this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d.id });
+
+    d3.selectAll('.hovered').classed('hovered', false);
+    this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+    this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
+  }
+
+  private attributeMouseOut(d: any) {
+    this.removeHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);
+    this.removeHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);
+
+    d3.selectAll('.hovered').classed('hovered', false);
+    this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
+    this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
   }
 }
