@@ -290,11 +290,7 @@ export class View {
 
         this.unhoverEdge(cell);
       })
-      .on('click', (d: any, i: number, nodes: any) => {
-        // only trigger click if edge exists
-        this.clickFunction(d, i, nodes);
-
-      })
+      .on('click', (d: any, i: number, nodes: any) => this.clickFunction(d, i, nodes))
       .attr('cursor', 'pointer');
 
     this.controller.hoverRow = {};
@@ -1049,7 +1045,7 @@ export class View {
       .attr('fill-opacity', 0)
       .on('mouseover', (d: any) => this.attributeMouseOver(d))
       .on('mouseout', (d: any) => this.attributeMouseOut(d))
-      .on('click', this.clickFunction);
+      .on('click', (d: any) => this.nodeClick(d));
 
     this.columnHeaders = this.attributes.append('g')
       .classed('column-headers', true);
@@ -1114,8 +1110,6 @@ export class View {
       currentState.event = label;
       // Update actual node data
       currentState.clicked = clicked;
-      // currentState.userSelectedNeighbors = neighbors_and_edges.neighbors;
-      // currentState.userSelectedEdges = neighbors_and_edges.edges;
       // If node was searched, push him to the search array
       // if (search) {
       //     currentState.search.push(node.id);
@@ -1134,7 +1128,7 @@ export class View {
     return clicked.includes(node.id);
   }
 
-  private attributeMouseOver(d: any) {
+  private attributeMouseOver(d: any): void {
     this.addHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);  // Add row (rowid)
     this.addHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);  // Add row (rowid)
 
@@ -1145,7 +1139,7 @@ export class View {
     this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
   }
 
-  private attributeMouseOut(d: any) {
+  private attributeMouseOut(d: any): void {
     this.removeHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);
     this.removeHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);
 
