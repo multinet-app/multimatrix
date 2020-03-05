@@ -216,9 +216,7 @@ export class Model {
 
     function setUpObservers(): any {
       const updateHighlights = (state: any) => {
-        console.log("updating highlights")
         d3.selectAll('.clicked').classed('clicked', false);
-
         classAllHighlights(state);
       };
 

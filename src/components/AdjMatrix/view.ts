@@ -148,29 +148,14 @@ export class View {
     this.columnGlyphs = {};
     /* Create data columns data */
     this.attributeVariables.forEach((col, index) => {
-      if (!this.isQuantitative(col)) { // if categorical
-
-        this.attributeRows
-          .append('rect')
-          .attr('class', 'glyph ' + col)
-          .attr('x', (colWidth + this.colMargin) * index)
-          .attr('y', 1)
-          .attr('fill', '#dddddd')
-          .attr('width', colWidth)
-          .attr('height', this.orderingScale.bandwidth())
-          .attr('fill', (d: any) => this.attributeScales[col](d[col]))
-          .on('mouseover', (d: any) => this.attributeMouseOver(d))
-          .on('mouseout', (d: any) => this.attributeMouseOut(d));
-
-        return;
-      } else { // if quantitative
+      if (this.isQuantitative(col)) {
         this.columnGlyphs[col] = this.attributeRows
           .append('rect')
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('width', (d: any) => this.attributeScales[col](d[col])) // width changed later on transition
+          .attr('width', (d: any) => this.attributeScales[col](d[col]))
           .attr('x', (colWidth + this.colMargin) * index)
-          .attr('y', 0) // as y is set by translate
+          .attr('y', 0) // y is set by translate on the group
           .attr('fill', (d: any) => '#8B8B8B')
           .on('mouseover', (d: any) => this.attributeMouseOver(d))
           .on('mouseout', (d: any) => this.attributeMouseOut(d));
@@ -179,24 +164,40 @@ export class View {
           .append('div')
           .attr('class', 'glyphLabel')
           .text((d: any, i: number) => d);
+      } else {
+        this.attributeRows
+          .append('rect')
+          .attr('class', 'glyph ' + col)
+          .attr('x', (colWidth + this.colMargin) * index)
+          .attr('y', 0)
+          .attr('fill', '#dddddd')
+          .attr('width', colWidth)
+          .attr('height', this.orderingScale.bandwidth())
+          .attr('fill', (d: any) => this.attributeScales[col](d[col]))
+          .on('mouseover', (d: any) => this.attributeMouseOver(d))
+          .on('mouseout', (d: any) => this.attributeMouseOut(d));
         }
       });
 
+    d3.selectAll('.attrSortIcon').remove();
+
     // TODO: Fix sort icons
-    // if (this.attributeVariables.length < 6) {
-    //   const path = columnHeaderGroups
-    //     .filter((d: any) => d !== 'selected')
-    //     .append('path')
-    //     .attr('class', `sortIcon attr`)
-    //     .attr('d', (d: any) => {
-    //     // let variable = this.isCategorical(d) ? 'categorical' : 'quant'
-    //     // return this.controller.model.icons[variable].d;
-    //   })
-    //   .style('fill', (d: any) => d === this.controller.model.orderType ? '#EBB769' : '#8B8B8B')
-    //   .attr('transform', 'scale(0.1)translate(' + (-50) + ',' + (-300) + ')')
-    //   .on('click', (d: any) => {this.sort(d); })
-    //   .attr('cursor', 'pointer');
-    // }
+    const path = this.columnHeaders
+      .selectAll('path')
+      .data(this.attributeVariables)
+      .enter()
+      // .filter((d: any) => d !== 'selected')
+      .append('path')
+      .attr('class', `sortIcon attr attrSortIcon`)
+      .attr('cursor', 'pointer')
+      .attr('d', (d: any) => {
+        const variable = this.isQuantitative(d) ? 'quant' : 'categorical';
+        return this.controller.model.icons[variable].d;
+      })
+      .attr('transform', (d: any, i: number) => `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200}, -1100)`)
+      .style('fill', (d: any) => '#8B8B8B')
+      .on('click', (d: any) => this.sort(d));
+
   }
 
   private isQuantitative(varName: string): boolean {
