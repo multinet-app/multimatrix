@@ -1130,7 +1130,9 @@ export class View {
     const matrix = nodes[i].getScreenCTM()
       .translate(+nodes[i].getAttribute('x'), + nodes[i].getAttribute('y'));
 
-    this.tooltip.html(nodes[i].id)
+    const message = d.cellName !== undefined ? d.cellName : d.id;
+
+    this.tooltip.html(message)
       .style('left', (window.pageXOffset + matrix.e - 45) + 'px')
       .style('top', (window.pageYOffset + matrix.f - 30) + 'px');
 
