@@ -4,7 +4,6 @@ import * as d3 from 'd3';
 export class View {
   public controller: any;
   public selectedCells: any[] = [];
-  public variableList: string[] = [];
   public attributeVariables: string[] = [];
 
   private nodes: any;
@@ -12,10 +11,8 @@ export class View {
   private matrix: any;
   private edgeWidth: number = 0;
   private edgeHeight: number = 0;
-  private mouseoverEvents: any[];
   private attributeRows: any;
   private tooltip: any;
-  private columnScale: any;
   private order: any;
   private margins: { left: number, top: number, right: number, bottom: number };
   private attributes: any;
@@ -33,8 +30,6 @@ export class View {
 
   constructor() {
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
-    this.mouseoverEvents = [];
-    this.columnScale = d3.scaleBand().range([0, 3]);
   }
 
   /**
@@ -71,7 +66,7 @@ export class View {
     const colWidth = attrWidth / this.attributeVariables.length - this.colMargin;
 
     // Update the variable scales
-    for (const name of this.variableList) {
+    for (const name of this.attributeVariables) {
       this.attributeScales[name] = d3.scaleLinear();
     }
 
@@ -418,9 +413,6 @@ export class View {
       this.addHighlightNodesToDict(this.controller.hoverCol, cell.rowid, cellID);  // Add col (rowid)
     }
 
-    // add mouseover events
-    this.mouseoverEvents.push({ time: new Date().getTime(), event: cellID });
-
     this.addHighlightNodesToDict(this.controller.hoverCol, cell.colid, cellID);  // Add col (colid)
     d3.selectAll('.hovered').classed('hovered', false);
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
@@ -523,11 +515,6 @@ export class View {
     const flag = this.addHighlightNodesToDict(this.controller.hoverRow, elementID, elementID);
     this.addHighlightNodesToDict(this.controller.hoverCol, elementID, elementID);
 
-    // add interaction to mouseover events
-    if (flag) {
-      this.mouseoverEvents.push({ time: new Date().getTime(), event: d3.select(nodes[i]).attr('id') });
-    }
-
     d3.selectAll('.hovered').classed('hovered', false);
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
     this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
@@ -590,8 +577,6 @@ export class View {
       label: interactionType,
       action: (interactID: string) => {
         const currentState = this.controller.model.getApplicationState();
-          // currentState.selections.previousMouseovers = this.mouseoverEvents;
-        this.mouseoverEvents.length = 0;
         // add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = interactionType;
@@ -1105,8 +1090,6 @@ export class View {
   private attributeMouseOver(d: any, i: number, nodes: any): void {
     this.addHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);  // Add row (rowid)
     this.addHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);  // Add row (rowid)
-
-    this.mouseoverEvents.push({ time: new Date().getTime(), event: 'attrRow' + d.id });
 
     d3.selectAll('.hovered').classed('hovered', false);
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');

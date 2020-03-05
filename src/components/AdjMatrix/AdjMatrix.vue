@@ -28,10 +28,6 @@ export default Vue.extend({
       type: Array,
       default: [],
     },
-    variableList: {
-      type: Array,
-      default: [],
-    },
   },
 
   data(): {
@@ -68,12 +64,10 @@ export default Vue.extend({
     properties(this: any) {
       const {
         graphStructure,
-        variableList,
         attributeVariables,
       } = this;
       return {
         graphStructure,
-        variableList,
         attributeVariables,
       };
     },
@@ -122,7 +116,6 @@ export default Vue.extend({
     // Define the MVC
     this.model = new Model(this.graphStructure);
     this.view = new View();
-    this.view.variableList = this.variableList as string[];
     this.view.attributeVariables = this.attributeVariables as string[];
 
     this.controller = new Controller(
@@ -135,7 +128,6 @@ export default Vue.extend({
   methods: {
     updateVis() {
       if (this.view) {
-        this.view.variableList = this.variableList as string[];
         this.view.attributeVariables = this.attributeVariables as string[];
 
         this.view.updateAttributes();
