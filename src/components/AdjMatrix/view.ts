@@ -156,9 +156,9 @@ export class View {
           .attr('width', (d: any) => this.attributeScales[col](d[col]))
           .attr('x', (colWidth + this.colMargin) * index)
           .attr('y', 0) // y is set by translate on the group
-          .attr('fill', (d: any) => '#8B8B8B')
+          .attr('fill', (d: any) => '#82b1ff')
           .attr('cursor', 'pointer')
-          .on('mouseover', (d: any) => this.attributeMouseOver(d))
+          .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
           .on('click', (d: any) => this.nodeClick(d));
       } else {
@@ -172,7 +172,7 @@ export class View {
           .attr('height', this.orderingScale.bandwidth())
           .attr('fill', (d: any) => this.attributeScales[col](d[col]))
           .attr('cursor', 'pointer')
-          .on('mouseover', (d: any) => this.attributeMouseOver(d))
+          .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
           .on('click', (d: any) => this.nodeClick(d));
       }
@@ -280,7 +280,7 @@ export class View {
 
     cells
       .on('mouseover', (cell: any, i: number, nodes: any) => {
-        this.showEdgeTooltip(cell, i, nodes);
+        this.showToolTip(cell, i, nodes);
         this.hoverEdge(cell);
       })
       .on('mouseout', (cell: any) => {
@@ -395,32 +395,6 @@ export class View {
       .filter((d: any) => d.z === 0)
       .style('fill-opacity', (d: { z: number; }) => d.z);
 
-  }
-
-  /**
-   * Renders a tool tip over the provided cell node
-   * @param  cell  Data element corresponding to the cell
-   * @param  i     Index of that
-   * @param  nodes The node elements of the d3 selection
-   * @return       none
-   */
-  private showEdgeTooltip(cell: any, i: number, nodes: any): void {
-    const matrix = nodes[i].getScreenCTM()
-      .translate(+nodes[i].getAttribute('x'), + nodes[i].getAttribute('y'));
-
-    const message = nodes[i].id;
-
-    if (message !== '') {
-      const yOffset = 30;
-      this.tooltip.html(message)
-        .style('left', (window.pageXOffset + matrix.e - 45) + 'px')
-        .style('top', (window.pageYOffset + matrix.f - yOffset) + 'px');
-
-      this.tooltip.transition()
-        .delay(100)
-        .duration(200)
-        .style('opacity', .9);
-    }
   }
 
   /**
@@ -1043,7 +1017,7 @@ export class View {
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
       .attr('cursor', 'pointer')
-      .on('mouseover', (d: any) => this.attributeMouseOver(d))
+      .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
       .on('mouseout', (d: any) => this.attributeMouseOut(d))
       .on('click', (d: any) => this.nodeClick(d));
 
@@ -1128,7 +1102,7 @@ export class View {
     return clicked.includes(node.id);
   }
 
-  private attributeMouseOver(d: any): void {
+  private attributeMouseOver(d: any, i: number, nodes: any): void {
     this.addHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);  // Add row (rowid)
     this.addHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);  // Add row (rowid)
 
@@ -1137,6 +1111,8 @@ export class View {
     d3.selectAll('.hovered').classed('hovered', false);
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
     this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
+
+    this.showToolTip(d, i, nodes);
   }
 
   private attributeMouseOut(d: any): void {
@@ -1146,5 +1122,26 @@ export class View {
     d3.selectAll('.hovered').classed('hovered', false);
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
     this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
+
+    this.hideToolTip();
+  }
+
+  private showToolTip(d: any, i: number, nodes: any): void {
+    const matrix = nodes[i].getScreenCTM()
+      .translate(+nodes[i].getAttribute('x'), + nodes[i].getAttribute('y'));
+
+    this.tooltip.html(nodes[i].id)
+      .style('left', (window.pageXOffset + matrix.e - 45) + 'px')
+      .style('top', (window.pageYOffset + matrix.f - 30) + 'px');
+
+    this.tooltip.transition()
+      .delay(100)
+      .duration(200)
+      .style('opacity', .9);
+  }
+
+  private hideToolTip(): void {
+    this.tooltip.transition(25)
+    .style('opacity', 0);
   }
 }
