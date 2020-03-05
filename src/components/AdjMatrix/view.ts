@@ -161,11 +161,6 @@ export class View {
           .on('mouseover', (d: any) => this.attributeMouseOver(d))
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
           .on('click', (d: any) => this.nodeClick(d));
-
-        this.attributeRows
-          .append('div')
-          .attr('class', 'glyphLabel')
-          .text((d: any, i: number) => d);
       } else {
         this.attributeRows
           .append('rect')
@@ -180,18 +175,17 @@ export class View {
           .on('mouseover', (d: any) => this.attributeMouseOver(d))
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
           .on('click', (d: any) => this.nodeClick(d));
-        }
-      });
+      }
+    });
 
-    d3.selectAll('.attrSortIcon').remove();
-
-    // TODO: Fix sort icons
     const path = this.columnHeaders
       .selectAll('path')
-      .data(this.attributeVariables)
+      .data(this.attributeVariables);
+
+    path
       .enter()
-      // .filter((d: any) => d !== 'selected')
       .append('path')
+      .merge(path)
       .attr('class', `sortIcon attr attrSortIcon`)
       .attr('cursor', 'pointer')
       .attr('d', (d: any) => {
