@@ -21,8 +21,6 @@ export class View {
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
   private nodeFontSize: string = '12';
-  private labelVar: string = '_key';
-  private datumID: string = '';
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private columnGlyphs: { [key: string]: any } = {};
@@ -289,8 +287,6 @@ export class View {
 
     this.controller.hoverRow = {};
     this.controller.hoverCol = {};
-
-    // this.order = this.controller.getOrder();
 
     this.appendEdgeLabels();
 
