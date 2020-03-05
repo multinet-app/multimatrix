@@ -157,8 +157,10 @@ export class View {
           .attr('x', (colWidth + this.colMargin) * index)
           .attr('y', 0) // y is set by translate on the group
           .attr('fill', (d: any) => '#8B8B8B')
+          .attr('cursor', 'pointer')
           .on('mouseover', (d: any) => this.attributeMouseOver(d))
-          .on('mouseout', (d: any) => this.attributeMouseOut(d));
+          .on('mouseout', (d: any) => this.attributeMouseOut(d))
+          .on('click', (d: any) => this.nodeClick(d));
 
         this.attributeRows
           .append('div')
@@ -174,8 +176,10 @@ export class View {
           .attr('width', colWidth)
           .attr('height', this.orderingScale.bandwidth())
           .attr('fill', (d: any) => this.attributeScales[col](d[col]))
+          .attr('cursor', 'pointer')
           .on('mouseover', (d: any) => this.attributeMouseOver(d))
-          .on('mouseout', (d: any) => this.attributeMouseOut(d));
+          .on('mouseout', (d: any) => this.attributeMouseOut(d))
+          .on('click', (d: any) => this.nodeClick(d));
         }
       });
 
@@ -1044,6 +1048,7 @@ export class View {
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
+      .attr('cursor', 'pointer')
       .on('mouseover', (d: any) => this.attributeMouseOver(d))
       .on('mouseout', (d: any) => this.attributeMouseOut(d))
       .on('click', (d: any) => this.nodeClick(d));
