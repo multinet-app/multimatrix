@@ -124,21 +124,12 @@ svg >>> .hoveredCell {
   stroke: darkgray;
 }
 
-svg >>> .neighbor rect {
-  fill: #caffc7;
-  fill-opacity: 1;
-}
-
 svg >>> .neighbor {
   fill: #caffc7;
   fill-opacity: 1;
 }
 
-svg >>> .colLabel {
-  cursor: pointer;
-  fill: black !important;
-}
-
+svg >>> .colLabel,
 svg >>> .rowLabel {
   cursor: pointer;
   fill: black !important;
