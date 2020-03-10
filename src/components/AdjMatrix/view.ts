@@ -139,7 +139,10 @@ export class View {
           .attr('cursor', 'pointer')
           .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
-          .on('click', (d: any) => this.nodeClick(d));
+          .on('click', (d: any, i: string | number) => {
+            this.nodeClick(d);
+            this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+          });
       } else {
         this.attributeRows
           .append('rect')
@@ -153,7 +156,10 @@ export class View {
           .attr('cursor', 'pointer')
           .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
-          .on('click', (d: any) => this.nodeClick(d));
+          .on('click', (d: any, i: string | number) => {
+            this.nodeClick(d);
+            this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+          });
       }
     });
 
@@ -181,13 +187,6 @@ export class View {
   private isQuantitative(varName: string): boolean {
     const uniqueValues = [...new Set(this.nodes.map((node: any) => parseFloat(node[varName])))];
     return uniqueValues.length > 5;
-  }
-
-  private clickFunction(d: any, i: number, nodes: any[]): void {
-    const nodeID = d.id;
-    const interaction = d3.select(nodes[i]).attr('class');
-    const action = this.changeInteractionWrapper(nodeID, nodes[i], interaction);
-    this.controller.model.provenance.applyAction(action);
   }
 
   /**
@@ -234,57 +233,7 @@ export class View {
 
 
     this.drawGridLines();
-    this.drawHighlightElements();
-
-
-    // this.generateColorLegend();
-
-    const cells = this.edgeRows.selectAll('.cell')
-      .data((d: any) => d)
-      .enter()
-      .append('g')
-      .attr('class', 'cell')
-      .attr('id', (d: any) => d.cellName)
-      .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
-
-    cells
-      .append('rect')
-      .classed('baseCell', true)
-      .attr('x', 0)
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('width', this.orderingScale.bandwidth());
-
-    // render edges
-    // this.controller.adjMatrix.edgeBars ? this.drawEdgeBars(cells) :
-    this.drawFullSquares(cells);
-
-    cells
-      .on('mouseover', (cell: any, i: number, nodes: any) => {
-        this.showToolTip(cell, i, nodes);
-        this.hoverEdge(cell);
-      })
-      .on('mouseout', (cell: any) => {
-        this.tooltip.transition(25)
-          .style('opacity', 0);
-
-        this.unhoverEdge(cell);
-      })
-      .on('click', (d: any, i: number, nodes: any) => this.clickFunction(d, i, nodes))
-      .attr('cursor', 'pointer');
-
-    this.controller.hoverRow = {};
-    this.controller.hoverCol = {};
-
-    this.appendEdgeLabels();
-
-    // add tooltip
-    this.tooltip = d3.select('body')
-      .append('div')
-      .attr('class', 'tooltip')
-      .style('opacity', 0);
-  }
-
-  private drawHighlightElements(): void {
+    
     // add the highlight rows
     this.edgeColumns
       .append('rect')
@@ -310,6 +259,61 @@ export class View {
       .attr('width', this.edgeWidth + this.margins.right + this.margins.left)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
+
+    const cells = this.edgeRows.selectAll('.cell')
+      .data((d: any) => d)
+      .enter()
+      .append('g')
+      .attr('class', 'cell')
+      .attr('id', (d: any) => d.cellName)
+      .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
+
+    cells
+      .append('rect')
+      .classed('baseCell', true)
+      .attr('x', 0)
+      .attr('height', this.orderingScale.bandwidth())
+      .attr('width', this.orderingScale.bandwidth());
+
+    const squares = cells
+      .append('rect')
+      .attr('x', 0)// d => this.orderingScale(d.x))
+      // .filter(d=>{return d.item >0})
+      .attr('width', this.orderingScale.bandwidth())
+      .attr('height', this.orderingScale.bandwidth());
+      // .style("fill", 'white')
+
+    squares
+      .filter((d: any) => d.z === 0)
+      .style('fill-opacity', (d: { z: number; }) => d.z);
+
+    cells
+      .on('mouseover', (cell: any, i: number, nodes: any) => {
+        this.showToolTip(cell, i, nodes);
+        this.hoverEdge(cell);
+      })
+      .on('mouseout', (cell: any) => {
+        this.hideToolTip();
+        this.unhoverEdge(cell);
+      })
+      .on('click', (d: any, i: number, nodes: any) => {
+        const nodeID = d.id;
+        const interaction = d3.select(nodes[i]).attr('class');
+        const action = this.changeInteractionWrapper(nodeID, nodes[i], interaction);
+        this.controller.model.provenance.applyAction(action);
+      })
+      .attr('cursor', 'pointer');
+
+    this.controller.hoverRow = {};
+    this.controller.hoverCol = {};
+
+    this.appendEdgeLabels();
+
+    // add tooltip
+    this.tooltip = d3.select('body')
+      .append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0);
   }
 
   /**
@@ -356,26 +360,6 @@ export class View {
   }
 
   /**
-   * Function to render the matrix edges as full squares
-   * @param  cells d3 selection corresponding to the matrix cell groups
-   * @return       none
-   */
-  private drawFullSquares(cells: any): void {
-    const squares = cells
-      .append('rect')
-      .attr('x', 0)// d => this.orderingScale(d.x))
-      // .filter(d=>{return d.item >0})
-      .attr('width', this.orderingScale.bandwidth())
-      .attr('height', this.orderingScale.bandwidth());
-      // .style("fill", 'white')
-
-    squares
-      .filter((d: any) => d.z === 0)
-      .style('fill-opacity', (d: { z: number; }) => d.z);
-
-  }
-
-  /**
    * Renders hover interactions and logs interaction in mouseoverEvents.
    * @param  cell d3 datum corresponding to cell's data
    * @return      none
@@ -389,15 +373,17 @@ export class View {
     });
     const cellID = cellIDs[0];
 
-    this.addHighlightNodesToDict(this.controller.hoverRow, cell.rowid, cellID);  // Add row (rowid)
+    // Add the nodes to be highlighted to the object
+    this.addHighlightNodesToDict(this.controller.hoverRow, cell.rowid, cellID);
+    this.addHighlightNodesToDict(this.controller.hoverCol, cell.colid, cellID);
 
+    // If we're not on diagonal, highlight the other cell + row + column
     if (cell.colid !== cell.rowid) {
-      this.addHighlightNodesToDict(this.controller.hoverRow, cell.colid, cellID);  // Add row (colid)
-      this.addHighlightNodesToDict(this.controller.hoverCol, cell.rowid, cellID);  // Add col (rowid)
+      this.addHighlightNodesToDict(this.controller.hoverRow, cell.colid, cellID);
+      this.addHighlightNodesToDict(this.controller.hoverCol, cell.rowid, cellID);
     }
 
-    this.addHighlightNodesToDict(this.controller.hoverCol, cell.colid, cellID);  // Add col (colid)
-    d3.selectAll('.hovered').classed('hovered', false);
+    //
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
     this.renderHighlightNodesFromDict(this.controller.hoverCol, 'hovered', 'Col');
   }
@@ -413,13 +399,15 @@ export class View {
     this.selectedCells = [];
 
     const cellID = cell.cellName;
-    this.removeHighlightNodesToDict(this.controller.hoverRow, cell.rowid, cellID);  // Add row (rowid)
+    this.removeHighlightNodesFromDict(this.controller.hoverRow, cell.rowid, cellID);  // Add row (rowid)
+    this.removeHighlightNodesFromDict(this.controller.hoverCol, cell.colid, cellID);  // Add col (colid)
+
+    // If we're not on the diagonal, unhighlight the other cell + row + column
     if (cell.colid !== cell.rowid) {
-      this.removeHighlightNodesToDict(this.controller.hoverRow, cell.colid, cellID);
-      this.removeHighlightNodesToDict(this.controller.hoverCol, cell.rowid, cellID);  // Add col (rowid)
+      this.removeHighlightNodesFromDict(this.controller.hoverRow, cell.colid, cellID);
+      this.removeHighlightNodesFromDict(this.controller.hoverCol, cell.rowid, cellID);
     }
-    // Add row (colid)
-    this.removeHighlightNodesToDict(this.controller.hoverCol, cell.colid, cellID);  // Add col (colid)
+
     d3.selectAll('.hovered').classed('hovered', false);
   }
 
@@ -442,7 +430,10 @@ export class View {
       .text((d: any, i: string | number) => this.nodes[i]._key)
       .on('mouseout', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
       .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
-      .on('click', (d: any) => this.nodeClick(d));
+      .on('click', (d: any, i: string | number) => {
+        this.nodeClick(d);
+        this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+      });
 
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
@@ -622,126 +613,6 @@ export class View {
     }
   }
 
-  private generateScaleLegend(type: string, numberOfEdge: number): void {
-    let yOffset = 10;
-    let xOffset = 10;
-
-    if (this.controller.adjMatrix.edgeBars && this.controller.isMultiEdge) {
-      let legendFile = 'assets/adj-matrix/';
-      legendFile += this.controller.isMultiEdge ? 'nestedSquaresLegend' : 'edgeBarsLegendSingleEdge';
-      legendFile += '.png';
-      d3.select('#legend-svg').append('g').append('svg:image')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('width', 90)
-        .attr('height', 120)
-        .attr('xlink:href', legendFile);
-      xOffset = 100;
-    }
-
-    const rectWidth = 18;
-    const rectHeight = 10;
-    const legendWidth = 175;
-    const legendHeight = 60;
-    yOffset += legendHeight * numberOfEdge;
-
-    const scale = this.edgeScales[type];
-    const extent = scale.domain();
-    const placeholder = 5;
-
-    const sampleNumbers = [0, 1, 3, 5];
-
-    const svg = d3.select('#legend-svg').append('g')
-      .attr('id', `legendLinear${type}`)
-      .attr('transform', (d, i) => `translate(${xOffset},${yOffset})`)
-      .on('click', (d) => {
-        if (this.controller.adjMatrix.selectEdgeType === true) {
-          const edgeType = this.controller.state.adjMatrix.selectedEdgeType === type ? 'all' : type;
-          this.controller.state.adjMatrix.selectedEdgeType = edgeType;
-          if (edgeType === 'all') {
-            d3.selectAll('.selectedEdgeType').classed('selectedEdgeType', false);
-          } else {
-            d3.selectAll('.selectedEdgeType').classed('selectedEdgeType', false);
-            d3.selectAll(`#legendLinear${type}`).select('.edgeLegendBorder').classed('selectedEdgeType', true);
-
-          }
-        }
-      });
-    const boxWidth = (placeholder + 1) * rectWidth + 15;
-
-    svg.append('rect')
-      .classed('edgeLegendBorder', true)
-      .attr('stroke', 'gray')
-      .attr('stroke-width', 1)
-      .attr('width', boxWidth)
-      .attr('height', 55)
-      .attr('fill-opacity', 0)
-      .attr('x', 0)
-      .attr('y', -9)
-      .attr('ry', 2)
-      .attr('rx', 2);
-
-    let pluralType = type;
-
-    if (pluralType === 'retweet') {
-      pluralType = 'retweets';
-    } else if (pluralType === 'interacted') {
-      pluralType = 'interactions';
-    }
-
-    svg.append('text')
-      .attr('x', boxWidth / 2)
-      .attr('y', 8)
-      .attr('text-anchor', 'middle')
-      .text(`# of ${pluralType}`);
-    const sideMargin = ((boxWidth) - (sampleNumbers.length * (rectWidth + 5))) / 2;
-
-    const groups = svg.selectAll('g')
-      .data(sampleNumbers)
-      .enter()
-      .append('g')
-      .attr('transform', (d, i) => `translate(${sideMargin + i * (rectWidth + 5)},15)`);
-
-    groups
-      .append('rect')
-      .attr('width', rectWidth)
-      .attr('height', rectHeight)
-      .attr('fill', (d) => {
-        return scale(d);
-      })
-      .attr('stroke', (d) => {
-        return d === 0 ? '#bbb' : 'white';
-      });
-
-    groups
-      .append('text')
-      .attr('x', rectWidth / 2)
-      .attr('y', 25)
-      .attr('text-anchor', 'middle')
-      .text((d: any) => {
-        return Math.round(d);
-      });
-  }
-
-  private generateColorLegend(): void {
-    let counter = 0;
-    for (const type in this.edgeScales) {
-      if (this.controller.isMultiEdge) {
-        if (type === 'interacted') {
-          continue;
-        }
-        this.generateScaleLegend(type, counter);
-        counter += 1;
-
-      } else {
-        if (type !== 'interacted') {
-          continue;
-        }
-        this.generateScaleLegend(type, counter);
-      }
-    }
-  }
-
   private addHighlightNode(addingNode: string): void {
     // if node is in
     const nodeIndex = this.nodes.findIndex((item: { [x: string]: string; }, i: any) => {
@@ -790,7 +661,7 @@ export class View {
   ): boolean {
     // if node already in highlight, remove it
     if (this.nodeDictContainsPair(dict, nodeToHighlight, interactedElement)) {
-      this.removeHighlightNodesToDict(dict, nodeToHighlight, interactedElement);
+      this.removeHighlightNodesFromDict(dict, nodeToHighlight, interactedElement);
       return false;
     }
 
@@ -804,7 +675,7 @@ export class View {
     return true;
   }
 
-  private removeHighlightNodesToDict(
+  private removeHighlightNodesFromDict(
     dict: { [x: string]: any; }, nodeToHighlight: string, interactedElement: any,
   ): void {
     // if node is not in list, simply return
@@ -856,10 +727,10 @@ export class View {
     }
     // remove last comma
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
-    if (cssSelector === '') {
-      return;
+    
+    if (cssSelector !== '') {
+      d3.selectAll(cssSelector).classed(classToRender, true);
     }
-    d3.selectAll(cssSelector).classed(classToRender, true);
   }
 
   /**
@@ -987,7 +858,10 @@ export class View {
       .attr('cursor', 'pointer')
       .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
       .on('mouseout', (d: any) => this.attributeMouseOut(d))
-      .on('click', (d: any) => this.nodeClick(d));
+      .on('click', (d: any, i: string | number) => {
+        this.nodeClick(d);
+        this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+      });
 
     this.columnHeaders = this.attributes.append('g')
       .classed('column-headers', true);
@@ -1021,7 +895,6 @@ export class View {
 
   // function that updates the state, and includes a flag for when this was done through a search
  private nodeClick(node: any, search: boolean = false): void {
-
   if (node[0] !== undefined) {
     node = { id: node[0].rowid };
   }
@@ -1082,8 +955,8 @@ export class View {
   }
 
   private attributeMouseOut(d: any): void {
-    this.removeHighlightNodesToDict(this.controller.hoverRow, d.id, d.id);
-    this.removeHighlightNodesToDict(this.controller.hoverCol, d.id, d.id);
+    this.removeHighlightNodesFromDict(this.controller.hoverRow, d.id, d.id);
+    this.removeHighlightNodesFromDict(this.controller.hoverCol, d.id, d.id);
 
     d3.selectAll('.hovered').classed('hovered', false);
     this.renderHighlightNodesFromDict(this.controller.hoverRow, 'hovered', 'Row');
