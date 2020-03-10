@@ -31,29 +31,17 @@ export class View {
   }
 
   /**
-   * Changes the input string by any conflicting class names given to the
-   * elements that were interacted with.
-   * @param  interaction class of the interacted element
-   * @return             string - elements class name with no style classes
-   */
-  public sanitizeInteraction(interaction: string): string {
-    interaction = interaction.replace(' hoveredCell', '');
-    interaction = interaction.replace(' hovered', '');
-    interaction = interaction.replace(' clicked', '');
-    interaction = interaction.replace(' neighbor', '');
-    return interaction;
-  }
-
-  /**
    * Takes in the data, and initializes visualization.
    * @param  data [description]
    * @return      [description]
    */
   public loadData(nodes: any, edges: any, matrix: any): void {
+    // Take in the data from the model
     this.nodes = nodes;
     this.edges = edges;
     this.matrix = matrix;
 
+    // Kick off the rendering
     this.initializeEdges();
     this.initializeAttributes();
   }
@@ -137,12 +125,10 @@ export class View {
     });
 
     d3.selectAll('.glyph').remove();
-
-    this.columnGlyphs = {};
     /* Create data columns data */
     this.attributeVariables.forEach((col, index) => {
       if (this.isQuantitative(col)) {
-        this.columnGlyphs[col] = this.attributeRows
+        this.attributeRows
           .append('rect')
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
@@ -171,6 +157,7 @@ export class View {
       }
     });
 
+    // Add sort icons to the top of the header
     const path = this.columnHeaders
       .selectAll('path')
       .data(this.attributeVariables);
@@ -198,7 +185,7 @@ export class View {
 
   private clickFunction(d: any, i: number, nodes: any[]): void {
     const nodeID = d.id;
-    const interaction = this.sanitizeInteraction(d3.select(nodes[i]).attr('class'));
+    const interaction = d3.select(nodes[i]).attr('class');
     const action = this.changeInteractionWrapper(nodeID, nodes[i], interaction);
     this.controller.model.provenance.applyAction(action);
   }
