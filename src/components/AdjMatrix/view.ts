@@ -212,7 +212,7 @@ export class View {
       .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
 
     // sets the vertical scale
-    this.orderingScale = d3.scaleBand<number>().range([0, this.edgeHeight]).domain(d3.range(this.nodes.length));
+    this.orderingScale = d3.scaleBand<number>().range([0, this.edgeHeight]).domain(d3.range(0, this.nodes.length, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
@@ -235,7 +235,7 @@ export class View {
 
 
     this.drawGridLines();
-    
+
     // add the highlight rows
     this.edgeColumns
       .append('rect')
@@ -504,6 +504,7 @@ export class View {
     const gridLines = this.edges
       .append('g')
       .attr('class', 'gridLines');
+
     const lines = gridLines
       .selectAll('line')
       .data(this.matrix)
@@ -513,29 +514,29 @@ export class View {
       .attr('transform', (d: any, i: number) => {
         return `translate(${this.orderingScale(i)},0)rotate(-90)`;
       })
-      .attr('x1', -this.edgeWidth);
+      .attr('x1', -this.orderingScale.range()[1]);
 
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       })
-      .attr('x2', this.edgeWidth + this.margins.right);
+      .attr('x2', this.orderingScale.range()[1]);
 
     gridLines
       .append('line')
-      .attr('x1', this.edgeWidth)
-      .attr('x2', this.edgeWidth)
+      .attr('x1', this.orderingScale.range()[1])
+      .attr('x2', this.orderingScale.range()[1])
       .attr('y1', 0)
-      .attr('y2', this.edgeHeight + this.margins.bottom)
+      .attr('y2', this.orderingScale.range()[1])
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
 
     gridLines
       .append('line')
       .attr('x1', 0)
-      .attr('x2', this.edgeWidth)
-      .attr('y1', this.edgeHeight + this.margins.bottom)
-      .attr('y2', this.edgeHeight + this.margins.bottom)
+      .attr('x2', this.orderingScale.range()[1])
+      .attr('y1', this.orderingScale.range()[1])
+      .attr('y2', this.orderingScale.range()[1])
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
 
