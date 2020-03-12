@@ -163,6 +163,8 @@ export class View {
       }
     });
 
+    d3.selectAll('.attrSortIcon').remove();
+
     // Add sort icons to the top of the header
     const path = this.columnHeaders
       .selectAll('path')
