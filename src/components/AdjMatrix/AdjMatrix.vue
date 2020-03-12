@@ -114,52 +114,33 @@ export default Vue.extend({
   <svg ref="svg" width="800" height="900" />
 </template>
 
-<style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue",
-    Helvetica, Arial, "Lucida Grande", sans-serif;
-  font-weight: 300;
-}
-
-.baseCell {
+<style scoped>
+svg >>> .baseCell {
   fill-opacity: 0;
 }
 
-.hoveredCell {
+svg >>> .hoveredCell {
   stroke-width: 1px;
   stroke: darkgray;
 }
 
-.neighbor rect {
+svg >>> .neighbor {
   fill: #caffc7;
   fill-opacity: 1;
 }
 
-.neighbor {
-  fill: #caffc7;
-  fill-opacity: 1;
-}
-
-.colLabel {
+svg >>> .colLabel,
+svg >>> .rowLabel {
   cursor: pointer;
   fill: black !important;
 }
 
-.rowLabel {
-  cursor: pointer;
-  fill: black !important;
-}
-
-.highlightedCell {
+svg >>> .highlightedCell {
   fill: #fff4d3;
   fill-opacity: 1 !important;
 }
 
-.highlightCol {
+svg >>> .highlightCol {
   pointer-events: auto;
 }
 
@@ -178,37 +159,37 @@ div.tooltip {
   transition: 0.3s;
 }
 
-.hovered {
+svg >>> .hovered {
   fill: #fde8ca;
   fill-opacity: 1 !important;
 }
 
-.clickedCell {
+svg >>> .clickedCell {
   stroke-width: 2.5;
   stroke: #ee0000;
 }
 
-.clicked {
+svg >>> .clicked {
   font-weight: 800;
   fill: #f8cf91 !important;
   fill-opacity: 1 !important;
 }
 
-.clickedCell {
+svg >>> .clickedCell {
   stroke: red;
   stroke-width: 3;
 }
 
-text.hovered {
+svg >>> text.hovered {
   font-weight: 450;
 }
 
-text.clicked {
+svg >>> text.clicked {
   font-weight: 650;
   fill: black !important;
 }
 
-line {
+svg >>> line {
   pointer-events: none;
   stroke: #aaa;
   opacity: 0.3;
