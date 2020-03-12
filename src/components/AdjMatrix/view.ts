@@ -730,7 +730,7 @@ export class View {
     }
     // remove last comma
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
-    
+
     if (cssSelector !== '') {
       d3.selectAll(cssSelector).classed(classToRender, true);
     }
