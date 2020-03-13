@@ -113,9 +113,9 @@ export class Model {
     clicked: never[];
     sortKey: string;
     selections: {
-        attrRow: {};
-        rowLabel: {};
-        colLabel: {};
+        attrRow: {},
+        rowLabel: {},
+        colLabel: {},
         neighborSelect: {},
         cellcol: {},
         cellrow: {},
@@ -178,6 +178,7 @@ export class Model {
         clickedElements.add(`[id="colLabel${node}"]`);
         clickedElements.add(`[id="topoCol${node}"]`);
         clickedElements.add(`[id="topoRow${node}"]`);
+        clickedElements.add(`[id="attrRow${node}"]`);
       }
 
       // go through each interacted element, and determine which rows/columns should
@@ -216,7 +217,6 @@ export class Model {
     function setUpObservers(): any {
       const updateHighlights = (state: any) => {
         d3.selectAll('.clicked').classed('clicked', false);
-
         classAllHighlights(state);
       };
 

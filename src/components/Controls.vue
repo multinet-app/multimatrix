@@ -19,6 +19,7 @@ export default Vue.extend({
     graph: any,
     selectNeighbors: boolean,
     searchQuery: any,
+    attributeVariables: string[],
   } {
     return {
       app: undefined,
@@ -31,10 +32,18 @@ export default Vue.extend({
       graph: null,
       selectNeighbors: true,
       searchQuery: null,
+      attributeVariables: [],
     };
   },
 
   computed: {
+    variableList() {
+      if (typeof this.graphStructure.nodes[0] !== 'undefined') {
+        return Object.keys(this.graphStructure.nodes[0]);
+      } else {
+        return [];
+      }
+    },
   },
 
   async mounted() {
@@ -79,6 +88,17 @@ export default Vue.extend({
               v-model="searchQuery"
             ></v-text-field>
 
+            <v-select
+              v-model="attributeVariables"
+              :items="variableList"
+              label="Node Variables"
+              multiple
+              chips
+              deletable-chips
+              hint="Choose the node variables you'd like to visualize"
+              persistent-hint
+            />
+
             <v-card-subtitle class="pb-0 px-0" style="display: flex; align-items: center; justify-content: space-between">
               Autoselect neighbors
               <v-switch
@@ -107,6 +127,7 @@ export default Vue.extend({
               provenance,
               app,
               selectNeighbors,
+              attributeVariables,
             }"
             @restart-simulation="hello()"
             />
@@ -119,6 +140,5 @@ export default Vue.extend({
 <style scoped>
   .v-card {
     max-height: calc(100vh - 24px);
-    overflow-y: scroll
   }
 </style>
