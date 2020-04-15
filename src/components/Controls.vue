@@ -37,7 +37,7 @@ export default Vue.extend({
   },
 
   computed: {
-    variableList() {
+    variableList(this: any) {
       if (typeof this.graphStructure.nodes[0] !== 'undefined') {
         return Object.keys(this.graphStructure.nodes[0]);
       } else {
