@@ -48,7 +48,7 @@ function _defineNeighbors(nodes: any[], links: any[]) {
   return nodes;
 }
 
-async function loadData(workspace: string, graph: string, apiRoot: string = 'https://multinet.app/api') {
+async function loadData(workspace: string, graph: string, apiRoot: string = 'https://api.multinet.app/api') {
   // Define local variables that will store the api url and the responses from the database
   const multinet: {tables: any, nodes: any[], links: any[], graph_structure: any} = {
     tables: {nodeTables: [], edgeTable: ''},
