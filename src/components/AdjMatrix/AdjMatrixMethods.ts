@@ -40,7 +40,6 @@ export class View {
   private nodeFontSize: string = '12';
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
-  private columnGlyphs: { [key: string]: any } = {};
   private colMargin: number = 5;
   private visDimensions: any;
 
@@ -52,12 +51,9 @@ export class View {
   private orderType: any;
   private highlightedNodes: { [key: string]: any[] } = {};
   private columnSelectedNodes: any[] = [];
-  private mouseoverEvents: any;
   private mouseOverEvents: any;
 
   constructor(network: Network, visDimensions: any, attributeVariables: string[]) {
-    console.log('in constructor')
-
     this.network = network;
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
     this.visDimensions = visDimensions;
@@ -89,7 +85,6 @@ export class View {
 
     this.processData();
     this.loadData();
-    console.log('end of constructor')
   }
 
   /**
@@ -252,8 +247,6 @@ export class View {
    * @return None
    */
   private initializeEdges(): void {
-    console.log(this.matrix)
-
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     const width = this.visDimensions.width;
     const height = this.visDimensions.height;
@@ -491,7 +484,7 @@ export class View {
       .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
       .on('click', (d: any, i: number) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
       });
 
     let verticalOffset = 187.5;
@@ -528,7 +521,7 @@ export class View {
       .text((d: any, i: number) => this.network.nodes[i]._key)
       .on('click', (d: any, i: number) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
       })
       .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
       .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
@@ -675,7 +668,7 @@ export class View {
 
   private addHighlightNode(addingNode: string): void {
     // if node is in
-    const nodeIndex = this.nodes.findIndex((item: { [x: string]: string; }, i: any) => {
+    const nodeIndex = this.network.nodes.findIndex((item: { [x: string]: string; }, i: any) => {
       return item.id === addingNode;
     });
 
@@ -816,7 +809,7 @@ export class View {
    * @return [description]
    */
   private sort(order: string): void {
-    const nodeIDs = this.nodes.map((node: { id: any; }) => node.id);
+    const nodeIDs = this.network.nodes.map((node: { id: any; }) => node.id);
 
     if (nodeIDs.includes(order)) {
       this.order = this.changeOrder(order, true);
@@ -880,7 +873,7 @@ export class View {
 
     // add zebras and highlight rows
     this.attributes.selectAll('.highlightRow')
-      .data(this.matrix)
+      .data(this.network.nodes)
       .enter()
       .append('rect')
       .classed('highlightRow', true)
@@ -893,7 +886,7 @@ export class View {
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
       .selectAll('.row')
-      .data(this.matrix)
+      .data(this.network.nodes)
       .enter()
       .append('g')
       .attr('class', 'row')
@@ -920,7 +913,7 @@ export class View {
       .on('mouseout', (d: any) => this.attributeMouseOut(d))
       .on('click', (d: any, i: number) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
       });
 
     this.columnHeaders = this.attributes.append('g')
@@ -1040,14 +1033,23 @@ export class View {
     .style('opacity', 0);
   }
 
-  private sortObserver(type: string, node: boolean = false): number[] {
+  private sortObserver(type: string, isNode: boolean = false): number[] {
     let order;
     this.sortKey = type;
     this.sortKey = type;
     if (type === 'clusterSpectral' || type === 'clusterBary' || type === 'clusterLeaf') {
+      const links: any[] = Array(this.network.links.length);
+
+      this.network.links.forEach((link: Link, index: number) => {
+        links[index] = {
+          source: this.network.nodes.find((node: Node) => node.id === link.source),
+          target: this.network.nodes.find((node: Node) => node.id === link.target),
+        };
+      });
+
       const graph = reorder.graph()
-        .nodes(this.nodes)
-        .links(this.edges)
+        .nodes(this.network.nodes)
+        .links(links)
         .init();
 
       if (type === 'clusterBary') {
@@ -1060,18 +1062,24 @@ export class View {
         order = reorder.optimal_leaf_order()(mat);
       }
     } else if (this.sortKey === 'edges') {
-      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
-    } else if (node === true) {
-      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[a].id.localeCompare(this.nodes[b].id));
-      order = d3.range(this.nodes.length).sort((a, b) =>
-        this.nodes[b].neighbors.includes(type) - this.nodes[a].neighbors.includes(type),
+      order = d3
+      .range(this.network.nodes.length)
+      .sort((a, b) => this.network.nodes[b][type] - this.network.nodes[a][type]);
+    } else if (isNode === true) {
+      order = d3
+      .range(this.network.nodes.length)
+      .sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
+      order = d3.range(this.network.nodes.length).sort((a, b) =>
+        this.network.nodes[b].neighbors.includes(type) - this.network.nodes[a].neighbors.includes(type),
       );
     } else if (false) {
-      order = d3.range(this.nodes.length).sort((a, b) =>
-        this.nodes[a][this.sortKey].localeCompare(this.nodes[b][this.sortKey]),
+      order = d3.range(this.network.nodes.length).sort((a, b) =>
+        this.network.nodes[a][this.sortKey].localeCompare(this.network.nodes[b][this.sortKey]),
       );
     } else {
-      order = d3.range(this.nodes.length).sort((a, b) => this.nodes[b][type] - this.nodes[a][type]);
+      order = d3
+      .range(this.network.nodes.length)
+      .sort((a, b) => this.network.nodes[b][type] - this.network.nodes[a][type]);
     }
     this.order = order;
     return order;
@@ -1283,7 +1291,7 @@ export class View {
         currentState.event = 'sort';
 
         currentState.sortKey = key;
-        if (this.mouseoverEvents !== undefined) {
+        if (this.mouseOverEvents !== undefined) {
           currentState.selections.previousMouseOvers = this.mouseOverEvents;
           this.mouseOverEvents.length = 0;
         }

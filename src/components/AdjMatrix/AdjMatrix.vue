@@ -2,7 +2,7 @@
 import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 
-import { View } from './view';
+import { View } from '@/components/AdjMatrix/AdjMatrixMethods';
 import { Network } from '@/types';
 
 export default Vue.extend({
