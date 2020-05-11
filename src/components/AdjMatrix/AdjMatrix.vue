@@ -2,9 +2,7 @@
 import * as d3 from 'd3';
 import Vue from 'vue';
 
-import { Model } from './model';
 import { View } from './view';
-import { Controller } from './controller';
 
 export default Vue.extend({
   props: {
@@ -36,9 +34,7 @@ export default Vue.extend({
     visMargins: any,
     matrix: any,
     attributes: any,
-    model: Model|undefined,
     view: View|undefined,
-    controller: Controller|undefined,
     } {
     return {
       browser: {
@@ -54,9 +50,7 @@ export default Vue.extend({
       },
       matrix: undefined,
       attributes: undefined,
-      model: undefined,
       view: undefined,
-      controller: undefined,
     };
   },
 
@@ -105,23 +99,17 @@ export default Vue.extend({
       .attr('height', this.visDimensions.height)
       .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 30} ${this.visDimensions.height}`);
 
-    // Define the MVC
-    this.model = new Model(this.graphStructure);
-    this.view = new View(this.visDimensions);
+    // Define the MV
+    this.view = new View(this.graphStructure, this.visDimensions);
     this.view.attributeVariables = this.attributeVariables as string[];
 
-    this.view.model = this.model;
-    this.model.view = this.view;
-    this.view.controller = this;
-    this.view.model.controller = this;
-    this.view.model.reload();
+    this.view.loadData(this.view.nodes, this.view.edges, this.view.matrix);
   },
 
   methods: {
     updateVis() {
       if (this.view) {
         this.view.attributeVariables = this.attributeVariables as string[];
-
         this.view.updateAttributes();
       }
     },
