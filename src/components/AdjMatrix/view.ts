@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
+import { Link, Network, Node } from '@/types';
 
 declare const reorder: any;
 
@@ -10,7 +11,7 @@ export class View {
   public selectedCells: any[] = [];
   public attributeVariables: string[] = [];
 
-  public network: {nodes: object[], links: object[]};
+  public network: Network;
   public icons: { [key: string]: { [d: string]: string}};
   public sortKey: string;
 
@@ -54,12 +55,17 @@ export class View {
   private mouseoverEvents: any;
   private mouseOverEvents: any;
 
-  constructor(network: {nodes: object[], links: object[]}, visDimensions: any) {
+  constructor(network: Network, visDimensions: any, attributeVariables: string[]) {
+    console.log('in constructor')
+
     this.network = network;
-    this.nodes = network.nodes;
-    this.edges = network.links;
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
     this.visDimensions = visDimensions;
+    this.provenance = this.setUpProvenance();
+    this.sortKey = 'name';
+    this.matrix = [];
+    this.idMap = {};
+    this.attributeVariables = attributeVariables;
 
     this.icons = {
       quant: {
@@ -74,22 +80,16 @@ export class View {
       cellSort: {
         d: 'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
       },
-
     };
 
-    this.provenance = this.setUpProvenance();
-
-    this.sortKey = 'name';
-    this.matrix = [];
-    this.idMap = {};
-
-    this.nodes.forEach((node: {id: string, index: undefined | number}, index: number) => {
+    this.network.nodes.forEach((node: Node, index: number) => {
       node.index = index;
       this.idMap[node.id] = index;
     });
 
     this.processData();
-
+    this.loadData();
+    console.log('end of constructor')
   }
 
   /**
@@ -97,12 +97,7 @@ export class View {
    * @param  data [description]
    * @return      [description]
    */
-  public loadData(nodes: any, edges: any, matrix: any): void {
-    // Take in the data from the model
-    this.nodes = nodes;
-    this.edges = edges;
-    this.matrix = matrix;
-
+  public loadData(): void {
     // Kick off the rendering
     this.initializeEdges();
     this.initializeAttributes();
@@ -144,17 +139,17 @@ export class View {
       .on('click', (d: any, i: number) => this.sort(d));
 
     // Calculate the variable scales
-    this.attributeVariables.forEach((col, index) => {
+    this.attributeVariables.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
-        const minimum = d3.min(this.nodes.map((node: any) => node[col])) || '0';
-        const maximum = d3.max(this.nodes.map((node: any) => node[col])) || '0';
+        const minimum = d3.min(this.network.nodes.map((node: Node) => node[col])) || '0';
+        const maximum = d3.max(this.network.nodes.map((node: Node) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
 
         const scale = d3.scaleLinear().domain(domain).range([0, colWidth]);
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
-        const values: string[] = this.nodes.map((node: { [key: string]: string }) => node[col]);
+        const values: string[] = this.network.nodes.map((node: Node) => node[col]);
         const domain = [...new Set(values)];
         const scale = d3.scaleOrdinal(d3.schemeCategory10).domain(domain);
 
@@ -165,7 +160,7 @@ export class View {
     d3.selectAll('.attr-axis').remove();
 
     // Add the scale bar at the top of the attr column
-    this.attributeVariables.forEach((col, index) => {
+    this.attributeVariables.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
         const barScaleVis = this.attributes
           .append('g')
@@ -186,7 +181,7 @@ export class View {
 
     d3.selectAll('.glyph').remove();
     /* Create data columns data */
-    this.attributeVariables.forEach((col, index) => {
+    this.attributeVariables.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
         this.attributeRows
           .append('rect')
@@ -201,7 +196,7 @@ export class View {
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
           .on('click', (d: any, i: number) => {
             this.nodeClick(d);
-            this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+            this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
           });
       } else {
         this.attributeRows
@@ -218,7 +213,7 @@ export class View {
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
           .on('click', (d: any, i: number) => {
             this.nodeClick(d);
-            this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
+            this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
           });
       }
     });
@@ -247,7 +242,7 @@ export class View {
   }
 
   private isQuantitative(varName: string): boolean {
-    const uniqueValues = [...new Set(this.nodes.map((node: any) => parseFloat(node[varName])))];
+    const uniqueValues = [...new Set(this.network.nodes.map((node: any) => parseFloat(node[varName])))];
     return uniqueValues.length > 5;
   }
 
@@ -257,6 +252,8 @@ export class View {
    * @return None
    */
   private initializeEdges(): void {
+    console.log(this.matrix)
+
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     const width = this.visDimensions.width;
     const height = this.visDimensions.height;
@@ -272,7 +269,8 @@ export class View {
       .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
 
     // sets the vertical scale
-    this.orderingScale = d3.scaleBand<number>().range([0, this.edgeHeight]).domain(d3.range(0, this.nodes.length, 1));
+    this.orderingScale = d3.scaleBand<number>()
+    .range([0, this.edgeHeight]).domain(d3.range(0, this.network.nodes.length, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
@@ -488,7 +486,7 @@ export class View {
       .attr('dy', '.32em')
       .attr('text-anchor', 'end')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
-      .text((d: any, i: number) => this.nodes[i]._key)
+      .text((d: any, i: number) => this.network.nodes[i]._key)
       .on('mouseout', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
       .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
       .on('click', (d: any, i: number) => {
@@ -527,7 +525,7 @@ export class View {
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize)
-      .text((d: any, i: number) => this.nodes[i]._key)
+      .text((d: any, i: number) => this.network.nodes[i]._key)
       .on('click', (d: any, i: number) => {
         this.nodeClick(d);
         this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
@@ -882,7 +880,7 @@ export class View {
 
     // add zebras and highlight rows
     this.attributes.selectAll('.highlightRow')
-      .data(this.nodes)
+      .data(this.matrix)
       .enter()
       .append('rect')
       .classed('highlightRow', true)
@@ -895,7 +893,7 @@ export class View {
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
       .selectAll('.row')
-      .data(this.nodes)
+      .data(this.matrix)
       .enter()
       .append('g')
       .attr('class', 'row')
@@ -1209,8 +1207,8 @@ export class View {
    * @return [description]
    */
   private processData(): void {
-    this.nodes.forEach((rowNode: any, i: number) => {
-      this.matrix[i] = this.nodes.map((colNode: any) => {
+    this.network.nodes.forEach((rowNode: Node, i: number) => {
+      this.matrix[i] = this.network.nodes.map((colNode: Node) => {
         return {
           cellName: `cell${rowNode.id}_${colNode.id}`,
           correspondingCell: `cell${colNode.id}_${rowNode.id}`,
@@ -1223,8 +1221,8 @@ export class View {
     });
 
     // Count occurrences of links and store it in the matrix
-    this.edges.forEach(
-      (link: {target: string | number, source: string | number}) => {
+    this.network.links.forEach(
+      (link: Link) => {
         this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
         this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
       },

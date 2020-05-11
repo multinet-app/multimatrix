@@ -1,14 +1,15 @@
 <script lang='ts'>
 import * as d3 from 'd3';
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 
 import { View } from './view';
+import { Network } from '@/types';
 
 export default Vue.extend({
   props: {
     network: {
-      type: Object,
-      default: () => undefined,
+      type: Object as PropType<Network>,
+      required: true,
     },
     selectNeighbors: {
       type: Boolean,
@@ -92,10 +93,7 @@ export default Vue.extend({
       .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 30} ${this.visDimensions.height}`);
 
     // Define the View
-    this.view = new View(this.network, this.visDimensions);
-    this.view.attributeVariables = this.attributeVariables as string[];
-
-    this.view.loadData(this.view.nodes, this.view.edges, this.view.matrix);
+    this.view = new View(this.network, this.visDimensions, this.attributeVariables);
   },
 
   methods: {

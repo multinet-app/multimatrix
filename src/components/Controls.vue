@@ -4,6 +4,7 @@ import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
+import { Network } from '@/types';
 
 export default Vue.extend({
   components: {
@@ -11,11 +12,10 @@ export default Vue.extend({
   },
 
   data(): {
-    network: any,
-    workspace: any,
-    graph: any,
+    network: Network,
+    workspace: string,
+    graph: string,
     selectNeighbors: boolean,
-    searchQuery: any,
     attributeVariables: string[],
   } {
     return {
@@ -23,10 +23,9 @@ export default Vue.extend({
         nodes: [],
         links: [],
       },
-      workspace: null,
-      graph: null,
+      workspace: '',
+      graph: '',
       selectNeighbors: true,
-      searchQuery: null,
       attributeVariables: [],
     };
   },
@@ -74,11 +73,6 @@ export default Vue.extend({
         <v-card>
           <v-card-title class="pb-6">MultiNet Adjacency Matrix Controls</v-card-title>
           <v-card-text>
-              
-            <v-text-field
-              label="Search for a node"
-              v-model="searchQuery"
-            ></v-text-field>
 
             <v-select
               v-model="attributeVariables"
