@@ -19,8 +19,8 @@ export class View {
   private matrix: Array<Array<{
     cellName: string,
     correspondingCell: string,
-    rowid: string,
-    colid: string,
+    rowID: string,
+    colID: string,
     x: number,
     y: number,
     z: number,
@@ -49,8 +49,8 @@ export class View {
   private hoverCol: {} = {};
   private isMultiEdge: any;
   private orderType: any;
-  highlightedNodes: any;
-  columnSelectedNodes: string;
+  private highlightedNodes: any;
+  private columnSelectedNodes: any;
 
   constructor(graphStructure: {nodes: object[], links: object[]}, visDimensions: any) {
     this.graphStructure = graphStructure;
@@ -301,7 +301,7 @@ export class View {
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: any, i: number) => {
-        return `topoCol${d[i].colid}`;
+        return `topoCol${d[i].colID}`;
       })
       .attr('x', -this.edgeHeight - this.margins.bottom)
       .attr('y', 0)
@@ -314,7 +314,7 @@ export class View {
       .append('rect')
       .classed('topoRow', true)
       .attr('id', (d: any, i: number) => {
-        return `topoRow${d[i].rowid}`;
+        return `topoRow${d[i].rowID}`;
       })
       .attr('x', -this.margins.left)
       .attr('y', 0)
@@ -356,7 +356,7 @@ export class View {
       })
       .on('mouseout', (cell: any) => {
         this.hideToolTip();
-        this.unhoverEdge(cell);
+        this.unHoverEdge(cell);
       })
       .on('click', (d: any, i: number, nodes: any) => {
         const nodeID = d.id;
@@ -436,13 +436,13 @@ export class View {
     const cellID = cellIDs[0];
 
     // Add the nodes to be highlighted to the object
-    this.addHighlightNodesToDict(this.hoverRow, cell.rowid, cellID);
-    this.addHighlightNodesToDict(this.hoverCol, cell.colid, cellID);
+    this.addHighlightNodesToDict(this.hoverRow, cell.rowID, cellID);
+    this.addHighlightNodesToDict(this.hoverCol, cell.colID, cellID);
 
     // If we're not on diagonal, highlight the other cell + row + column
-    if (cell.colid !== cell.rowid) {
-      this.addHighlightNodesToDict(this.hoverRow, cell.colid, cellID);
-      this.addHighlightNodesToDict(this.hoverCol, cell.rowid, cellID);
+    if (cell.colID !== cell.rowID) {
+      this.addHighlightNodesToDict(this.hoverRow, cell.colID, cellID);
+      this.addHighlightNodesToDict(this.hoverCol, cell.rowID, cellID);
     }
 
     //
@@ -455,19 +455,19 @@ export class View {
    * @param  cell d3 datum element corresponding to the cell's data
    * @return      none
    */
-  private unhoverEdge(cell: { cellName: any; rowid: any; colid: any; }): void {
+  private unHoverEdge(cell: { cellName: any; rowID: any; colID: any; }): void {
     d3.selectAll('.hoveredCell').classed('hoveredCell', false);
 
     this.selectedCells = [];
 
     const cellID = cell.cellName;
-    this.removeHighlightNodesFromDict(this.hoverRow, cell.rowid, cellID);  // Add row (rowid)
-    this.removeHighlightNodesFromDict(this.hoverCol, cell.colid, cellID);  // Add col (colid)
+    this.removeHighlightNodesFromDict(this.hoverRow, cell.rowID, cellID);  // Add row (rowID)
+    this.removeHighlightNodesFromDict(this.hoverCol, cell.colID, cellID);  // Add col (colID)
 
-    // If we're not on the diagonal, unhighlight the other cell + row + column
-    if (cell.colid !== cell.rowid) {
-      this.removeHighlightNodesFromDict(this.hoverRow, cell.colid, cellID);
-      this.removeHighlightNodesFromDict(this.hoverCol, cell.rowid, cellID);
+    // If we're not on the diagonal, un-highlight the other cell + row + column
+    if (cell.colID !== cell.rowID) {
+      this.removeHighlightNodesFromDict(this.hoverRow, cell.colID, cellID);
+      this.removeHighlightNodesFromDict(this.hoverCol, cell.rowID, cellID);
     }
 
     d3.selectAll('.hovered').classed('hovered', false);
@@ -480,8 +480,8 @@ export class View {
   private appendEdgeLabels(): void {
     this.edgeRows.append('text')
       .attr('class', 'rowLabel')
-      .attr('id', (d: { [x: string]: { rowid: string; }; }, i: string | number) => {
-        return `rowLabel${d[i].rowid}`;
+      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: string | number) => {
+        return `rowLabel${d[i].rowID}`;
       })
       .attr('z-index', 30)
       .attr('x', -3)
@@ -500,13 +500,13 @@ export class View {
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
     this.edgeColumns.append('path')
-      .attr('id', (d: Array<{ rowid: string; }>) => `sortIcon${d[0].rowid}`)
+      .attr('id', (d: Array<{ rowID: string; }>) => `sortIcon${d[0].rowID}`)
       .attr('class', 'sortIcon')
       .attr('d', this.icons.cellSort.d)
       .style('fill', (d: any) => d === this.orderType ? '#EBB769' : '#8B8B8B')
       .attr('transform', `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`)
-      .on('click', (d: Array<{ rowid: any; }>, i: number, nodes: any[]) => {
-        this.sort(d[0].rowid);
+      .on('click', (d: Array<{ rowID: any; }>, i: number, nodes: any[]) => {
+        this.sort(d[0].rowID);
         const action = this.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
         this.provenance.applyAction(action);
       })
@@ -518,8 +518,8 @@ export class View {
 
 
     this.edgeColumns.append('text')
-      .attr('id', (d: { [x: string]: { rowid: string; }; }, i: string | number) => {
-        return `colLabel${d[i].rowid}`;
+      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: string | number) => {
+        return `colLabel${d[i].rowID}`;
       })
       .attr('class', 'colLabel')
       .attr('z-index', 30)
@@ -538,7 +538,7 @@ export class View {
   }
 
   /**
-   * renders the relevent highlights for mousing over a label. Logs the interaction
+   * renders the relevant highlights for mousing over a label. Logs the interaction
    * in mouseoverEvents.
    * @param  data  d3 data element
    * @param  i     d3 index
@@ -546,8 +546,8 @@ export class View {
    * @return       none
    */
 
-  private mouseOverLabel(data: Array<{ rowid: any; }>, i: string | number, nodes: { [x: string]: any; }): void {
-    const elementID = data[0].rowid;
+  private mouseOverLabel(data: Array<{ rowID: any; }>, i: string | number, nodes: { [x: string]: any; }): void {
+    const elementID = data[0].rowID;
     const flag = this.addHighlightNodesToDict(this.hoverRow, elementID, elementID);
     this.addHighlightNodesToDict(this.hoverCol, elementID, elementID);
 
@@ -621,21 +621,21 @@ export class View {
         let interactedElement = interactionType;
         if (interactionName === 'cell') {
           const cellData: any = d3.select(node).data()[0]; //
-          interactID = cellData.colid;
-          interactedElement = cellData.cellName; // + cellData.rowid;
+          interactID = cellData.colID;
+          interactedElement = cellData.cellName; // + cellData.rowID;
 
           this.changeInteraction(currentState, interactID, interactionName + 'col', interactedElement);
           this.changeInteraction(currentState, interactID, interactionName + 'row', interactedElement);
           if (cellData.cellName !== cellData.correspondingCell) {
-            interactedElement = cellData.correspondingCell; // + cellData.rowid;
-            interactID = cellData.rowid;
+            interactedElement = cellData.correspondingCell; // + cellData.rowID;
+            interactID = cellData.rowID;
 
             this.changeInteraction(currentState, interactID, interactionName + 'col', interactedElement);
             this.changeInteraction(currentState, interactID, interactionName + 'row', interactedElement);
           }
           return currentState;
 
-          // interactID = cellData.rowid;
+          // interactID = cellData.rowID;
           // interactionName = interactionName + 'row'
         } else if (interactionName === 'attrRow') {
           return interactionName;
@@ -657,7 +657,7 @@ export class View {
    * @return                 [description]
    */
   private changeInteraction(
-    state: { selections: { [x: string]: { [x: string]: string[]; }; }; },
+    state: any,
     nodeID: string, interaction: string, interactionName: string = interaction,
   ): void {
     if (nodeID in state.selections[interaction]) {
@@ -684,7 +684,7 @@ export class View {
 
     for (let i = 0; i < this.matrix[0].length; i++) {
       if (true /*this.matrix[i][nodeIndex].z > 0*/) {
-        const nodeID = this.matrix[i][nodeIndex].rowid;
+        const nodeID = this.matrix[i][nodeIndex].rowID;
         if (
           this.highlightedNodes.hasOwnProperty(nodeID) &&
           !this.highlightedNodes[nodeID].includes(addingNode)
@@ -757,7 +757,7 @@ export class View {
   private renderHighlightNodesFromDict(
     dict: { [x: string]: any; }, classToRender: string, rowOrCol: string = 'Row',
   ): void {
-    // unhighlight all other nodes
+    // Un-highlight all other nodes
     if (classToRender !== 'hovered') {
       d3.selectAll(`.${classToRender}`)
         .classed(classToRender, false);
@@ -835,7 +835,7 @@ export class View {
       .duration(transitionTime)
       .attr('transform', (d: any, i: number) => {
         if (i > this.order.length - 1) {
-          return'translate(0, 0)';
+          return 'translate(0, 0)';
         } else {
           return `translate(0,${this.orderingScale(i)})`;
         }
@@ -930,14 +930,14 @@ export class View {
       .classed('column-headers', true);
 
     // Draw buttons for alternative sorts
-    let initalY = -this.margins.left + 10;
+    let initialY = -this.margins.left + 10;
     const buttonHeight = 15;
     const text = ['name', 'cluster', 'interacts'];
     const sortNames = ['shortName', 'clusterLeaf', 'edges'];
     const iconNames = ['alphabetical', 'categorical', 'quant'];
     for (let i = 0; i < 3; i++) {
       const button = this.edges.append('g')
-        .attr('transform', `translate(${-this.margins.left},${initalY})`);
+        .attr('transform', `translate(${-this.margins.left},${initialY})`);
       button.attr('cursor', 'pointer');
       button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
       button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
@@ -952,14 +952,14 @@ export class View {
       button.on('click', () => {
         this.sort(sortNames[i]);
       });
-      initalY += buttonHeight + 5;
+      initialY += buttonHeight + 5;
     }
   }
 
   // function that updates the state, and includes a flag for when this was done through a search
  private nodeClick(node: any, search: boolean = false): void {
   if (node[0] !== undefined) {
-    node = { id: node[0].rowid };
+    node = { id: node[0].rowID };
   }
 
   const previousState = this.getApplicationState();
@@ -1007,8 +1007,8 @@ export class View {
   }
 
   private attributeMouseOver(d: any, i: number, nodes: any): void {
-    this.addHighlightNodesToDict(this.hoverRow, d.id, d.id);  // Add row (rowid)
-    this.addHighlightNodesToDict(this.hoverCol, d.id, d.id);  // Add row (rowid)
+    this.addHighlightNodesToDict(this.hoverRow, d.id, d.id);  // Add row (rowID)
+    this.addHighlightNodesToDict(this.hoverCol, d.id, d.id);  // Add row (rowID)
 
     d3.selectAll('.hovered').classed('hovered', false);
     this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
@@ -1106,10 +1106,10 @@ export class View {
         rowLabel: {},
         colLabel: {},
         neighborSelect: {},
-        cellcol: {},
-        cellrow: {},
+        cellCol: {},
+        cellRow: {},
         search: {},
-        previousMouseovers: [],
+        previousMouseOvers: [],
       },
     };
 
@@ -1120,11 +1120,11 @@ export class View {
     const rowElements = ['topoRow', 'attrRow'];
 
     const elementNamesFromSelection: any = {
-      cellcol: rowElements.concat(columnElements),
+      cellCol: rowElements.concat(columnElements),
       colLabel: rowElements.concat(columnElements).concat(['colLabel']),
       rowLabel: rowElements.concat(columnElements).concat(['rowLabel']),
       attrRow: rowElements.concat(['rowLabel']),
-      cellrow: rowElements.concat(columnElements),
+      cellRow: rowElements.concat(columnElements),
       neighborSelect: rowElements,
       search: rowElements.concat(columnElements),
     };
@@ -1144,7 +1144,7 @@ export class View {
       // go through each interacted element, and determine which rows/columns should
       // be highlighted due to it's interaction
       for (const selectionType in state.selections) {
-        if (selectionType === 'previousMouseovers') {
+        if (selectionType === 'previousMouseOvers') {
           continue;
         }
         for (const selectionElement of elementNamesFromSelection[selectionType]) {
@@ -1180,15 +1180,15 @@ export class View {
         let cellNames: any[] = [];
 
         // Go through each highlighted cell (both sides of matrix) and add cell to highlight
-        Object.keys(state.selections.cellcol).map((key) => {
-          const names = state.selections.cellcol[key];
+        Object.keys(state.selections.cellCol).map((key) => {
+          const names = state.selections.cellCol[key];
           cellNames = cellNames.concat(names);
         });
 
         // Concat all the cells to highlight into one query
         const cellSelectorQuery = `[id="${cellNames.join('"],[id="')}"]`;
 
-        // Set all cells to unclicked
+        // Set all cells to un-clicked
         d3.selectAll('.clickedCell').classed('clickedCell', false);
 
         // Highlight cells if we have any in our query, else do nothing
@@ -1200,10 +1200,10 @@ export class View {
       provenance.addObserver('selections.attrRow', updateHighlights);
       provenance.addObserver('selections.rowLabel', updateHighlights);
       provenance.addObserver('selections.colLabel', updateHighlights);
-      provenance.addObserver('selections.cellcol', updateHighlights);
-      provenance.addObserver('selections.cellrow', updateHighlights);
+      provenance.addObserver('selections.cellCol', updateHighlights);
+      provenance.addObserver('selections.cellRow', updateHighlights);
       provenance.addObserver('selections.neighborSelect', updateHighlights);
-      provenance.addObserver('selections.cellcol', updateCellClicks);
+      provenance.addObserver('selections.cellCol', updateCellClicks);
       provenance.addObserver('selections.search', updateHighlights);
       provenance.addObserver('clicked', updateHighlights);
     }
@@ -1221,20 +1221,49 @@ export class View {
         return {
           cellName: `cell${rowNode.id}_${colNode.id}`,
           correspondingCell: `cell${colNode.id}_${rowNode.id}`,
-          rowid: rowNode.id,
-          colid: colNode.id,
+          rowID: rowNode.id,
+          colID: colNode.id,
           x: colNode.index,
           y: rowNode.index,
           z: 0,
         }; });
     });
 
-    // Count occurences of links and store it in the matrix
+    // Count occurrences of links and store it in the matrix
     this.edges.forEach(
       (link: {target: string | number, source: string | number}) => {
         this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
         this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
       },
     );
+  }
+
+  /**
+   * returns an object containing the current provenance state.
+   * @return [the provenance state]
+   */
+  private getApplicationState(): {
+    workerID: number;
+    nodes: string;
+    search: string;
+    startTime: number;
+    endTime: string;
+    time: number;
+    event: string;
+    count: number;
+    clicked: never[];
+    sortKey: string;
+    selections: {
+        attrRow: {},
+        rowLabel: {},
+        colLabel: {},
+        neighborSelect: {},
+        cellCol: {},
+        cellRow: {},
+        search: {},
+        previousMouseOvers: [],
+    };
+  } {
+    return this.provenance.graph().current.state;
   }
 }
