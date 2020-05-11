@@ -3,19 +3,17 @@ import * as d3 from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
-import { Link, Network, Node } from '@/types';
+import { Dimensions, Link, Network, Node } from '@/types';
 
 declare const reorder: any;
 
 export class View {
-  public selectedCells: any[] = [];
   public attributeVariables: string[] = [];
 
-  public network: Network;
-  public icons: { [key: string]: { [d: string]: string}};
-  public sortKey: string;
-
-  private nodes: any;
+  private selectedCells: any[] = [];
+  private network: Network;
+  private icons: { [key: string]: { [d: string]: string}};
+  private sortKey: string;
   private edges: any;
   private matrix: Array<Array<{
     cellName: string,
@@ -41,8 +39,7 @@ export class View {
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private colMargin: number = 5;
-  private visDimensions: any;
-
+  private visDimensions: Dimensions;
   private provenance: any;
   private idMap: { [key: string]: number};
   private hoverRow: {} = {};
@@ -1036,7 +1033,6 @@ export class View {
   private sortObserver(type: string, isNode: boolean = false): number[] {
     let order;
     this.sortKey = type;
-    this.sortKey = type;
     if (type === 'clusterSpectral' || type === 'clusterBary' || type === 'clusterLeaf') {
       const links: any[] = Array(this.network.links.length);
 
@@ -1072,9 +1068,9 @@ export class View {
       order = d3.range(this.network.nodes.length).sort((a, b) =>
         this.network.nodes[b].neighbors.includes(type) - this.network.nodes[a].neighbors.includes(type),
       );
-    } else if (false) {
+    } else if (this.sortKey === 'shortName') {
       order = d3.range(this.network.nodes.length).sort((a, b) =>
-        this.network.nodes[a][this.sortKey].localeCompare(this.network.nodes[b][this.sortKey]),
+        this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
       );
     } else {
       order = d3

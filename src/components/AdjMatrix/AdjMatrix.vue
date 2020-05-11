@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/AdjMatrix/AdjMatrixMethods';
-import { Network } from '@/types';
+import { Dimensions, Network } from '@/types';
 
 export default Vue.extend({
   props: {
@@ -22,8 +22,8 @@ export default Vue.extend({
   },
 
   data(): {
-    browser: any,
-    visDimensions: any,
+    browser: Dimensions,
+    visDimensions: Dimensions,
     visMargins: any,
     matrix: any,
     attributes: any,
@@ -34,7 +34,10 @@ export default Vue.extend({
         height: 0,
         width: 0,
       },
-      visDimensions: { width: 0, height: 0 },
+      visDimensions: {
+        height: 0,
+        width: 0 ,
+      },
       visMargins: {
         left: 25,
         right: 25,
