@@ -80,21 +80,13 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    this.browser.width = parseInt(
-      d3
-        .select('body')
-        .style('width')
-        .replace('px', ''),
-      0,
-    );
+    this.browser.width = window.innerWidth
+      || document.documentElement.clientWidth
+      || document.body.clientWidth;
 
-    this.browser.height = parseInt(
-      d3
-        .select('body')
-        .style('height')
-        .replace('px', ''),
-      0,
-    );
+    this.browser.height = window.innerHeight
+      || document.documentElement.clientHeight
+      || document.body.clientHeight;
 
     // Set dimensions of the node link
     this.visDimensions.width = this.browser.width * 0.75;
@@ -115,14 +107,14 @@ export default Vue.extend({
 
     // Define the MVC
     this.model = new Model(this.graphStructure);
-    this.view = new View();
+    this.view = new View(this.visDimensions);
     this.view.attributeVariables = this.attributeVariables as string[];
 
-    this.controller = new Controller(
-      this.view,
-      this.model,
-      this.visDimensions,
-    );
+    this.view.model = this.model;
+    this.model.view = this.view;
+    this.view.controller = this;
+    this.view.model.controller = this;
+    this.view.model.reload();
   },
 
   methods: {

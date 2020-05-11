@@ -5,6 +5,7 @@ export class View {
   public controller: any;
   public selectedCells: any[] = [];
   public attributeVariables: string[] = [];
+  public model: Model;
 
   private nodes: any;
   private edges: any;
@@ -25,9 +26,11 @@ export class View {
   private attributeScales: { [key: string]: any } = {};
   private columnGlyphs: { [key: string]: any } = {};
   private colMargin: number = 5;
+  private visDimensions: any;
 
-  constructor() {
+  constructor(visDimensions: any) {
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
+    this.visDimensions = visDimensions;
   }
 
   /**
@@ -198,8 +201,8 @@ export class View {
    */
   private initializeEdges(): void {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const width = this.controller.visDimensions.width;
-    const height = this.controller.visDimensions.height;
+    const width = this.visDimensions.width;
+    const height = this.visDimensions.height;
     const sideLength = width < height ? width : height;
 
     // Use the smallest side as the length of the matrix

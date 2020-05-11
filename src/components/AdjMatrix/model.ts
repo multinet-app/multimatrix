@@ -11,6 +11,7 @@ export class Model {
   public icons: object;
   public controller: any;
   public sortKey: string;
+  public view: View;
 
   private matrix: Array<Array<{
     cellName: string,
@@ -258,7 +259,7 @@ export class Model {
 
 
   private reload(): void {
-    this.controller.loadData(this.nodes, this.edges, this.matrix);
+    this.view.loadData(this.nodes, this.edges, this.matrix);
   }
 
 
