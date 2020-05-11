@@ -14,7 +14,7 @@ export default Vue.extend({
   data(): {
     app: any,
     provenance: any,
-    graphStructure: any,
+    network: any,
     workspace: any,
     graph: any,
     selectNeighbors: boolean,
@@ -24,7 +24,7 @@ export default Vue.extend({
     return {
       app: undefined,
       provenance: null,
-      graphStructure: {
+      network: {
         nodes: [],
         links: [],
       },
@@ -38,8 +38,8 @@ export default Vue.extend({
 
   computed: {
     variableList(this: any) {
-      if (typeof this.graphStructure.nodes[0] !== 'undefined') {
-        return Object.keys(this.graphStructure.nodes[0]);
+      if (typeof this.network.nodes[0] !== 'undefined') {
+        return Object.keys(this.network.nodes[0]);
       } else {
         return [];
       }
@@ -53,8 +53,8 @@ export default Vue.extend({
         `Workspace and graph must be set! workspace=${workspace} graph=${graph}`,
       );
     }
-    this.graphStructure = await loadData(workspace, graph);
-    const { provenance, app } = setUpProvenance(this.graphStructure.nodes);
+    this.network = await loadData(workspace, graph);
+    const { provenance, app } = setUpProvenance(this.network.nodes);
     this.app = app;
     this.provenance = provenance;
     this.workspace = workspace;
@@ -64,7 +64,7 @@ export default Vue.extend({
   methods: {
     exportGraph() {
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify(this.graphStructure)], {
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(this.network)], {
         type: `text/json`,
       }));
       a.download = 'graph.json';
@@ -123,7 +123,7 @@ export default Vue.extend({
             ref="adjmatrix"
             v-if="workspace"
             v-bind="{
-              graphStructure,
+              network,
               provenance,
               app,
               selectNeighbors,

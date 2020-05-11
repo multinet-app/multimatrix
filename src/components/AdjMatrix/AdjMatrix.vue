@@ -14,7 +14,7 @@ export default Vue.extend({
       type: Object,
       required: true,
     },
-    graphStructure: {
+    network: {
       type: Object,
       default: () => undefined,
     },
@@ -57,11 +57,11 @@ export default Vue.extend({
   computed: {
     properties(this: any) {
       const {
-        graphStructure,
+        network,
         attributeVariables,
       } = this;
       return {
-        graphStructure,
+        network,
         attributeVariables,
       };
     },
@@ -99,8 +99,8 @@ export default Vue.extend({
       .attr('height', this.visDimensions.height)
       .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 30} ${this.visDimensions.height}`);
 
-    // Define the MV
-    this.view = new View(this.graphStructure, this.visDimensions);
+    // Define the View
+    this.view = new View(this.network, this.visDimensions);
     this.view.attributeVariables = this.attributeVariables as string[];
 
     this.view.loadData(this.view.nodes, this.view.edges, this.view.matrix);

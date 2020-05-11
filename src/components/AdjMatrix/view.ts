@@ -10,7 +10,7 @@ export class View {
   public selectedCells: any[] = [];
   public attributeVariables: string[] = [];
 
-  public graphStructure: {nodes: object[], links: object[]};
+  public network: {nodes: object[], links: object[]};
   public icons: { [key: string]: { [d: string]: string}};
   public sortKey: string;
 
@@ -49,13 +49,15 @@ export class View {
   private hoverCol: {} = {};
   private isMultiEdge: any;
   private orderType: any;
-  private highlightedNodes: any;
-  private columnSelectedNodes: any;
+  private highlightedNodes: [] = [];
+  private columnSelectedNodes: any[] = [];
+  private mouseoverEvents: any;
+  private mouseOverEvents: any;
 
-  constructor(graphStructure: {nodes: object[], links: object[]}, visDimensions: any) {
-    this.graphStructure = graphStructure;
-    this.nodes = graphStructure.nodes;
-    this.edges = graphStructure.links;
+  constructor(network: {nodes: object[], links: object[]}, visDimensions: any) {
+    this.network = network;
+    this.nodes = network.nodes;
+    this.edges = network.links;
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
     this.visDimensions = visDimensions;
 
@@ -139,9 +141,7 @@ export class View {
       .attr('y', 16)
       .attr('x', (d: any, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
-      .on('click', (d: any, i: number) => {
-        this.sort(d);
-      });
+      .on('click', (d: any, i: number) => this.sort(d));
 
     // Calculate the variable scales
     this.attributeVariables.forEach((col, index) => {
@@ -199,7 +199,7 @@ export class View {
           .attr('cursor', 'pointer')
           .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
-          .on('click', (d: any, i: string | number) => {
+          .on('click', (d: any, i: number) => {
             this.nodeClick(d);
             this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
           });
@@ -216,7 +216,7 @@ export class View {
           .attr('cursor', 'pointer')
           .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
           .on('mouseout', (d: any) => this.attributeMouseOut(d))
-          .on('click', (d: any, i: string | number) => {
+          .on('click', (d: any, i: number) => {
             this.nodeClick(d);
             this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
           });
@@ -359,9 +359,8 @@ export class View {
         this.unHoverEdge(cell);
       })
       .on('click', (d: any, i: number, nodes: any) => {
-        const nodeID = d.id;
         const interaction = d3.select(nodes[i]).attr('class');
-        const action = this.changeInteractionWrapper(nodeID, nodes[i], interaction);
+        const action = this.changeInteractionWrapper(d.id, nodes[i], interaction);
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer');
@@ -480,7 +479,7 @@ export class View {
   private appendEdgeLabels(): void {
     this.edgeRows.append('text')
       .attr('class', 'rowLabel')
-      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: string | number) => {
+      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: number) => {
         return `rowLabel${d[i].rowID}`;
       })
       .attr('z-index', 30)
@@ -489,10 +488,10 @@ export class View {
       .attr('dy', '.32em')
       .attr('text-anchor', 'end')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
-      .text((d: any, i: string | number) => this.nodes[i]._key)
+      .text((d: any, i: number) => this.nodes[i]._key)
       .on('mouseout', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
       .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
-      .on('click', (d: any, i: string | number) => {
+      .on('click', (d: any, i: number) => {
         this.nodeClick(d);
         this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
       });
@@ -518,7 +517,7 @@ export class View {
 
 
     this.edgeColumns.append('text')
-      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: string | number) => {
+      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: number) => {
         return `colLabel${d[i].rowID}`;
       })
       .attr('class', 'colLabel')
@@ -528,8 +527,8 @@ export class View {
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize)
-      .text((d: any, i: string | number) => this.nodes[i]._key)
-      .on('click', (d: any, i: string | number) => {
+      .text((d: any, i: number) => this.nodes[i]._key)
+      .on('click', (d: any, i: number) => {
         this.nodeClick(d);
         this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
       })
@@ -546,7 +545,7 @@ export class View {
    * @return       none
    */
 
-  private mouseOverLabel(data: Array<{ rowID: any; }>, i: string | number, nodes: { [x: string]: any; }): void {
+  private mouseOverLabel(data: Array<{ rowID: any; }>, i: number, nodes: { [x: string]: any; }): void {
     const elementID = data[0].rowID;
     const flag = this.addHighlightNodesToDict(this.hoverRow, elementID, elementID);
     this.addHighlightNodesToDict(this.hoverCol, elementID, elementID);
@@ -805,7 +804,7 @@ export class View {
     if (nodeID in this.columnSelectedNodes) {
 
       // find all neighbors and remove them
-      delete this.columnSelectedNodes[nodeID];
+      this.columnSelectedNodes = this.columnSelectedNodes.filter((d: any) => d.id != nodeID);
     } else {
       this.addHighlightNode(nodeID);
       const newElement = { [nodeID]: neighbors};
@@ -818,7 +817,7 @@ export class View {
    * [sort description]
    * @return [description]
    */
-  private sort(order: unknown): void {
+  private sort(order: string): void {
     const nodeIDs = this.nodes.map((node: { id: any; }) => node.id);
 
     if (nodeIDs.includes(order)) {
@@ -921,7 +920,7 @@ export class View {
       .attr('cursor', 'pointer')
       .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
       .on('mouseout', (d: any) => this.attributeMouseOut(d))
-      .on('click', (d: any, i: string | number) => {
+      .on('click', (d: any, i: number) => {
         this.nodeClick(d);
         this.selectNeighborNodes(this.nodes[i].id, this.nodes[i].neighbors);
       });
@@ -949,19 +948,13 @@ export class View {
         .style('fill', () => sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B')
         .attr('transform', 'scale(0.1)translate(-195,-320)')
         .attr('cursor', 'pointer');
-      button.on('click', () => {
-        this.sort(sortNames[i]);
-      });
+      button.on('click', () => this.sort(sortNames[i]));
       initialY += buttonHeight + 5;
     }
   }
 
   // function that updates the state, and includes a flag for when this was done through a search
- private nodeClick(node: any, search: boolean = false): void {
-  if (node[0] !== undefined) {
-    node = { id: node[0].rowID };
-  }
-
+ private nodeClick(node: {id: never}, search: boolean = false): void {
   const previousState = this.getApplicationState();
   let clicked = previousState.clicked;
   const wasSelected = this.isSelected(node);
@@ -1000,7 +993,7 @@ export class View {
   this.provenance.applyAction(action);
   }
 
-  private isSelected(node: any): boolean {
+  private isSelected(node: {id: never}): boolean {
     const currentState = this.getApplicationState();
     const clicked = currentState.clicked;
     return clicked.includes(node.id);
@@ -1265,5 +1258,41 @@ export class View {
     };
   } {
     return this.provenance.graph().current.state;
+  }
+
+  private changeOrder(type: string, node: boolean = false): number[] {
+    const action = this.generateSortAction(type);
+    if (this.provenance) {
+      this.provenance.applyAction(action);
+    }
+    return this.sortObserver(type, node);
+  }
+
+  /**
+   * [changeInteractionWrapper description]
+   * @param  nodeID ID of the node being changed with
+   * @param  node   nodes corresponding to the element class interacted with (from d3 select nodes[i])
+   * @param  interactionType class name of element interacted with
+   * @return        [description]
+   */
+  private generateSortAction(sortKey: string): {label: string, action: any, args: any[]} {
+    return {
+      label: 'sort',
+      action: (key: any) => {
+        const currentState = this.getApplicationState();
+        // add time stamp to the state graph
+        currentState.time = Date.now();
+        currentState.event = 'sort';
+
+        currentState.sortKey = key;
+        if (this.mouseoverEvents !== undefined) {
+          currentState.selections.previousMouseOvers = this.mouseOverEvents;
+          this.mouseOverEvents.length = 0;
+        }
+
+        return currentState;
+      },
+      args: [sortKey],
+    };
   }
 }
