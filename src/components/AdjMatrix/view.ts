@@ -804,7 +804,7 @@ export class View {
     if (nodeID in this.columnSelectedNodes) {
 
       // find all neighbors and remove them
-      this.columnSelectedNodes = this.columnSelectedNodes.filter((d: any) => d.id != nodeID);
+      this.columnSelectedNodes = this.columnSelectedNodes.filter((d: any) => d.id !== nodeID);
     } else {
       this.addHighlightNode(nodeID);
       const newElement = { [nodeID]: neighbors};

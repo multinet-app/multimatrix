@@ -2,7 +2,6 @@
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
-import { setUpProvenance } from '@/lib/provenance';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 
@@ -12,8 +11,6 @@ export default Vue.extend({
   },
 
   data(): {
-    app: any,
-    provenance: any,
     network: any,
     workspace: any,
     graph: any,
@@ -22,8 +19,6 @@ export default Vue.extend({
     attributeVariables: string[],
   } {
     return {
-      app: undefined,
-      provenance: null,
       network: {
         nodes: [],
         links: [],
@@ -54,9 +49,6 @@ export default Vue.extend({
       );
     }
     this.network = await loadData(workspace, graph);
-    const { provenance, app } = setUpProvenance(this.network.nodes);
-    this.app = app;
-    this.provenance = provenance;
     this.workspace = workspace;
     this.graph = graph;
   },
@@ -124,8 +116,6 @@ export default Vue.extend({
             v-if="workspace"
             v-bind="{
               network,
-              provenance,
-              app,
               selectNeighbors,
               attributeVariables,
             }"

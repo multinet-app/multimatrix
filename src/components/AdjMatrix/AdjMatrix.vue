@@ -6,14 +6,6 @@ import { View } from './view';
 
 export default Vue.extend({
   props: {
-    app: {
-      type: Object,
-      required: true,
-    },
-    provenance: {
-      type: Object,
-      required: true,
-    },
     network: {
       type: Object,
       default: () => undefined,
