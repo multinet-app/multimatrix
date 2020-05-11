@@ -49,7 +49,7 @@ export class View {
   private hoverCol: {} = {};
   private isMultiEdge: any;
   private orderType: any;
-  private highlightedNodes: [] = [];
+  private highlightedNodes: { [key: string]: any[] } = {};
   private columnSelectedNodes: any[] = [];
   private mouseoverEvents: any;
   private mouseOverEvents: any;
