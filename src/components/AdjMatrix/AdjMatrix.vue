@@ -1,24 +1,15 @@
 <script lang='ts'>
 import * as d3 from 'd3';
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 
-import { Model } from './model';
-import { View } from './view';
-import { Controller } from './controller';
+import { View } from '@/components/AdjMatrix/AdjMatrixMethods';
+import { Dimensions, Network } from '@/types';
 
 export default Vue.extend({
   props: {
-    app: {
-      type: Object,
+    network: {
+      type: Object as PropType<Network>,
       required: true,
-    },
-    provenance: {
-      type: Object,
-      required: true,
-    },
-    graphStructure: {
-      type: Object,
-      default: () => undefined,
     },
     selectNeighbors: {
       type: Boolean,
@@ -31,21 +22,22 @@ export default Vue.extend({
   },
 
   data(): {
-    browser: any,
-    visDimensions: any,
+    browser: Dimensions,
+    visDimensions: Dimensions,
     visMargins: any,
     matrix: any,
     attributes: any,
-    model: Model|undefined,
     view: View|undefined,
-    controller: Controller|undefined,
     } {
     return {
       browser: {
         height: 0,
         width: 0,
       },
-      visDimensions: { width: 0, height: 0 },
+      visDimensions: {
+        height: 0,
+        width: 0 ,
+      },
       visMargins: {
         left: 25,
         right: 25,
@@ -54,20 +46,18 @@ export default Vue.extend({
       },
       matrix: undefined,
       attributes: undefined,
-      model: undefined,
       view: undefined,
-      controller: undefined,
     };
   },
 
   computed: {
     properties(this: any) {
       const {
-        graphStructure,
+        network,
         attributeVariables,
       } = this;
       return {
-        graphStructure,
+        network,
         attributeVariables,
       };
     },
@@ -80,21 +70,13 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    this.browser.width = parseInt(
-      d3
-        .select('body')
-        .style('width')
-        .replace('px', ''),
-      0,
-    );
+    this.browser.width = window.innerWidth
+      || document.documentElement.clientWidth
+      || document.body.clientWidth;
 
-    this.browser.height = parseInt(
-      d3
-        .select('body')
-        .style('height')
-        .replace('px', ''),
-      0,
-    );
+    this.browser.height = window.innerHeight
+      || document.documentElement.clientHeight
+      || document.body.clientHeight;
 
     // Set dimensions of the node link
     this.visDimensions.width = this.browser.width * 0.75;
@@ -113,23 +95,14 @@ export default Vue.extend({
       .attr('height', this.visDimensions.height)
       .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 30} ${this.visDimensions.height}`);
 
-    // Define the MVC
-    this.model = new Model(this.graphStructure);
-    this.view = new View();
-    this.view.attributeVariables = this.attributeVariables as string[];
-
-    this.controller = new Controller(
-      this.view,
-      this.model,
-      this.visDimensions,
-    );
+    // Define the View
+    this.view = new View(this.network, this.visDimensions, this.attributeVariables);
   },
 
   methods: {
     updateVis() {
       if (this.view) {
         this.view.attributeVariables = this.attributeVariables as string[];
-
         this.view.updateAttributes();
       }
     },

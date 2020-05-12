@@ -2,9 +2,9 @@
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
-import { setUpProvenance } from '@/lib/provenance';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
+import { Network } from '@/types';
 
 export default Vue.extend({
   components: {
@@ -12,34 +12,28 @@ export default Vue.extend({
   },
 
   data(): {
-    app: any,
-    provenance: any,
-    graphStructure: any,
-    workspace: any,
-    graph: any,
+    network: Network,
+    workspace: string,
+    graph: string,
     selectNeighbors: boolean,
-    searchQuery: any,
     attributeVariables: string[],
   } {
     return {
-      app: undefined,
-      provenance: null,
-      graphStructure: {
+      network: {
         nodes: [],
         links: [],
       },
-      workspace: null,
-      graph: null,
+      workspace: '',
+      graph: '',
       selectNeighbors: true,
-      searchQuery: null,
       attributeVariables: [],
     };
   },
 
   computed: {
     variableList(this: any) {
-      if (typeof this.graphStructure.nodes[0] !== 'undefined') {
-        return Object.keys(this.graphStructure.nodes[0]);
+      if (typeof this.network.nodes[0] !== 'undefined') {
+        return Object.keys(this.network.nodes[0]);
       } else {
         return [];
       }
@@ -53,10 +47,7 @@ export default Vue.extend({
         `Workspace and graph must be set! workspace=${workspace} graph=${graph}`,
       );
     }
-    this.graphStructure = await loadData(workspace, graph);
-    const { provenance, app } = setUpProvenance(this.graphStructure.nodes);
-    this.app = app;
-    this.provenance = provenance;
+    this.network = await loadData(workspace, graph);
     this.workspace = workspace;
     this.graph = graph;
   },
@@ -64,7 +55,7 @@ export default Vue.extend({
   methods: {
     exportGraph() {
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify(this.graphStructure)], {
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(this.network)], {
         type: `text/json`,
       }));
       a.download = 'graph.json';
@@ -82,11 +73,6 @@ export default Vue.extend({
         <v-card>
           <v-card-title class="pb-6">MultiNet Adjacency Matrix Controls</v-card-title>
           <v-card-text>
-              
-            <v-text-field
-              label="Search for a node"
-              v-model="searchQuery"
-            ></v-text-field>
 
             <v-select
               v-model="attributeVariables"
@@ -123,9 +109,7 @@ export default Vue.extend({
             ref="adjmatrix"
             v-if="workspace"
             v-bind="{
-              graphStructure,
-              provenance,
-              app,
+              network,
               selectNeighbors,
               attributeVariables,
             }"

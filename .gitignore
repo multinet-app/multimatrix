@@ -3,3 +3,6 @@ node_modules/
 
 # Build files
 dist/
+
+# Editor config
+.vscode/settings.json
