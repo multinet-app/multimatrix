@@ -336,7 +336,6 @@ export class View {
       // .filter(d=>{return d.item >0})
       .attr('width', this.orderingScale.bandwidth())
       .attr('height', this.orderingScale.bandwidth())
-      // .style('fill', 'pink') //this will fill the correct squares
       .style('fill', function(d: { z: number; }) {
         return cellColorScale(d.z)
       })
