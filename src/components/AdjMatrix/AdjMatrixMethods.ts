@@ -326,7 +326,7 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('width', this.orderingScale.bandwidth());
 
-    const cellColorScale = d3.scaleLinear<number,number>()
+    const cellColorScale = d3.scaleLinear<number,string>()
       .domain([0,this.maxNumConnections])
       .range(["#feebe2", "#690000"]); // TODO: colors here are arbitrary, change later
 
