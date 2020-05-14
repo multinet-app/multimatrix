@@ -1242,7 +1242,7 @@ export class View {
       (row: Array<{z: number, [key: string]: any}>) => {
         row.forEach(
           (cell: {z: number, [key: string]: any}) => {
-            if (cell.z > this.maxVal) {
+            if (cell.z > this.maxNumConnections) {
               this.maxNumConnections = cell.z;
             }
           });
