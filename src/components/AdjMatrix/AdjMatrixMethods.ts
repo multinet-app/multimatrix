@@ -327,7 +327,7 @@ export class View {
       .attr('width', this.orderingScale.bandwidth());
 
     const cellColorScale = d3.scaleLinear<number,number>()
-      .domain([0,this.maxVal])
+      .domain([0,this.maxNumConnections])
       .range(["#feebe2", "#690000"]); // TODO: colors here are arbitrary, change later
 
     const squares = cells
