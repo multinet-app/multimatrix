@@ -336,7 +336,7 @@ export class View {
       // .filter(d=>{return d.item >0})
       .attr('width', this.orderingScale.bandwidth())
       .attr('height', this.orderingScale.bandwidth())
-      .style('fill', function(d: { z: number; }) => cellColorScale(d.z));
+      .style('fill', (d: { z: number; }) => cellColorScale(d.z));
 
     squares
       .filter((d: any) => d.z === 0)
