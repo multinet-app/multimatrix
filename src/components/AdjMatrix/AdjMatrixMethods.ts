@@ -1239,14 +1239,14 @@ export class View {
 
     // find max value of z
     this.matrix.forEach(
-      (row: Row) => {
+      (row: Array<{z: number, [key: string]: any}>) => {
         row.forEach(
-          (object: Object) => {
-            if (object.z > this.maxVal) {
-              this.maxNumConnections = object.z
+          (cell: {z: number, [key: string]: any}) => {
+            if (cell.z > this.maxVal) {
+              this.maxNumConnections = cell.z;
             }
-          })
-      })
+          });
+      });
   }
 
   /**
