@@ -49,7 +49,7 @@ export class View {
   private highlightedNodes: { [key: string]: any[] } = {};
   private columnSelectedNodes: any[] = [];
   private mouseOverEvents: any;
-  private maxVal: number = 0
+  private maxVal: number = -Infinity;
 
   constructor(network: Network, visDimensions: any, attributeVariables: string[]) {
     this.network = network;
