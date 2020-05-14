@@ -1245,7 +1245,7 @@ export class View {
         row.forEach(
           (object: Object) => {
             if (object.z > this.maxVal) {
-              this.maxVal = object.z
+              this.maxNumConnections = object.z
             }
           })
       })
