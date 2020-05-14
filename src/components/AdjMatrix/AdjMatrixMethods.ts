@@ -1257,7 +1257,6 @@ export class View {
       })
   }
 
-
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
