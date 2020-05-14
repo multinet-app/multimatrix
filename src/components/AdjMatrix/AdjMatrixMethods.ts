@@ -342,9 +342,6 @@ export class View {
         return cellColorScale(d.z)
       })
 
-
-
-
     squares
       .filter((d: any) => d.z === 0)
       .style('fill-opacity', (d: { z: number; }) => d.z);
