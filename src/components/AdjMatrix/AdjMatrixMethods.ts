@@ -169,7 +169,6 @@ export class View {
             }))
           .selectAll('text')
           .style('text-anchor', (d: any, i: number) => i % 2 ? 'end' : 'start');
-
       }
     });
 
