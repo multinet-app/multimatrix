@@ -49,6 +49,8 @@ export class View {
   private highlightedNodes: { [key: string]: any[] } = {};
   private columnSelectedNodes: any[] = [];
   private mouseOverEvents: any;
+  private cellColorScale: d3.ScaleLinear<number, number> = d3.scaleLinear<number, number>() //derya
+  private maxVal: number = 0
 
   constructor(network: Network, visDimensions: any, attributeVariables: string[]) {
     this.network = network;
@@ -168,6 +170,7 @@ export class View {
             }))
           .selectAll('text')
           .style('text-anchor', (d: any, i: number) => i % 2 ? 'end' : 'start');
+
       }
     });
 
@@ -325,17 +328,28 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('width', this.orderingScale.bandwidth());
 
+    this.cellColorScale = d3.scaleLinear<number,number>() //derya why is this not working?
+      .domain([0,this.maxVal])
+      .range(["#feebe2", "#690000"]);
+
     const squares = cells
       .append('rect')
       .attr('x', 0)// d => this.orderingScale(d.x))
       // .filter(d=>{return d.item >0})
       .attr('width', this.orderingScale.bandwidth())
-      .attr('height', this.orderingScale.bandwidth());
-      // .style("fill", 'white')
+      .attr('height', this.orderingScale.bandwidth())
+      // .style('fill', 'pink') //this will fill the correct squares
+      .style('fill', function(d: { z: number; }) {
+        return this.cellColorScale(d.z)
+      }) // DERYA: where squares get color
+
+
+
 
     squares
       .filter((d: any) => d.z === 0)
-      .style('fill-opacity', (d: { z: number; }) => d.z);
+      .style('fill-opacity', (d: { z: number; }) => d.z)
+
 
     cells
       .on('mouseover', (cell: any, i: number, nodes: any) => {
@@ -1231,7 +1245,19 @@ export class View {
         this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
       },
     );
+
+    // find max value of z
+    this.matrix.forEach(
+      (row: Row) => {
+        row.forEach(
+          (object: Object) => {
+            if (object.z > this.maxVal) {
+              this.maxVal = object.z
+            }
+          })
+      })
   }
+
 
   /**
    * returns an object containing the current provenance state.
