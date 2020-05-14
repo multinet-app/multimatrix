@@ -49,6 +49,7 @@ export class View {
   private highlightedNodes: { [key: string]: any[] } = {};
   private columnSelectedNodes: any[] = [];
   private mouseOverEvents: any;
+  private maxNumConnections: number = -Infinity;
 
   constructor(network: Network, visDimensions: any, attributeVariables: string[]) {
     this.network = network;
@@ -325,13 +326,17 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('width', this.orderingScale.bandwidth());
 
+    const cellColorScale = d3.scaleLinear<string>()
+      .domain([0, this.maxNumConnections])
+      .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+
     const squares = cells
       .append('rect')
       .attr('x', 0)// d => this.orderingScale(d.x))
       // .filter(d=>{return d.item >0})
       .attr('width', this.orderingScale.bandwidth())
-      .attr('height', this.orderingScale.bandwidth());
-      // .style("fill", 'white')
+      .attr('height', this.orderingScale.bandwidth())
+      .style('fill', (d: { z: number; }) => cellColorScale(d.z));
 
     squares
       .filter((d: any) => d.z === 0)
@@ -1231,6 +1236,17 @@ export class View {
         this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
       },
     );
+
+    // find max value of z
+    this.matrix.forEach(
+      (row: Array<{z: number, [key: string]: any}>) => {
+        row.forEach(
+          (cell: {z: number, [key: string]: any}) => {
+            if (cell.z > this.maxNumConnections) {
+              this.maxNumConnections = cell.z;
+            }
+          });
+      });
   }
 
   /**
