@@ -49,7 +49,6 @@ export class View {
   private highlightedNodes: { [key: string]: any[] } = {};
   private columnSelectedNodes: any[] = [];
   private mouseOverEvents: any;
-  private cellColorScale: d3.ScaleLinear<number, number> = d3.scaleLinear<number, number>() //derya
   private maxVal: number = 0
 
   constructor(network: Network, visDimensions: any, attributeVariables: string[]) {
@@ -328,9 +327,9 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('width', this.orderingScale.bandwidth());
 
-    this.cellColorScale = d3.scaleLinear<number,number>() //derya why is this not working?
+    const cellColorScale = d3.scaleLinear<number,number>()
       .domain([0,this.maxVal])
-      .range(["#feebe2", "#690000"]);
+      .range(["#feebe2", "#690000"]); //colors here are arbitrary, change later
 
     const squares = cells
       .append('rect')
@@ -340,8 +339,8 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       // .style('fill', 'pink') //this will fill the correct squares
       .style('fill', function(d: { z: number; }) {
-        return this.cellColorScale(d.z)
-      }) // DERYA: where squares get color
+        return cellColorScale(d.z)
+      })
 
 
 
