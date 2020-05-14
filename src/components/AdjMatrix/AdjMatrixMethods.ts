@@ -329,7 +329,7 @@ export class View {
 
     const cellColorScale = d3.scaleLinear<number,number>()
       .domain([0,this.maxVal])
-      .range(["#feebe2", "#690000"]); //colors here are arbitrary, change later
+      .range(["#feebe2", "#690000"]); // TODO: colors here are arbitrary, change later
 
     const squares = cells
       .append('rect')
