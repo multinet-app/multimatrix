@@ -347,8 +347,7 @@ export class View {
 
     squares
       .filter((d: any) => d.z === 0)
-      .style('fill-opacity', (d: { z: number; }) => d.z)
-
+      .style('fill-opacity', (d: { z: number; }) => d.z);
 
     cells
       .on('mouseover', (cell: any, i: number, nodes: any) => {
