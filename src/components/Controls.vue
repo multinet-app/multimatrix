@@ -58,9 +58,23 @@ export default Vue.extend({
     createConnectivity() {
       this.network = {
         'nodes':[
-          {'id': '123', '_key': "123"}
+          {'id': "miserables_nodes/Brujon", '_key': "Brujon"},
+          {'id': "miserables_nodes/Bossuet", '_key': "Bossuet"},
+          {'id': "miserables_nodes/BaronessT", '_key': "BaronessT"},
+          {'id': "miserables_nodes/Jondrette", '_key': "Jondrette"}
         ],
-        'links':[]
+        'links':[
+          {'source':"miserables_nodes/Brujon",'target':"miserables_nodes/Bossuet"},
+          {'source':"miserables_nodes/Brujon",'target':"miserables_nodes/Bossuet"},
+          {'source':"miserables_nodes/Bossuet",'target':"miserables_nodes/BaronessT"},
+          {'source':"miserables_nodes/Bossuet",'target':"miserables_nodes/BaronessT"},
+          {'source':"miserables_nodes/Bossuet",'target':"miserables_nodes/BaronessT"},
+          {'source':"miserables_nodes/Bossuet",'target':"miserables_nodes/BaronessT"},
+          {'source':"miserables_nodes/Bossuet",'target':"miserables_nodes/BaronessT"},
+          {'source':"miserables_nodes/Jondrette",'target':"miserables_nodes/BaronessT"},
+          {'source':"miserables_nodes/Jondrette",'target':"miserables_nodes/BaronessT"},
+          {'source':"miserables_nodes/Jondrette",'target':"miserables_nodes/BaronessT"},
+        ]
         }
     }
   },
@@ -111,7 +125,7 @@ export default Vue.extend({
                         <v-row class="flex-nowrap">
                           <v-col>
                             <v-select
-                              :items="['M','F']"
+                              :items="['M']"
                               label="Start"
                               chips
                               deletable-chips
