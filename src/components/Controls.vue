@@ -55,6 +55,11 @@ export default Vue.extend({
       a.download = 'graph.json';
       a.click();
     },
+    createConnectivity() {
+      console.log(this.network)
+      this.network = {'nodes':[],'links':[]}
+      console.log(this.network)
+    }
   },
 });
 </script>
@@ -103,7 +108,7 @@ export default Vue.extend({
                         <v-row class="flex-nowrap">
                           <v-col>
                             <v-select
-                              items='M'
+                              :items="['M','F']"
                               label="Start"
                               chips
                               deletable-chips
@@ -112,7 +117,7 @@ export default Vue.extend({
 
                           <v-col>
                             <v-select
-                              items='3'
+                              :items="['3']"
                               label="Hops"
                               chips
                               deletable-chips
@@ -121,7 +126,7 @@ export default Vue.extend({
 
                           <v-col>
                             <v-select
-                              items='M'
+                              :items="['M']"
                               label="End"
                               chips
                               deletable-chips
@@ -133,7 +138,7 @@ export default Vue.extend({
 
                     <v-card-actions>
                   <!-- Fix button action -->
-                      <v-btn small @click="exportGraph">Create Connectivity Matrix</v-btn>
+                      <v-btn small @click="createConnectivity">Create Connectivity Matrix</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-row>

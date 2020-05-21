@@ -104,6 +104,7 @@ export default Vue.extend({
       if (this.view) {
         this.view.attributeVariables = this.attributeVariables as string[];
         this.view.updateAttributes();
+        this.view.network = this.network;
       }
     },
   },
