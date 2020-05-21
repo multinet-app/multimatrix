@@ -85,6 +85,10 @@ export class View {
     this.loadData();
   }
 
+  public clear(): void {
+    d3.select('#matrix').selectAll('*').remove();
+  }
+
   /**
    * Takes in the data, and initializes visualization.
    * @param  data [description]

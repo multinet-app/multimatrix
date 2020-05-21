@@ -56,9 +56,12 @@ export default Vue.extend({
       a.click();
     },
     createConnectivity() {
-      console.log(this.network)
-      this.network = {'nodes':[],'links':[]}
-      console.log(this.network)
+      this.network = {
+        'nodes':[
+          {'id': '123', '_key': "123"}
+        ],
+        'links':[]
+        }
     }
   },
 });
