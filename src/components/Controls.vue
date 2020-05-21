@@ -1,16 +1,13 @@
 <script lang='ts'>
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
-
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
-
 export default Vue.extend({
   components: {
     AdjMatrix,
   },
-
   data(): {
     network: Network,
     workspace: string,
@@ -29,7 +26,6 @@ export default Vue.extend({
       attributeVariables: [],
     };
   },
-
   computed: {
     variableList(this: any) {
       if (typeof this.network.nodes[0] !== 'undefined') {
@@ -39,7 +35,6 @@ export default Vue.extend({
       }
     },
   },
-
   async mounted() {
     const { workspace, graph } = getUrlVars();
     if (!workspace || !graph) {
@@ -51,7 +46,6 @@ export default Vue.extend({
     this.workspace = workspace;
     this.graph = graph;
   },
-
   methods: {
     exportGraph() {
       const a = document.createElement('a');
@@ -98,6 +92,51 @@ export default Vue.extend({
           <v-card-actions>
             <v-btn small @click="exportGraph">Export Graph</v-btn>
           </v-card-actions>
+
+          <v-container fluid class="pt-0 pb-0">
+            <v-row class="flex-nowrap">
+                <v-card>
+
+                  <v-card-title class="pb-6">Connectivity Matrix Controls</v-card-title>
+                    <v-card-text>
+                    <v-row class="flex-nowrap">
+                      <v-col>
+                        <v-select
+                          items='M'
+                          label="Start"
+                          chips
+                          deletable-chips
+                        />
+                      </v-col>
+
+                      <v-col>
+                        <v-select
+                          items='3'
+                          label="Hops"
+                          chips
+                          deletable-chips
+                        />
+                      </v-col>
+
+                      <v-col>
+                        <v-select
+                          items='M'
+                          label="End"
+                          chips
+                          deletable-chips
+                        />
+                      </v-col>
+                    </v-row>
+                    </v-card-text>
+
+                    <v-card-actions>
+                  <!-- Fix button action -->
+                      <v-btn small @click="exportGraph">Create Connectivity Matrix</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-row>
+              </v-container>
+
         </v-card>
 
       </v-col>
