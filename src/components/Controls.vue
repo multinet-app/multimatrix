@@ -99,34 +99,36 @@ export default Vue.extend({
 
                   <v-card-title class="pb-6">Connectivity Matrix Controls</v-card-title>
                     <v-card-text>
-                    <v-row class="flex-nowrap">
-                      <v-col>
-                        <v-select
-                          items='M'
-                          label="Start"
-                          chips
-                          deletable-chips
-                        />
-                      </v-col>
+                      <v-card-subtitle class="pb-0 px-0" style="display: flex; align-items: center; justify-content: space-between">
+                        <v-row class="flex-nowrap">
+                          <v-col>
+                            <v-select
+                              items='M'
+                              label="Start"
+                              chips
+                              deletable-chips
+                            />
+                          </v-col>
 
-                      <v-col>
-                        <v-select
-                          items='3'
-                          label="Hops"
-                          chips
-                          deletable-chips
-                        />
-                      </v-col>
+                          <v-col>
+                            <v-select
+                              items='3'
+                              label="Hops"
+                              chips
+                              deletable-chips
+                            />
+                          </v-col>
 
-                      <v-col>
-                        <v-select
-                          items='M'
-                          label="End"
-                          chips
-                          deletable-chips
-                        />
-                      </v-col>
-                    </v-row>
+                          <v-col>
+                            <v-select
+                              items='M'
+                              label="End"
+                              chips
+                              deletable-chips
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-card-subtitle>
                     </v-card-text>
 
                     <v-card-actions>
