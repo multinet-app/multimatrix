@@ -101,11 +101,6 @@ export class View {
     const attrWidth = parseFloat(d3.select('#attributes').attr('width'));
     const colWidth = attrWidth / this.attributeVariables.length - this.colMargin;
 
-    // Update the variable scales
-    for (const name of this.attributeVariables) {
-      this.attributeScales[name] = d3.scaleLinear();
-    }
-
     // Update the column headers
     const columnHeaderGroups = this.columnHeaders
       .selectAll('text')
