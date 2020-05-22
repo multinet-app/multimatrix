@@ -15,7 +15,7 @@ export default Vue.extend({
       type: Boolean,
       default: true,
     },
-    attributeVariables: {
+    visualizedAttributes: {
       type: Array,
       default: [],
     },
@@ -54,11 +54,11 @@ export default Vue.extend({
     properties(this: any) {
       const {
         network,
-        attributeVariables,
+        visualizedAttributes,
       } = this;
       return {
         network,
-        attributeVariables,
+        visualizedAttributes,
       };
     },
   },
@@ -96,13 +96,13 @@ export default Vue.extend({
       .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 30} ${this.visDimensions.height}`);
 
     // Define the View
-    this.view = new View(this.network, this.visDimensions, this.attributeVariables);
+    this.view = new View(this.network, this.visDimensions, this.visualizedAttributes);
   },
 
   methods: {
     updateVis() {
       if (this.view) {
-        this.view.attributeVariables = this.attributeVariables as string[];
+        this.view.visualizedAttributes = this.visualizedAttributes as string[];
         this.view.updateAttributes();
       }
     },

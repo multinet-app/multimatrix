@@ -16,7 +16,7 @@ export default Vue.extend({
     workspace: string,
     graph: string,
     selectNeighbors: boolean,
-    attributeVariables: string[],
+    visualizedAttributes: string[],
   } {
     return {
       network: {
@@ -26,12 +26,12 @@ export default Vue.extend({
       workspace: '',
       graph: '',
       selectNeighbors: true,
-      attributeVariables: [],
+      visualizedAttributes: [],
     };
   },
 
   computed: {
-    variableList(this: any) {
+    attributeList(this: any) {
       if (typeof this.network.nodes[0] !== 'undefined') {
         return Object.keys(this.network.nodes[0]);
       } else {
@@ -75,13 +75,13 @@ export default Vue.extend({
           <v-card-text>
 
             <v-select
-              v-model="attributeVariables"
-              :items="variableList"
-              label="Node Variables"
+              v-model="visualizedAttributes"
+              :items="attributeList"
+              label="Node Attributes"
               multiple
               chips
               deletable-chips
-              hint="Choose the node variables you'd like to visualize"
+              hint="Choose the node attributes you'd like to visualize"
               persistent-hint
             />
 
@@ -111,7 +111,7 @@ export default Vue.extend({
             v-bind="{
               network,
               selectNeighbors,
-              attributeVariables,
+              visualizedAttributes,
             }"
             @restart-simulation="hello()"
             />
