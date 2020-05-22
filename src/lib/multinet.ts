@@ -1,8 +1,8 @@
 /* Multinet data importer */
 import * as d3 from 'd3';
 
-async function _loadTables(workspace: string, graph: string, apiRoot: string) {
-  const tablesCall = apiRoot + '/workspaces/' + workspace + '/graphs/' + graph;
+async function _loadTables(workspace: string, networkName: string, apiRoot: string) {
+  const tablesCall = apiRoot + '/workspaces/' + workspace + '/graphs/' + networkName;
   return await d3.json(tablesCall);
 }
 
@@ -48,17 +48,17 @@ function _defineNeighbors(nodes: any[], links: any[]) {
   return nodes;
 }
 
-async function loadData(workspace: string, graph: string, apiRoot: string = 'https://api.multinet.app/api') {
+async function loadData(workspace: string, networkName: string, apiRoot: string = 'https://api.multinet.app/api') {
   // Define local variables that will store the api url and the responses from the database
-  const multinet: {tables: any, nodes: any[], links: any[], graph_structure: any} = {
+  const multinet: {tables: any, nodes: any[], links: any[], network: any} = {
     tables: {nodeTables: [], edgeTable: ''},
     nodes: Array(),
     links: [],
-    graph_structure: {},
+    network: {},
   };
 
   // Fetch the names of all the node and edge tables
-  multinet.tables = await _loadTables(workspace, graph, apiRoot);
+  multinet.tables = await _loadTables(workspace, networkName, apiRoot);
 
   // Loop through each node tables and fetch the nodes to global variables
   for (const nodeTable of multinet.tables.nodeTables) {
@@ -75,12 +75,12 @@ async function loadData(workspace: string, graph: string, apiRoot: string = 'htt
   // Define neighbors
   multinet.nodes = _defineNeighbors(multinet.nodes, multinet.links);
 
-  // Set the graph structure
-  multinet.graph_structure = {
+  // Set the network
+  multinet.network = {
     nodes: _renameNodeVars(multinet.nodes),
     links: _renameLinkVars(multinet.links),
   };
-  return JSON.parse(JSON.stringify(multinet.graph_structure));
+  return JSON.parse(JSON.stringify(multinet.network));
 }
 
 export {

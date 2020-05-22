@@ -8,7 +8,7 @@ import { Dimensions, Link, Network, Node } from '@/types';
 declare const reorder: any;
 
 export class View {
-  public attributeVariables: string[] = [];
+  public visualizedAttributes: string[] = [];
 
   private selectedCells: any[] = [];
   private network: Network;
@@ -51,7 +51,7 @@ export class View {
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
 
-  constructor(network: Network, visDimensions: any, attributeVariables: string[]) {
+  constructor(network: Network, visDimensions: any, visualizedAttributes: string[]) {
     this.network = network;
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
     this.visDimensions = visDimensions;
@@ -59,7 +59,7 @@ export class View {
     this.sortKey = 'name';
     this.matrix = [];
     this.idMap = {};
-    this.attributeVariables = attributeVariables;
+    this.visualizedAttributes = visualizedAttributes;
 
     this.icons = {
       quant: {
@@ -99,17 +99,12 @@ export class View {
   public updateAttributes(): void {
     // Set the column widths and margin
     const attrWidth = parseFloat(d3.select('#attributes').attr('width'));
-    const colWidth = attrWidth / this.attributeVariables.length - this.colMargin;
-
-    // Update the variable scales
-    for (const name of this.attributeVariables) {
-      this.attributeScales[name] = d3.scaleLinear();
-    }
+    const colWidth = attrWidth / this.visualizedAttributes.length - this.colMargin;
 
     // Update the column headers
     const columnHeaderGroups = this.columnHeaders
       .selectAll('text')
-      .data(this.attributeVariables);
+      .data(this.visualizedAttributes);
 
     columnHeaderGroups
       .exit()
@@ -131,8 +126,8 @@ export class View {
       .attr('width', colWidth)
       .on('click', (d: any, i: number) => this.sort(d));
 
-    // Calculate the variable scales
-    this.attributeVariables.forEach((col: string, index: number) => {
+    // Calculate the attribute scales
+    this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
         const minimum = d3.min(this.network.nodes.map((node: Node) => node[col])) || '0';
         const maximum = d3.max(this.network.nodes.map((node: Node) => node[col])) || '0';
@@ -153,7 +148,7 @@ export class View {
     d3.selectAll('.attr-axis').remove();
 
     // Add the scale bar at the top of the attr column
-    this.attributeVariables.forEach((col: string, index: number) => {
+    this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
         const barScaleVis = this.attributes
           .append('g')
@@ -174,7 +169,7 @@ export class View {
 
     d3.selectAll('.glyph').remove();
     /* Create data columns data */
-    this.attributeVariables.forEach((col: string, index: number) => {
+    this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
         this.attributeRows
           .append('rect')
@@ -216,7 +211,7 @@ export class View {
     // Add sort icons to the top of the header
     const path = this.columnHeaders
       .selectAll('path')
-      .data(this.attributeVariables);
+      .data(this.visualizedAttributes);
 
     path
       .enter()
@@ -225,8 +220,8 @@ export class View {
       .attr('class', `sortIcon attr attrSortIcon`)
       .attr('cursor', 'pointer')
       .attr('d', (d: any) => {
-        const variable = this.isQuantitative(d) ? 'quant' : 'categorical';
-        return this.icons[variable].d;
+        const type = this.isQuantitative(d) ? 'quant' : 'categorical';
+        return this.icons[type].d;
       })
       .attr('transform', (d: any, i: number) => `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200}, -1100)`)
       .style('fill', (d: any) => '#8B8B8B')
@@ -1048,18 +1043,18 @@ export class View {
         };
       });
 
-      const graph = reorder.graph()
+      const sortableNetwork = reorder.graph()
         .nodes(this.network.nodes)
         .links(links)
         .init();
 
       if (type === 'clusterBary') {
-        const barycenter = reorder.barycenter_order(graph);
-        order = reorder.adjacent_exchange(graph, barycenter[0], barycenter[1])[1];
+        const barycenter = reorder.barycenter_order(sortableNetwork);
+        order = reorder.adjacent_exchange(sortableNetwork, barycenter[0], barycenter[1])[1];
       } else if (type === 'clusterSpectral') {
-        order = reorder.spectral_order(graph);
+        order = reorder.spectral_order(sortableNetwork);
       } else if (type === 'clusterLeaf') {
-        const mat = reorder.graph2mat(graph);
+        const mat = reorder.graph2mat(sortableNetwork);
         order = reorder.optimal_leaf_order()(mat);
       }
     } else if (this.sortKey === 'edges') {

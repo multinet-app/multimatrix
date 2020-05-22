@@ -9,5 +9,6 @@ export function getUrlVars(): { [key: string]: string} {
       return value;
     },
   );
+  vars.networkName = vars.graph;
   return vars;
 }
