@@ -14,7 +14,7 @@ export default Vue.extend({
   data(): {
     network: Network,
     workspace: string,
-    graph: string,
+    networkName: string,
     selectNeighbors: boolean,
     visualizedAttributes: string[],
   } {
@@ -24,7 +24,7 @@ export default Vue.extend({
         links: [],
       },
       workspace: '',
-      graph: '',
+      networkName: '',
       selectNeighbors: true,
       visualizedAttributes: [],
     };
@@ -41,24 +41,24 @@ export default Vue.extend({
   },
 
   async mounted() {
-    const { workspace, graph } = getUrlVars();
-    if (!workspace || !graph) {
+    const { workspace, networkName } = getUrlVars();
+    if (!workspace || !networkName) {
       throw new Error(
-        `Workspace and graph must be set! workspace=${workspace} graph=${graph}`,
+        `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
       );
     }
-    this.network = await loadData(workspace, graph);
+    this.network = await loadData(workspace, networkName);
     this.workspace = workspace;
-    this.graph = graph;
+    this.networkName = networkName;
   },
 
   methods: {
-    exportGraph() {
+    exportNetwork() {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([JSON.stringify(this.network)], {
         type: `text/json`,
       }));
-      a.download = 'graph.json';
+      a.download = `${this.networkName}.json`;
       a.click();
     },
   },
@@ -96,7 +96,7 @@ export default Vue.extend({
           </v-card-text>
 
           <v-card-actions>
-            <v-btn small @click="exportGraph">Export Graph</v-btn>
+            <v-btn small @click="exportNetwork">Export Network</v-btn>
           </v-card-actions>
         </v-card>
 

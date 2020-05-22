@@ -1043,18 +1043,18 @@ export class View {
         };
       });
 
-      const graph = reorder.graph()
+      const sortableNetwork = reorder.graph()
         .nodes(this.network.nodes)
         .links(links)
         .init();
 
       if (type === 'clusterBary') {
-        const barycenter = reorder.barycenter_order(graph);
-        order = reorder.adjacent_exchange(graph, barycenter[0], barycenter[1])[1];
+        const barycenter = reorder.barycenter_order(sortableNetwork);
+        order = reorder.adjacent_exchange(sortableNetwork, barycenter[0], barycenter[1])[1];
       } else if (type === 'clusterSpectral') {
-        order = reorder.spectral_order(graph);
+        order = reorder.spectral_order(sortableNetwork);
       } else if (type === 'clusterLeaf') {
-        const mat = reorder.graph2mat(graph);
+        const mat = reorder.graph2mat(sortableNetwork);
         order = reorder.optimal_leaf_order()(mat);
       }
     } else if (this.sortKey === 'edges') {
