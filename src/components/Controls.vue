@@ -103,7 +103,7 @@ export default Vue.extend({
       </v-col>
 
       <!-- AdjMatrix component -->
-      <v-col>
+      <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
           <adj-matrix
             ref="adjmatrix"

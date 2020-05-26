@@ -85,15 +85,15 @@ export default Vue.extend({
     // Size the svgs
     this.matrix = d3
       .select(this.$refs.matrix)
-      .attr('width', this.visDimensions.width * 0.75 - 30)
+      .attr('width', this.visDimensions.width * 0.75)
       .attr('height', this.visDimensions.height)
-      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.75 - 30} ${this.visDimensions.height}`);
+      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.75} ${this.visDimensions.height}`);
 
     this.attributes = d3
       .select(this.$refs.attributes)
-      .attr('width', this.visDimensions.width * 0.25 - 30)
+      .attr('width', this.visDimensions.width * 0.25)
       .attr('height', this.visDimensions.height)
-      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 30} ${this.visDimensions.height}`);
+      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25} ${this.visDimensions.height}`);
 
     // Define the View
     this.view = new View(this.network, this.visDimensions, this.visualizedAttributes);
