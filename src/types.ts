@@ -45,13 +45,12 @@ export interface State {
   clicked: never[];
   sortKey: string;
   selections: {
-    attrRow: {},
-    rowLabel: {},
-    colLabel: {},
-    neighborSelect: {},
-    cellCol: {},
-    cellRow: {},
-    search: {},
-    previousMouseOvers: [],
+    attrRow: { [key: string]: any },
+    rowLabel: { [key: string]: any },
+    colLabel: { [key: string]: any },
+    neighborSelect: { [key: string]: any },
+    cellCol: { [key: string]: any },
+    cellRow: { [key: string]: any },
+    search: { [key: string]: any },
   };
 }

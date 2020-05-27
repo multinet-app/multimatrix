@@ -201,18 +201,18 @@ export class View {
       .merge(path)
       .attr('class', `sortIcon attr attrSortIcon`)
       .attr('cursor', 'pointer')
-      .attr('d', (d: any) => {
+      .attr('d', (d: string) => {
         const type = this.isQuantitative(d) ? 'quant' : 'categorical';
         return this.icons[type].d;
       })
-      .attr('transform', (d: any, i: number) => `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200}, -1100)`)
-      .style('fill', (d: any) => '#8B8B8B')
-      .on('click', (d: any) => this.sort(d));
+      .attr('transform', (d: string, i: number) => `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200}, -1100)`)
+      .style('fill', '#8B8B8B')
+      .on('click', (d: string) => this.sort(d));
 
   }
 
   private isQuantitative(varName: string): boolean {
-    const uniqueValues = [...new Set(this.network.nodes.map((node: any) => parseFloat(node[varName])))];
+    const uniqueValues = [...new Set(this.network.nodes.map((node: Node) => parseFloat(node[varName])))];
     return uniqueValues.length > 5;
   }
 
@@ -287,7 +287,7 @@ export class View {
       .enter()
       .append('g')
       .attr('class', 'cell')
-      .attr('id', (d: any) => d.cellName)
+      .attr('id', (d: Cell) => d.cellName)
       .attr('transform', (d: Cell) => `translate(${this.orderingScale(d.x)},0)`);
 
     cells
@@ -322,7 +322,7 @@ export class View {
       })
       .on('click', (d: Cell, i: number, nodes: any) => {
         const interaction = d3.select(nodes[i]).attr('class');
-        const action = this.changeInteractionWrapper(d, interaction);
+        const action = this.changeInteractionWrapper(interaction, d);
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer');
@@ -436,7 +436,7 @@ export class View {
       .attr('transform', `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`)
       .on('click', (d: Node) => {
         this.sort(d.id);
-        const action = this.changeInteractionWrapper(d, 'neighborSelect');
+        const action = this.changeInteractionWrapper('neighborSelect');
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
@@ -518,7 +518,7 @@ export class View {
    * @param  interactionType class name of element interacted with
    * @return        [description]
    */
-  private changeInteractionWrapper(node: any, interactionType: any): any {
+  private changeInteractionWrapper(interactionType: string, cell?: Cell): any {
     return {
       label: interactionType,
       action: (interactID: string) => {
@@ -528,19 +528,18 @@ export class View {
         currentState.event = interactionType;
         const interactionName = interactionType; // cell, search, etc
         let interactedElement = interactionType;
-        if (interactionName === 'cell') {
-          const cellData: any = d3.select(node).data()[0]; //
-          interactID = cellData.colID;
-          interactedElement = cellData.cellName; // + cellData.rowID;
+        if (interactionName === 'cell' && cell !== undefined) {
+          interactID = cell.colID;
+          interactedElement = cell.cellName; // + cellData.rowID;
 
-          this.changeInteraction(currentState, interactID, interactionName + 'Col', interactedElement);
-          this.changeInteraction(currentState, interactID, interactionName + 'Row', interactedElement);
-          if (cellData.cellName !== cellData.correspondingCell) {
-            interactedElement = cellData.correspondingCell; // + cellData.rowID;
-            interactID = cellData.rowID;
+          this.changeInteraction(currentState, interactID, 'cellCol', interactedElement);
+          this.changeInteraction(currentState, interactID, 'cellRow', interactedElement);
+          if (cell.cellName !== cell.correspondingCell) {
+            interactedElement = cell.correspondingCell; // + cellData.rowID;
+            interactID = cell.rowID;
 
-            this.changeInteraction(currentState, interactID, interactionName + 'Col', interactedElement);
-            this.changeInteraction(currentState, interactID, interactionName + 'Row', interactedElement);
+            this.changeInteraction(currentState, interactID, 'cellCol', interactedElement);
+            this.changeInteraction(currentState, interactID, 'cellRow', interactedElement);
           }
           return currentState;
 
@@ -549,7 +548,7 @@ export class View {
         } else if (interactionName === 'attrRow') {
           return interactionName;
 
-        } else {
+        } else if (interactionName === 'neighborSelect') {
           this.changeInteraction(currentState, interactID, interactionName, interactedElement);
           return currentState;
         }
@@ -566,7 +565,8 @@ export class View {
    * @return                 [description]
    */
   private changeInteraction(
-    state: any, nodeID: string, interaction: string, interactionName: string = interaction,
+    state: State, nodeID: string,
+    interaction: keyof State['selections'], interactionName: string = interaction,
   ): void {
     if (nodeID in state.selections[interaction]) {
       // Remove element if in list, if list is empty, delete key
@@ -585,7 +585,7 @@ export class View {
   }
 
 
-  private selectNeighborNodes(nodeID: string, neighbors: any): void {
+  private selectNeighborNodes(nodeID: string, neighbors: string[]): void {
     // Remove or add node from column selected nodes
     if (nodeID in this.columnSelectedNodes) {
       delete this.columnSelectedNodes[nodeID];
@@ -628,23 +628,17 @@ export class View {
 
     const transitionTime = 500;
 
-    d3.selectAll('#matrix g .row')
+    this.edgeRows
       .transition()
       .duration(transitionTime)
-      .attr('transform', (d: any, i: number) => {
-        if (i > this.order.length - 1) {
-          return 'translate(0, 0)';
-        } else {
-          return `translate(0,${this.orderingScale(i)})`;
-        }
-      });
+      .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
     this.attributeRows
       .transition()
       .duration(transitionTime)
-      .attr('transform', (d: any, i: number) =>  `translate(0,${this.orderingScale(i)})`);
+      .attr('transform', (d: Node, i: number) =>  `translate(0,${this.orderingScale(i)})`);
 
-    // if any other method other than neighbors sort
+    // if any other method other than neighbors sort, sort the columns too
     if (!nodeIDs.includes(order)) {
       const t = this.edges;
       t.selectAll('.column')
@@ -653,7 +647,7 @@ export class View {
 
     d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
     if (!nodeIDs.includes(order)) {
-      const cells = d3.selectAll('.cell')
+      d3.selectAll('.cell')
         .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
     } else {
       d3.select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
@@ -757,7 +751,7 @@ export class View {
   const wasSelected = this.isSelected(node);
 
   if (wasSelected) {
-    clicked = clicked.filter((s: any) => s !== node.id);
+    clicked = clicked.filter((d: any) => d !== node.id);
   } else {
     clicked.push(node.id as never);
   }
@@ -891,7 +885,6 @@ export class View {
         cellCol: {},
         cellRow: {},
         search: {},
-        previousMouseOvers: [],
       },
     };
 
@@ -925,10 +918,7 @@ export class View {
 
       // go through each interacted element, and determine which rows/columns should
       // be highlighted due to it's interaction
-      for (const selectionType in state.selections) {
-        if (selectionType === 'previousMouseOvers') {
-          continue;
-        }
+      for (const selectionType of Object.keys(state.selections)) {
         for (const selectionElement of elementNamesFromSelection[selectionType]) {
           for (const node in state.selections[selectionType]) {
             if (selectionType === 'neighborSelect') {
@@ -1055,7 +1045,6 @@ export class View {
 
         currentState.sortKey = key;
         if (this.mouseOverEvents !== undefined) {
-          currentState.selections.previousMouseOvers = this.mouseOverEvents;
           this.mouseOverEvents.length = 0;
         }
 
