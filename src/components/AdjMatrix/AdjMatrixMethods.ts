@@ -1,5 +1,5 @@
 /* The View displays the data given to it by the model. */
-import { scaleBand, scaleLinear, scaleOrdinal } from 'd3-scale';
+import { scaleBand, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
@@ -26,7 +26,7 @@ export class View {
   private order: any;
   private margins: { left: number, top: number, right: number, bottom: number };
   private attributes: any;
-  private orderingScale: d3.ScaleBand<number> = scaleBand<number>();
+  private orderingScale: ScaleBand<number> = scaleBand<number>();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
@@ -607,13 +607,13 @@ export class View {
     for (const node of Object.keys(this.columnSelectedNodes)) {
       for (const neighborNode of this.columnSelectedNodes[node]) {
         cssSelector += `
-        [id="attrRow${neighborNode}"],[id="topoRow${neighborNode}"],[id="nodeLabelRow${neighborNode},"]
+        [id="attrRow${neighborNode}"],[id="topoRow${neighborNode}"],[id="nodeLabelRow${neighborNode}"],
         `;
       }
     }
 
     // Remove last comma
-    cssSelector = cssSelector.substring(0, cssSelector.length - 1);
+    cssSelector = cssSelector.replace(/,\s*$/, '');
 
     if (cssSelector !== '') {
       selectAll(cssSelector).classed('neighbor', true);
