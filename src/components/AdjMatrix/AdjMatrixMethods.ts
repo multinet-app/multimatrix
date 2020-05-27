@@ -162,6 +162,8 @@ export class View {
           .attr('y', 0) // y is set by translate on the group
           .attr('fill', '#82b1ff')
           .attr('cursor', 'pointer')
+          .on('mouseover', (d: Node) => this.hoverNode(d.id))
+          .on('mouseout', (d: Node) => this.unHoverNode(d.id))
           .on('click', (d: Node) => {
             this.nodeClick(d);
             this.selectNeighborNodes(d.id, d.neighbors);
@@ -177,6 +179,8 @@ export class View {
           .attr('height', this.orderingScale.bandwidth())
           .attr('fill', (d: Node) => this.attributeScales[col](d[col]))
           .attr('cursor', 'pointer')
+          .on('mouseover', (d: Node) => this.hoverNode(d.id))
+          .on('mouseout', (d: Node) => this.unHoverNode(d.id))
           .on('click', (d: Node) => {
             this.nodeClick(d);
             this.selectNeighborNodes(d.id, d.neighbors);
@@ -378,56 +382,28 @@ export class View {
       .remove();
   }
 
-  /**
-   * Renders hover interactions and logs interaction in mouseoverEvents.
-   * @param  cell d3 datum corresponding to cell's data
-   * @return      none
-   */
-  private hoverEdge(cell: any): void {
-    const cellIDs = [cell.cellName, cell.correspondingCell];
 
-    this.selectedCells = cellIDs;
-    this.selectedCells.map((elementID: string) => {
-      d3.selectAll(`[id="${elementID}"]`).selectAll('.baseCell').classed('hoveredCell', true);
-    });
-    const cellID = cellIDs[0];
-
-    // Add the nodes to be highlighted to the object
-    this.addHighlightNodesToDict(this.hoverRow, cell.rowID, cellID);
-    this.addHighlightNodesToDict(this.hoverCol, cell.colID, cellID);
-
-    // If we're not on diagonal, highlight the other cell + row + column
-    if (cell.colID !== cell.rowID) {
-      this.addHighlightNodesToDict(this.hoverRow, cell.colID, cellID);
-      this.addHighlightNodesToDict(this.hoverCol, cell.rowID, cellID);
-    }
-
-    //
-    this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
-    this.renderHighlightNodesFromDict(this.hoverCol, 'hovered', 'Col');
+  private hoverNode(nodeID: string): void {
+    const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+    d3.selectAll(cssSelector).classed('hovered', true);
   }
 
-  /**
-   * Removes interaction highlight from a cell mouseover
-   * @param  cell d3 datum element corresponding to the cell's data
-   * @return      none
-   */
-  private unHoverEdge(cell: { cellName: any; rowID: any; colID: any; }): void {
-    d3.selectAll('.hoveredCell').classed('hoveredCell', false);
 
-    this.selectedCells = [];
+  private unHoverNode(nodeID: string): void {
+    const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+    d3.selectAll(cssSelector).classed('hovered', false);
+  }
 
-    const cellID = cell.cellName;
-    this.removeHighlightNodesFromDict(this.hoverRow, cell.rowID, cellID);  // Add row (rowID)
-    this.removeHighlightNodesFromDict(this.hoverCol, cell.colID, cellID);  // Add col (colID)
 
-    // If we're not on the diagonal, un-highlight the other cell + row + column
-    if (cell.colID !== cell.rowID) {
-      this.removeHighlightNodesFromDict(this.hoverRow, cell.colID, cellID);
-      this.removeHighlightNodesFromDict(this.hoverCol, cell.rowID, cellID);
-    }
+  private hoverEdge(cell: Cell): void {
+    this.hoverNode(cell.rowID);
+    this.hoverNode(cell.colID);
+  }
 
-    d3.selectAll('.hovered').classed('hovered', false);
+
+  private unHoverEdge(cell: Cell): void {
+    this.unHoverNode(cell.rowID);
+    this.unHoverNode(cell.colID);
   }
 
   /**
@@ -445,6 +421,8 @@ export class View {
       .attr('text-anchor', 'end')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
       .text((d: Node) => d._key)
+      .on('mouseover', (d: Node) => this.hoverNode(d.id))
+      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
       .on('click', (d: Node) => {
         this.nodeClick(d);
         this.selectNeighborNodes(d.id, d.neighbors);
@@ -463,8 +441,8 @@ export class View {
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
-      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
-      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
+      .on('mouseover', (d: Node) => this.hoverNode(d.id))
+      .on('mouseout', (d: Node) => this.unHoverNode(d.id));
 
     verticalOffset = verticalOffset * 0.075 + 5;
 
@@ -483,28 +461,10 @@ export class View {
         this.nodeClick(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       })
-      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
-      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
+      .on('mouseover', (d: Node) => this.hoverNode(d.id))
+      .on('mouseout', (d: Node) => this.unHoverNode(d.id));
   }
 
-  /**
-   * renders the relevant highlights for mousing over a label. Logs the interaction
-   * in mouseoverEvents.
-   * @param  data  d3 data element
-   * @param  i     d3 index
-   * @param  nodes d3 nodes
-   * @return       none
-   */
-
-  private mouseOverLabel(data: Array<{ rowID: any; }>, i: number, nodes: { [x: string]: any; }): void {
-    const elementID = data[0].rowID;
-    const flag = this.addHighlightNodesToDict(this.hoverRow, elementID, elementID);
-    this.addHighlightNodesToDict(this.hoverCol, elementID, elementID);
-
-    d3.selectAll('.hovered').classed('hovered', false);
-    this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
-    this.renderHighlightNodesFromDict(this.hoverCol, 'hovered', 'Col');
-  }
 
   /**
    * Draws the grid lines for the adjacency matrix.
@@ -625,142 +585,36 @@ export class View {
     }
   }
 
-  private addHighlightNode(addingNode: string): void {
-    // if node is in
-    const nodeIndex = this.network.nodes.findIndex((item: { [x: string]: string; }, i: any) => {
-      return item.id === addingNode;
-    });
 
-    for (let i = 0; i < this.matrix[0].length; i++) {
-      if (true /*this.matrix[i][nodeIndex].z > 0*/) {
-        const nodeID = this.matrix[i][nodeIndex].rowID;
-        if (
-          this.highlightedNodes.hasOwnProperty(nodeID) &&
-          !this.highlightedNodes[nodeID].includes(addingNode)
-        ) {
-          // if array exists, add it
-          this.highlightedNodes[nodeID].push(addingNode);
-        } else {
-          // if array non exist, create it and add node
-          this.highlightedNodes[nodeID] = [addingNode];
-        }
-      }
-    }
-  }
-
-  private nodeDictContainsPair(
-    dict: { [x: string]: { add: (arg0: any) => any, has: (arg0: any) => any; }; },
-    nodeToHighlight: string, interactedElement: any,
-  ): boolean {
-    if (nodeToHighlight in dict) {
-      return dict[nodeToHighlight].has(interactedElement);
-    }
-    return false;
-  }
-
-  /**
-   * If an interactedElement has not been interacted with, it will add the nodeToHighlight
-   * to the provided highlight dict. If it has, it will remove it and return false. Otherwise,
-   * it will add the interacted element connection to the nodeToHighlight.
-   * @param  dict       The underlying storage to show which
-   * @param  nodeToHighlight  [description]
-   * @param  interactedElement [description]
-   * @return            [description]
-   */
-  private addHighlightNodesToDict(
-    dict: { [x: string]: { add: (arg0: any) => any, has: (arg0: any) => any; }; },
-    nodeToHighlight: string, interactedElement: any,
-  ): boolean {
-    // if node already in highlight, remove it
-    if (this.nodeDictContainsPair(dict, nodeToHighlight, interactedElement)) {
-      this.removeHighlightNodesFromDict(dict, nodeToHighlight, interactedElement);
-      return false;
-    }
-
-    // create new set if set exists
-    if (!(nodeToHighlight in dict)) {
-
-      dict[nodeToHighlight] = new Set();
-    }
-    // add element to set
-    dict[nodeToHighlight].add(interactedElement);
-    return true;
-  }
-
-  private removeHighlightNodesFromDict(
-    dict: { [x: string]: any; }, nodeToHighlight: string, interactedElement: any,
-  ): void {
-    // if node is not in list, simply return
-    if (!this.nodeDictContainsPair(dict, nodeToHighlight, interactedElement)) {
-      return;
-    }
-
-    // if there are other elements highlighting the node to highlight
-    if (dict[nodeToHighlight].size > 1) { // if set has more than 1 object
-      dict[nodeToHighlight].delete(interactedElement); // delete element from set
+  private selectNeighborNodes(nodeID: string, neighbors: any): void {
+    // Remove or add node from column selected nodes
+    if (nodeID in this.columnSelectedNodes) {
+      delete this.columnSelectedNodes[nodeID];
     } else {
-      delete dict[nodeToHighlight];
-    }
-  }
-
-  private renderHighlightNodesFromDict(
-    dict: { [x: string]: any; }, classToRender: string, rowOrCol: string = 'Row',
-  ): void {
-    // Un-highlight all other nodes
-    if (classToRender !== 'hovered') {
-      d3.selectAll(`.${classToRender}`)
-        .classed(classToRender, false);
+      const newElement = { [nodeID]: neighbors };
+      this.columnSelectedNodes = Object.assign(this.columnSelectedNodes, newElement);
     }
 
-    // highlight correct nodes
+    // Reset all nodes to not neighbor highlighted
+    d3.selectAll('.neighbor')
+      .classed('neighbor', false);
+
+    // Loop through the neighbor nodes to be highlighted and highlight them
     let cssSelector = '';
-    for (const node in dict) {
-      if (Array.isArray(dict[node])) {
-        for (const nodeID of dict[node]) {
-          if (rowOrCol === 'Row') {
-            cssSelector += `[id="attr${rowOrCol}${nodeID}"],`;
-          }
-          cssSelector += `[id="topo${rowOrCol}${nodeID}"],`;
-
-          if (rowOrCol === 'Row') {
-            cssSelector += `[id="nodeLabelRow${nodeID}"],`;
-          }
-        }
-      } else {
-        if (rowOrCol === 'Row') {
-          cssSelector += `[id="attr${rowOrCol}${node}"],`;
-        }
-        cssSelector += `[id="topo${rowOrCol}${node}"],`;
-
-        if (rowOrCol === 'Row') {
-          cssSelector += `[id="nodeLabelRow${node}"],`;
-        }
+    for (const node of Object.keys(this.columnSelectedNodes)) {
+      for (const neighborNode of this.columnSelectedNodes[node]) {
+        cssSelector += `
+        [id="attrRow${neighborNode}"],[id="topoRow${neighborNode}"],[id="nodeLabelRow${neighborNode},"]
+        `;
       }
     }
-    // remove last comma
+
+    // Remove last comma
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
 
     if (cssSelector !== '') {
-      d3.selectAll(cssSelector).classed(classToRender, true);
+      d3.selectAll(cssSelector).classed('neighbor', true);
     }
-  }
-
-  /**
-   * Old implementation to select the neighboring nodes.
-   * @param  nodeID [description]
-   * @return        [description]
-   */
-  private selectNeighborNodes(nodeID: string, neighbors: any): void {
-    if (nodeID in this.columnSelectedNodes) {
-
-      // find all neighbors and remove them
-      this.columnSelectedNodes = this.columnSelectedNodes.filter((d: any) => d.id !== nodeID);
-    } else {
-      this.addHighlightNode(nodeID);
-      const newElement = { [nodeID]: neighbors};
-      this.columnSelectedNodes = Object.assign(this.columnSelectedNodes, newElement);
-    }
-    this.renderHighlightNodesFromDict(this.columnSelectedNodes, 'neighbor', 'Row');
   }
 
   /**
@@ -862,6 +716,8 @@ export class View {
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
       .attr('cursor', 'pointer')
+      .on('mouseover', (d: Node) => this.hoverNode(d.id))
+      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
       .on('click', (d: Node) => {
         this.nodeClick(d);
         this.selectNeighborNodes(d.id, d.neighbors);
@@ -938,29 +794,7 @@ export class View {
   private isSelected(node: Node): boolean {
     const currentState = this.getApplicationState();
     const clicked = currentState.clicked;
-    return clicked.includes(node.id);
-  }
-
-  private attributeMouseOver(d: any, i: number, nodes: any): void {
-    this.addHighlightNodesToDict(this.hoverRow, d.id, d.id);  // Add row (rowID)
-    this.addHighlightNodesToDict(this.hoverCol, d.id, d.id);  // Add row (rowID)
-
-    d3.selectAll('.hovered').classed('hovered', false);
-    this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
-    this.renderHighlightNodesFromDict(this.hoverCol, 'hovered', 'Col');
-
-    this.showToolTip(d, i, nodes);
-  }
-
-  private attributeMouseOut(d: any): void {
-    this.removeHighlightNodesFromDict(this.hoverRow, d.id, d.id);
-    this.removeHighlightNodesFromDict(this.hoverCol, d.id, d.id);
-
-    d3.selectAll('.hovered').classed('hovered', false);
-    this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
-    this.renderHighlightNodesFromDict(this.hoverCol, 'hovered', 'Col');
-
-    this.hideToolTip();
+    return clicked.includes(node.id as never);
   }
 
   private showToolTip(d: any, i: number, nodes: any): void {
