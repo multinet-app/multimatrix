@@ -3,27 +3,18 @@ import * as d3 from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
-import { Dimensions, Link, Network, Node } from '@/types';
+import { Dimensions, Link, Network, Node, Cell, State } from '@/types';
 
 declare const reorder: any;
 
 export class View {
   public visualizedAttributes: string[] = [];
 
-  private selectedCells: any[] = [];
   private network: Network;
   private icons: { [key: string]: { [d: string]: string}};
   private sortKey: string;
   private edges: any;
-  private matrix: Array<Array<{
-    cellName: string,
-    correspondingCell: string,
-    rowID: string,
-    colID: string,
-    x: number,
-    y: number,
-    z: number,
-  }>>;
+  private matrix: Cell[][];
   private edgeWidth: number = 0;
   private edgeHeight: number = 0;
   private attributeRows: any;
@@ -41,13 +32,10 @@ export class View {
   private colMargin: number = 5;
   private visDimensions: Dimensions;
   private provenance: any;
-  private idMap: { [key: string]: number};
-  private hoverRow: {} = {};
-  private hoverCol: {} = {};
+  private idMap: { [key: string]: number };
   private isMultiEdge: any;
   private orderType: any;
-  private highlightedNodes: { [key: string]: any[] } = {};
-  private columnSelectedNodes: any[] = [];
+  private columnSelectedNodes: { [key: string]: string[] };
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
 
@@ -59,6 +47,7 @@ export class View {
     this.sortKey = 'name';
     this.matrix = [];
     this.idMap = {};
+    this.columnSelectedNodes = {};
     this.visualizedAttributes = visualizedAttributes;
 
     this.icons = {
@@ -82,19 +71,12 @@ export class View {
     });
 
     this.processData();
-    this.loadData();
-  }
 
-  /**
-   * Takes in the data, and initializes visualization.
-   * @param  data [description]
-   * @return      [description]
-   */
-  public loadData(): void {
     // Kick off the rendering
     this.initializeEdges();
     this.initializeAttributes();
   }
+
 
   public updateAttributes(): void {
     // Set the column widths and margin
@@ -122,9 +104,9 @@ export class View {
       .attr('cursor', 'pointer')
       .text((d: string) => d)
       .attr('y', 16)
-      .attr('x', (d: any, i: number) => (colWidth + this.colMargin) * i)
+      .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
-      .on('click', (d: any, i: number) => this.sort(d));
+      .on('click', (d: string) => this.sort(d));
 
     // Calculate the attribute scales
     this.visualizedAttributes.forEach((col: string, index: number) => {
@@ -175,16 +157,14 @@ export class View {
           .append('rect')
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('width', (d: any) => this.attributeScales[col](d[col]))
+          .attr('width', (d: Node) => this.attributeScales[col](d[col]))
           .attr('x', (colWidth + this.colMargin) * index)
           .attr('y', 0) // y is set by translate on the group
-          .attr('fill', (d: any) => '#82b1ff')
+          .attr('fill', '#82b1ff')
           .attr('cursor', 'pointer')
-          .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
-          .on('mouseout', (d: any) => this.attributeMouseOut(d))
-          .on('click', (d: any, i: number) => {
+          .on('click', (d: Node) => {
             this.nodeClick(d);
-            this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+            this.selectNeighborNodes(d.id, d.neighbors);
           });
       } else {
         this.attributeRows
@@ -195,13 +175,11 @@ export class View {
           .attr('fill', '#dddddd')
           .attr('width', colWidth)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('fill', (d: any) => this.attributeScales[col](d[col]))
+          .attr('fill', (d: Node) => this.attributeScales[col](d[col]))
           .attr('cursor', 'pointer')
-          .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
-          .on('mouseout', (d: any) => this.attributeMouseOut(d))
-          .on('click', (d: any, i: number) => {
+          .on('click', (d: Node) => {
             this.nodeClick(d);
-            this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+            this.selectNeighborNodes(d.id, d.neighbors);
           });
       }
     });
@@ -241,9 +219,7 @@ export class View {
    */
   private initializeEdges(): void {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const width = this.visDimensions.width;
-    const height = this.visDimensions.height;
-    const sideLength = width < height ? width : height;
+    const sideLength = Math.min(this.visDimensions.width, this.visDimensions.height);
 
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
@@ -260,20 +236,20 @@ export class View {
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
-      .data(this.matrix)
+      .data(this.network.nodes)
       .enter().append('g')
       .attr('class', 'column')
-      .attr('transform', (d: any, i: number) => {
+      .attr('transform', (d: Node, i: number) => {
         return `translate(${this.orderingScale(i)})rotate(-90)`;
       });
 
     // Draw each row
     this.edgeRows = this.edges.selectAll('.row')
-      .data(this.matrix)
+      .data(this.network.nodes)
       .enter()
       .append('g')
       .attr('class', 'row')
-      .attr('transform', (d: any, i: number) => {
+      .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
 
@@ -284,9 +260,7 @@ export class View {
     this.edgeColumns
       .append('rect')
       .classed('topoCol', true)
-      .attr('id', (d: any, i: number) => {
-        return `topoCol${d[i].colID}`;
-      })
+      .attr('id', (d: Node) => `topoCol${d.id}`)
       .attr('x', -this.edgeHeight - this.margins.bottom)
       .attr('y', 0)
       .attr('width', this.edgeHeight + this.margins.bottom + this.margins.top)
@@ -297,9 +271,7 @@ export class View {
     this.edgeRows
       .append('rect')
       .classed('topoRow', true)
-      .attr('id', (d: any, i: number) => {
-        return `topoRow${d[i].rowID}`;
-      })
+      .attr('id', (d: Node) => `topoRow${d.id}`)
       .attr('x', -this.margins.left)
       .attr('y', 0)
       .attr('width', this.edgeWidth + this.margins.right + this.margins.left)
@@ -307,12 +279,12 @@ export class View {
       .attr('fill-opacity', 0);
 
     const cells = this.edgeRows.selectAll('.cell')
-      .data((d: any) => d)
+      .data((d: Node, i: number) => this.matrix[i])
       .enter()
       .append('g')
       .attr('class', 'cell')
       .attr('id', (d: any) => d.cellName)
-      .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
+      .attr('transform', (d: Cell) => `translate(${this.orderingScale(d.x)},0)`);
 
     cells
       .append('rect')
@@ -327,26 +299,24 @@ export class View {
 
     const squares = cells
       .append('rect')
-      .attr('x', 0)// d => this.orderingScale(d.x))
-      // .filter(d=>{return d.item >0})
+      .attr('x', 0)
       .attr('width', this.orderingScale.bandwidth())
       .attr('height', this.orderingScale.bandwidth())
-      .style('fill', (d: { z: number; }) => cellColorScale(d.z));
+      .style('fill', (d: Cell) => cellColorScale(d.z));
 
     squares
-      .filter((d: any) => d.z === 0)
-      .style('fill-opacity', (d: { z: number; }) => d.z);
+      .style('fill-opacity', (d: Cell) => d.z);
 
     cells
-      .on('mouseover', (cell: any, i: number, nodes: any) => {
-        this.showToolTip(cell, i, nodes);
-        this.hoverEdge(cell);
+      .on('mouseover', (d: Cell, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverEdge(d);
       })
-      .on('mouseout', (cell: any) => {
+      .on('mouseout', (d: Cell) => {
         this.hideToolTip();
-        this.unHoverEdge(cell);
+        this.unHoverEdge(d);
       })
-      .on('click', (d: any, i: number, nodes: any) => {
+      .on('click', (d: Cell, i: number, nodes: any) => {
         const interaction = d3.select(nodes[i]).attr('class');
         const action = this.changeInteractionWrapper(d.id, nodes[i], interaction);
         this.provenance.applyAction(action);
@@ -467,34 +437,29 @@ export class View {
   private appendEdgeLabels(): void {
     this.edgeRows.append('text')
       .attr('class', 'rowLabel')
-      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: number) => {
-        return `rowLabel${d[i].rowID}`;
-      })
+      .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
       .attr('x', -3)
       .attr('y', this.orderingScale.bandwidth() / 2)
       .attr('dy', '.32em')
       .attr('text-anchor', 'end')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
-      .text((d: any, i: number) => this.network.nodes[i]._key)
-      .on('mouseout', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
-      .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
-      .on('click', (d: any, i: number) => {
+      .text((d: Node) => d._key)
+      .on('click', (d: Node) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+        this.selectNeighborNodes(d.id, d.neighbors);
       });
 
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
     this.edgeColumns.append('path')
-      .attr('id', (d: Array<{ rowID: string; }>) => `sortIcon${d[0].rowID}`)
+      .attr('id', (d: Node) => `sortIcon${d.id}`)
       .attr('class', 'sortIcon')
       .attr('d', this.icons.cellSort.d)
-      .style('fill', (d: any) => d === this.orderType ? '#EBB769' : '#8B8B8B')
+      .style('fill', (d: Node) => d === this.orderType ? '#EBB769' : '#8B8B8B')
       .attr('transform', `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`)
-      .on('click', (d: Array<{ rowID: any; }>, i: number, nodes: any[]) => {
-        this.sort(d[0].rowID);
-        const action = this.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+      .on('click', (d: Node) => {
+        this.sort(d.id);
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
@@ -505,9 +470,7 @@ export class View {
 
 
     this.edgeColumns.append('text')
-      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: number) => {
-        return `colLabel${d[i].rowID}`;
-      })
+      .attr('id', (d: Node) => `colLabel${d.id}`)
       .attr('class', 'colLabel')
       .attr('z-index', 30)
       .attr('y', this.orderingScale.bandwidth() / 2)
@@ -515,10 +478,10 @@ export class View {
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize)
-      .text((d: any, i: number) => this.network.nodes[i]._key)
-      .on('click', (d: any, i: number) => {
+      .text((d: Node) => d._key)
+      .on('click', (d: Node) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+        this.selectNeighborNodes(d.id, d.neighbors);
       })
       .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
       .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
@@ -644,8 +607,7 @@ export class View {
    * @return                 [description]
    */
   private changeInteraction(
-    state: any,
-    nodeID: string, interaction: string, interactionName: string = interaction,
+    state: any, nodeID: string, interaction: string, interactionName: string = interaction,
   ): void {
     if (nodeID in state.selections[interaction]) {
       // Remove element if in list, if list is empty, delete key
@@ -808,11 +770,7 @@ export class View {
   private sort(order: string): void {
     const nodeIDs = this.network.nodes.map((node: { id: any; }) => node.id);
 
-    if (nodeIDs.includes(order)) {
-      this.order = this.changeOrder(order, true);
-    } else {
-      this.order = this.changeOrder(order);
-    }
+    this.order = this.changeOrder(order, nodeIDs.includes(order));
     this.orderingScale.domain(this.order);
 
     const transitionTime = 500;
@@ -843,9 +801,7 @@ export class View {
     d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
     if (!nodeIDs.includes(order)) {
       const cells = d3.selectAll('.cell')
-        .attr('transform', (d: any, i: number) => {
-          return `translate(${this.orderingScale(d.x)},0)`;
-        });
+        .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
     } else {
       d3.select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
     }
@@ -875,10 +831,10 @@ export class View {
       .append('rect')
       .classed('highlightRow', true)
       .attr('x', 0)
-      .attr('y', (d: any, i: number) => this.orderingScale(i))
+      .attr('y', (d: Node, i: number) => this.orderingScale(i))
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth())
-      .attr('fill', (d: any, i: number) => i % 2 === 0 ? '#fff' : '#eee');
+      .attr('fill', (d: Node, i: number) => i % 2 === 0 ? '#fff' : '#eee');
 
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
@@ -887,7 +843,7 @@ export class View {
       .enter()
       .append('g')
       .attr('class', 'row')
-      .attr('transform', (d: any, i: number) => `translate(0,${this.orderingScale(i)})`);
+      .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
     this.attributeRows
       .append('line')
@@ -901,16 +857,14 @@ export class View {
       .attr('x', 0)
       .attr('y', 0)
       .classed('attrRow', true)
-      .attr('id', (d: any, i: number) => `attrRow${d.id}`)
+      .attr('id', (d: Node) => `attrRow${d.id}`)
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
       .attr('cursor', 'pointer')
-      .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
-      .on('mouseout', (d: any) => this.attributeMouseOut(d))
-      .on('click', (d: any, i: number) => {
+      .on('click', (d: Node) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+        this.selectNeighborNodes(d.id, d.neighbors);
       });
 
     this.columnHeaders = this.attributes.append('g')
@@ -942,7 +896,7 @@ export class View {
   }
 
   // function that updates the state, and includes a flag for when this was done through a search
- private nodeClick(node: {id: never}, search: boolean = false): void {
+  private nodeClick(node: Node, search: boolean = false): void {
   const previousState = this.getApplicationState();
   let clicked = previousState.clicked;
   const wasSelected = this.isSelected(node);
@@ -950,7 +904,7 @@ export class View {
   if (wasSelected) {
     clicked = clicked.filter((s: any) => s !== node.id);
   } else {
-    clicked.push(node.id);
+    clicked.push(node.id as never);
   }
 
   const label = search ?
@@ -981,7 +935,7 @@ export class View {
   this.provenance.applyAction(action);
   }
 
-  private isSelected(node: {id: never}): boolean {
+  private isSelected(node: Node): boolean {
     const currentState = this.getApplicationState();
     const clicked = currentState.clicked;
     return clicked.includes(node.id);
@@ -1066,7 +1020,7 @@ export class View {
       .range(this.network.nodes.length)
       .sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
       order = d3.range(this.network.nodes.length).sort((a, b) =>
-        this.network.nodes[b].neighbors.includes(type) - this.network.nodes[a].neighbors.includes(type),
+        Number(this.network.nodes[b].neighbors.includes(type)) - Number(this.network.nodes[a].neighbors.includes(type)),
       );
     } else if (this.sortKey === 'shortName') {
       order = d3.range(this.network.nodes.length).sort((a, b) =>
@@ -1214,8 +1168,8 @@ export class View {
     this.network.nodes.forEach((rowNode: Node, i: number) => {
       this.matrix[i] = this.network.nodes.map((colNode: Node) => {
         return {
-          cellName: `cell${rowNode.id}_${colNode.id}`,
-          correspondingCell: `cell${colNode.id}_${rowNode.id}`,
+          cellName: `${rowNode.id}_${colNode.id}`,
+          correspondingCell: `${colNode.id}_${rowNode.id}`,
           rowID: rowNode.id,
           colID: colNode.id,
           x: colNode.index,
@@ -1232,66 +1186,35 @@ export class View {
       },
     );
 
-    // find max value of z
-    this.matrix.forEach(
-      (row: Array<{z: number, [key: string]: any}>) => {
-        row.forEach(
-          (cell: {z: number, [key: string]: any}) => {
-            if (cell.z > this.maxNumConnections) {
-              this.maxNumConnections = cell.z;
-            }
-          });
+    // Find max value of z
+    this.matrix.forEach((row: Cell[]) => {
+      row.forEach((cell: Cell) => {
+        if (cell.z > this.maxNumConnections) {
+          this.maxNumConnections = cell.z;
+        }
       });
+    });
   }
 
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
    */
-  private getApplicationState(): {
-    workerID: number;
-    nodes: string;
-    search: string;
-    startTime: number;
-    endTime: string;
-    time: number;
-    event: string;
-    count: number;
-    clicked: never[];
-    sortKey: string;
-    selections: {
-        attrRow: {},
-        rowLabel: {},
-        colLabel: {},
-        neighborSelect: {},
-        cellCol: {},
-        cellRow: {},
-        search: {},
-        previousMouseOvers: [],
-    };
-  } {
+  private getApplicationState(): State {
     return this.provenance.graph().current.state;
   }
 
   private changeOrder(type: string, node: boolean = false): number[] {
     const action = this.generateSortAction(type);
-    if (this.provenance) {
-      this.provenance.applyAction(action);
-    }
+    this.provenance.applyAction(action);
     return this.sortObserver(type, node);
   }
 
-  /**
-   * [changeInteractionWrapper description]
-   * @param  nodeID ID of the node being changed with
-   * @param  node   nodes corresponding to the element class interacted with (from d3 select nodes[i])
-   * @param  interactionType class name of element interacted with
-   * @return        [description]
-   */
-  private generateSortAction(sortKey: string): {label: string, action: any, args: any[]} {
+
+  private generateSortAction(sortKey: string): { label: string, action: (key: string) => State, args: any[] } {
     return {
       label: 'sort',
-      action: (key: any) => {
+      action: (key: string) => {
         const currentState = this.getApplicationState();
         // add time stamp to the state graph
         currentState.time = Date.now();
