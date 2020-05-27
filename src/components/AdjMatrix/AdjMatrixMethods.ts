@@ -322,13 +322,10 @@ export class View {
       })
       .on('click', (d: Cell, i: number, nodes: any) => {
         const interaction = d3.select(nodes[i]).attr('class');
-        const action = this.changeInteractionWrapper(d.id, nodes[i], interaction);
+        const action = this.changeInteractionWrapper(d, interaction);
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer');
-
-    this.hoverRow = {};
-    this.hoverCol = {};
 
     this.appendEdgeLabels();
 
@@ -336,6 +333,7 @@ export class View {
     this.tooltip = d3.select('body')
       .append('div')
       .attr('class', 'tooltip')
+      .style('position', 'absolute')
       .style('opacity', 0);
   }
 
@@ -438,6 +436,7 @@ export class View {
       .attr('transform', `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`)
       .on('click', (d: Node) => {
         this.sort(d.id);
+        const action = this.changeInteractionWrapper(d, 'neighborSelect');
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
@@ -519,7 +518,7 @@ export class View {
    * @param  interactionType class name of element interacted with
    * @return        [description]
    */
-  private changeInteractionWrapper(nodeID: any, node: any, interactionType: any): any {
+  private changeInteractionWrapper(node: any, interactionType: any): any {
     return {
       label: interactionType,
       action: (interactID: string) => {
@@ -534,14 +533,14 @@ export class View {
           interactID = cellData.colID;
           interactedElement = cellData.cellName; // + cellData.rowID;
 
-          this.changeInteraction(currentState, interactID, interactionName + 'col', interactedElement);
-          this.changeInteraction(currentState, interactID, interactionName + 'row', interactedElement);
+          this.changeInteraction(currentState, interactID, interactionName + 'Col', interactedElement);
+          this.changeInteraction(currentState, interactID, interactionName + 'Row', interactedElement);
           if (cellData.cellName !== cellData.correspondingCell) {
             interactedElement = cellData.correspondingCell; // + cellData.rowID;
             interactID = cellData.rowID;
 
-            this.changeInteraction(currentState, interactID, interactionName + 'col', interactedElement);
-            this.changeInteraction(currentState, interactID, interactionName + 'row', interactedElement);
+            this.changeInteraction(currentState, interactID, interactionName + 'Col', interactedElement);
+            this.changeInteraction(currentState, interactID, interactionName + 'Row', interactedElement);
           }
           return currentState;
 
