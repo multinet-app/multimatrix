@@ -1,5 +1,9 @@
 /* The View displays the data given to it by the model. */
-import * as d3 from 'd3';
+import { scaleBand, scaleLinear, scaleOrdinal } from 'd3-scale';
+import { schemeCategory10 } from 'd3-scale-chromatic';
+import { select, selectAll } from 'd3-selection';
+import { min, max, range } from 'd3-array';
+import { axisTop } from 'd3-axis';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
@@ -22,7 +26,7 @@ export class View {
   private order: any;
   private margins: { left: number, top: number, right: number, bottom: number };
   private attributes: any;
-  private orderingScale: d3.ScaleBand<number> = d3.scaleBand<number>();
+  private orderingScale: d3.ScaleBand<number> = scaleBand<number>();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
@@ -80,7 +84,7 @@ export class View {
 
   public updateAttributes(): void {
     // Set the column widths and margin
-    const attrWidth = parseFloat(d3.select('#attributes').attr('width'));
+    const attrWidth = parseFloat(select('#attributes').attr('width'));
     const colWidth = attrWidth / this.visualizedAttributes.length - this.colMargin;
 
     // Update the column headers
@@ -111,23 +115,23 @@ export class View {
     // Calculate the attribute scales
     this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
-        const minimum = d3.min(this.network.nodes.map((node: Node) => node[col])) || '0';
-        const maximum = d3.max(this.network.nodes.map((node: Node) => node[col])) || '0';
+        const minimum = min(this.network.nodes.map((node: Node) => node[col])) || '0';
+        const maximum = max(this.network.nodes.map((node: Node) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
 
-        const scale = d3.scaleLinear().domain(domain).range([0, colWidth]);
+        const scale = scaleLinear().domain(domain).range([0, colWidth]);
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
         const values: string[] = this.network.nodes.map((node: Node) => node[col]);
         const domain = [...new Set(values)];
-        const scale = d3.scaleOrdinal(d3.schemeCategory10).domain(domain);
+        const scale = scaleOrdinal(schemeCategory10).domain(domain);
 
         this.attributeScales[col] = scale;
       }
     });
 
-    d3.selectAll('.attr-axis').remove();
+    selectAll('.attr-axis').remove();
 
     // Add the scale bar at the top of the attr column
     this.visualizedAttributes.forEach((col: string, index: number) => {
@@ -136,7 +140,7 @@ export class View {
           .append('g')
           .attr('class', 'attr-axis')
           .attr('transform', `translate(${(colWidth + this.colMargin) * index},-15)`)
-          .call(d3.axisTop(this.attributeScales[col])
+          .call(axisTop(this.attributeScales[col])
             .tickValues(this.attributeScales[col].domain())
             .tickFormat((d: any) => {
               if ((d / 1000) >= 1) {
@@ -149,7 +153,7 @@ export class View {
       }
     });
 
-    d3.selectAll('.glyph').remove();
+    selectAll('.glyph').remove();
     /* Create data columns data */
     this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
@@ -188,7 +192,7 @@ export class View {
       }
     });
 
-    d3.selectAll('.attrSortIcon').remove();
+    selectAll('.attrSortIcon').remove();
 
     // Add sort icons to the top of the header
     const path = this.columnHeaders
@@ -230,13 +234,13 @@ export class View {
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
 
     // Creates scalable SVG
-    this.edges = d3.select('#matrix')
+    this.edges = select('#matrix')
       .append('g')
       .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
 
     // sets the vertical scale
-    this.orderingScale = d3.scaleBand<number>()
-    .range([0, this.edgeHeight]).domain(d3.range(0, this.network.nodes.length, 1));
+    this.orderingScale = scaleBand<number>()
+    .range([0, this.edgeHeight]).domain(range(0, this.network.nodes.length, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
@@ -297,7 +301,7 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('width', this.orderingScale.bandwidth());
 
-    const cellColorScale = d3.scaleLinear<string>()
+    const cellColorScale = scaleLinear<string>()
       .domain([0, this.maxNumConnections])
       .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
@@ -321,7 +325,7 @@ export class View {
         this.unHoverEdge(d);
       })
       .on('click', (d: Cell, i: number, nodes: any) => {
-        const interaction = d3.select(nodes[i]).attr('class');
+        const interaction = select(nodes[i]).attr('class');
         const action = this.changeInteractionWrapper(interaction, d);
         this.provenance.applyAction(action);
       })
@@ -330,7 +334,7 @@ export class View {
     this.appendEdgeLabels();
 
     // add tooltip
-    this.tooltip = d3.select('body')
+    this.tooltip = select('body')
       .append('div')
       .attr('class', 'tooltip')
       .style('position', 'absolute')
@@ -383,13 +387,13 @@ export class View {
 
   private hoverNode(nodeID: string): void {
     const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
-    d3.selectAll(cssSelector).classed('hovered', true);
+    selectAll(cssSelector).classed('hovered', true);
   }
 
 
   private unHoverNode(nodeID: string): void {
     const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
-    d3.selectAll(cssSelector).classed('hovered', false);
+    selectAll(cssSelector).classed('hovered', false);
   }
 
 
@@ -595,7 +599,7 @@ export class View {
     }
 
     // Reset all nodes to not neighbor highlighted
-    d3.selectAll('.neighbor')
+    selectAll('.neighbor')
       .classed('neighbor', false);
 
     // Loop through the neighbor nodes to be highlighted and highlight them
@@ -612,7 +616,7 @@ export class View {
     cssSelector = cssSelector.substring(0, cssSelector.length - 1);
 
     if (cssSelector !== '') {
-      d3.selectAll(cssSelector).classed('neighbor', true);
+      selectAll(cssSelector).classed('neighbor', true);
     }
   }
 
@@ -645,12 +649,12 @@ export class View {
         .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`);
     }
 
-    d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
+    selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
     if (!nodeIDs.includes(order)) {
-      d3.selectAll('.cell')
+      selectAll('.cell')
         .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
     } else {
-      d3.select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
+      select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
     }
   }
 
@@ -667,7 +671,7 @@ export class View {
 
     const attributeWidth = 1000; // Just has to be larger than the attributes panel (so that we render to the edge)
 
-    this.attributes = d3.select('#attributes')
+    this.attributes = select('#attributes')
       .append('g')
       .attr('transform', `translate(0,${this.margins.top})`);
 
@@ -839,23 +843,20 @@ export class View {
         order = reorder.optimal_leaf_order()(mat);
       }
     } else if (this.sortKey === 'edges') {
-      order = d3
-      .range(this.network.nodes.length)
+      order = range(this.network.nodes.length)
       .sort((a, b) => this.network.nodes[b][type] - this.network.nodes[a][type]);
     } else if (isNode === true) {
-      order = d3
-      .range(this.network.nodes.length)
+      order = range(this.network.nodes.length)
       .sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
-      order = d3.range(this.network.nodes.length).sort((a, b) =>
+      order = range(this.network.nodes.length).sort((a, b) =>
         Number(this.network.nodes[b].neighbors.includes(type)) - Number(this.network.nodes[a].neighbors.includes(type)),
       );
     } else if (this.sortKey === 'shortName') {
-      order = d3.range(this.network.nodes.length).sort((a, b) =>
+      order = range(this.network.nodes.length).sort((a, b) =>
         this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
       );
     } else {
-      order = d3
-      .range(this.network.nodes.length)
+      order = range(this.network.nodes.length)
       .sort((a, b) => this.network.nodes[b][type] - this.network.nodes[a][type]);
     }
     this.order = order;
@@ -936,14 +937,14 @@ export class View {
 
       const clickedSelectorQuery = Array.from(clickedElements).join(',');
       if (clickedSelectorQuery !== '') {
-        d3.selectAll(clickedSelectorQuery).classed('clicked', true);
+        selectAll(clickedSelectorQuery).classed('clicked', true);
       }
     }
 
 
     function setUpObservers(): any {
       const updateHighlights = (state: any) => {
-        d3.selectAll('.clicked').classed('clicked', false);
+        selectAll('.clicked').classed('clicked', false);
         classAllHighlights(state);
       };
 
@@ -961,11 +962,11 @@ export class View {
         const cellSelectorQuery = `[id="${cellNames.join('"],[id="')}"]`;
 
         // Set all cells to un-clicked
-        d3.selectAll('.clickedCell').classed('clickedCell', false);
+        selectAll('.clickedCell').classed('clickedCell', false);
 
         // Highlight cells if we have any in our query, else do nothing
         if (cellSelectorQuery !== '[id=""]') {
-          d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
+          selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
         }
       };
 

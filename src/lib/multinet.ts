@@ -1,20 +1,20 @@
 /* Multinet data importer */
-import * as d3 from 'd3';
+import { json } from 'd3-fetch';
 
 async function _loadTables(workspace: string, networkName: string, apiRoot: string) {
   const tablesCall = apiRoot + '/workspaces/' + workspace + '/graphs/' + networkName;
-  return await d3.json(tablesCall);
+  return await json(tablesCall);
 }
 
 async function _loadNodes(workspace: string, nodeTable: string, apiRoot: string) {
   const nodesCall = apiRoot + '/workspaces/' + workspace + '/tables/' + nodeTable + '?limit=1000';
-  const nodesRaw = await d3.json(nodesCall);
+  const nodesRaw = await json(nodesCall);
   return nodesRaw.rows;
 }
 
 async function _loadLinks(workspace: string, edgeTable: string, apiRoot: string) {
   const linksCall = apiRoot + '/workspaces/' + workspace + '/tables/' + edgeTable + '?limit=1000';
-  const linksRaw = await d3.json(linksCall);
+  const linksRaw = await json(linksCall);
   return linksRaw.rows;
 }
 
