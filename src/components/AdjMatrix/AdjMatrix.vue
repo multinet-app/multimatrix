@@ -91,9 +91,9 @@ export default Vue.extend({
 
     this.attributes = d3
       .select(this.$refs.attributes)
-      .attr('width', this.visDimensions.width * 0.25)
+      .attr('width', this.visDimensions.width * 0.25 - 15) // -15 for the scroll bar
       .attr('height', this.visDimensions.height)
-      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25} ${this.visDimensions.height}`);
+      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 15} ${this.visDimensions.height}`);
 
     // Define the View
     this.view = new View(this.network, this.visDimensions, this.visualizedAttributes);
