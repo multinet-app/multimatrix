@@ -286,33 +286,18 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
-    const cells = this.edgeRows.selectAll('.cell')
-      .data((d: Node, i: number) => this.matrix[i])
-      .enter()
-      .append('g')
-      .attr('class', 'cell')
-      .attr('id', (d: Cell) => d.cellName)
-      .attr('transform', (d: Cell) => `translate(${this.orderingScale(d.x)},0)`);
-
-    cells
-      .append('rect')
-      .classed('baseCell', true)
-      .attr('x', 0)
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('width', this.orderingScale.bandwidth());
-
     const cellColorScale = scaleLinear<string>()
       .domain([0, this.maxNumConnections])
       .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
-    const squares = cells
+    const cells = this.edgeRows.selectAll('.cell')
+      .data((d: Node, i: number) => this.matrix[i])
+      .enter()
       .append('rect')
-      .attr('x', 0)
+      .attr('x', (d: Cell) => this.orderingScale(d.x))
       .attr('width', this.orderingScale.bandwidth())
       .attr('height', this.orderingScale.bandwidth())
-      .style('fill', (d: Cell) => cellColorScale(d.z));
-
-    squares
+      .style('fill', (d: Cell) => cellColorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z);
 
     cells
