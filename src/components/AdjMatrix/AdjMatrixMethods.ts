@@ -290,17 +290,17 @@ export class View {
       .domain([0, this.maxNumConnections])
       .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
-    const cells = this.edgeRows.selectAll('.cell')
+    this.edgeRows.selectAll('.cell')
       .data((d: Node, i: number) => this.matrix[i])
       .enter()
       .append('rect')
+      .attr('class', 'cell')
+      .attr('id', (d: Cell) => d.cellName)
       .attr('x', (d: Cell) => this.orderingScale(d.x))
       .attr('width', this.orderingScale.bandwidth())
       .attr('height', this.orderingScale.bandwidth())
       .style('fill', (d: Cell) => cellColorScale(d.z))
-      .style('fill-opacity', (d: Cell) => d.z);
-
-    cells
+      .style('fill-opacity', (d: Cell) => d.z)
       .on('mouseover', (d: Cell, i: number, nodes: any) => {
         this.showToolTip(d, i, nodes);
         this.hoverEdge(d);
@@ -309,11 +309,7 @@ export class View {
         this.hideToolTip();
         this.unHoverEdge(d);
       })
-      .on('click', (d: Cell, i: number, nodes: any) => {
-        const interaction = select(nodes[i]).attr('class');
-        const action = this.changeInteractionWrapper(interaction, d);
-        this.provenance.applyAction(action);
-      })
+      .on('click', (d: Cell) => this.cellClick(d))
       .attr('cursor', 'pointer');
 
     this.appendEdgeLabels();
