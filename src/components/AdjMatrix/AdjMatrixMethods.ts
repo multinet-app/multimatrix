@@ -684,7 +684,6 @@ export class View {
       .attr('transform', (d: Node, i: number) =>  `translate(0,${this.orderingScale(i)})`);
 
     // if any other method other than neighbors sort, sort the columns too
-    console.log(order, !nodeIDs.includes(order))
     if (!nodeIDs.includes(order)) {
       this.edges.selectAll('.column')
         .transition()
@@ -700,7 +699,7 @@ export class View {
 
     selectAll('.sortIcon')
       .style('fill', '#8B8B8B')
-      .filter((d) => d.id === order)
+      .filter((d: any) => d.id === order)
       .style('fill', '#EBB769');
   }
 
