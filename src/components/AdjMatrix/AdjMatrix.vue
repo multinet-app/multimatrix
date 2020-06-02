@@ -167,18 +167,13 @@ svg >>> .hovered {
   fill-opacity: 1 !important;
 }
 
-svg >>> .clickedCell {
-  stroke-width: 2.5;
-  stroke: #ee0000;
-}
-
 svg >>> .clicked {
   font-weight: 800;
   fill: #f8cf91 !important;
   fill-opacity: 1 !important;
 }
 
-svg >>> .clickedCell {
+svg >>> .cell.clicked {
   stroke: red;
   stroke-width: 3;
 }

@@ -39,7 +39,7 @@ export class View {
   private idMap: { [key: string]: number };
   private isMultiEdge: any;
   private orderType: any;
-  private columnSelectedNodes: { [key: string]: string[] };
+  private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
 
@@ -51,7 +51,7 @@ export class View {
     this.sortKey = 'name';
     this.matrix = [];
     this.idMap = {};
-    this.columnSelectedNodes = {};
+    this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
 
     this.icons = {
@@ -169,7 +169,7 @@ export class View {
           .on('mouseover', (d: Node) => this.hoverNode(d.id))
           .on('mouseout', (d: Node) => this.unHoverNode(d.id))
           .on('click', (d: Node) => {
-            this.nodeClick(d);
+            this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
           });
       } else {
@@ -186,7 +186,7 @@ export class View {
           .on('mouseover', (d: Node) => this.hoverNode(d.id))
           .on('mouseout', (d: Node) => this.unHoverNode(d.id))
           .on('click', (d: Node) => {
-            this.nodeClick(d);
+            this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
           });
       }
@@ -309,7 +309,7 @@ export class View {
         this.hideToolTip();
         this.unHoverEdge(d);
       })
-      .on('click', (d: Cell) => this.cellClick(d))
+      .on('click', (d: Cell) => this.selectElement(d))
       .attr('cursor', 'pointer');
 
     this.appendEdgeLabels();
@@ -389,6 +389,64 @@ export class View {
     this.unHoverNode(cell.colID);
   }
 
+
+  private selectElement(element: Cell | Node): void {
+    let elementsToSelect: string = '';
+    let newElement: { [key: string]: string };
+
+    if (this.isCell(element)) {
+      // Remove or add cell from selected cells
+      if (element.cellName in this.selectedElements) {
+        delete this.selectedElements[element.cellName];
+      } else {
+        // Get all the elements to be selected
+        elementsToSelect = `
+        [id="attrRow${element.colID}"],[id="topoRow${element.colID}"],[id="topoCol${element.colID}"],
+        [id="colLabel${element.colID}"],[id="rowLabel${element.colID}"],
+
+        [id="attrRow${element.rowID}"],[id="topoRow${element.rowID}"],[id="topoCol${element.rowID}"],
+        [id="colLabel${element.rowID}"],[id="rowLabel${element.rowID}"],
+
+        [id="${element.cellName}"],
+        `;
+        newElement = { [element.cellName]: elementsToSelect};
+        this.selectedElements = Object.assign(this.selectedElements, newElement);
+      }
+    } else {
+      if (element.id in this.selectedElements) {
+        delete this.selectedElements[element.id];
+      } else {
+        elementsToSelect = `
+        [id="attrRow${element.id}"],[id="topoRow${element.id}"],[id="topoCol${element.id}"],
+        [id="colLabel${element.id}"],[id="rowLabel${element.id}"],
+        `;
+        newElement = { [element.id]: elementsToSelect};
+        this.selectedElements = Object.assign(this.selectedElements, newElement);
+      }
+    }
+
+
+    // Reset all nodes to not neighbor highlighted
+    selectAll('.clicked')
+      .classed('clicked', false);
+
+    // Loop through the neighbor nodes to be highlighted and highlight them
+    let cssSelector = '';
+    for (const elementID of Object.keys(this.selectedElements)) {
+      for (const elementToSelect of this.selectedElements[elementID]) {
+        cssSelector += elementToSelect;
+      }
+    }
+
+    // Remove last comma
+    cssSelector = cssSelector.replace(/,\s*$/, '');
+
+    if (cssSelector !== '') {
+      selectAll(cssSelector).classed('clicked', true);
+    }
+  }
+
+
   /**
    * Renders column labels and row labels to the matrix.
    * @return none
@@ -407,7 +465,7 @@ export class View {
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
       .on('click', (d: Node) => {
-        this.nodeClick(d);
+        this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
 
@@ -442,7 +500,7 @@ export class View {
       .style('font-size', this.nodeFontSize)
       .text((d: Node) => d._key)
       .on('click', (d: Node) => {
-        this.nodeClick(d);
+        this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       })
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
@@ -697,7 +755,7 @@ export class View {
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
       .on('click', (d: Node) => {
-        this.nodeClick(d);
+        this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
 
@@ -729,45 +787,6 @@ export class View {
     }
   }
 
-  // function that updates the state, and includes a flag for when this was done through a search
-  private nodeClick(node: Node, search: boolean = false): void {
-  const previousState = this.getApplicationState();
-  let clicked = previousState.clicked;
-  const wasSelected = this.isSelected(node);
-
-  if (wasSelected) {
-    clicked = clicked.filter((d: any) => d !== node.id);
-  } else {
-    clicked.push(node.id as never);
-  }
-
-  const label = search ?
-    'Searched for Node' :
-    wasSelected ?
-    'Unselect Node' :
-    'Select Node';
-
-  const action = {
-    label,
-    action: () => {
-      const currentState = this.getApplicationState();
-      // Add time stamp to the state graph
-      currentState.time = Date.now();
-      // Add label describing what the event was
-      currentState.event = label;
-      // Update actual node data
-      currentState.clicked = clicked;
-      // If node was searched, push him to the search array
-      // if (search) {
-      //     currentState.search.push(node.id);
-      // }
-      return currentState;
-    },
-    args: [],
-  };
-
-  this.provenance.applyAction(action);
-  }
 
   private isSelected(node: Node): boolean {
     const currentState = this.getApplicationState();
@@ -873,95 +892,6 @@ export class View {
     const provenance = ProvenanceLibrary.initProvenance(initialState);
     this.provenance = provenance;
 
-    const columnElements = ['topoCol'];
-    const rowElements = ['topoRow', 'attrRow'];
-
-    const elementNamesFromSelection: any = {
-      cellCol: rowElements.concat(columnElements),
-      colLabel: rowElements.concat(columnElements).concat(['colLabel']),
-      rowLabel: rowElements.concat(columnElements).concat(['rowLabel']),
-      attrRow: rowElements.concat(['rowLabel']),
-      cellRow: rowElements.concat(columnElements),
-      neighborSelect: rowElements,
-      search: rowElements.concat(columnElements),
-    };
-
-    function classAllHighlights(state: any): void {
-
-      const clickedElements = new Set();
-      const neighborElements = new Set();
-
-      for (const node of state.clicked) {
-        clickedElements.add(`[id="colLabel${node}"]`);
-        clickedElements.add(`[id="topoCol${node}"]`);
-        clickedElements.add(`[id="topoRow${node}"]`);
-        clickedElements.add(`[id="attrRow${node}"]`);
-      }
-
-      // go through each interacted element, and determine which rows/columns should
-      // be highlighted due to it's interaction
-      for (const selectionType of Object.keys(state.selections)) {
-        for (const selectionElement of elementNamesFromSelection[selectionType]) {
-          for (const node in state.selections[selectionType]) {
-            if (selectionType === 'neighborSelect') {
-              neighborElements.add(`[id="${selectionElement}${node}"]`);
-            } else {
-              // if both in attrRow and rowLabel, don't highlight element
-              if (selectionType === 'attrRow' || selectionType === 'rowLabel') {
-                if (node in state.selections.attrRow && node in state.selections.rowLabel) { continue; }
-              }
-              clickedElements.add(`[id="${selectionElement}${node}"]`);
-            }
-          }
-        }
-      }
-
-      const clickedSelectorQuery = Array.from(clickedElements).join(',');
-      if (clickedSelectorQuery !== '') {
-        selectAll(clickedSelectorQuery).classed('clicked', true);
-      }
-    }
-
-
-    function setUpObservers(): any {
-      const updateHighlights = (state: any) => {
-        selectAll('.clicked').classed('clicked', false);
-        classAllHighlights(state);
-      };
-
-      // Updates individual cell highlighting
-      const updateCellClicks = (state: any) => {
-        let cellNames: any[] = [];
-
-        // Go through each highlighted cell (both sides of matrix) and add cell to highlight
-        Object.keys(state.selections.cellCol).map((key) => {
-          const names = state.selections.cellCol[key];
-          cellNames = cellNames.concat(names);
-        });
-
-        // Concat all the cells to highlight into one query
-        const cellSelectorQuery = `[id="${cellNames.join('"],[id="')}"]`;
-
-        // Set all cells to un-clicked
-        selectAll('.clickedCell').classed('clickedCell', false);
-
-        // Highlight cells if we have any in our query, else do nothing
-        if (cellSelectorQuery !== '[id=""]') {
-          selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
-        }
-      };
-
-      provenance.addObserver('selections.attrRow', updateHighlights);
-      provenance.addObserver('selections.rowLabel', updateHighlights);
-      provenance.addObserver('selections.colLabel', updateHighlights);
-      provenance.addObserver('selections.cellCol', updateHighlights);
-      provenance.addObserver('selections.cellRow', updateHighlights);
-      provenance.addObserver('selections.neighborSelect', updateHighlights);
-      provenance.addObserver('selections.cellCol', updateCellClicks);
-      provenance.addObserver('selections.search', updateHighlights);
-      provenance.addObserver('clicked', updateHighlights);
-    }
-    setUpObservers();
     return provenance;
   }
 
@@ -1034,5 +964,10 @@ export class View {
       },
       args: [sortKey],
     };
+  }
+
+
+  private isCell(element: any): element is Cell {
+    return element.hasOwnProperty('cellName');
   }
 }
