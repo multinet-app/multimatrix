@@ -254,11 +254,11 @@ export class View {
       });
 
     // Draw each row
-    this.edgeRows = this.edges.selectAll('.row')
+    this.edgeRows = this.edges.selectAll('.rowContainer')
       .data(this.network.nodes)
       .enter()
       .append('g')
-      .attr('class', 'row')
+      .attr('class', 'rowContainer')
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
@@ -666,37 +666,42 @@ export class View {
    * @return [description]
    */
   private sort(order: string): void {
-    const nodeIDs = this.network.nodes.map((node: { id: any; }) => node.id);
+    const nodeIDs = this.network.nodes.map((node: Node) => node.id);
 
     this.order = this.changeOrder(order, nodeIDs.includes(order));
     this.orderingScale.domain(this.order);
 
     const transitionTime = 500;
 
-    this.edgeRows
+    (selectAll('.rowContainer') as any)
       .transition()
       .duration(transitionTime)
       .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
-    this.attributeRows
+    (selectAll('.attrRowContainer') as any)
       .transition()
       .duration(transitionTime)
       .attr('transform', (d: Node, i: number) =>  `translate(0,${this.orderingScale(i)})`);
 
     // if any other method other than neighbors sort, sort the columns too
+    console.log(order, !nodeIDs.includes(order))
     if (!nodeIDs.includes(order)) {
-      const t = this.edges;
-      t.selectAll('.column')
+      this.edges.selectAll('.column')
+        .transition()
+        .duration(transitionTime)
         .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`);
+
+      (selectAll('.rowContainer') as any)
+        .selectAll('.cell')
+        .transition()
+        .duration(transitionTime)
+        .attr('x', (d: Node, i: number) => this.orderingScale(i));
     }
 
-    selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
-    if (!nodeIDs.includes(order)) {
-      selectAll('.cell')
-        .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
-    } else {
-      select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
-    }
+    selectAll('.sortIcon')
+      .style('fill', '#8B8B8B')
+      .filter((d) => d.id === order)
+      .style('fill', '#EBB769');
   }
 
   /**
@@ -730,11 +735,11 @@ export class View {
 
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
-      .selectAll('.row')
+      .selectAll('.attrRowContainer')
       .data(this.network.nodes)
       .enter()
       .append('g')
-      .attr('class', 'row')
+      .attr('class', 'attrRowContainer')
       .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
     this.attributeRows
@@ -941,7 +946,7 @@ export class View {
     return this.provenance.graph().current.state;
   }
 
-  private changeOrder(type: string, node: boolean = false): number[] {
+  private changeOrder(type: string, node: boolean): number[] {
     const action = this.generateSortAction(type);
     this.provenance.applyAction(action);
     return this.sortObserver(type, node);
