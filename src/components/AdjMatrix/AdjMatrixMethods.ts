@@ -39,6 +39,7 @@ export class View {
   private idMap: { [key: string]: number };
   private isMultiEdge: any;
   private orderType: any;
+  private selectedNodesAndNeighbors: { [key: string]: string[] };
   private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
@@ -51,6 +52,7 @@ export class View {
     this.sortKey = 'name';
     this.matrix = [];
     this.idMap = {};
+    this.selectedNodesAndNeighbors = {};
     this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
 
@@ -630,11 +632,11 @@ export class View {
 
   private selectNeighborNodes(nodeID: string, neighbors: string[]): void {
     // Remove or add node from column selected nodes
-    if (nodeID in this.columnSelectedNodes) {
-      delete this.columnSelectedNodes[nodeID];
+    if (nodeID in this.selectedNodesAndNeighbors) {
+      delete this.selectedNodesAndNeighbors[nodeID];
     } else {
       const newElement = { [nodeID]: neighbors };
-      this.columnSelectedNodes = Object.assign(this.columnSelectedNodes, newElement);
+      this.selectedNodesAndNeighbors = Object.assign(this.selectedNodesAndNeighbors, newElement);
     }
 
     // Reset all nodes to not neighbor highlighted
@@ -643,8 +645,8 @@ export class View {
 
     // Loop through the neighbor nodes to be highlighted and highlight them
     let cssSelector = '';
-    for (const node of Object.keys(this.columnSelectedNodes)) {
-      for (const neighborNode of this.columnSelectedNodes[node]) {
+    for (const node of Object.keys(this.selectedNodesAndNeighbors)) {
+      for (const neighborNode of this.selectedNodesAndNeighbors[node]) {
         cssSelector += `
         [id="attrRow${neighborNode}"],[id="topoRow${neighborNode}"],[id="nodeLabelRow${neighborNode}"],
         `;
