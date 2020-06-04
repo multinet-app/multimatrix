@@ -397,8 +397,8 @@ export class View {
 
 
   private selectElement(element: Cell | Node): void {
-    let elementsToSelect: string = '';
-    let newElement: { [key: string]: string };
+    let elementsToSelect: string[] = [];
+    let newElement: { [key: string]: string[] };
 
     if (this.isCell(element)) {
       // Remove or add cell from selected cells
@@ -406,15 +406,15 @@ export class View {
         delete this.selectedElements[element.cellName];
       } else {
         // Get all the elements to be selected
-        elementsToSelect = `
-        [id="attrRow${element.colID}"],[id="topoRow${element.colID}"],[id="topoCol${element.colID}"],
-        [id="colLabel${element.colID}"],[id="rowLabel${element.colID}"],
+        elementsToSelect = [
+        `[id="attrRow${element.colID}"]`, `[id="topoRow${element.colID}"]`, `[id="topoCol${element.colID}"]`,
+        `[id="colLabel${element.colID}"]`, `[id="rowLabel${element.colID}"]`,
 
-        [id="attrRow${element.rowID}"],[id="topoRow${element.rowID}"],[id="topoCol${element.rowID}"],
-        [id="colLabel${element.rowID}"],[id="rowLabel${element.rowID}"],
+        `[id="attrRow${element.rowID}"]`, `[id="topoRow${element.rowID}"]`, `[id="topoCol${element.rowID}"]`,
+        `[id="colLabel${element.rowID}"]`, `[id="rowLabel${element.rowID}"]`,
 
-        [id="${element.cellName}"],
-        `;
+        `[id="${element.cellName}"]`,
+        ];
         newElement = { [element.cellName]: elementsToSelect};
         this.selectedElements = Object.assign(this.selectedElements, newElement);
       }
@@ -422,10 +422,10 @@ export class View {
       if (element.id in this.selectedElements) {
         delete this.selectedElements[element.id];
       } else {
-        elementsToSelect = `
-        [id="attrRow${element.id}"],[id="topoRow${element.id}"],[id="topoCol${element.id}"],
-        [id="colLabel${element.id}"],[id="rowLabel${element.id}"],
-        `;
+        elementsToSelect = [
+        `[id="attrRow${element.id}"]`, `[id="topoRow${element.id}"]`, `[id="topoCol${element.id}"]`,
+        `[id="colLabel${element.id}"]`, `[id="rowLabel${element.id}"]`,
+        ];
         newElement = { [element.id]: elementsToSelect};
         this.selectedElements = Object.assign(this.selectedElements, newElement);
       }
@@ -437,18 +437,15 @@ export class View {
       .classed('clicked', false);
 
     // Loop through the neighbor nodes to be highlighted and highlight them
-    let cssSelector = '';
+    const selections: string[] = [];
     for (const elementID of Object.keys(this.selectedElements)) {
       for (const elementToSelect of this.selectedElements[elementID]) {
-        cssSelector += elementToSelect;
+        selections.push(elementToSelect);
       }
     }
 
-    // Remove last comma
-    cssSelector = cssSelector.replace(/,\s*$/, '');
-
-    if (cssSelector !== '') {
-      selectAll(cssSelector).classed('clicked', true);
+    if (selections.length > 0) {
+      selectAll(selections.join(',')).classed('clicked', true);
     }
   }
 
@@ -650,20 +647,17 @@ export class View {
       .classed('neighbor', false);
 
     // Loop through the neighbor nodes to be highlighted and highlight them
-    let cssSelector = '';
+    const selections: string[] = [];
     for (const node of Object.keys(this.selectedNodesAndNeighbors)) {
       for (const neighborNode of this.selectedNodesAndNeighbors[node]) {
-        cssSelector += `
-        [id="attrRow${neighborNode}"],[id="topoRow${neighborNode}"],[id="nodeLabelRow${neighborNode}"],
-        `;
+        selections.push(`[id="attrRow${neighborNode}"]`);
+        selections.push(`[id="topoRow${neighborNode}"]`);
+        selections.push(`[id="nodeLabelRow${neighborNode}"]`);
       }
     }
 
-    // Remove last comma
-    cssSelector = cssSelector.replace(/,\s*$/, '');
-
-    if (cssSelector !== '') {
-      selectAll(cssSelector).classed('neighbor', true);
+    if (selections.length > 0) {
+      selectAll(selections.join(',')).classed('neighbor', true);
     }
   }
 
