@@ -37,7 +37,7 @@ export class View {
   private visDimensions: Dimensions;
   private provenance: any;
   private idMap: { [key: string]: number };
-  private isMultiEdge: any;
+  private isMultiEdge: boolean;
   private orderType: any;
   private selectedNodesAndNeighbors: { [key: string]: string[] };
   private selectedElements: { [key: string]: string[] };
@@ -52,6 +52,7 @@ export class View {
     this.sortKey = 'name';
     this.matrix = [];
     this.idMap = {};
+    this.isMultiEdge = false;
     this.selectedNodesAndNeighbors = {};
     this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
@@ -217,10 +218,12 @@ export class View {
 
   }
 
+
   private isQuantitative(varName: string): boolean {
     const uniqueValues = [...new Set(this.network.nodes.map((node: Node) => parseFloat(node[varName])))];
     return uniqueValues.length > 5;
   }
+
 
   /**
    * initializes the edges view, renders all SVG elements and attaches listeners
@@ -323,6 +326,7 @@ export class View {
       .style('position', 'absolute')
       .style('opacity', 0);
   }
+
 
   /**
    * Draws the nested edge bars
@@ -556,6 +560,7 @@ export class View {
 
   }
 
+
   /**
    * [changeInteractionWrapper description]
    * @param  nodeID ID of the node being changed with
@@ -600,6 +605,7 @@ export class View {
       },
     };
   }
+
 
   /**
    * Adds the interacted node to the state object.
@@ -661,6 +667,7 @@ export class View {
     }
   }
 
+
   /**
    * [sort description]
    * @return [description]
@@ -702,6 +709,7 @@ export class View {
       .filter((d: any) => d.id === order)
       .style('fill', '#EBB769');
   }
+
 
   /**
    * [initializeAttributes description]
@@ -796,9 +804,10 @@ export class View {
 
   private isSelected(node: Node): boolean {
     const currentState = this.getApplicationState();
-    const clicked = currentState.clicked;
-    return clicked.includes(node.id as never);
+    const clicked: string[] = currentState.clicked;
+    return clicked.includes(node.id);
   }
+
 
   private showToolTip(d: any, i: number, nodes: any): void {
     const matrix = nodes[i].getScreenCTM()
@@ -816,10 +825,12 @@ export class View {
       .style('opacity', .9);
   }
 
+
   private hideToolTip(): void {
     this.tooltip.transition(25)
     .style('opacity', 0);
   }
+
 
   private sortObserver(type: string, isNode: boolean = false): number[] {
     let order;
@@ -869,6 +880,7 @@ export class View {
     return order;
   }
 
+
   /**
    * Initializes the provenance library and sets observers.
    * @return [none]
@@ -900,6 +912,7 @@ export class View {
 
     return provenance;
   }
+
 
   /**
    * Initializes the matrix and fills it with link occurrences.
@@ -937,6 +950,7 @@ export class View {
     });
   }
 
+
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
@@ -944,6 +958,7 @@ export class View {
   private getApplicationState(): State {
     return this.provenance.graph().current.state;
   }
+
 
   private changeOrder(type: string, node: boolean): number[] {
     const action = this.generateSortAction(type);
