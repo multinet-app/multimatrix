@@ -62,19 +62,19 @@ export default Vue.extend({
       };
     },
 
-    matrixWidth() {
+    matrixWidth(): number {
       return this.visDimensions.width * 0.75;
     },
 
-    matrixHeight() {
+    matrixHeight(): number {
       return this.visDimensions.height;
     },
 
-    attributesWidth() {
+    attributesWidth(): number {
       return this.visDimensions.width * 0.25 - 15; // 15 for the scrollbar
     },
 
-    attributesHeight() {
+    attributesHeight(): number {
       return this.matrixHeight;
     },
   },
