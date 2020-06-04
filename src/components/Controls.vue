@@ -41,13 +41,13 @@ export default Vue.extend({
   },
 
   async mounted() {
-    const { workspace, networkName } = getUrlVars();
+    const { workspace, networkName, host } = getUrlVars();
     if (!workspace || !networkName) {
       throw new Error(
         `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
       );
     }
-    this.network = await loadData(workspace, networkName);
+    this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
   },
@@ -103,7 +103,7 @@ export default Vue.extend({
       </v-col>
 
       <!-- AdjMatrix component -->
-      <v-col>
+      <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
           <adj-matrix
             ref="adjmatrix"

@@ -1,29 +1,24 @@
 /* The View displays the data given to it by the model. */
-import * as d3 from 'd3';
+import { scaleBand, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
+import { schemeCategory10 } from 'd3-scale-chromatic';
+import { select, selectAll } from 'd3-selection';
+import { min, max, range } from 'd3-array';
+import { axisTop } from 'd3-axis';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
-import { Dimensions, Link, Network, Node } from '@/types';
+import { Dimensions, Link, Network, Node, Cell, State } from '@/types';
 
 declare const reorder: any;
 
 export class View {
   public visualizedAttributes: string[] = [];
 
-  private selectedCells: any[] = [];
   private network: Network;
   private icons: { [key: string]: { [d: string]: string}};
   private sortKey: string;
   private edges: any;
-  private matrix: Array<Array<{
-    cellName: string,
-    correspondingCell: string,
-    rowID: string,
-    colID: string,
-    x: number,
-    y: number,
-    z: number,
-  }>>;
+  private matrix: Cell[][];
   private edgeWidth: number = 0;
   private edgeHeight: number = 0;
   private attributeRows: any;
@@ -31,7 +26,7 @@ export class View {
   private order: any;
   private margins: { left: number, top: number, right: number, bottom: number };
   private attributes: any;
-  private orderingScale: d3.ScaleBand<number> = d3.scaleBand<number>();
+  private orderingScale: ScaleBand<number> = scaleBand<number>();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
@@ -41,13 +36,10 @@ export class View {
   private colMargin: number = 5;
   private visDimensions: Dimensions;
   private provenance: any;
-  private idMap: { [key: string]: number};
-  private hoverRow: {} = {};
-  private hoverCol: {} = {};
+  private idMap: { [key: string]: number };
   private isMultiEdge: any;
   private orderType: any;
-  private highlightedNodes: { [key: string]: any[] } = {};
-  private columnSelectedNodes: any[] = [];
+  private columnSelectedNodes: { [key: string]: string[] };
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
 
@@ -59,6 +51,7 @@ export class View {
     this.sortKey = 'name';
     this.matrix = [];
     this.idMap = {};
+    this.columnSelectedNodes = {};
     this.visualizedAttributes = visualizedAttributes;
 
     this.icons = {
@@ -82,23 +75,16 @@ export class View {
     });
 
     this.processData();
-    this.loadData();
-  }
 
-  /**
-   * Takes in the data, and initializes visualization.
-   * @param  data [description]
-   * @return      [description]
-   */
-  public loadData(): void {
     // Kick off the rendering
     this.initializeEdges();
     this.initializeAttributes();
   }
 
+
   public updateAttributes(): void {
     // Set the column widths and margin
-    const attrWidth = parseFloat(d3.select('#attributes').attr('width'));
+    const attrWidth = parseFloat(select('#attributes').attr('width'));
     const colWidth = attrWidth / this.visualizedAttributes.length - this.colMargin;
 
     // Update the column headers
@@ -122,30 +108,30 @@ export class View {
       .attr('cursor', 'pointer')
       .text((d: string) => d)
       .attr('y', 16)
-      .attr('x', (d: any, i: number) => (colWidth + this.colMargin) * i)
+      .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
-      .on('click', (d: any, i: number) => this.sort(d));
+      .on('click', (d: string) => this.sort(d));
 
     // Calculate the attribute scales
     this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
-        const minimum = d3.min(this.network.nodes.map((node: Node) => node[col])) || '0';
-        const maximum = d3.max(this.network.nodes.map((node: Node) => node[col])) || '0';
+        const minimum = min(this.network.nodes.map((node: Node) => node[col])) || '0';
+        const maximum = max(this.network.nodes.map((node: Node) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
 
-        const scale = d3.scaleLinear().domain(domain).range([0, colWidth]);
+        const scale = scaleLinear().domain(domain).range([0, colWidth]);
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
         const values: string[] = this.network.nodes.map((node: Node) => node[col]);
         const domain = [...new Set(values)];
-        const scale = d3.scaleOrdinal(d3.schemeCategory10).domain(domain);
+        const scale = scaleOrdinal(schemeCategory10).domain(domain);
 
         this.attributeScales[col] = scale;
       }
     });
 
-    d3.selectAll('.attr-axis').remove();
+    selectAll('.attr-axis').remove();
 
     // Add the scale bar at the top of the attr column
     this.visualizedAttributes.forEach((col: string, index: number) => {
@@ -154,7 +140,7 @@ export class View {
           .append('g')
           .attr('class', 'attr-axis')
           .attr('transform', `translate(${(colWidth + this.colMargin) * index},-15)`)
-          .call(d3.axisTop(this.attributeScales[col])
+          .call(axisTop(this.attributeScales[col])
             .tickValues(this.attributeScales[col].domain())
             .tickFormat((d: any) => {
               if ((d / 1000) >= 1) {
@@ -167,7 +153,7 @@ export class View {
       }
     });
 
-    d3.selectAll('.glyph').remove();
+    selectAll('.glyph').remove();
     /* Create data columns data */
     this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
@@ -175,16 +161,16 @@ export class View {
           .append('rect')
           .attr('class', 'glyph ' + col)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('width', (d: any) => this.attributeScales[col](d[col]))
+          .attr('width', (d: Node) => this.attributeScales[col](d[col]))
           .attr('x', (colWidth + this.colMargin) * index)
           .attr('y', 0) // y is set by translate on the group
-          .attr('fill', (d: any) => '#82b1ff')
+          .attr('fill', '#82b1ff')
           .attr('cursor', 'pointer')
-          .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
-          .on('mouseout', (d: any) => this.attributeMouseOut(d))
-          .on('click', (d: any, i: number) => {
+          .on('mouseover', (d: Node) => this.hoverNode(d.id))
+          .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+          .on('click', (d: Node) => {
             this.nodeClick(d);
-            this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+            this.selectNeighborNodes(d.id, d.neighbors);
           });
       } else {
         this.attributeRows
@@ -195,18 +181,18 @@ export class View {
           .attr('fill', '#dddddd')
           .attr('width', colWidth)
           .attr('height', this.orderingScale.bandwidth())
-          .attr('fill', (d: any) => this.attributeScales[col](d[col]))
+          .attr('fill', (d: Node) => this.attributeScales[col](d[col]))
           .attr('cursor', 'pointer')
-          .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
-          .on('mouseout', (d: any) => this.attributeMouseOut(d))
-          .on('click', (d: any, i: number) => {
+          .on('mouseover', (d: Node) => this.hoverNode(d.id))
+          .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+          .on('click', (d: Node) => {
             this.nodeClick(d);
-            this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+            this.selectNeighborNodes(d.id, d.neighbors);
           });
       }
     });
 
-    d3.selectAll('.attrSortIcon').remove();
+    selectAll('.attrSortIcon').remove();
 
     // Add sort icons to the top of the header
     const path = this.columnHeaders
@@ -219,18 +205,18 @@ export class View {
       .merge(path)
       .attr('class', `sortIcon attr attrSortIcon`)
       .attr('cursor', 'pointer')
-      .attr('d', (d: any) => {
+      .attr('d', (d: string) => {
         const type = this.isQuantitative(d) ? 'quant' : 'categorical';
         return this.icons[type].d;
       })
-      .attr('transform', (d: any, i: number) => `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200}, -1100)`)
-      .style('fill', (d: any) => '#8B8B8B')
-      .on('click', (d: any) => this.sort(d));
+      .attr('transform', (d: string, i: number) => `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200}, -1100)`)
+      .style('fill', '#8B8B8B')
+      .on('click', (d: string) => this.sort(d));
 
   }
 
   private isQuantitative(varName: string): boolean {
-    const uniqueValues = [...new Set(this.network.nodes.map((node: any) => parseFloat(node[varName])))];
+    const uniqueValues = [...new Set(this.network.nodes.map((node: Node) => parseFloat(node[varName])))];
     return uniqueValues.length > 5;
   }
 
@@ -241,39 +227,37 @@ export class View {
    */
   private initializeEdges(): void {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const width = this.visDimensions.width;
-    const height = this.visDimensions.height;
-    const sideLength = width < height ? width : height;
+    const sideLength = Math.min(this.visDimensions.width, this.visDimensions.height);
 
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
 
     // Creates scalable SVG
-    this.edges = d3.select('#matrix')
+    this.edges = select('#matrix')
       .append('g')
       .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
 
     // sets the vertical scale
-    this.orderingScale = d3.scaleBand<number>()
-    .range([0, this.edgeHeight]).domain(d3.range(0, this.network.nodes.length, 1));
+    this.orderingScale = scaleBand<number>()
+    .range([0, this.edgeHeight]).domain(range(0, this.network.nodes.length, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
-      .data(this.matrix)
+      .data(this.network.nodes)
       .enter().append('g')
       .attr('class', 'column')
-      .attr('transform', (d: any, i: number) => {
+      .attr('transform', (d: Node, i: number) => {
         return `translate(${this.orderingScale(i)})rotate(-90)`;
       });
 
     // Draw each row
     this.edgeRows = this.edges.selectAll('.row')
-      .data(this.matrix)
+      .data(this.network.nodes)
       .enter()
       .append('g')
       .attr('class', 'row')
-      .attr('transform', (d: any, i: number) => {
+      .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
 
@@ -284,9 +268,7 @@ export class View {
     this.edgeColumns
       .append('rect')
       .classed('topoCol', true)
-      .attr('id', (d: any, i: number) => {
-        return `topoCol${d[i].colID}`;
-      })
+      .attr('id', (d: Node) => `topoCol${d.id}`)
       .attr('x', -this.edgeHeight - this.margins.bottom)
       .attr('y', 0)
       .attr('width', this.edgeHeight + this.margins.bottom + this.margins.top)
@@ -297,9 +279,7 @@ export class View {
     this.edgeRows
       .append('rect')
       .classed('topoRow', true)
-      .attr('id', (d: any, i: number) => {
-        return `topoRow${d[i].rowID}`;
-      })
+      .attr('id', (d: Node) => `topoRow${d.id}`)
       .attr('x', -this.margins.left)
       .attr('y', 0)
       .attr('width', this.edgeWidth + this.margins.right + this.margins.left)
@@ -307,12 +287,12 @@ export class View {
       .attr('fill-opacity', 0);
 
     const cells = this.edgeRows.selectAll('.cell')
-      .data((d: any) => d)
+      .data((d: Node, i: number) => this.matrix[i])
       .enter()
       .append('g')
       .attr('class', 'cell')
-      .attr('id', (d: any) => d.cellName)
-      .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
+      .attr('id', (d: Cell) => d.cellName)
+      .attr('transform', (d: Cell) => `translate(${this.orderingScale(d.x)},0)`);
 
     cells
       .append('rect')
@@ -321,47 +301,43 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('width', this.orderingScale.bandwidth());
 
-    const cellColorScale = d3.scaleLinear<string>()
+    const cellColorScale = scaleLinear<string>()
       .domain([0, this.maxNumConnections])
       .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
     const squares = cells
       .append('rect')
-      .attr('x', 0)// d => this.orderingScale(d.x))
-      // .filter(d=>{return d.item >0})
+      .attr('x', 0)
       .attr('width', this.orderingScale.bandwidth())
       .attr('height', this.orderingScale.bandwidth())
-      .style('fill', (d: { z: number; }) => cellColorScale(d.z));
+      .style('fill', (d: Cell) => cellColorScale(d.z));
 
     squares
-      .filter((d: any) => d.z === 0)
-      .style('fill-opacity', (d: { z: number; }) => d.z);
+      .style('fill-opacity', (d: Cell) => d.z);
 
     cells
-      .on('mouseover', (cell: any, i: number, nodes: any) => {
-        this.showToolTip(cell, i, nodes);
-        this.hoverEdge(cell);
+      .on('mouseover', (d: Cell, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverEdge(d);
       })
-      .on('mouseout', (cell: any) => {
+      .on('mouseout', (d: Cell) => {
         this.hideToolTip();
-        this.unHoverEdge(cell);
+        this.unHoverEdge(d);
       })
-      .on('click', (d: any, i: number, nodes: any) => {
-        const interaction = d3.select(nodes[i]).attr('class');
-        const action = this.changeInteractionWrapper(d.id, nodes[i], interaction);
+      .on('click', (d: Cell, i: number, nodes: any) => {
+        const interaction = select(nodes[i]).attr('class');
+        const action = this.changeInteractionWrapper(interaction, d);
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer');
 
-    this.hoverRow = {};
-    this.hoverCol = {};
-
     this.appendEdgeLabels();
 
     // add tooltip
-    this.tooltip = d3.select('body')
+    this.tooltip = select('body')
       .append('div')
       .attr('class', 'tooltip')
+      .style('position', 'absolute')
       .style('opacity', 0);
   }
 
@@ -408,56 +384,28 @@ export class View {
       .remove();
   }
 
-  /**
-   * Renders hover interactions and logs interaction in mouseoverEvents.
-   * @param  cell d3 datum corresponding to cell's data
-   * @return      none
-   */
-  private hoverEdge(cell: any): void {
-    const cellIDs = [cell.cellName, cell.correspondingCell];
 
-    this.selectedCells = cellIDs;
-    this.selectedCells.map((elementID: string) => {
-      d3.selectAll(`[id="${elementID}"]`).selectAll('.baseCell').classed('hoveredCell', true);
-    });
-    const cellID = cellIDs[0];
-
-    // Add the nodes to be highlighted to the object
-    this.addHighlightNodesToDict(this.hoverRow, cell.rowID, cellID);
-    this.addHighlightNodesToDict(this.hoverCol, cell.colID, cellID);
-
-    // If we're not on diagonal, highlight the other cell + row + column
-    if (cell.colID !== cell.rowID) {
-      this.addHighlightNodesToDict(this.hoverRow, cell.colID, cellID);
-      this.addHighlightNodesToDict(this.hoverCol, cell.rowID, cellID);
-    }
-
-    //
-    this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
-    this.renderHighlightNodesFromDict(this.hoverCol, 'hovered', 'Col');
+  private hoverNode(nodeID: string): void {
+    const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+    selectAll(cssSelector).classed('hovered', true);
   }
 
-  /**
-   * Removes interaction highlight from a cell mouseover
-   * @param  cell d3 datum element corresponding to the cell's data
-   * @return      none
-   */
-  private unHoverEdge(cell: { cellName: any; rowID: any; colID: any; }): void {
-    d3.selectAll('.hoveredCell').classed('hoveredCell', false);
 
-    this.selectedCells = [];
+  private unHoverNode(nodeID: string): void {
+    const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+    selectAll(cssSelector).classed('hovered', false);
+  }
 
-    const cellID = cell.cellName;
-    this.removeHighlightNodesFromDict(this.hoverRow, cell.rowID, cellID);  // Add row (rowID)
-    this.removeHighlightNodesFromDict(this.hoverCol, cell.colID, cellID);  // Add col (colID)
 
-    // If we're not on the diagonal, un-highlight the other cell + row + column
-    if (cell.colID !== cell.rowID) {
-      this.removeHighlightNodesFromDict(this.hoverRow, cell.colID, cellID);
-      this.removeHighlightNodesFromDict(this.hoverCol, cell.rowID, cellID);
-    }
+  private hoverEdge(cell: Cell): void {
+    this.hoverNode(cell.rowID);
+    this.hoverNode(cell.colID);
+  }
 
-    d3.selectAll('.hovered').classed('hovered', false);
+
+  private unHoverEdge(cell: Cell): void {
+    this.unHoverNode(cell.rowID);
+    this.unHoverNode(cell.colID);
   }
 
   /**
@@ -467,47 +415,43 @@ export class View {
   private appendEdgeLabels(): void {
     this.edgeRows.append('text')
       .attr('class', 'rowLabel')
-      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: number) => {
-        return `rowLabel${d[i].rowID}`;
-      })
+      .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
       .attr('x', -3)
       .attr('y', this.orderingScale.bandwidth() / 2)
       .attr('dy', '.32em')
       .attr('text-anchor', 'end')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
-      .text((d: any, i: number) => this.network.nodes[i]._key)
-      .on('mouseout', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
-      .on('mouseover', (d: any, i: any, nodes: any) => this.mouseOverLabel(d, i, nodes))
-      .on('click', (d: any, i: number) => {
+      .text((d: Node) => d._key)
+      .on('mouseover', (d: Node) => this.hoverNode(d.id))
+      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+      .on('click', (d: Node) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+        this.selectNeighborNodes(d.id, d.neighbors);
       });
 
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
     this.edgeColumns.append('path')
-      .attr('id', (d: Array<{ rowID: string; }>) => `sortIcon${d[0].rowID}`)
+      .attr('id', (d: Node) => `sortIcon${d.id}`)
       .attr('class', 'sortIcon')
       .attr('d', this.icons.cellSort.d)
-      .style('fill', (d: any) => d === this.orderType ? '#EBB769' : '#8B8B8B')
+      .style('fill', (d: Node) => d === this.orderType ? '#EBB769' : '#8B8B8B')
       .attr('transform', `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`)
-      .on('click', (d: Array<{ rowID: any; }>, i: number, nodes: any[]) => {
-        this.sort(d[0].rowID);
-        const action = this.changeInteractionWrapper(null, nodes[i], 'neighborSelect');
+      .on('click', (d: Node) => {
+        this.sort(d.id);
+        const action = this.changeInteractionWrapper('neighborSelect');
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
-      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
-      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
+      .on('mouseover', (d: Node) => this.hoverNode(d.id))
+      .on('mouseout', (d: Node) => this.unHoverNode(d.id));
 
     verticalOffset = verticalOffset * 0.075 + 5;
 
 
     this.edgeColumns.append('text')
-      .attr('id', (d: { [x: string]: { rowID: string; }; }, i: number) => {
-        return `colLabel${d[i].rowID}`;
-      })
+      .attr('id', (d: Node) => `colLabel${d.id}`)
       .attr('class', 'colLabel')
       .attr('z-index', 30)
       .attr('y', this.orderingScale.bandwidth() / 2)
@@ -515,33 +459,15 @@ export class View {
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize)
-      .text((d: any, i: number) => this.network.nodes[i]._key)
-      .on('click', (d: any, i: number) => {
+      .text((d: Node) => d._key)
+      .on('click', (d: Node) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+        this.selectNeighborNodes(d.id, d.neighbors);
       })
-      .on('mouseout', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); })
-      .on('mouseover', (d: any, i: any, nodes: any) => { this.mouseOverLabel(d, i, nodes); });
+      .on('mouseover', (d: Node) => this.hoverNode(d.id))
+      .on('mouseout', (d: Node) => this.unHoverNode(d.id));
   }
 
-  /**
-   * renders the relevant highlights for mousing over a label. Logs the interaction
-   * in mouseoverEvents.
-   * @param  data  d3 data element
-   * @param  i     d3 index
-   * @param  nodes d3 nodes
-   * @return       none
-   */
-
-  private mouseOverLabel(data: Array<{ rowID: any; }>, i: number, nodes: { [x: string]: any; }): void {
-    const elementID = data[0].rowID;
-    const flag = this.addHighlightNodesToDict(this.hoverRow, elementID, elementID);
-    this.addHighlightNodesToDict(this.hoverCol, elementID, elementID);
-
-    d3.selectAll('.hovered').classed('hovered', false);
-    this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
-    this.renderHighlightNodesFromDict(this.hoverCol, 'hovered', 'Col');
-  }
 
   /**
    * Draws the grid lines for the adjacency matrix.
@@ -596,7 +522,7 @@ export class View {
    * @param  interactionType class name of element interacted with
    * @return        [description]
    */
-  private changeInteractionWrapper(nodeID: any, node: any, interactionType: any): any {
+  private changeInteractionWrapper(interactionType: string, cell?: Cell): any {
     return {
       label: interactionType,
       action: (interactID: string) => {
@@ -606,19 +532,18 @@ export class View {
         currentState.event = interactionType;
         const interactionName = interactionType; // cell, search, etc
         let interactedElement = interactionType;
-        if (interactionName === 'cell') {
-          const cellData: any = d3.select(node).data()[0]; //
-          interactID = cellData.colID;
-          interactedElement = cellData.cellName; // + cellData.rowID;
+        if (interactionName === 'cell' && cell !== undefined) {
+          interactID = cell.colID;
+          interactedElement = cell.cellName; // + cellData.rowID;
 
-          this.changeInteraction(currentState, interactID, interactionName + 'col', interactedElement);
-          this.changeInteraction(currentState, interactID, interactionName + 'row', interactedElement);
-          if (cellData.cellName !== cellData.correspondingCell) {
-            interactedElement = cellData.correspondingCell; // + cellData.rowID;
-            interactID = cellData.rowID;
+          this.changeInteraction(currentState, interactID, 'cellCol', interactedElement);
+          this.changeInteraction(currentState, interactID, 'cellRow', interactedElement);
+          if (cell.cellName !== cell.correspondingCell) {
+            interactedElement = cell.correspondingCell; // + cellData.rowID;
+            interactID = cell.rowID;
 
-            this.changeInteraction(currentState, interactID, interactionName + 'col', interactedElement);
-            this.changeInteraction(currentState, interactID, interactionName + 'row', interactedElement);
+            this.changeInteraction(currentState, interactID, 'cellCol', interactedElement);
+            this.changeInteraction(currentState, interactID, 'cellRow', interactedElement);
           }
           return currentState;
 
@@ -627,7 +552,7 @@ export class View {
         } else if (interactionName === 'attrRow') {
           return interactionName;
 
-        } else {
+        } else if (interactionName === 'neighborSelect') {
           this.changeInteraction(currentState, interactID, interactionName, interactedElement);
           return currentState;
         }
@@ -644,8 +569,8 @@ export class View {
    * @return                 [description]
    */
   private changeInteraction(
-    state: any,
-    nodeID: string, interaction: string, interactionName: string = interaction,
+    state: State, nodeID: string,
+    interaction: keyof State['selections'], interactionName: string = interaction,
   ): void {
     if (nodeID in state.selections[interaction]) {
       // Remove element if in list, if list is empty, delete key
@@ -663,142 +588,36 @@ export class View {
     }
   }
 
-  private addHighlightNode(addingNode: string): void {
-    // if node is in
-    const nodeIndex = this.network.nodes.findIndex((item: { [x: string]: string; }, i: any) => {
-      return item.id === addingNode;
-    });
 
-    for (let i = 0; i < this.matrix[0].length; i++) {
-      if (true /*this.matrix[i][nodeIndex].z > 0*/) {
-        const nodeID = this.matrix[i][nodeIndex].rowID;
-        if (
-          this.highlightedNodes.hasOwnProperty(nodeID) &&
-          !this.highlightedNodes[nodeID].includes(addingNode)
-        ) {
-          // if array exists, add it
-          this.highlightedNodes[nodeID].push(addingNode);
-        } else {
-          // if array non exist, create it and add node
-          this.highlightedNodes[nodeID] = [addingNode];
-        }
-      }
-    }
-  }
-
-  private nodeDictContainsPair(
-    dict: { [x: string]: { add: (arg0: any) => any, has: (arg0: any) => any; }; },
-    nodeToHighlight: string, interactedElement: any,
-  ): boolean {
-    if (nodeToHighlight in dict) {
-      return dict[nodeToHighlight].has(interactedElement);
-    }
-    return false;
-  }
-
-  /**
-   * If an interactedElement has not been interacted with, it will add the nodeToHighlight
-   * to the provided highlight dict. If it has, it will remove it and return false. Otherwise,
-   * it will add the interacted element connection to the nodeToHighlight.
-   * @param  dict       The underlying storage to show which
-   * @param  nodeToHighlight  [description]
-   * @param  interactedElement [description]
-   * @return            [description]
-   */
-  private addHighlightNodesToDict(
-    dict: { [x: string]: { add: (arg0: any) => any, has: (arg0: any) => any; }; },
-    nodeToHighlight: string, interactedElement: any,
-  ): boolean {
-    // if node already in highlight, remove it
-    if (this.nodeDictContainsPair(dict, nodeToHighlight, interactedElement)) {
-      this.removeHighlightNodesFromDict(dict, nodeToHighlight, interactedElement);
-      return false;
-    }
-
-    // create new set if set exists
-    if (!(nodeToHighlight in dict)) {
-
-      dict[nodeToHighlight] = new Set();
-    }
-    // add element to set
-    dict[nodeToHighlight].add(interactedElement);
-    return true;
-  }
-
-  private removeHighlightNodesFromDict(
-    dict: { [x: string]: any; }, nodeToHighlight: string, interactedElement: any,
-  ): void {
-    // if node is not in list, simply return
-    if (!this.nodeDictContainsPair(dict, nodeToHighlight, interactedElement)) {
-      return;
-    }
-
-    // if there are other elements highlighting the node to highlight
-    if (dict[nodeToHighlight].size > 1) { // if set has more than 1 object
-      dict[nodeToHighlight].delete(interactedElement); // delete element from set
-    } else {
-      delete dict[nodeToHighlight];
-    }
-  }
-
-  private renderHighlightNodesFromDict(
-    dict: { [x: string]: any; }, classToRender: string, rowOrCol: string = 'Row',
-  ): void {
-    // Un-highlight all other nodes
-    if (classToRender !== 'hovered') {
-      d3.selectAll(`.${classToRender}`)
-        .classed(classToRender, false);
-    }
-
-    // highlight correct nodes
-    let cssSelector = '';
-    for (const node in dict) {
-      if (Array.isArray(dict[node])) {
-        for (const nodeID of dict[node]) {
-          if (rowOrCol === 'Row') {
-            cssSelector += `[id="attr${rowOrCol}${nodeID}"],`;
-          }
-          cssSelector += `[id="topo${rowOrCol}${nodeID}"],`;
-
-          if (rowOrCol === 'Row') {
-            cssSelector += `[id="nodeLabelRow${nodeID}"],`;
-          }
-        }
-      } else {
-        if (rowOrCol === 'Row') {
-          cssSelector += `[id="attr${rowOrCol}${node}"],`;
-        }
-        cssSelector += `[id="topo${rowOrCol}${node}"],`;
-
-        if (rowOrCol === 'Row') {
-          cssSelector += `[id="nodeLabelRow${node}"],`;
-        }
-      }
-    }
-    // remove last comma
-    cssSelector = cssSelector.substring(0, cssSelector.length - 1);
-
-    if (cssSelector !== '') {
-      d3.selectAll(cssSelector).classed(classToRender, true);
-    }
-  }
-
-  /**
-   * Old implementation to select the neighboring nodes.
-   * @param  nodeID [description]
-   * @return        [description]
-   */
-  private selectNeighborNodes(nodeID: string, neighbors: any): void {
+  private selectNeighborNodes(nodeID: string, neighbors: string[]): void {
+    // Remove or add node from column selected nodes
     if (nodeID in this.columnSelectedNodes) {
-
-      // find all neighbors and remove them
-      this.columnSelectedNodes = this.columnSelectedNodes.filter((d: any) => d.id !== nodeID);
+      delete this.columnSelectedNodes[nodeID];
     } else {
-      this.addHighlightNode(nodeID);
-      const newElement = { [nodeID]: neighbors};
+      const newElement = { [nodeID]: neighbors };
       this.columnSelectedNodes = Object.assign(this.columnSelectedNodes, newElement);
     }
-    this.renderHighlightNodesFromDict(this.columnSelectedNodes, 'neighbor', 'Row');
+
+    // Reset all nodes to not neighbor highlighted
+    selectAll('.neighbor')
+      .classed('neighbor', false);
+
+    // Loop through the neighbor nodes to be highlighted and highlight them
+    let cssSelector = '';
+    for (const node of Object.keys(this.columnSelectedNodes)) {
+      for (const neighborNode of this.columnSelectedNodes[node]) {
+        cssSelector += `
+        [id="attrRow${neighborNode}"],[id="topoRow${neighborNode}"],[id="nodeLabelRow${neighborNode}"],
+        `;
+      }
+    }
+
+    // Remove last comma
+    cssSelector = cssSelector.replace(/,\s*$/, '');
+
+    if (cssSelector !== '') {
+      selectAll(cssSelector).classed('neighbor', true);
+    }
   }
 
   /**
@@ -808,46 +627,34 @@ export class View {
   private sort(order: string): void {
     const nodeIDs = this.network.nodes.map((node: { id: any; }) => node.id);
 
-    if (nodeIDs.includes(order)) {
-      this.order = this.changeOrder(order, true);
-    } else {
-      this.order = this.changeOrder(order);
-    }
+    this.order = this.changeOrder(order, nodeIDs.includes(order));
     this.orderingScale.domain(this.order);
 
     const transitionTime = 500;
 
-    d3.selectAll('#matrix g .row')
+    this.edgeRows
       .transition()
       .duration(transitionTime)
-      .attr('transform', (d: any, i: number) => {
-        if (i > this.order.length - 1) {
-          return 'translate(0, 0)';
-        } else {
-          return `translate(0,${this.orderingScale(i)})`;
-        }
-      });
+      .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
     this.attributeRows
       .transition()
       .duration(transitionTime)
-      .attr('transform', (d: any, i: number) =>  `translate(0,${this.orderingScale(i)})`);
+      .attr('transform', (d: Node, i: number) =>  `translate(0,${this.orderingScale(i)})`);
 
-    // if any other method other than neighbors sort
+    // if any other method other than neighbors sort, sort the columns too
     if (!nodeIDs.includes(order)) {
       const t = this.edges;
       t.selectAll('.column')
         .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`);
     }
 
-    d3.selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
+    selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
     if (!nodeIDs.includes(order)) {
-      const cells = d3.selectAll('.cell')
-        .attr('transform', (d: any, i: number) => {
-          return `translate(${this.orderingScale(d.x)},0)`;
-        });
+      selectAll('.cell')
+        .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
     } else {
-      d3.select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
+      select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
     }
   }
 
@@ -864,7 +671,7 @@ export class View {
 
     const attributeWidth = 1000; // Just has to be larger than the attributes panel (so that we render to the edge)
 
-    this.attributes = d3.select('#attributes')
+    this.attributes = select('#attributes')
       .append('g')
       .attr('transform', `translate(0,${this.margins.top})`);
 
@@ -875,10 +682,10 @@ export class View {
       .append('rect')
       .classed('highlightRow', true)
       .attr('x', 0)
-      .attr('y', (d: any, i: number) => this.orderingScale(i))
+      .attr('y', (d: Node, i: number) => this.orderingScale(i))
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth())
-      .attr('fill', (d: any, i: number) => i % 2 === 0 ? '#fff' : '#eee');
+      .attr('fill', (d: Node, i: number) => i % 2 === 0 ? '#fff' : '#eee');
 
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
@@ -887,7 +694,7 @@ export class View {
       .enter()
       .append('g')
       .attr('class', 'row')
-      .attr('transform', (d: any, i: number) => `translate(0,${this.orderingScale(i)})`);
+      .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
     this.attributeRows
       .append('line')
@@ -901,16 +708,16 @@ export class View {
       .attr('x', 0)
       .attr('y', 0)
       .classed('attrRow', true)
-      .attr('id', (d: any, i: number) => `attrRow${d.id}`)
+      .attr('id', (d: Node) => `attrRow${d.id}`)
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
       .attr('cursor', 'pointer')
-      .on('mouseover', (d: any, i: number, nodes: any) => this.attributeMouseOver(d, i, nodes))
-      .on('mouseout', (d: any) => this.attributeMouseOut(d))
-      .on('click', (d: any, i: number) => {
+      .on('mouseover', (d: Node) => this.hoverNode(d.id))
+      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+      .on('click', (d: Node) => {
         this.nodeClick(d);
-        this.selectNeighborNodes(this.network.nodes[i].id, this.network.nodes[i].neighbors);
+        this.selectNeighborNodes(d.id, d.neighbors);
       });
 
     this.columnHeaders = this.attributes.append('g')
@@ -942,15 +749,15 @@ export class View {
   }
 
   // function that updates the state, and includes a flag for when this was done through a search
- private nodeClick(node: {id: never}, search: boolean = false): void {
+  private nodeClick(node: Node, search: boolean = false): void {
   const previousState = this.getApplicationState();
   let clicked = previousState.clicked;
   const wasSelected = this.isSelected(node);
 
   if (wasSelected) {
-    clicked = clicked.filter((s: any) => s !== node.id);
+    clicked = clicked.filter((d: any) => d !== node.id);
   } else {
-    clicked.push(node.id);
+    clicked.push(node.id as never);
   }
 
   const label = search ?
@@ -981,32 +788,10 @@ export class View {
   this.provenance.applyAction(action);
   }
 
-  private isSelected(node: {id: never}): boolean {
+  private isSelected(node: Node): boolean {
     const currentState = this.getApplicationState();
     const clicked = currentState.clicked;
-    return clicked.includes(node.id);
-  }
-
-  private attributeMouseOver(d: any, i: number, nodes: any): void {
-    this.addHighlightNodesToDict(this.hoverRow, d.id, d.id);  // Add row (rowID)
-    this.addHighlightNodesToDict(this.hoverCol, d.id, d.id);  // Add row (rowID)
-
-    d3.selectAll('.hovered').classed('hovered', false);
-    this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
-    this.renderHighlightNodesFromDict(this.hoverCol, 'hovered', 'Col');
-
-    this.showToolTip(d, i, nodes);
-  }
-
-  private attributeMouseOut(d: any): void {
-    this.removeHighlightNodesFromDict(this.hoverRow, d.id, d.id);
-    this.removeHighlightNodesFromDict(this.hoverCol, d.id, d.id);
-
-    d3.selectAll('.hovered').classed('hovered', false);
-    this.renderHighlightNodesFromDict(this.hoverRow, 'hovered', 'Row');
-    this.renderHighlightNodesFromDict(this.hoverCol, 'hovered', 'Col');
-
-    this.hideToolTip();
+    return clicked.includes(node.id as never);
   }
 
   private showToolTip(d: any, i: number, nodes: any): void {
@@ -1058,23 +843,20 @@ export class View {
         order = reorder.optimal_leaf_order()(mat);
       }
     } else if (this.sortKey === 'edges') {
-      order = d3
-      .range(this.network.nodes.length)
+      order = range(this.network.nodes.length)
       .sort((a, b) => this.network.nodes[b][type] - this.network.nodes[a][type]);
     } else if (isNode === true) {
-      order = d3
-      .range(this.network.nodes.length)
+      order = range(this.network.nodes.length)
       .sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
-      order = d3.range(this.network.nodes.length).sort((a, b) =>
-        this.network.nodes[b].neighbors.includes(type) - this.network.nodes[a].neighbors.includes(type),
+      order = range(this.network.nodes.length).sort((a, b) =>
+        Number(this.network.nodes[b].neighbors.includes(type)) - Number(this.network.nodes[a].neighbors.includes(type)),
       );
     } else if (this.sortKey === 'shortName') {
-      order = d3.range(this.network.nodes.length).sort((a, b) =>
+      order = range(this.network.nodes.length).sort((a, b) =>
         this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
       );
     } else {
-      order = d3
-      .range(this.network.nodes.length)
+      order = range(this.network.nodes.length)
       .sort((a, b) => this.network.nodes[b][type] - this.network.nodes[a][type]);
     }
     this.order = order;
@@ -1104,7 +886,6 @@ export class View {
         cellCol: {},
         cellRow: {},
         search: {},
-        previousMouseOvers: [],
       },
     };
 
@@ -1138,10 +919,7 @@ export class View {
 
       // go through each interacted element, and determine which rows/columns should
       // be highlighted due to it's interaction
-      for (const selectionType in state.selections) {
-        if (selectionType === 'previousMouseOvers') {
-          continue;
-        }
+      for (const selectionType of Object.keys(state.selections)) {
         for (const selectionElement of elementNamesFromSelection[selectionType]) {
           for (const node in state.selections[selectionType]) {
             if (selectionType === 'neighborSelect') {
@@ -1159,14 +937,14 @@ export class View {
 
       const clickedSelectorQuery = Array.from(clickedElements).join(',');
       if (clickedSelectorQuery !== '') {
-        d3.selectAll(clickedSelectorQuery).classed('clicked', true);
+        selectAll(clickedSelectorQuery).classed('clicked', true);
       }
     }
 
 
     function setUpObservers(): any {
       const updateHighlights = (state: any) => {
-        d3.selectAll('.clicked').classed('clicked', false);
+        selectAll('.clicked').classed('clicked', false);
         classAllHighlights(state);
       };
 
@@ -1184,11 +962,11 @@ export class View {
         const cellSelectorQuery = `[id="${cellNames.join('"],[id="')}"]`;
 
         // Set all cells to un-clicked
-        d3.selectAll('.clickedCell').classed('clickedCell', false);
+        selectAll('.clickedCell').classed('clickedCell', false);
 
         // Highlight cells if we have any in our query, else do nothing
         if (cellSelectorQuery !== '[id=""]') {
-          d3.selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
+          selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
         }
       };
 
@@ -1214,8 +992,8 @@ export class View {
     this.network.nodes.forEach((rowNode: Node, i: number) => {
       this.matrix[i] = this.network.nodes.map((colNode: Node) => {
         return {
-          cellName: `cell${rowNode.id}_${colNode.id}`,
-          correspondingCell: `cell${colNode.id}_${rowNode.id}`,
+          cellName: `${rowNode.id}_${colNode.id}`,
+          correspondingCell: `${colNode.id}_${rowNode.id}`,
           rowID: rowNode.id,
           colID: colNode.id,
           x: colNode.index,
@@ -1232,66 +1010,35 @@ export class View {
       },
     );
 
-    // find max value of z
-    this.matrix.forEach(
-      (row: Array<{z: number, [key: string]: any}>) => {
-        row.forEach(
-          (cell: {z: number, [key: string]: any}) => {
-            if (cell.z > this.maxNumConnections) {
-              this.maxNumConnections = cell.z;
-            }
-          });
+    // Find max value of z
+    this.matrix.forEach((row: Cell[]) => {
+      row.forEach((cell: Cell) => {
+        if (cell.z > this.maxNumConnections) {
+          this.maxNumConnections = cell.z;
+        }
       });
+    });
   }
 
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
    */
-  private getApplicationState(): {
-    workerID: number;
-    nodes: string;
-    search: string;
-    startTime: number;
-    endTime: string;
-    time: number;
-    event: string;
-    count: number;
-    clicked: never[];
-    sortKey: string;
-    selections: {
-        attrRow: {},
-        rowLabel: {},
-        colLabel: {},
-        neighborSelect: {},
-        cellCol: {},
-        cellRow: {},
-        search: {},
-        previousMouseOvers: [],
-    };
-  } {
+  private getApplicationState(): State {
     return this.provenance.graph().current.state;
   }
 
   private changeOrder(type: string, node: boolean = false): number[] {
     const action = this.generateSortAction(type);
-    if (this.provenance) {
-      this.provenance.applyAction(action);
-    }
+    this.provenance.applyAction(action);
     return this.sortObserver(type, node);
   }
 
-  /**
-   * [changeInteractionWrapper description]
-   * @param  nodeID ID of the node being changed with
-   * @param  node   nodes corresponding to the element class interacted with (from d3 select nodes[i])
-   * @param  interactionType class name of element interacted with
-   * @return        [description]
-   */
-  private generateSortAction(sortKey: string): {label: string, action: any, args: any[]} {
+
+  private generateSortAction(sortKey: string): { label: string, action: (key: string) => State, args: any[] } {
     return {
       label: 'sort',
-      action: (key: any) => {
+      action: (key: string) => {
         const currentState = this.getApplicationState();
         // add time stamp to the state graph
         currentState.time = Date.now();
@@ -1299,7 +1046,6 @@ export class View {
 
         currentState.sortKey = key;
         if (this.mouseOverEvents !== undefined) {
-          currentState.selections.previousMouseOvers = this.mouseOverEvents;
           this.mouseOverEvents.length = 0;
         }
 
