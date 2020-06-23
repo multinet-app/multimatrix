@@ -463,6 +463,14 @@ export class View {
       .text((d: Node) => d._key)
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+      .on('mouseover', (d: Node, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverNode(d.id);
+      })
+      .on('mouseout', (d: Node) => {
+        this.hideToolTip();
+        this.unHoverNode(d.id);
+      })
       .on('click', (d: Node) => {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
@@ -482,8 +490,14 @@ export class View {
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id));
+      .on('mouseover', (d: Node, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverNode(d.id);
+      })
+      .on('mouseout', (d: Node) => {
+        this.hideToolTip();
+        this.unHoverNode(d.id);
+      });
 
     verticalOffset = verticalOffset * 0.075 + 5;
 
@@ -502,8 +516,14 @@ export class View {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       })
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id));
+      .on('mouseover', (d: Node, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverNode(d.id);
+      })
+      .on('mouseout', (d: Node) => {
+        this.hideToolTip();
+        this.unHoverNode(d.id);
+      });
   }
 
 
@@ -799,9 +819,10 @@ export class View {
   }
 
 
-  private showToolTip(d: any, i: number, nodes: any): void {
-    const matrix = nodes[i].getScreenCTM()
-      .translate(+nodes[i].getAttribute('x'), + nodes[i].getAttribute('y'));
+  private showToolTip(d: Cell|Node, i: number, nodes: any): void {
+    const matrix = nodes[i]
+      .getScreenCTM()
+      .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
 
     let message = '';
 
@@ -811,9 +832,11 @@ export class View {
       message = `ID: ${d.id}`;
     }
 
-    this.tooltip.html(message)
-      .style('left', `${window.pageXOffset + matrix.e - 45}px`)
-      .style('top', `${window.pageYOffset + matrix.f - 30}px`)
+    this.tooltip.html(message);
+
+    this.tooltip
+      .style('left', `${window.pageXOffset + matrix.e}px`)
+      .style('top', `${window.pageYOffset + matrix.f - this.tooltip.node().getBoundingClientRect().height}px`);
 
     this.tooltip.transition()
       .delay(100)
