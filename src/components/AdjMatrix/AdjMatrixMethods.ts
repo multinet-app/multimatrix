@@ -319,12 +319,8 @@ export class View {
 
     this.appendEdgeLabels();
 
-    // add tooltip
-    this.tooltip = select('body')
-      .append('div')
-      .attr('class', 'tooltip')
-      .style('position', 'absolute')
-      .style('opacity', 0);
+    // Get tooltip
+    this.tooltip = select('#tooltip');
   }
 
 
@@ -807,11 +803,17 @@ export class View {
     const matrix = nodes[i].getScreenCTM()
       .translate(+nodes[i].getAttribute('x'), + nodes[i].getAttribute('y'));
 
-    const message = d.cellName !== undefined ? d.cellName : d.id;
+    let message = '';
+
+    if (this.isCell(d)) {
+      message = `Row ID: ${d.rowID} <br/> Col ID: ${d.colID}`;
+    } else {
+      message = `ID: ${d.id}`;
+    }
 
     this.tooltip.html(message)
-      .style('left', (window.pageXOffset + matrix.e - 45) + 'px')
-      .style('top', (window.pageYOffset + matrix.f - 30) + 'px');
+      .style('left', `${window.pageXOffset + matrix.e - 45}px`)
+      .style('top', `${window.pageYOffset + matrix.f - 30}px`)
 
     this.tooltip.transition()
       .delay(100)
