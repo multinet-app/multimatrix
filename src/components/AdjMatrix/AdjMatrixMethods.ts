@@ -232,7 +232,7 @@ export class View {
    */
   private initializeEdges(): void {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const sideLength = Math.min(this.visDimensions.width, this.visDimensions.height);
+    const sideLength = Math.min(this.visDimensions.width * 0.75, this.visDimensions.height);
 
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
