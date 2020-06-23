@@ -776,8 +776,14 @@ export class View {
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
       .attr('cursor', 'pointer')
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+      .on('mouseover', (d: Node, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverNode(d.id);
+      })
+      .on('mouseout', (d: Node) => {
+        this.hideToolTip();
+        this.unHoverNode(d.id);
+      })
       .on('click', (d: Node) => {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);

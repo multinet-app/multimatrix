@@ -167,17 +167,14 @@ svg >>> .highlightCol {
 #tooltip {
   position: absolute;
   opacity: 0;
-  text-align: center;
   font-size: 12.5px;
+  background: white;
   color: black;
   border-radius: 5px;
-  padding: 2px;
-  background: white;
-  border: 0px;
+  padding: 5px;
   pointer-events: none;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  transition: 0.3s;
-  max-width:400px;
+  max-width: 400px;
 }
 
 svg >>> .hovered {
