@@ -833,9 +833,21 @@ export class View {
     let message = '';
 
     if (this.isCell(d)) {
-      message = `Row ID: ${d.rowID} <br/> Col ID: ${d.colID}`;
+      // Get link source and target
+      message = `
+      Row ID: ${d.rowID} <br/>
+      Col ID: ${d.colID} <br/>
+      Number of edges: ${d.z}`;
     } else {
+      // Get node id
       message = `ID: ${d.id}`;
+
+      // Loop through other props to add to tooltip
+      for (const key of Object.keys(d)) {
+        if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
+          message += `<br/> ${this.capitalizeFirstLetter(key)}: ${d[key]}`;
+        }
+      }
     }
 
     this.tooltip.html(message);
@@ -1015,5 +1027,9 @@ export class View {
 
   private isCell(element: any): element is Cell {
     return element.hasOwnProperty('cellName');
+  }
+
+  private capitalizeFirstLetter(word: string) {
+    return word[0].toUpperCase() + word.slice(1);
   }
 }
