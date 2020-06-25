@@ -314,7 +314,7 @@ export class View {
         this.hideToolTip();
         this.unHoverEdge(d);
       })
-      .on('click', (d: Cell) => this.selectElement(d))
+      .on('click', this.selectElement)
       .attr('cursor', 'pointer');
 
     this.appendEdgeLabels();
