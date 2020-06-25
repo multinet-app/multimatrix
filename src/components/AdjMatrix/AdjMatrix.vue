@@ -107,7 +107,7 @@ export default Vue.extend({
 
     this.attributes = d3
       .select(this.$refs.attributes)
-      .attr('width', this.attributesWidth) // -15 for the scroll bar
+      .attr('width', this.attributesWidth)
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
 
