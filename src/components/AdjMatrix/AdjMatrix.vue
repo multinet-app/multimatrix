@@ -112,7 +112,12 @@ export default Vue.extend({
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
 
     // Define the View
-    this.view = new View(this.network, this.visDimensions, this.visualizedAttributes);
+    this.view = new View(
+      this.network,
+      this.visualizedAttributes, 
+      this.matrixWidth, 
+      this.matrixHeight
+    );
   },
 
   methods: {

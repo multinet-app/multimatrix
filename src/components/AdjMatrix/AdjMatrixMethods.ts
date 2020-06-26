@@ -34,7 +34,6 @@ export class View {
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private colMargin: number = 5;
-  private visDimensions: Dimensions;
   private provenance: any;
   private idMap: { [key: string]: number };
   private isMultiEdge: boolean;
@@ -43,11 +42,17 @@ export class View {
   private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
+  private matrixWidth: number;
+  private matrixHeight: number;
 
-  constructor(network: Network, visDimensions: any, visualizedAttributes: string[]) {
+  constructor(
+    network: Network,
+    visualizedAttributes: string[],
+    matrixWidth: number,
+    matrixHeight: number,
+  ) {
     this.network = network;
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
-    this.visDimensions = visDimensions;
     this.provenance = this.setUpProvenance();
     this.sortKey = 'name';
     this.matrix = [];
@@ -56,6 +61,8 @@ export class View {
     this.selectedNodesAndNeighbors = {};
     this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
+    this.matrixWidth = matrixWidth;
+    this.matrixHeight = matrixHeight;
 
     this.icons = {
       quant: {
@@ -232,7 +239,7 @@ export class View {
    */
   private initializeEdges(): void {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const sideLength = Math.min(this.visDimensions.width * 0.75, this.visDimensions.height);
+    const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
 
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
