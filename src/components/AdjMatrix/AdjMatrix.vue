@@ -61,6 +61,22 @@ export default Vue.extend({
         visualizedAttributes,
       };
     },
+
+    matrixWidth(): number {
+      return this.visDimensions.width * 0.75;
+    },
+
+    matrixHeight(): number {
+      return this.visDimensions.height;
+    },
+
+    attributesWidth(): number {
+      return this.visDimensions.width * 0.25 - 15; // 15 for the scrollbar
+    },
+
+    attributesHeight(): number {
+      return this.matrixHeight;
+    },
   },
 
   watch: {
@@ -85,18 +101,23 @@ export default Vue.extend({
     // Size the svgs
     this.matrix = d3
       .select(this.$refs.matrix)
-      .attr('width', this.visDimensions.width * 0.75)
-      .attr('height', this.visDimensions.height)
-      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.75} ${this.visDimensions.height}`);
+      .attr('width', this.matrixWidth)
+      .attr('height', this.matrixHeight)
+      .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
     this.attributes = d3
       .select(this.$refs.attributes)
-      .attr('width', this.visDimensions.width * 0.25 - 15) // -15 for the scroll bar
-      .attr('height', this.visDimensions.height)
-      .attr('viewBox', `0 0 ${this.visDimensions.width * 0.25 - 15} ${this.visDimensions.height}`);
+      .attr('width', this.attributesWidth)
+      .attr('height', this.attributesHeight)
+      .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
 
     // Define the View
-    this.view = new View(this.network, this.visDimensions, this.visualizedAttributes);
+    this.view = new View(
+      this.network,
+      this.visualizedAttributes, 
+      this.matrixWidth, 
+      this.matrixHeight
+    );
   },
 
   methods: {
@@ -167,18 +188,13 @@ svg >>> .hovered {
   fill-opacity: 1 !important;
 }
 
-svg >>> .clickedCell {
-  stroke-width: 2.5;
-  stroke: #ee0000;
-}
-
 svg >>> .clicked {
   font-weight: 800;
   fill: #f8cf91 !important;
   fill-opacity: 1 !important;
 }
 
-svg >>> .clickedCell {
+svg >>> .cell.clicked {
   stroke: red;
   stroke-width: 3;
 }

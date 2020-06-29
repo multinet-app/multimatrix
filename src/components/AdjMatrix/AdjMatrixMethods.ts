@@ -34,25 +34,35 @@ export class View {
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private colMargin: number = 5;
-  private visDimensions: Dimensions;
   private provenance: any;
   private idMap: { [key: string]: number };
-  private isMultiEdge: any;
+  private isMultiEdge: boolean;
   private orderType: any;
-  private columnSelectedNodes: { [key: string]: string[] };
+  private selectedNodesAndNeighbors: { [key: string]: string[] };
+  private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
+  private matrixWidth: number;
+  private matrixHeight: number;
 
-  constructor(network: Network, visDimensions: any, visualizedAttributes: string[]) {
+  constructor(
+    network: Network,
+    visualizedAttributes: string[],
+    matrixWidth: number,
+    matrixHeight: number,
+  ) {
     this.network = network;
     this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
-    this.visDimensions = visDimensions;
     this.provenance = this.setUpProvenance();
     this.sortKey = 'name';
     this.matrix = [];
     this.idMap = {};
-    this.columnSelectedNodes = {};
+    this.isMultiEdge = false;
+    this.selectedNodesAndNeighbors = {};
+    this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
+    this.matrixWidth = matrixWidth;
+    this.matrixHeight = matrixHeight;
 
     this.icons = {
       quant: {
@@ -169,7 +179,7 @@ export class View {
           .on('mouseover', (d: Node) => this.hoverNode(d.id))
           .on('mouseout', (d: Node) => this.unHoverNode(d.id))
           .on('click', (d: Node) => {
-            this.nodeClick(d);
+            this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
           });
       } else {
@@ -186,7 +196,7 @@ export class View {
           .on('mouseover', (d: Node) => this.hoverNode(d.id))
           .on('mouseout', (d: Node) => this.unHoverNode(d.id))
           .on('click', (d: Node) => {
-            this.nodeClick(d);
+            this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
           });
       }
@@ -215,10 +225,12 @@ export class View {
 
   }
 
+
   private isQuantitative(varName: string): boolean {
     const uniqueValues = [...new Set(this.network.nodes.map((node: Node) => parseFloat(node[varName])))];
     return uniqueValues.length > 5;
   }
+
 
   /**
    * initializes the edges view, renders all SVG elements and attaches listeners
@@ -227,7 +239,7 @@ export class View {
    */
   private initializeEdges(): void {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const sideLength = Math.min(this.visDimensions.width, this.visDimensions.height);
+    const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
 
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
@@ -252,11 +264,11 @@ export class View {
       });
 
     // Draw each row
-    this.edgeRows = this.edges.selectAll('.row')
+    this.edgeRows = this.edges.selectAll('.rowContainer')
       .data(this.network.nodes)
       .enter()
       .append('g')
-      .attr('class', 'row')
+      .attr('class', 'rowContainer')
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
@@ -286,36 +298,21 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
-    const cells = this.edgeRows.selectAll('.cell')
-      .data((d: Node, i: number) => this.matrix[i])
-      .enter()
-      .append('g')
-      .attr('class', 'cell')
-      .attr('id', (d: Cell) => d.cellName)
-      .attr('transform', (d: Cell) => `translate(${this.orderingScale(d.x)},0)`);
-
-    cells
-      .append('rect')
-      .classed('baseCell', true)
-      .attr('x', 0)
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('width', this.orderingScale.bandwidth());
-
     const cellColorScale = scaleLinear<string>()
       .domain([0, this.maxNumConnections])
       .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
-    const squares = cells
+    this.edgeRows.selectAll('.cell')
+      .data((d: Node, i: number) => this.matrix[i])
+      .enter()
       .append('rect')
-      .attr('x', 0)
+      .attr('class', 'cell')
+      .attr('id', (d: Cell) => d.cellName)
+      .attr('x', (d: Cell) => this.orderingScale(d.x))
       .attr('width', this.orderingScale.bandwidth())
       .attr('height', this.orderingScale.bandwidth())
-      .style('fill', (d: Cell) => cellColorScale(d.z));
-
-    squares
-      .style('fill-opacity', (d: Cell) => d.z);
-
-    cells
+      .style('fill', (d: Cell) => cellColorScale(d.z))
+      .style('fill-opacity', (d: Cell) => d.z)
       .on('mouseover', (d: Cell, i: number, nodes: any) => {
         this.showToolTip(d, i, nodes);
         this.hoverEdge(d);
@@ -324,11 +321,7 @@ export class View {
         this.hideToolTip();
         this.unHoverEdge(d);
       })
-      .on('click', (d: Cell, i: number, nodes: any) => {
-        const interaction = select(nodes[i]).attr('class');
-        const action = this.changeInteractionWrapper(interaction, d);
-        this.provenance.applyAction(action);
-      })
+      .on('click', this.selectElement)
       .attr('cursor', 'pointer');
 
     this.appendEdgeLabels();
@@ -340,6 +333,7 @@ export class View {
       .style('position', 'absolute')
       .style('opacity', 0);
   }
+
 
   /**
    * Draws the nested edge bars
@@ -408,6 +402,61 @@ export class View {
     this.unHoverNode(cell.colID);
   }
 
+
+  private selectElement(element: Cell | Node): void {
+    let elementsToSelect: string[] = [];
+    let newElement: { [key: string]: string[] };
+
+    if (this.isCell(element)) {
+      // Remove or add cell from selected cells
+      if (element.cellName in this.selectedElements) {
+        delete this.selectedElements[element.cellName];
+      } else {
+        // Get all the elements to be selected
+        elementsToSelect = [
+        `[id="attrRow${element.colID}"]`, `[id="topoRow${element.colID}"]`, `[id="topoCol${element.colID}"]`,
+        `[id="colLabel${element.colID}"]`, `[id="rowLabel${element.colID}"]`,
+
+        `[id="attrRow${element.rowID}"]`, `[id="topoRow${element.rowID}"]`, `[id="topoCol${element.rowID}"]`,
+        `[id="colLabel${element.rowID}"]`, `[id="rowLabel${element.rowID}"]`,
+
+        `[id="${element.cellName}"]`,
+        ];
+        newElement = { [element.cellName]: elementsToSelect};
+        this.selectedElements = Object.assign(this.selectedElements, newElement);
+      }
+    } else {
+      if (element.id in this.selectedElements) {
+        delete this.selectedElements[element.id];
+      } else {
+        elementsToSelect = [
+        `[id="attrRow${element.id}"]`, `[id="topoRow${element.id}"]`, `[id="topoCol${element.id}"]`,
+        `[id="colLabel${element.id}"]`, `[id="rowLabel${element.id}"]`,
+        ];
+        newElement = { [element.id]: elementsToSelect};
+        this.selectedElements = Object.assign(this.selectedElements, newElement);
+      }
+    }
+
+
+    // Reset all nodes to not neighbor highlighted
+    selectAll('.clicked')
+      .classed('clicked', false);
+
+    // Loop through the neighbor nodes to be highlighted and highlight them
+    const selections: string[] = [];
+    for (const elementID of Object.keys(this.selectedElements)) {
+      for (const elementToSelect of this.selectedElements[elementID]) {
+        selections.push(elementToSelect);
+      }
+    }
+
+    if (selections.length > 0) {
+      selectAll(selections.join(',')).classed('clicked', true);
+    }
+  }
+
+
   /**
    * Renders column labels and row labels to the matrix.
    * @return none
@@ -426,7 +475,7 @@ export class View {
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
       .on('click', (d: Node) => {
-        this.nodeClick(d);
+        this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
 
@@ -461,7 +510,7 @@ export class View {
       .style('font-size', this.nodeFontSize)
       .text((d: Node) => d._key)
       .on('click', (d: Node) => {
-        this.nodeClick(d);
+        this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       })
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
@@ -515,6 +564,7 @@ export class View {
 
   }
 
+
   /**
    * [changeInteractionWrapper description]
    * @param  nodeID ID of the node being changed with
@@ -560,6 +610,7 @@ export class View {
     };
   }
 
+
   /**
    * Adds the interacted node to the state object.
    * @param  state           [description]
@@ -591,11 +642,11 @@ export class View {
 
   private selectNeighborNodes(nodeID: string, neighbors: string[]): void {
     // Remove or add node from column selected nodes
-    if (nodeID in this.columnSelectedNodes) {
-      delete this.columnSelectedNodes[nodeID];
+    if (nodeID in this.selectedNodesAndNeighbors) {
+      delete this.selectedNodesAndNeighbors[nodeID];
     } else {
       const newElement = { [nodeID]: neighbors };
-      this.columnSelectedNodes = Object.assign(this.columnSelectedNodes, newElement);
+      this.selectedNodesAndNeighbors = Object.assign(this.selectedNodesAndNeighbors, newElement);
     }
 
     // Reset all nodes to not neighbor highlighted
@@ -603,60 +654,63 @@ export class View {
       .classed('neighbor', false);
 
     // Loop through the neighbor nodes to be highlighted and highlight them
-    let cssSelector = '';
-    for (const node of Object.keys(this.columnSelectedNodes)) {
-      for (const neighborNode of this.columnSelectedNodes[node]) {
-        cssSelector += `
-        [id="attrRow${neighborNode}"],[id="topoRow${neighborNode}"],[id="nodeLabelRow${neighborNode}"],
-        `;
+    const selections: string[] = [];
+    for (const node of Object.keys(this.selectedNodesAndNeighbors)) {
+      for (const neighborNode of this.selectedNodesAndNeighbors[node]) {
+        selections.push(`[id="attrRow${neighborNode}"]`);
+        selections.push(`[id="topoRow${neighborNode}"]`);
+        selections.push(`[id="nodeLabelRow${neighborNode}"]`);
       }
     }
 
-    // Remove last comma
-    cssSelector = cssSelector.replace(/,\s*$/, '');
-
-    if (cssSelector !== '') {
-      selectAll(cssSelector).classed('neighbor', true);
+    if (selections.length > 0) {
+      selectAll(selections.join(',')).classed('neighbor', true);
     }
   }
+
 
   /**
    * [sort description]
    * @return [description]
    */
   private sort(order: string): void {
-    const nodeIDs = this.network.nodes.map((node: { id: any; }) => node.id);
+    const nodeIDs = this.network.nodes.map((node: Node) => node.id);
 
     this.order = this.changeOrder(order, nodeIDs.includes(order));
     this.orderingScale.domain(this.order);
 
     const transitionTime = 500;
 
-    this.edgeRows
+    (selectAll('.rowContainer') as any)
       .transition()
       .duration(transitionTime)
       .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
-    this.attributeRows
+    (selectAll('.attrRowContainer') as any)
       .transition()
       .duration(transitionTime)
       .attr('transform', (d: Node, i: number) =>  `translate(0,${this.orderingScale(i)})`);
 
     // if any other method other than neighbors sort, sort the columns too
     if (!nodeIDs.includes(order)) {
-      const t = this.edges;
-      t.selectAll('.column')
+      this.edges.selectAll('.column')
+        .transition()
+        .duration(transitionTime)
         .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`);
+
+      (selectAll('.rowContainer') as any)
+        .selectAll('.cell')
+        .transition()
+        .duration(transitionTime)
+        .attr('x', (d: Node, i: number) => this.orderingScale(i));
     }
 
-    selectAll('.sortIcon').style('fill', '#8B8B8B').filter((d) => d === order).style('fill', '#EBB769');
-    if (!nodeIDs.includes(order)) {
-      selectAll('.cell')
-        .attr('transform', (d: any) => `translate(${this.orderingScale(d.x)},0)`);
-    } else {
-      select(`[id="sortIcon${order}"]`).style('fill', '#EBB769');
-    }
+    selectAll('.sortIcon')
+      .style('fill', '#8B8B8B')
+      .filter((d: any) => d.id === order)
+      .style('fill', '#EBB769');
   }
+
 
   /**
    * [initializeAttributes description]
@@ -689,11 +743,11 @@ export class View {
 
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
-      .selectAll('.row')
+      .selectAll('.attrRowContainer')
       .data(this.network.nodes)
       .enter()
       .append('g')
-      .attr('class', 'row')
+      .attr('class', 'attrRowContainer')
       .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
     this.attributeRows
@@ -716,7 +770,7 @@ export class View {
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
       .on('click', (d: Node) => {
-        this.nodeClick(d);
+        this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
 
@@ -748,51 +802,13 @@ export class View {
     }
   }
 
-  // function that updates the state, and includes a flag for when this was done through a search
-  private nodeClick(node: Node, search: boolean = false): void {
-  const previousState = this.getApplicationState();
-  let clicked = previousState.clicked;
-  const wasSelected = this.isSelected(node);
-
-  if (wasSelected) {
-    clicked = clicked.filter((d: any) => d !== node.id);
-  } else {
-    clicked.push(node.id as never);
-  }
-
-  const label = search ?
-    'Searched for Node' :
-    wasSelected ?
-    'Unselect Node' :
-    'Select Node';
-
-  const action = {
-    label,
-    action: () => {
-      const currentState = this.getApplicationState();
-      // Add time stamp to the state graph
-      currentState.time = Date.now();
-      // Add label describing what the event was
-      currentState.event = label;
-      // Update actual node data
-      currentState.clicked = clicked;
-      // If node was searched, push him to the search array
-      // if (search) {
-      //     currentState.search.push(node.id);
-      // }
-      return currentState;
-    },
-    args: [],
-  };
-
-  this.provenance.applyAction(action);
-  }
 
   private isSelected(node: Node): boolean {
     const currentState = this.getApplicationState();
-    const clicked = currentState.clicked;
-    return clicked.includes(node.id as never);
+    const clicked: string[] = currentState.clicked;
+    return clicked.includes(node.id);
   }
+
 
   private showToolTip(d: any, i: number, nodes: any): void {
     const matrix = nodes[i].getScreenCTM()
@@ -810,10 +826,12 @@ export class View {
       .style('opacity', .9);
   }
 
+
   private hideToolTip(): void {
     this.tooltip.transition(25)
     .style('opacity', 0);
   }
+
 
   private sortObserver(type: string, isNode: boolean = false): number[] {
     let order;
@@ -863,6 +881,7 @@ export class View {
     return order;
   }
 
+
   /**
    * Initializes the provenance library and sets observers.
    * @return [none]
@@ -892,97 +911,9 @@ export class View {
     const provenance = ProvenanceLibrary.initProvenance(initialState);
     this.provenance = provenance;
 
-    const columnElements = ['topoCol'];
-    const rowElements = ['topoRow', 'attrRow'];
-
-    const elementNamesFromSelection: any = {
-      cellCol: rowElements.concat(columnElements),
-      colLabel: rowElements.concat(columnElements).concat(['colLabel']),
-      rowLabel: rowElements.concat(columnElements).concat(['rowLabel']),
-      attrRow: rowElements.concat(['rowLabel']),
-      cellRow: rowElements.concat(columnElements),
-      neighborSelect: rowElements,
-      search: rowElements.concat(columnElements),
-    };
-
-    function classAllHighlights(state: any): void {
-
-      const clickedElements = new Set();
-      const neighborElements = new Set();
-
-      for (const node of state.clicked) {
-        clickedElements.add(`[id="colLabel${node}"]`);
-        clickedElements.add(`[id="topoCol${node}"]`);
-        clickedElements.add(`[id="topoRow${node}"]`);
-        clickedElements.add(`[id="attrRow${node}"]`);
-      }
-
-      // go through each interacted element, and determine which rows/columns should
-      // be highlighted due to it's interaction
-      for (const selectionType of Object.keys(state.selections)) {
-        for (const selectionElement of elementNamesFromSelection[selectionType]) {
-          for (const node in state.selections[selectionType]) {
-            if (selectionType === 'neighborSelect') {
-              neighborElements.add(`[id="${selectionElement}${node}"]`);
-            } else {
-              // if both in attrRow and rowLabel, don't highlight element
-              if (selectionType === 'attrRow' || selectionType === 'rowLabel') {
-                if (node in state.selections.attrRow && node in state.selections.rowLabel) { continue; }
-              }
-              clickedElements.add(`[id="${selectionElement}${node}"]`);
-            }
-          }
-        }
-      }
-
-      const clickedSelectorQuery = Array.from(clickedElements).join(',');
-      if (clickedSelectorQuery !== '') {
-        selectAll(clickedSelectorQuery).classed('clicked', true);
-      }
-    }
-
-
-    function setUpObservers(): any {
-      const updateHighlights = (state: any) => {
-        selectAll('.clicked').classed('clicked', false);
-        classAllHighlights(state);
-      };
-
-      // Updates individual cell highlighting
-      const updateCellClicks = (state: any) => {
-        let cellNames: any[] = [];
-
-        // Go through each highlighted cell (both sides of matrix) and add cell to highlight
-        Object.keys(state.selections.cellCol).map((key) => {
-          const names = state.selections.cellCol[key];
-          cellNames = cellNames.concat(names);
-        });
-
-        // Concat all the cells to highlight into one query
-        const cellSelectorQuery = `[id="${cellNames.join('"],[id="')}"]`;
-
-        // Set all cells to un-clicked
-        selectAll('.clickedCell').classed('clickedCell', false);
-
-        // Highlight cells if we have any in our query, else do nothing
-        if (cellSelectorQuery !== '[id=""]') {
-          selectAll(cellSelectorQuery).selectAll('.baseCell').classed('clickedCell', true);
-        }
-      };
-
-      provenance.addObserver('selections.attrRow', updateHighlights);
-      provenance.addObserver('selections.rowLabel', updateHighlights);
-      provenance.addObserver('selections.colLabel', updateHighlights);
-      provenance.addObserver('selections.cellCol', updateHighlights);
-      provenance.addObserver('selections.cellRow', updateHighlights);
-      provenance.addObserver('selections.neighborSelect', updateHighlights);
-      provenance.addObserver('selections.cellCol', updateCellClicks);
-      provenance.addObserver('selections.search', updateHighlights);
-      provenance.addObserver('clicked', updateHighlights);
-    }
-    setUpObservers();
     return provenance;
   }
+
 
   /**
    * Initializes the matrix and fills it with link occurrences.
@@ -1020,6 +951,7 @@ export class View {
     });
   }
 
+
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
@@ -1028,7 +960,8 @@ export class View {
     return this.provenance.graph().current.state;
   }
 
-  private changeOrder(type: string, node: boolean = false): number[] {
+
+  private changeOrder(type: string, node: boolean): number[] {
     const action = this.generateSortAction(type);
     this.provenance.applyAction(action);
     return this.sortObserver(type, node);
@@ -1053,5 +986,10 @@ export class View {
       },
       args: [sortKey],
     };
+  }
+
+
+  private isCell(element: any): element is Cell {
+    return element.hasOwnProperty('cellName');
   }
 }
