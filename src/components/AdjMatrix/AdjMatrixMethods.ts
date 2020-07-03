@@ -326,12 +326,8 @@ export class View {
 
     this.appendEdgeLabels();
 
-    // add tooltip
-    this.tooltip = select('body')
-      .append('div')
-      .attr('class', 'tooltip')
-      .style('position', 'absolute')
-      .style('opacity', 0);
+    // Get tooltip
+    this.tooltip = select('#tooltip');
   }
 
 
@@ -474,6 +470,14 @@ export class View {
       .text((d: Node) => d._key)
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+      .on('mouseover', (d: Node, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverNode(d.id);
+      })
+      .on('mouseout', (d: Node) => {
+        this.hideToolTip();
+        this.unHoverNode(d.id);
+      })
       .on('click', (d: Node) => {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
@@ -493,8 +497,14 @@ export class View {
         this.provenance.applyAction(action);
       })
       .attr('cursor', 'pointer')
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id));
+      .on('mouseover', (d: Node, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverNode(d.id);
+      })
+      .on('mouseout', (d: Node) => {
+        this.hideToolTip();
+        this.unHoverNode(d.id);
+      });
 
     verticalOffset = verticalOffset * 0.075 + 5;
 
@@ -513,8 +523,14 @@ export class View {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       })
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id));
+      .on('mouseover', (d: Node, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverNode(d.id);
+      })
+      .on('mouseout', (d: Node) => {
+        this.hideToolTip();
+        this.unHoverNode(d.id);
+      });
   }
 
 
@@ -767,8 +783,14 @@ export class View {
       .attr('height', this.orderingScale.bandwidth()) // end addition
       .attr('fill-opacity', 0)
       .attr('cursor', 'pointer')
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+      .on('mouseover', (d: Node, i: number, nodes: any) => {
+        this.showToolTip(d, i, nodes);
+        this.hoverNode(d.id);
+      })
+      .on('mouseout', (d: Node) => {
+        this.hideToolTip();
+        this.unHoverNode(d.id);
+      })
       .on('click', (d: Node) => {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
@@ -810,15 +832,36 @@ export class View {
   }
 
 
-  private showToolTip(d: any, i: number, nodes: any): void {
-    const matrix = nodes[i].getScreenCTM()
-      .translate(+nodes[i].getAttribute('x'), + nodes[i].getAttribute('y'));
+  private showToolTip(d: Cell|Node, i: number, nodes: any): void {
+    const matrix = nodes[i]
+      .getScreenCTM()
+      .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
 
-    const message = d.cellName !== undefined ? d.cellName : d.id;
+    let message = '';
 
-    this.tooltip.html(message)
-      .style('left', (window.pageXOffset + matrix.e - 45) + 'px')
-      .style('top', (window.pageYOffset + matrix.f - 30) + 'px');
+    if (this.isCell(d)) {
+      // Get link source and target
+      message = `
+      Row ID: ${d.rowID} <br/>
+      Col ID: ${d.colID} <br/>
+      Number of edges: ${d.z}`;
+    } else {
+      // Get node id
+      message = `ID: ${d.id}`;
+
+      // Loop through other props to add to tooltip
+      for (const key of Object.keys(d)) {
+        if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
+          message += `<br/> ${this.capitalizeFirstLetter(key)}: ${d[key]}`;
+        }
+      }
+    }
+
+    this.tooltip.html(message);
+
+    this.tooltip
+      .style('left', `${window.pageXOffset + matrix.e}px`)
+      .style('top', `${window.pageYOffset + matrix.f - this.tooltip.node().getBoundingClientRect().height}px`);
 
     this.tooltip.transition()
       .delay(100)
@@ -991,5 +1034,9 @@ export class View {
 
   private isCell(element: any): element is Cell {
     return element.hasOwnProperty('cellName');
+  }
+
+  private capitalizeFirstLetter(word: string) {
+    return word[0].toUpperCase() + word.slice(1);
   }
 }

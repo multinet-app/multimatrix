@@ -135,6 +135,7 @@ export default Vue.extend({
   <div>
     <svg id="matrix" ref="matrix" width="800" height="900" />
     <svg id="attributes" ref="attributes" width="300" height="900" />
+    <div id="tooltip" ref="tooltip" />
   </div>
 </template>
 
@@ -168,19 +169,17 @@ svg >>> .highlightCol {
   pointer-events: auto;
 }
 
-div.tooltip {
+#tooltip {
   position: absolute;
-  text-align: center;
+  opacity: 0;
   font-size: 12.5px;
-  color: black;
-  width: 100px;
-  border-radius: 5px;
-  padding: 2px;
   background: white;
-  border: 0px;
+  color: black;
+  border-radius: 5px;
+  padding: 5px;
   pointer-events: none;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  transition: 0.3s;
+  max-width: 400px;
 }
 
 svg >>> .hovered {
