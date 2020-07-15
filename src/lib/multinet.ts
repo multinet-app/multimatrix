@@ -2,20 +2,20 @@
 import { json } from 'd3-fetch';
 
 async function _loadTables(workspace: string, networkName: string, apiRoot: string) {
-  const tablesCall = apiRoot + '/workspaces/' + workspace + '/graphs/' + networkName;
-  return await json(tablesCall);
+  const tablesCall = `${apiRoot}/workspaces/${workspace}/graphs/${networkName}`;
+  return await fetch(tablesCall, {credentials: 'include'}).then((response) => response.json());
 }
 
 async function _loadNodes(workspace: string, nodeTable: string, apiRoot: string) {
-  const nodesCall = apiRoot + '/workspaces/' + workspace + '/tables/' + nodeTable + '?limit=1000';
-  const nodesRaw = await json(nodesCall);
-  return nodesRaw.rows;
+  const nodesCall = `${apiRoot}/workspaces/${workspace}/tables/${nodeTable}?limit=1000`;
+  const data = await fetch(nodesCall, {credentials: 'include'}).then((response) => response.json());
+  return data.rows;
 }
 
 async function _loadLinks(workspace: string, edgeTable: string, apiRoot: string) {
-  const linksCall = apiRoot + '/workspaces/' + workspace + '/tables/' + edgeTable + '?limit=1000';
-  const linksRaw = await json(linksCall);
-  return linksRaw.rows;
+  const linksCall = `${apiRoot}/workspaces/${workspace}/tables/${edgeTable}?limit=1000`;
+  const data = await fetch(linksCall, {credentials: 'include'}).then((response) => response.json());
+  return data.rows;
 }
 
 function _renameLinkVars(links: any[]) {
@@ -48,7 +48,11 @@ function _defineNeighbors(nodes: any[], links: any[]) {
   return nodes;
 }
 
-async function loadData(workspace: string, networkName: string, apiRoot: string = 'https://api.multinet.app/api') {
+export async function loadData(
+  workspace: string,
+  networkName: string,
+  apiRoot: string = 'https://api.multinet.app/api',
+) {
   // Define local variables that will store the api url and the responses from the database
   const multinet: {tables: any, nodes: any[], links: any[], network: any} = {
     tables: {nodeTables: [], edgeTable: ''},
@@ -82,7 +86,3 @@ async function loadData(workspace: string, networkName: string, apiRoot: string 
   };
   return JSON.parse(JSON.stringify(multinet.network));
 }
-
-export {
-  loadData,
-};
