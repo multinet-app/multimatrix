@@ -15,6 +15,7 @@
     "@types/d3": "^5.7.2",
     "core-js": "^3.4.3",
     "d3": "^5.14.2",
+    "multinet": "^0.14.0",
     "provenance-lib-core": "^6.0.0",
     "reorder.js": "^1.0.6",
     "science": "^1.9.3",
