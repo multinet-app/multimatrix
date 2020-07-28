@@ -1,7 +1,29 @@
 /* Multinet data importer */
 import { multinetApi } from 'multinet';
 
-function _renameLinkVars(links: any[]) {
+async function _downloadAllRows(api: any, workspace: string, tableName: string, tableType: 'node' | 'link') {
+  let table = await api.table(workspace, tableName);
+
+  // If the table is large, don't download the data
+  if (
+    (table.count > 100 && tableType === 'node') ||
+    (table.count > 2000 && tableType === 'link')
+  ) {
+    throw new Error(`The table called ${tableName} is too large, not downloading.`);
+  }
+
+  // Else if the table is small enough, loop through the rows and download
+  let output: any[] = [];
+  output = output.concat(table.rows);
+
+  while (output.length < table.count) {
+    table  = await api.table(workspace, tableName, { offset: output.length, limit: 30 });
+    output = output.concat(table.rows);
+  }
+
+  return output;
+}
+
   for (const row of links) {
     row.id = row._id;
     row.source = row._from;
@@ -49,16 +71,13 @@ export async function loadData(
   // Fetch the names of all the node and edge tables
   multinet.tables = await api.graph(workspace, networkName);
 
-  // Loop through each node tables and fetch the nodes to global variables
-  for (const nodeTable of multinet.tables.nodeTables) {
-    const ntable = await api.table(workspace, nodeTable);
-    multinet.nodes = multinet.nodes.concat(ntable);
+  // Loop through each node tables and fetch the nodes
+  for (const tableName of multinet.tables.nodeTables) {
+    multinet.nodes = multinet.nodes.concat(await _downloadAllRows(api, workspace, tableName, 'node'));
   }
 
   // Load the edge table (ONLY ONE BECAUSE OF ARANGO API LIMITATIONS)
-  // to a global variable
-  const lTable = await api.table(workspace, multinet.tables.edgeTable);
-  multinet.links = multinet.links.concat(lTable);
+  multinet.links = await _downloadAllRows(api, workspace, multinet.tables.edgeTable, 'link');
 
   // Define neighbors
   multinet.nodes = _defineNeighbors(multinet.nodes, multinet.links);
@@ -68,5 +87,6 @@ export async function loadData(
     nodes: _renameNodeVars(multinet.nodes),
     links: _renameLinkVars(multinet.links),
   };
-  return JSON.parse(JSON.stringify(multinet.network));
+
+  return multinet.network;
 }
