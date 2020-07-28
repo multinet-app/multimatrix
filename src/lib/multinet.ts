@@ -1,22 +1,5 @@
 /* Multinet data importer */
-import { json } from 'd3-fetch';
-
-async function _loadTables(workspace: string, networkName: string, apiRoot: string) {
-  const tablesCall = `${apiRoot}/workspaces/${workspace}/graphs/${networkName}`;
-  return await fetch(tablesCall, {credentials: 'include'}).then((response) => response.json());
-}
-
-async function _loadNodes(workspace: string, nodeTable: string, apiRoot: string) {
-  const nodesCall = `${apiRoot}/workspaces/${workspace}/tables/${nodeTable}?limit=1000`;
-  const data = await fetch(nodesCall, {credentials: 'include'}).then((response) => response.json());
-  return data.rows;
-}
-
-async function _loadLinks(workspace: string, edgeTable: string, apiRoot: string) {
-  const linksCall = `${apiRoot}/workspaces/${workspace}/tables/${edgeTable}?limit=1000`;
-  const data = await fetch(linksCall, {credentials: 'include'}).then((response) => response.json());
-  return data.rows;
-}
+import { multinetApi } from 'multinet';
 
 function _renameLinkVars(links: any[]) {
   for (const row of links) {
@@ -54,27 +37,28 @@ export async function loadData(
   apiRoot: string = 'https://api.multinet.app/api',
 ) {
   // Define local variables that will store the api url and the responses from the database
-  const multinet: {tables: any, nodes: any[], links: any[], network: any} = {
+  const multinet: {tables: { nodeTables: string[], edgeTable: string}, nodes: any[], links: any[], network: any} = {
     tables: {nodeTables: [], edgeTable: ''},
     nodes: Array(),
     links: [],
     network: {},
   };
 
+  const api = multinetApi(apiRoot);
+
   // Fetch the names of all the node and edge tables
-  multinet.tables = await _loadTables(workspace, networkName, apiRoot);
+  multinet.tables = await api.graph(workspace, networkName);
 
   // Loop through each node tables and fetch the nodes to global variables
   for (const nodeTable of multinet.tables.nodeTables) {
-    const ntable = await _loadNodes(workspace, nodeTable, apiRoot);
+    const ntable = await api.table(workspace, nodeTable);
     multinet.nodes = multinet.nodes.concat(ntable);
   }
 
   // Load the edge table (ONLY ONE BECAUSE OF ARANGO API LIMITATIONS)
   // to a global variable
-  const table = multinet.tables.edgeTable;
-  const linkTable = await _loadLinks(workspace, table, apiRoot);
-  multinet.links = multinet.links.concat(linkTable);
+  const lTable = await api.table(workspace, multinet.tables.edgeTable);
+  multinet.links = multinet.links.concat(lTable);
 
   // Define neighbors
   multinet.nodes = _defineNeighbors(multinet.nodes, multinet.links);
