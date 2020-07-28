@@ -1,5 +1,6 @@
 /* Multinet data importer */
 import { multinetApi } from 'multinet';
+import { Node, Network, Link } from '@/types';
 
 async function _downloadAllRows(api: any, workspace: string, tableName: string, tableType: 'node' | 'link') {
   let table = await api.table(workspace, tableName);
@@ -24,6 +25,7 @@ async function _downloadAllRows(api: any, workspace: string, tableName: string, 
   return output;
 }
 
+function _renameLinkVars(links: any[]): Link[] {
   for (const row of links) {
     row.id = row._id;
     row.source = row._from;
@@ -36,7 +38,7 @@ async function _downloadAllRows(api: any, workspace: string, tableName: string, 
   return links;
 }
 
-function _renameNodeVars(nodes: any[]) {
+function _renameNodeVars(nodes: any[]): Node[] {
   for (const row of nodes) {
     row.id = row._id;
     delete row._id;
@@ -47,8 +49,8 @@ function _renameNodeVars(nodes: any[]) {
 function _defineNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[]; }) => d.neighbors = []);
   for (const link of links) {
-    nodes.filter((d: { _id: any; }) => d._id === link._from)[0].neighbors.push(link._to);
-    nodes.filter((d: { _id: any; }) => d._id === link._to)[0].neighbors.push(link._from);
+    nodes.filter((d: Node) => d._id === link._from)[0].neighbors.push(link._to);
+    nodes.filter((d: Node) => d._id === link._to)[0].neighbors.push(link._from);
   }
   return nodes;
 }
@@ -57,13 +59,13 @@ export async function loadData(
   workspace: string,
   networkName: string,
   apiRoot: string = 'https://api.multinet.app/api',
-) {
+): Promise<Network> {
   // Define local variables that will store the api url and the responses from the database
-  const multinet: {tables: { nodeTables: string[], edgeTable: string}, nodes: any[], links: any[], network: any} = {
+  const multinet: {tables: { nodeTables: string[], edgeTable: string}, nodes: any[], links: any[], network: Network} = {
     tables: {nodeTables: [], edgeTable: ''},
     nodes: Array(),
     links: [],
-    network: {},
+    network: {nodes: [], links: []},
   };
 
   const api = multinetApi(apiRoot);
