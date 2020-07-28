@@ -3,7 +3,7 @@ import { multinetApi } from 'multinet';
 import { Node, Network, Link } from '@/types';
 
 async function _downloadAllRows(api: any, workspace: string, tableName: string, tableType: 'node' | 'link') {
-  let table = await api.table(workspace, tableName);
+  let table = await api.table(workspace, tableName, { offset: 0, limit: 100 });
 
   // If the table is large, don't download the data
   if (
@@ -13,12 +13,13 @@ async function _downloadAllRows(api: any, workspace: string, tableName: string, 
     throw new Error(`The table called ${tableName} is too large, not downloading.`);
   }
 
-  // Else if the table is small enough, loop through the rows and download
+  // Else if the table is small enough, grab the previously
+  // acquired data and make requests for the remaining data
   let output: any[] = [];
   output = output.concat(table.rows);
 
   while (output.length < table.count) {
-    table  = await api.table(workspace, tableName, { offset: output.length, limit: 30 });
+    table  = await api.table(workspace, tableName, { offset: output.length, limit: 100 });
     output = output.concat(table.rows);
   }
 
@@ -78,7 +79,7 @@ export async function loadData(
     multinet.nodes = multinet.nodes.concat(await _downloadAllRows(api, workspace, tableName, 'node'));
   }
 
-  // Load the edge table (ONLY ONE BECAUSE OF ARANGO API LIMITATIONS)
+  // Load the link table
   multinet.links = await _downloadAllRows(api, workspace, multinet.tables.edgeTable, 'link');
 
   // Define neighbors
