@@ -284,16 +284,17 @@ export class View {
 
     // set the size of the highlight
     const matrixHighlight = this.network.nodes.length * cellSize;
+
     // add the highlight columns
-    // this.edgeColumns
-    //   .append('rect')
-    //   .classed('topoCol', true)
-    //   .attr('id', (d: Node) => `topoCol${d.id}`)
-    //   .attr('x', -this.edgeHeight - this.margins.bottom)
-    //   .attr('y', 0)
-    //   .attr('width', this.edgeHeight + this.margins.bottom + this.margins.top)
-    //   .attr('height', this.orderingScale.bandwidth())
-    //   .attr('fill-opacity', 0);
+    this.edgeColumns
+      .append('rect')
+      .classed('topoCol', true)
+      .attr('id', (d: Node) => `topoCol${d.id}`)
+      .attr('x', -this.edgeHeight - this.margins.bottom)
+      .attr('y', 0)
+      .attr('width', matrixHighlight + this.margins.bottom + this.margins.top)
+      .attr('height', this.orderingScale.bandwidth())
+      .attr('fill-opacity', 0);
 
     // added highlight rows
     this.edgeRows
