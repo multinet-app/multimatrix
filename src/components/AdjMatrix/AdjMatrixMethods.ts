@@ -282,16 +282,18 @@ export class View {
 
     this.drawGridLines();
 
-    // add the highlight rows
-    this.edgeColumns
-      .append('rect')
-      .classed('topoCol', true)
-      .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -this.edgeHeight - this.margins.bottom)
-      .attr('y', 0)
-      .attr('width', this.edgeHeight + this.margins.bottom + this.margins.top)
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('fill-opacity', 0);
+    // set the size of the highlight
+    const matrixHighlight = this.network.nodes.length * cellSize;
+    // add the highlight columns
+    // this.edgeColumns
+    //   .append('rect')
+    //   .classed('topoCol', true)
+    //   .attr('id', (d: Node) => `topoCol${d.id}`)
+    //   .attr('x', -this.edgeHeight - this.margins.bottom)
+    //   .attr('y', 0)
+    //   .attr('width', this.edgeHeight + this.margins.bottom + this.margins.top)
+    //   .attr('height', this.orderingScale.bandwidth())
+    //   .attr('fill-opacity', 0);
 
     // added highlight rows
     this.edgeRows
@@ -300,7 +302,7 @@ export class View {
       .attr('id', (d: Node) => `topoRow${d.id}`)
       .attr('x', -this.margins.left)
       .attr('y', 0)
-      .attr('width', this.edgeWidth + this.margins.right + this.margins.left)
+      .attr('width', matrixHighlight + this.margins.left + this.margins.right)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
