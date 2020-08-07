@@ -290,9 +290,9 @@ export class View {
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -this.edgeHeight - this.margins.bottom)
+      .attr('x', -matrixHighlight-this.margins.bottom)
       .attr('y', 0)
-      .attr('width', matrixHighlight + this.margins.bottom + this.margins.top)
+      .attr('width', matrixHighlight + this.margins.top + this.margins.bottom)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
