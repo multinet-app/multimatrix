@@ -241,6 +241,12 @@ export class View {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
 
+    // set the dimensions of a cell
+    const cellSize = 11;
+
+    // set the radius for cells
+    const cellRadius = 2;
+
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
@@ -252,7 +258,7 @@ export class View {
 
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
-    .range([0, this.edgeHeight]).domain(range(0, this.network.nodes.length, 1));
+    .range([0, (this.network.nodes.length * cellSize)]).domain(range(0, this.network.nodes.length, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
@@ -309,8 +315,9 @@ export class View {
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
       .attr('x', (d: Cell) => this.orderingScale(d.x))
-      .attr('width', this.orderingScale.bandwidth())
-      .attr('height', this.orderingScale.bandwidth())
+      .attr('width', cellSize)
+      .attr('height', cellSize)
+      .attr('rx', cellRadius)
       .style('fill', (d: Cell) => cellColorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
       .on('mouseover', (d: Cell, i: number, nodes: any) => {
