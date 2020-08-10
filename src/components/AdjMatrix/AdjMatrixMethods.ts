@@ -247,6 +247,12 @@ export class View {
     // set the radius for cells
     const cellRadius = 2;
 
+    // set the size of the number of nodes
+    const matrixNodeLength= this.network.nodes.length;
+
+    // set the matrix highlight
+    const matrixHighlightLength = matrixNodeLength * cellSize;
+
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
@@ -258,7 +264,7 @@ export class View {
 
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
-    .range([0, (this.network.nodes.length * cellSize)]).domain(range(0, this.network.nodes.length, 1));
+    .range([0, (matrixNodeLength * cellSize)]).domain(range(0, matrixNodeLength, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
@@ -282,17 +288,15 @@ export class View {
 
     this.drawGridLines();
 
-    // set the size of the highlight
-    const matrixHighlight = this.network.nodes.length * cellSize;
 
     // add the highlight columns
     this.edgeColumns
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -matrixHighlight-this.margins.bottom)
+      .attr('x', -matrixHighlightLength-this.margins.bottom)
       .attr('y', 0)
-      .attr('width', matrixHighlight + this.margins.top + this.margins.bottom)
+      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -303,7 +307,7 @@ export class View {
       .attr('id', (d: Node) => `topoRow${d.id}`)
       .attr('x', -this.margins.left)
       .attr('y', 0)
-      .attr('width', matrixHighlight + this.margins.left + this.margins.right)
+      .attr('width', matrixHighlightLength + this.margins.left + this.margins.right)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
