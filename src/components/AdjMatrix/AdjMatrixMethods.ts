@@ -241,6 +241,18 @@ export class View {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
 
+    // set the dimensions of a cell
+    const cellSize = 11;
+
+    // set the radius for cells
+    const cellRadius = 2;
+
+    // set the size of the number of nodes
+    const matrixNodeLength= this.network.nodes.length;
+
+    // set the matrix highlight
+    const matrixHighlightLength = matrixNodeLength * cellSize;
+
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
@@ -252,7 +264,7 @@ export class View {
 
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
-    .range([0, this.edgeHeight]).domain(range(0, this.network.nodes.length, 1));
+    .range([0, (matrixNodeLength * cellSize)]).domain(range(0, matrixNodeLength, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
@@ -276,14 +288,15 @@ export class View {
 
     this.drawGridLines();
 
-    // add the highlight rows
+
+    // add the highlight columns
     this.edgeColumns
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -this.edgeHeight - this.margins.bottom)
+      .attr('x', -matrixHighlightLength-this.margins.bottom)
       .attr('y', 0)
-      .attr('width', this.edgeHeight + this.margins.bottom + this.margins.top)
+      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -294,7 +307,7 @@ export class View {
       .attr('id', (d: Node) => `topoRow${d.id}`)
       .attr('x', -this.margins.left)
       .attr('y', 0)
-      .attr('width', this.edgeWidth + this.margins.right + this.margins.left)
+      .attr('width', matrixHighlightLength + this.margins.left + this.margins.right)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -309,8 +322,9 @@ export class View {
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
       .attr('x', (d: Cell) => this.orderingScale(d.x))
-      .attr('width', this.orderingScale.bandwidth())
-      .attr('height', this.orderingScale.bandwidth())
+      .attr('width', cellSize)
+      .attr('height', cellSize)
+      .attr('rx', cellRadius)
       .style('fill', (d: Cell) => cellColorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
       .on('mouseover', (d: Cell, i: number, nodes: any) => {
