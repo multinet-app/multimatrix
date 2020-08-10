@@ -562,35 +562,35 @@ export class View {
       .data(this.matrix)
       .enter();
 
-    lines.append('line')
-      .attr('transform', (d: any, i: number) => {
-        return `translate(${this.orderingScale(i)},0)rotate(-90)`;
-      })
-      .attr('x1', -this.orderingScale.range()[1]);
+    // lines.append('line')
+    //   .attr('transform', (d: any, i: number) => {
+    //     return `translate(${this.orderingScale(i)},0)rotate(-90)`;
+    //   })
+    //   .attr('x1', -this.orderingScale.range()[1]);
 
-    lines.append('line')
-      .attr('transform', (d: any, i: number) => {
-        return `translate(0,${this.orderingScale(i)})`;
-      })
-      .attr('x2', this.orderingScale.range()[1]);
+    // lines.append('line')
+    //   .attr('transform', (d: any, i: number) => {
+    //     return `translate(0,${this.orderingScale(i)})`;
+    //   })
+    //   .attr('x2', this.orderingScale.range()[1]);
 
-    gridLines
-      .append('line')
-      .attr('x1', this.orderingScale.range()[1])
-      .attr('x2', this.orderingScale.range()[1])
-      .attr('y1', 0)
-      .attr('y2', this.orderingScale.range()[1])
-      .style('stroke', '#aaa')
-      .style('opacity', 0.3);
+    // gridLines
+    //   .append('line')
+    //   .attr('x1', this.orderingScale.range()[1])
+    //   .attr('x2', this.orderingScale.range()[1])
+    //   .attr('y1', 0)
+    //   .attr('y2', this.orderingScale.range()[1])
+    //   .style('stroke', '#aaa')
+    //   .style('opacity', 0.3);
 
-    gridLines
-      .append('line')
-      .attr('x1', 0)
-      .attr('x2', this.orderingScale.range()[1])
-      .attr('y1', this.orderingScale.range()[1])
-      .attr('y2', this.orderingScale.range()[1])
-      .style('stroke', '#aaa')
-      .style('opacity', 0.3);
+    // gridLines
+    //   .append('line')
+    //   .attr('x1', 0)
+    //   .attr('x2', this.orderingScale.range()[1])
+    //   .attr('y1', this.orderingScale.range()[1])
+    //   .attr('y2', this.orderingScale.range()[1])
+    //   .style('stroke', '#aaa')
+    //   .style('opacity', 0.3);
 
   }
 
