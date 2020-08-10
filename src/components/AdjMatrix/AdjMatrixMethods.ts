@@ -245,7 +245,7 @@ export class View {
     const cellSize = 11;
 
     // set the radius for cells
-    const cellRadius = 5;
+    const cellRadius = 2;
 
     // set the size of the number of nodes
     const matrixNodeLength= this.network.nodes.length;
@@ -322,8 +322,8 @@ export class View {
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
       .attr('x', (d: Cell) => this.orderingScale(d.x))
-      .attr('width', cellSize - 2)
-      .attr('height', cellSize - 2)
+      .attr('width', cellSize - 1)
+      .attr('height', cellSize - 1)
       .attr('rx', cellRadius)
       .style('fill', (d: Cell) => cellColorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
