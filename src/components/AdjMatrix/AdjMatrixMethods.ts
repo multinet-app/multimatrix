@@ -286,6 +286,7 @@ export class View {
       });
 
 
+
     this.drawGridLines();
 
 
@@ -472,30 +473,30 @@ export class View {
    * @return none
    */
   private appendEdgeLabels(): void {
-    this.edgeRows.append('text')
-      .attr('class', 'rowLabel')
-      .attr('id', (d: Node) => `rowLabel${d.id}`)
-      .attr('z-index', 30)
-      .attr('x', -3)
-      .attr('y', this.orderingScale.bandwidth() / 2)
-      .attr('dy', '.32em')
-      .attr('text-anchor', 'end')
-      .style('font-size', this.nodeFontSize.toString() + 'pt')
-      .text((d: Node) => d._key)
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
-      .on('mouseover', (d: Node, i: number, nodes: any) => {
-        this.showToolTip(d, i, nodes);
-        this.hoverNode(d.id);
-      })
-      .on('mouseout', (d: Node) => {
-        this.hideToolTip();
-        this.unHoverNode(d.id);
-      })
-      .on('click', (d: Node) => {
-        this.selectElement(d);
-        this.selectNeighborNodes(d.id, d.neighbors);
-      });
+    // this.edgeRows.append('text')
+    //   .attr('class', 'rowLabel')
+    //   .attr('id', (d: Node) => `rowLabel${d.id}`)
+    //   .attr('z-index', 30)
+    //   .attr('x', -3)
+    //   .attr('y', this.orderingScale.bandwidth() / 2)
+    //   .attr('dy', '.32em')
+    //   .attr('text-anchor', 'end')
+    //   .style('font-size', this.nodeFontSize.toString() + 'pt')
+    //   .text((d: Node) => d._key)
+    //   .on('mouseover', (d: Node) => this.hoverNode(d.id))
+    //   .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+    //   .on('mouseover', (d: Node, i: number, nodes: any) => {
+    //     this.showToolTip(d, i, nodes);
+    //     this.hoverNode(d.id);
+    //   })
+    //   .on('mouseout', (d: Node) => {
+    //     this.hideToolTip();
+    //     this.unHoverNode(d.id);
+    //   })
+    //   .on('click', (d: Node) => {
+    //     this.selectElement(d);
+    //     this.selectNeighborNodes(d.id, d.neighbors);
+    //   });
 
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;

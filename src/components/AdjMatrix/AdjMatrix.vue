@@ -158,6 +158,7 @@ svg >>> .colLabel,
 svg >>> .rowLabel {
   cursor: pointer;
   fill: black !important;
+  
 }
 
 svg >>> .highlightedCell {
