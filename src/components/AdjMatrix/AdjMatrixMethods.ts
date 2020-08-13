@@ -30,7 +30,7 @@ export class View {
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
-  private nodeFontSize: string = '12';
+  private nodeFontSize: string = '10';
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private colMargin: number = 5;
@@ -549,7 +549,7 @@ export class View {
       .attr('x', verticalOffset)
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
-      .style('font-size', this.nodeFontSize)
+      .style('font-size', this.nodeFontSize.toString() + 'pt')
       .text((d: Node) => d._key)
       .on('click', (d: Node) => {
         this.selectElement(d);
