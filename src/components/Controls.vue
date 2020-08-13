@@ -80,22 +80,29 @@ export default Vue.extend({
       color="grey lighten-2"
     >
       <v-toolbar-title class="d-flex align-center">
-        <v-row class="mx-0 align-center">
-          <v-col class="app-logo pb-0 pt-2 px-0">
-            <img
-              src="../assets/logo/app_logo.svg"
-              alt="Multinet"
-              width="100%"
+        <router-link
+          :to="{
+            name: 'home',
+          }"
+          tag="button"
+        >
+          <v-row class="mx-0 align-center">
+            <v-col
+              class="app-logo pb-0 pt-2 px-0"
+              cols="3"
             >
-          </v-col>
-          <v-col class="text-left">
-            Multinet
-            <sm>Adjacency Matrix</sm>
-          </v-col>
-          <v-col class="pa-0">
-            <!-- about-dialog /-->
-          </v-col>
-        </v-row>
+              <img
+                src="../assets/logo/app_logo.svg"
+                alt="Multinet"
+                width="100%"
+              >
+            </v-col>
+            <v-col class="multinet-title text-left">
+              Multinet<br>
+              <sm>Adjacency Matrix</sm>
+            </v-col>
+          </v-row>
+        </router-link>
       </v-toolbar-title>
       <v-spacer />
       <!-- login-menu / -->
@@ -390,6 +397,11 @@ sm {
 
 .panel-icons {
   width: 24px !important;
+}
+
+.multinet-title {
+  line-height: .7em;
+  padding-top: 16px;
 }
 </style>
 
