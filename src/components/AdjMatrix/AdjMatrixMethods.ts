@@ -478,39 +478,71 @@ export class View {
     textClip.append('clipPath')
     .attr('id', 'text-clip');
 
-    // add the rectangle view for the clip
-    let rowLabelClip = select('#text-clip')
-    .append('rect')
-    .attr('x', 5)
-    .attr('y', 5)
-    .attr('width', 57)
-    .attr('height', 100)
+    // // add the rectangle view for the clip
+    // let rowLabelClip = select('#text-clip')
+    // .append('rect')
+    // .attr('x', 100)
+    // .attr('y', 5)
+    // .attr('width', 57)
+    // .attr('height', 100)
 
-    this.edgeRows.append('text')
-    // .attr('clip-path', 'url(#text-clip)')
-      .attr('class', 'rowLabel')
-      .attr('id', (d: Node) => `rowLabel${d.id}`)
-      .attr('z-index', 30)
-      .attr('x', -3)
-      .attr('y', this.orderingScale.bandwidth() / 2)
-      .attr('dy', '.32em')
-      .attr('text-anchor', 'end')
-      .style('font-size', this.nodeFontSize.toString() + 'pt')
-      .text((d: Node) => d._key)
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
-      .on('mouseover', (d: Node, i: number, nodes: any) => {
-        this.showToolTip(d, i, nodes);
-        this.hoverNode(d.id);
-      })
-      .on('mouseout', (d: Node) => {
-        this.hideToolTip();
-        this.unHoverNode(d.id);
-      })
-      .on('click', (d: Node) => {
-        this.selectElement(d);
-        this.selectNeighborNodes(d.id, d.neighbors);
-      });
+
+
+    // console.log("the data!")
+    // console.log(this.network.nodes)
+
+    let y = 10;
+    // making the labels
+    this.network.nodes.forEach(node => {
+      // the label name
+      // console.log(node._key);
+      this
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // this.edgeRows.append('text')
+    // // .attr('clip-path', 'url(#text-clip)')
+    //   .attr('class', 'rowLabel')
+    //   .attr('id', (d: Node) => `rowLabel${d.id}`)
+    //   .attr('z-index', 30)
+    //   .attr('x', 3)
+    //   .attr('y', this.orderingScale.bandwidth() / 2)
+    //   .attr('dy', '.32em')
+    //   .attr('text-anchor', 'end')
+    //   .style('font-size', this.nodeFontSize.toString() + 'pt')
+    //   .text((d: Node) => d._key)
+    //   .on('mouseover', (d: Node) => this.hoverNode(d.id))
+    //   .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+    //   .on('mouseover', (d: Node, i: number, nodes: any) => {
+    //     this.showToolTip(d, i, nodes);
+    //     this.hoverNode(d.id);
+    //   })
+    //   .on('mouseout', (d: Node) => {
+    //     this.hideToolTip();
+    //     this.unHoverNode(d.id);
+    //   })
+    //   .on('click', (d: Node) => {
+    //     this.selectElement(d);
+    //     this.selectNeighborNodes(d.id, d.neighbors);
+    //   });
 
 
 
