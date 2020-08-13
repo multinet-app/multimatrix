@@ -17,6 +17,7 @@ export default Vue.extend({
     networkName: string,
     selectNeighbors: boolean,
     visualizedAttributes: string[],
+    nodeEditor: boolean,
   } {
     return {
       network: {
