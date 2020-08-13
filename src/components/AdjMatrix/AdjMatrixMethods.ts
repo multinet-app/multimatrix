@@ -478,10 +478,16 @@ export class View {
     textClip.append('clipPath')
     .attr('id', 'text-clip');
 
+    let clipShape = select('#text-clip').append('rect')
+    .attr('x', '-76')
+    .attr('y', '-5')
+    .attr('width', '60')
+    .attr('height', '100')
+
 
 
     this.edgeRows.append('text')
-    // .attr('clip-path', 'url(#text-clip)')
+    .attr('clip-path', 'url(#text-clip)')
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
