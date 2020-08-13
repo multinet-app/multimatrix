@@ -485,7 +485,7 @@ export class View {
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
-      .attr('x', -60)
+      .attr('x', -76)
       .attr('y', this.orderingScale.bandwidth() / 2)
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
