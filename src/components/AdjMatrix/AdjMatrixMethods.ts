@@ -488,15 +488,19 @@ export class View {
 
 
 
-    // console.log("the data!")
-    // console.log(this.network.nodes)
+    console.log("the data!")
+    console.log(this.network.nodes)
 
-    let y = 10;
+    let y = 6;
     // making the labels
     this.network.nodes.forEach(node => {
       // the label name
       // console.log(node._key);
-      this
+      console.log(node.id)
+      this.edgeRows.append('text')
+      .attr('class', 'rowLabel')
+      .attr('id', `rowLabel${node.id}`)
+      
     })
 
 
