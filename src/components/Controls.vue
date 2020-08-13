@@ -82,12 +82,6 @@ export default Vue.extend({
       >
         <v-toolbar-title class="d-flex align-center">
           <div>
-          <!-- <router-link
-            :to="{
-              name: 'home',
-            }"
-            tag="button"
-          > -->
             <v-row class="mx-0 align-center">
               <v-col
                 class="app-logo pb-0 pt-2 px-0"
@@ -104,7 +98,6 @@ export default Vue.extend({
                 <small>Adjacency Matrix</small>
               </v-col>
             </v-row>
-          <!-- </router-link> -->
           </div>
         </v-toolbar-title>
         <v-spacer />
