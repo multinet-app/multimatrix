@@ -133,7 +133,7 @@ export default Vue.extend({
 
 <template>
   <div>
-    <svg id="matrix" ref="matrix" width="3000" height="3000" />
+    <svg id="matrix" ref="matrix" width="2000" height="2000" />
     <svg id="attributes" ref="attributes" width="300" height="900" />
     <div id="tooltip" ref="tooltip" />
   </div>
