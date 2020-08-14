@@ -482,7 +482,7 @@ export class View {
     .attr('x', '-76')
     .attr('y', '-5')
     .attr('width', '60')
-    .attr('height', '100')
+    .attr('height', '600')
 
 
 
@@ -492,7 +492,9 @@ export class View {
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
       .attr('x', -76)
-      .attr('y', this.orderingScale.bandwidth() / 2)
+      .attr('y', (d:Node, i:number) => {
+        return 5 * i;
+      })
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
@@ -511,8 +513,6 @@ export class View {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
-
-
 
 
     let verticalOffset = 187.5;
@@ -563,6 +563,8 @@ export class View {
         this.hideToolTip();
         this.unHoverNode(d.id);
       });
+
+      console.log(this.network.nodes);
   }
 
 
