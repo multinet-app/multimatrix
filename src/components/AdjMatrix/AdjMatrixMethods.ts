@@ -242,10 +242,10 @@ export class View {
     const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
 
     // set the dimensions of a cell
-    const cellSize = 20;
+    const cellSize = 15;
 
     // set the radius for cells
-    const cellRadius = 2;
+    const cellRadius = 3;
 
     // set the size of the number of nodes
     const matrixNodeLength= this.network.nodes.length;
@@ -493,9 +493,9 @@ export class View {
       .attr('z-index', 30)
       .attr('x', -76)
       .attr('y', (d:Node, i:number) => {
-        return 5 * i;
+        return 5;
       })
-      .attr('dy', '.32em')
+      .attr('dy', '.75em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
       .text((d: Node) => d._key)
