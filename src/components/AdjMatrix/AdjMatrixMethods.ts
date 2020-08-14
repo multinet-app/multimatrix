@@ -242,7 +242,7 @@ export class View {
     const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
 
     // set the dimensions of a cell
-    const cellSize = 11;
+    const cellSize = 20;
 
     // set the radius for cells
     const cellRadius = 2;
@@ -585,11 +585,11 @@ export class View {
       .enter();
 
     // vertical grid lines
-    // lines.append('line')
-    //   .attr('transform', (d: any, i: number) => {
-    //     return `translate(${this.orderingScale(i)},0)rotate(-90)`;
-    //   })
-    //   .attr('x1', -this.orderingScale.range()[1]);
+    lines.append('line')
+      .attr('transform', (d: any, i: number) => {
+        return `translate(${this.orderingScale(i)},0)rotate(-90)`;
+      })
+      .attr('x1', -this.orderingScale.range()[1]);
 
     
     // horizontal grid lines 
@@ -598,7 +598,7 @@ export class View {
         return `translate(0,${this.orderingScale(i)})`;
       })
       .attr('x2', (d:Node, i:number) => {
-        return this.orderingScale.range()[1] * (i + 10)
+        return this.orderingScale.range()[1]
       }
       
       );
