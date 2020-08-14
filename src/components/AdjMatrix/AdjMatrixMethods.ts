@@ -573,6 +573,8 @@ export class View {
    * @return none
    */
   private drawGridLines(): void {
+    const verticalGridLineConst = 15;
+    const horizontalGridLineConst = 20;
     const gridLines = this.edges
       .append('g')
       .attr('class', 'gridLines');
@@ -582,35 +584,42 @@ export class View {
       .data(this.matrix)
       .enter();
 
-    lines.append('line')
-      .attr('transform', (d: any, i: number) => {
-        return `translate(${this.orderingScale(i)},0)rotate(-90)`;
-      })
-      .attr('x1', -this.orderingScale.range()[1]);
+    // vertical grid lines
+    // lines.append('line')
+    //   .attr('transform', (d: any, i: number) => {
+    //     return `translate(${this.orderingScale(i)},0)rotate(-90)`;
+    //   })
+    //   .attr('x1', -this.orderingScale.range()[1]);
 
+    
+    // horizontal grid lines 
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       })
-      .attr('x2', this.orderingScale.range()[1]);
+      .attr('x2', (d:Node, i:number) => {
+        return this.orderingScale.range()[1] * (i + 10)
+      }
+      
+      );
 
-    gridLines
-      .append('line')
-      .attr('x1', this.orderingScale.range()[1])
-      .attr('x2', this.orderingScale.range()[1])
-      .attr('y1', 0)
-      .attr('y2', this.orderingScale.range()[1])
-      .style('stroke', '#aaa')
-      .style('opacity', 0.3);
+    // gridLines
+    //   .append('line')
+    //   .attr('x1', this.orderingScale.range()[1])
+    //   .attr('x2', this.orderingScale.range()[1])
+    //   .attr('y1', 0)
+    //   .attr('y2', this.orderingScale.range()[1])
+    //   .style('stroke', '#aaa')
+    //   .style('opacity', 0.3);
 
-    gridLines
-      .append('line')
-      .attr('x1', 0)
-      .attr('x2', this.orderingScale.range()[1])
-      .attr('y1', this.orderingScale.range()[1])
-      .attr('y2', this.orderingScale.range()[1])
-      .style('stroke', '#aaa')
-      .style('opacity', 0.3);
+    // gridLines
+    //   .append('line')
+    //   .attr('x1', 0)
+    //   .attr('x2', this.orderingScale.range()[1] * 10)
+    //   .attr('y1', this.orderingScale.range()[1] * 10)
+    //   .attr('y2', this.orderingScale.range()[1] * 10)
+    //   .style('stroke', '#aaa')
+    //   .style('opacity', 0.3);
 
   }
 
