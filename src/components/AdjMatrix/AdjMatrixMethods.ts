@@ -489,9 +489,7 @@ export class View {
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
       .attr('x', -74)
-      .attr('y', (d:Node, i:number) => {
-        return 5;
-      })
+      .attr('y', 5)
       .attr('dy', '.75em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
