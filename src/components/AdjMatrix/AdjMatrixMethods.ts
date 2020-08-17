@@ -296,7 +296,7 @@ export class View {
       .attr('id', (d: Node) => `topoCol${d.id}`)
       .attr('x', -matrixHighlightLength)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom + 100)
+      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -321,7 +321,13 @@ export class View {
       .append('rect')
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
-      .attr('x', (d: Cell) => this.orderingScale(d.x))
+      .attr('x', (d:Cell, i:number) => {
+        const xLocation = this.orderingScale(d.x);
+        if (xLocation !== undefined) {
+          return xLocation + 1;
+        }
+      })
+      .attr('y', 1)
       .attr('width', cellSize - 2)
       .attr('height', cellSize - 2)
       .attr('rx', cellRadius)
@@ -472,6 +478,9 @@ export class View {
    * @return none
    */
   private appendEdgeLabels(): void {
+
+    // constant for modifying the labels so they display on the screen
+    const textPosition = 74;
     // add a clip path for the row labels
     let textClip = select('#matrix');
     textClip.append('clipPath')
@@ -480,7 +489,7 @@ export class View {
     let clipShape = select('#text-clip').append('rect')
     .attr('x', '-80')
     .attr('y', '-10')
-    .attr('width', '71')
+    .attr('width', textPosition - 3)
     .attr('height', '600')
 
     this.edgeRows.append('text')
@@ -488,7 +497,7 @@ export class View {
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
-      .attr('x', -74)
+      .attr('x', -textPosition)
       .attr('y', 5)
       .attr('dy', '.75em')
       .attr('text-anchor', 'start')
