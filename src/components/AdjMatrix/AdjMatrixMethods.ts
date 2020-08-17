@@ -484,7 +484,7 @@ export class View {
     .attr('height', '600')
 
     this.edgeRows.append('text')
-    .attr('clip-path', 'url(#text-clip)')
+      .attr('clip-path', 'url(#text-clip)')
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
