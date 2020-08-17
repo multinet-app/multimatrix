@@ -509,7 +509,6 @@ export class View {
         this.selectNeighborNodes(d.id, d.neighbors);
       });
 
-
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
     this.edgeColumns.append('path')
