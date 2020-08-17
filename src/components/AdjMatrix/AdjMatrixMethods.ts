@@ -563,8 +563,6 @@ export class View {
         this.hideToolTip();
         this.unHoverNode(d.id);
       });
-
-      console.log(this.network.nodes);
   }
 
 
