@@ -589,16 +589,12 @@ export class View {
       })
       .attr('x1', -this.orderingScale.range()[1]);
 
-    
     // horizontal grid lines 
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       })
-      .attr('x2', (d:Node, i:number) => {
-        return this.orderingScale.range()[1]
-      }
-      );
+      .attr('x2', this.orderingScale.range()[1]);
 
     // vertical grid line edges
     gridLines
