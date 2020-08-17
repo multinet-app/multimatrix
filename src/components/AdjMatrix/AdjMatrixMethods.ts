@@ -483,8 +483,6 @@ export class View {
     .attr('width', '71')
     .attr('height', '600')
 
-
-
     this.edgeRows.append('text')
     .attr('clip-path', 'url(#text-clip)')
       .attr('class', 'rowLabel')
