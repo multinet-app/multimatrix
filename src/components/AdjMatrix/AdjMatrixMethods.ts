@@ -286,7 +286,6 @@ export class View {
       });
 
 
-
     this.drawGridLines();
 
 
