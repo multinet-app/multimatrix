@@ -502,7 +502,7 @@ export class View {
       .attr('dy', '.75em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
-      .text((d: Node) => d._key)
+      .text((d: Node) => this.trimLabel(d._key, 6))
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
       .on('mouseover', (d: Node, i: number, nodes: any) => {
@@ -553,7 +553,7 @@ export class View {
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
       .style('font-size', `${this.nodeFontSize.toString()}pt`)
-      .text((d: Node) => d._key)
+      .text((d: Node) => this.trimLabel(d._key, 6))
       .on('click', (d: Node) => {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
@@ -1077,5 +1077,11 @@ export class View {
 
   private capitalizeFirstLetter(word: string) {
     return word[0].toUpperCase() + word.slice(1);
+  }
+
+  private trimLabel(word: string, threshold:number) {
+    if (word.length <= threshold) return word;
+    return word.substring(0, threshold).concat("...");
+
   }
 }
