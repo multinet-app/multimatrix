@@ -295,9 +295,9 @@ export class View {
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -matrixHighlightLength-this.margins.bottom)
+      .attr('x', -matrixHighlightLength)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
+      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom + 100)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -479,9 +479,9 @@ export class View {
     .attr('id', 'text-clip');
 
     let clipShape = select('#text-clip').append('rect')
-    .attr('x', '-76')
-    .attr('y', '-5')
-    .attr('width', '60')
+    .attr('x', '-80')
+    .attr('y', '-10')
+    .attr('width', '71')
     .attr('height', '600')
 
 
@@ -491,7 +491,7 @@ export class View {
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
-      .attr('x', -76)
+      .attr('x', -74)
       .attr('y', (d:Node, i:number) => {
         return 5;
       })
