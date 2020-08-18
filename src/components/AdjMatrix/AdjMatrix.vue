@@ -87,8 +87,8 @@ export default Vue.extend({
 
   async mounted(this: any) {
    this.browser.width = window.innerWidth
-      || document.documentElement.clientWidth
-      || document.body.clientWidth;
+     || document.documentElement.clientWidth
+     || document.body.clientWidth;
 
     this.browser.height = window.innerHeight
      || document.documentElement.clientHeight
@@ -100,10 +100,11 @@ export default Vue.extend({
     this.visDimensions.height = this.browser.height - 24;
 
     // Size the svgs
+    const cellSize = 11;
     this.matrix = d3
       .select(this.$refs.matrix)
-      .attr('width', this.matrixWidth)
-      .attr('height', this.matrixHeight)
+      .attr('width', this.network.size * cellSize)
+      .attr('height', this.network.size * cellSize)
       .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
     this.attributes = d3
