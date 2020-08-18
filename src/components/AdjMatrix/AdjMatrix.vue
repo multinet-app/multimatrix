@@ -86,9 +86,14 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    this.browser.width = 100000
+   this.browser.width = window.innerWidth
+      || document.documentElement.clientWidth
+      || document.body.clientWidth;
 
-    this.browser.height = 10000
+    this.browser.height = window.innerHeight
+     || document.documentElement.clientHeight
+     || document.body.clientHeight;
+
 
     // Set dimensions of the node link
     this.visDimensions.width = this.browser.width * 0.75;
