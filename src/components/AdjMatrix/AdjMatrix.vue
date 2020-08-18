@@ -100,19 +100,17 @@ export default Vue.extend({
     this.visDimensions.height = this.browser.height - 24;
 
     // Size the svgs
-    const cellSize = 11;
-    this.matrix = d3
+    const cellSize = 16;
+       this.matrix = d3
       .select(this.$refs.matrix)
-      .attr('width', this.network.size * cellSize)
-      .attr('height', this.network.size * cellSize)
-      .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
-
-    this.attributes = d3
-      .select(this.$refs.attributes)
-      .attr('width', this.attributesWidth)
-      .attr('height', this.attributesHeight)
-      .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
-
+      .attr('width', this.network.nodes.length * cellSize)
+      .attr('height', this.network.nodes.length * cellSize)
+      .attr('viewBox', `0 0 ${this.network.nodes.length * cellSize} ${this.network.nodes.length * cellSize}`);
+    //this.attributes = d3
+      //.select(this.$refs.attributes)
+      //.attr('width', this.attributesWidth)
+      //.attr('height', this.attributesHeight)
+      //.attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
     // Define the View
     this.view = new View(
       this.network,
