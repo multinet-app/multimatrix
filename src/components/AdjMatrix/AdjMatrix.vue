@@ -114,9 +114,9 @@ export default Vue.extend({
     // Define the View
     this.view = new View(
       this.network,
-      this.visualizedAttributes, 
-      this.matrixWidth, 
-      this.matrixHeight
+      this.visualizedAttributes,
+      this.matrixWidth,
+      this.matrixHeight,
     );
   },
 
