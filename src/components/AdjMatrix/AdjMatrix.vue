@@ -93,7 +93,7 @@ export default Vue.extend({
 
     // Size the svgs
     const cellSize = 16;
-       this.matrix =
+       this.matrix = 
       select(this.$refs.matrix)
       .attr('width', this.network.nodes.length * cellSize)
       .attr('height', this.network.nodes.length * cellSize)
