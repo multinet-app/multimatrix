@@ -1,5 +1,5 @@
 <script lang='ts'>
-import * as d3 from 'd3';
+import { select } from 'd3-selection';
 import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/AdjMatrix/AdjMatrixMethods';
@@ -62,14 +62,6 @@ export default Vue.extend({
       };
     },
 
-    matrixWidth(): number {
-      return this.visDimensions.width * 0.75;
-    },
-
-    matrixHeight(): number {
-      return this.visDimensions.height;
-    },
-
     attributesWidth(): number {
       return this.visDimensions.width * 0.25 - 15; // 15 for the scrollbar
     },
@@ -101,22 +93,18 @@ export default Vue.extend({
 
     // Size the svgs
     const cellSize = 16;
-       this.matrix = d3
-      .select(this.$refs.matrix)
+       this.matrix =
+      select(this.$refs.matrix)
       .attr('width', this.network.nodes.length * cellSize)
       .attr('height', this.network.nodes.length * cellSize)
       .attr('viewBox', `0 0 ${this.network.nodes.length * cellSize} ${this.network.nodes.length * cellSize}`);
-    //this.attributes = d3
-      //.select(this.$refs.attributes)
-      //.attr('width', this.attributesWidth)
-      //.attr('height', this.attributesHeight)
-      //.attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
+
     // Define the View
     this.view = new View(
       this.network,
       this.visualizedAttributes, 
-      this.matrixWidth, 
-      this.matrixHeight
+      this.network.nodes.length * cellSize, 
+      this.network.nodes.length * cellSize
     );
   },
 
