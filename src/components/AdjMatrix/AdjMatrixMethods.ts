@@ -30,7 +30,7 @@ export class View {
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
-  private nodeFontSize: string = '12';
+  private nodeFontSize: string = '10';
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private colMargin: number = 5;
@@ -472,11 +472,25 @@ export class View {
    * @return none
    */
   private appendEdgeLabels(): void {
+    // Clip Path for the labels
+    let textClip = select('#matrix')
+    textClip.append('clipPath')
+    .attr('id', 'text-clip')
+
+    // Clip Path Shape
+    let labelClip = select('#text-clip')
+    .append('rect')
+    .attr('x', -76)
+    .attr('y', -5)
+    .attr('width', 60)
+    .attr('height', 100)
+
     this.edgeRows.append('text')
+      .attr('clip-path', 'url(#text-clip)')
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
-      .attr('x', -60)
+      .attr('x', -74)
       .attr('y', this.orderingScale.bandwidth() / 2)
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
@@ -531,7 +545,7 @@ export class View {
       .attr('x', verticalOffset)
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
-      .style('font-size', this.nodeFontSize)
+      .style('font-size', this.nodeFontSize.toString() + 'pt')
       .text((d: Node) => d._key)
       .on('click', (d: Node) => {
         this.selectElement(d);
