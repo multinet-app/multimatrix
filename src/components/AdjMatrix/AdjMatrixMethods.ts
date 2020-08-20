@@ -242,10 +242,10 @@ export class View {
     const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
 
     // set the dimensions of a cell
-    const cellSize = 20;
+    const cellSize = 15;
 
     // set the radius for cells
-    const cellRadius = 2;
+    const cellRadius = 3;
 
     // set the size of the number of nodes
     const matrixNodeLength= this.network.nodes.length;
@@ -296,7 +296,7 @@ export class View {
       .attr('id', (d: Node) => `topoCol${d.id}`)
       .attr('x', -matrixHighlightLength-this.margins.bottom)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
+      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom + 100)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -321,9 +321,15 @@ export class View {
       .append('rect')
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
-      .attr('x', (d: Cell) => this.orderingScale(d.x))
-      .attr('width', cellSize)
-      .attr('height', cellSize)
+      .attr('x', (d:Cell, i:number) => {
+        const xLocation = this.orderingScale(d.x);
+        if (xLocation !== undefined) {
+          return xLocation + 1;
+        }
+      })
+      .attr('y', 1)
+      .attr('width', cellSize - 2)
+      .attr('height', cellSize - 2)
       .attr('rx', cellRadius)
       .style('fill', (d: Cell) => cellColorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
@@ -478,11 +484,11 @@ export class View {
     .attr('id', 'text-clip')
 
     // Clip Path Shape
-    let labelClip = select('#text-clip')
+    let clipShape = select('#text-clip')
     .append('rect')
-    .attr('x', -76)
-    .attr('y', -5)
-    .attr('width', 60)
+    .attr('x', -80)
+    .attr('y', -10)
+    .attr('width', 71)
     .attr('height', 600)
 
     this.edgeRows.append('text')
@@ -492,9 +498,9 @@ export class View {
       .attr('z-index', 30)
       .attr('x', -74)
       .attr('y', (d:Node, i:number) => {
-        return 5 * i;
+        return 5;
       })
-      .attr('dy', '.32em')
+      .attr('dy', '.75em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
       .text((d: Node) => d._key)
