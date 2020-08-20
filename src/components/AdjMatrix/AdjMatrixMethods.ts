@@ -242,7 +242,7 @@ export class View {
     const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
 
     // set the dimensions of a cell
-    const cellSize = 11;
+    const cellSize = 20;
 
     // set the radius for cells
     const cellRadius = 2;
@@ -483,7 +483,7 @@ export class View {
     .attr('x', -76)
     .attr('y', -5)
     .attr('width', 60)
-    .attr('height', 100)
+    .attr('height', 600)
 
     this.edgeRows.append('text')
       .attr('clip-path', 'url(#text-clip)')
@@ -491,7 +491,9 @@ export class View {
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
       .attr('x', -74)
-      .attr('y', this.orderingScale.bandwidth() / 2)
+      .attr('y', (d:Node, i:number) => {
+        return 5 * i;
+      })
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
