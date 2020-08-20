@@ -127,7 +127,7 @@ export default Vue.extend({
         this.view.updateAttributes();
       }
     },
-    changeMatrix() {
+    changeMatrix(this: any) {
       d3.select("#matrix").selectAll("*").remove();
 
       this.browser.width =
