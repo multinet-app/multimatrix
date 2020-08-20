@@ -478,6 +478,7 @@ export class View {
    * @return none
    */
   private appendEdgeLabels(): void {
+    const textPosition = 74;
     // Clip Path for the labels
     let textClip = select('#matrix')
     textClip.append('clipPath')
@@ -488,7 +489,7 @@ export class View {
     .append('rect')
     .attr('x', -80)
     .attr('y', -10)
-    .attr('width', 71)
+    .attr('width', textPosition - 3)
     .attr('height', 600)
 
     this.edgeRows.append('text')
@@ -496,7 +497,7 @@ export class View {
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
-      .attr('x', -74)
+      .attr('x', -textPosition)
       .attr('y', (d:Node, i:number) => {
         return 5;
       })
