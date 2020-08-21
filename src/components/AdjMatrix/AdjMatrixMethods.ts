@@ -478,9 +478,11 @@ export class View {
    * @return none
    */
   private appendEdgeLabels(): void {
+    // const for keeping track of the text position
     const textPosition = 74;
+
     // Clip Path for the labels
-    let textClip = select('#matrix')
+    const textClip = select('#matrix')
     textClip.append('clipPath')
     .attr('id', 'text-clip')
 

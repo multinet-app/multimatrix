@@ -1,5 +1,6 @@
 <script lang='ts'>
 import * as d3 from 'd3';
+import { select, selectAll } from 'd3-selection';
 import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/AdjMatrix/AdjMatrixMethods';
@@ -99,14 +100,12 @@ export default Vue.extend({
     this.visDimensions.height = this.browser.height - 24;
 
     // Size the svgs
-    this.matrix = d3
-      .select(this.$refs.matrix)
+    this.matrix = select(this.$refs.matrix)
       .attr('width', this.matrixWidth)
       .attr('height', this.matrixHeight)
       .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
-    this.attributes = d3
-      .select(this.$refs.attributes)
+    this.attributes = select(this.$refs.attributes)
       .attr('width', this.attributesWidth)
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
