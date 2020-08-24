@@ -1,10 +1,9 @@
-<script lang='ts'>
-import { select } from 'd3-selection';
-import Vue, { PropType } from 'vue';
 
+<script lang='ts'>
+import { select, selectAll } from 'd3-selection';
+import Vue, { PropType } from 'vue';
 import { View } from '@/components/AdjMatrix/AdjMatrixMethods';
 import { Dimensions, Network } from '@/types';
-
 export default Vue.extend({
   props: {
     network: {
@@ -20,7 +19,6 @@ export default Vue.extend({
       default: [],
     },
   },
-
   data(): {
     browser: Dimensions,
     visDimensions: Dimensions,
@@ -49,7 +47,6 @@ export default Vue.extend({
       view: undefined,
     };
   },
-
   computed: {
     properties(this: any) {
       const {
@@ -61,53 +58,51 @@ export default Vue.extend({
         visualizedAttributes,
       };
     },
-
+    matrixWidth(): number {
+      return this.visDimensions.width * 0.75;
+    },
+    matrixHeight(): number {
+      return this.visDimensions.height;
+    },
     attributesWidth(): number {
       return this.visDimensions.width * 0.25 - 15; // 15 for the scrollbar
     },
-
     attributesHeight(): number {
       return this.matrixHeight;
     },
   },
-
   watch: {
     properties() {
       this.updateVis();
     },
   },
-
   async mounted(this: any) {
-   this.browser.width = window.innerWidth
-     || document.documentElement.clientWidth
-     || document.body.clientWidth;
-
+    this.browser.width = window.innerWidth
+      || document.documentElement.clientWidth
+      || document.body.clientWidth;
     this.browser.height = window.innerHeight
-     || document.documentElement.clientHeight
-     || document.body.clientHeight;
-
-
+      || document.documentElement.clientHeight
+      || document.body.clientHeight;
     // Set dimensions of the node link
     this.visDimensions.width = this.browser.width * 0.75;
     this.visDimensions.height = this.browser.height - 24;
-
     // Size the svgs
-    const cellSize = 16;
-       this.matrix = 
-      select(this.$refs.matrix)
-      .attr('width', this.network.nodes.length * cellSize)
-      .attr('height', this.network.nodes.length * cellSize)
-      .attr('viewBox', `0 0 ${this.network.nodes.length * cellSize} ${this.network.nodes.length * cellSize}`);
-
+    this.matrix = select(this.$refs.matrix)
+      .attr('width', this.matrixWidth)
+      .attr('height', this.matrixHeight)
+      .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
+    this.attributes = select(this.$refs.attributes)
+      .attr('width', this.attributesWidth)
+      .attr('height', this.attributesHeight)
+      .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
     // Define the View
     this.view = new View(
       this.network,
-      this.visualizedAttributes, 
-      this.network.nodes.length * cellSize, 
-      this.network.nodes.length * cellSize
+      this.visualizedAttributes,
+      this.matrixWidth,
+      this.matrixHeight,
     );
   },
-
   methods: {
     updateVis() {
       if (this.view) {
@@ -121,7 +116,7 @@ export default Vue.extend({
 
 <template>
   <div>
-    <svg id="matrix" ref="matrix" width="3000" height="3000" />
+    <svg id="matrix" ref="matrix" width="2500" height="2500" />
     <svg id="attributes" ref="attributes" width="300" height="900" />
     <div id="tooltip" ref="tooltip" />
   </div>
@@ -131,32 +126,26 @@ export default Vue.extend({
 svg >>> .baseCell {
   fill-opacity: 0;
 }
-
 svg >>> .hoveredCell {
   stroke-width: 1px;
   stroke: darkgray;
 }
-
 svg >>> .neighbor {
   fill: #caffc7;
   fill-opacity: 1;
 }
-
 svg >>> .colLabel,
 svg >>> .rowLabel {
   cursor: pointer;
   fill: black !important;
 }
-
 svg >>> .highlightedCell {
   fill: #fff4d3;
   fill-opacity: 1 !important;
 }
-
 svg >>> .highlightCol {
   pointer-events: auto;
 }
-
 #tooltip {
   position: absolute;
   opacity: 0;
@@ -169,32 +158,26 @@ svg >>> .highlightCol {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   max-width: 400px;
 }
-
 svg >>> .hovered {
   fill: #fde8ca;
   fill-opacity: 1 !important;
 }
-
 svg >>> .clicked {
   font-weight: 800;
   fill: #f8cf91 !important;
   fill-opacity: 1 !important;
 }
-
 svg >>> .cell.clicked {
   stroke: red;
   stroke-width: 3;
 }
-
 svg >>> text.hovered {
   font-weight: 450;
 }
-
 svg >>> text.clicked {
   font-weight: 650;
   fill: black !important;
 }
-
 svg >>> line {
   pointer-events: none;
   stroke: #aaa;
