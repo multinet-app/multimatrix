@@ -488,7 +488,7 @@ export class View {
       .attr('y', clipYValue / 2)
       .attr('dy', '.75em')
       .attr('text-anchor', 'start')
-      .style('font-size', this.nodeFontSize.toString() + 'pt')
+      .style('font-size', `${this.nodeFontSize}pt`)
       .text((d: Node) => d._key)
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
