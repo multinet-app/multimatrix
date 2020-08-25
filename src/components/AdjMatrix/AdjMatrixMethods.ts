@@ -281,7 +281,11 @@ export class View {
       .append('rect')
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
-      .attr('x', (d: Cell) => this.orderingScale(d.x))
+      .attr('x', (d: Cell, i:number) => {
+        const xLocation = this.orderingScale(d.x);
+        return (xLocation !== undefined ? xLocation + 1 : undefined)
+      })
+      .attr('y', 1)
       .attr('width', cellSize - 2)
       .attr('height', cellSize - 2)
       .attr('rx', cellRadius)
