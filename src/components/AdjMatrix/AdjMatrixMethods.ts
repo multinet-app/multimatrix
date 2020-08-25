@@ -586,14 +586,14 @@ export class View {
       .data(this.matrix)
       .enter();
 
-      //vertical grid lines
+    //vertical grid lines
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(${this.orderingScale(i)},0)rotate(-90)`;
       })
       .attr('x1', -this.orderingScale.range()[1]);
 
-      // horizontal grid lines
+    // horizontal grid lines
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
