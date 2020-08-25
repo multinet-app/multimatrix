@@ -539,7 +539,7 @@ export class View {
       .attr('x', verticalOffset)
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
-      .style('font-size', this.nodeFontSize.toString() + 'pt')
+      .style('font-size', `${this.nodeFontSize}pt`)
       .text((d: Node) => d._key)
       .on('click', (d: Node) => {
         this.selectElement(d);
