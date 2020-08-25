@@ -307,9 +307,9 @@ export class View {
       .append('rect')
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
-      .attr('x', (d: Cell, i:number) => {
+      .attr('x', (d: Cell) => {
         const xLocation = this.orderingScale(d.x);
-        return (xLocation !== undefined ? xLocation + 1 : undefined)
+        return (xLocation !== undefined ? xLocation + 1 : undefined);
       })
       .attr('y', 1)
       .attr('width', this.cellSize - 2)
@@ -467,12 +467,12 @@ export class View {
     const clipYValue = 10;
 
     // clip path for row labels
-    let textClip = select('#matrix');
-    textClip.append('clipPath')
-    .attr('id', 'text-clip');
+    select('#matrix')
+      .append('clipPath')
+      .attr('id', 'text-clip');
 
     // the shape of the clip path
-    let clipShape = select('#text-clip')
+    select('#text-clip')
       .append('rect')
       .attr('x', -(clipXValue + 6))
       .attr('y', -clipYValue)
@@ -485,9 +485,7 @@ export class View {
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
       .attr('x', -clipXValue)
-      .attr('y', (d:Node, i:number) => {
-        return clipYValue / 2;
-      })
+      .attr('y', clipYValue / 2)
       .attr('dy', '.75em')
       .attr('text-anchor', 'start')
       .style('font-size', this.nodeFontSize.toString() + 'pt')
@@ -572,7 +570,7 @@ export class View {
       .data(this.matrix)
       .enter();
 
-    //vertical grid lines
+    // vertical grid lines
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(${this.orderingScale(i)},0)rotate(-90)`;
@@ -595,7 +593,7 @@ export class View {
       .attr('y2', this.orderingScale.range()[1])
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
-    
+
     // horizontal grid line edges
     gridLines
       .append('line')
@@ -835,10 +833,21 @@ export class View {
     const iconNames = ['alphabetical', 'categorical', 'quant'];
     for (let i = 0; i < 3; i++) {
       const button = this.edges.append('g')
-        .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
+        .attr(
+          'transform',
+          `translate(${-this.visMargins.left},${initialY})`,
+        );
       button.attr('cursor', 'pointer');
-      button.append('rect').attr('width', this.visMargins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
-      button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
+      button
+        .append('rect')
+        .attr('width', this.visMargins.left - 5)
+        .attr('height', buttonHeight).attr('fill', 'none')
+        .attr('stroke', 'gray').attr('stroke-width', 1);
+      button
+        .append('text')
+        .attr('x', 27)
+        .attr('y', 10)
+        .attr('font-size', 11).text(text[i]);
       const path = button.datum(sortNames[i]);
       path
         .append('path').attr('class', 'sortIcon').attr('d', (d: any) => {
