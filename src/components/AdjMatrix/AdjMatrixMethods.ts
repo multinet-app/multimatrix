@@ -19,12 +19,10 @@ export class View {
   private sortKey: string;
   private edges: any;
   private matrix: Cell[][];
-  private edgeWidth: number = 0;
-  private edgeHeight: number = 0;
   private attributeRows: any;
   private tooltip: any;
   private order: any;
-  private margins: { left: number, top: number, right: number, bottom: number };
+  private visMargins: { left: number, top: number, right: number, bottom: number };
   private attributes: any;
   private orderingScale: ScaleBand<number> = scaleBand<number>();
   private edgeRows: any;
@@ -42,17 +40,18 @@ export class View {
   private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
-  private matrixWidth: number;
-  private matrixHeight: number;
+  private matrixNodeLength: number;
+  private cellSize: number;
 
   constructor(
     network: Network,
     visualizedAttributes: string[],
-    matrixWidth: number,
-    matrixHeight: number,
+    matrixNodeLength: number,
+    cellSize: number,
+    visMargins: { left: number, top: number, right: number, bottom: number },
   ) {
     this.network = network;
-    this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
+    this.visMargins = visMargins;
     this.provenance = this.setUpProvenance();
     this.sortKey = 'name';
     this.matrix = [];
@@ -61,8 +60,8 @@ export class View {
     this.selectedNodesAndNeighbors = {};
     this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
-    this.matrixWidth = matrixWidth;
-    this.matrixHeight = matrixHeight;
+    this.matrixNodeLength = matrixNodeLength;
+    this.cellSize = cellSize;
 
     this.icons = {
       quant: {
@@ -238,33 +237,20 @@ export class View {
    * @return None
    */
   private initializeEdges(): void {
-    // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
-
-    // set the dimensions of a cell
-    const cellSize = 15;
-
     // set the radius for cells
     const cellRadius = 3;
 
-    // set the size of the number of nodes
-    const matrixNodeLength = this.network.nodes.length;
-
     // set the matrix highlight
-    const matrixHighlightLength = matrixNodeLength * cellSize;
-
-    // Use the smallest side as the length of the matrix
-    this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
-    this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
+    const matrixHighlightLength = this.matrixNodeLength * this.cellSize;
 
     // Creates scalable SVG
     this.edges = select('#matrix')
       .append('g')
-      .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
+      .attr('transform', `translate(${this.visMargins.left},${this.visMargins.top})`);
 
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
-    .range([0, (matrixNodeLength * cellSize)]).domain(range(0, matrixNodeLength, 1));
+    .range([0, (matrixHighlightLength)]).domain(range(0, this.matrixNodeLength, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
@@ -294,9 +280,9 @@ export class View {
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -matrixHighlightLength - this.margins.bottom)
+      .attr('x', -matrixHighlightLength - this.visMargins.bottom)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
+      .attr('width', matrixHighlightLength + this.visMargins.top + this.visMargins.bottom)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -305,9 +291,9 @@ export class View {
       .append('rect')
       .classed('topoRow', true)
       .attr('id', (d: Node) => `topoRow${d.id}`)
-      .attr('x', -this.margins.left)
+      .attr('x', -this.visMargins.left)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.left + this.margins.right)
+      .attr('width', matrixHighlightLength + this.visMargins.left + this.visMargins.right)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -326,8 +312,8 @@ export class View {
         return (xLocation !== undefined ? xLocation + 1 : undefined)
       })
       .attr('y', 1)
-      .attr('width', cellSize - 2)
-      .attr('height', cellSize - 2)
+      .attr('width', this.cellSize - 2)
+      .attr('height', this.cellSize - 2)
       .attr('rx', cellRadius)
       .style('fill', (d: Cell) => cellColorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
@@ -785,7 +771,7 @@ export class View {
 
     this.attributes = select('#attributes')
       .append('g')
-      .attr('transform', `translate(0,${this.margins.top})`);
+      .attr('transform', `translate(0,${this.visMargins.top})`);
 
     // add zebras and highlight rows
     this.attributes.selectAll('.highlightRow')
@@ -842,16 +828,16 @@ export class View {
       .classed('column-headers', true);
 
     // Draw buttons for alternative sorts
-    let initialY = -this.margins.left + 10;
+    let initialY = -this.visMargins.left + 10;
     const buttonHeight = 15;
     const text = ['name', 'cluster', 'interacts'];
     const sortNames = ['shortName', 'clusterLeaf', 'edges'];
     const iconNames = ['alphabetical', 'categorical', 'quant'];
     for (let i = 0; i < 3; i++) {
       const button = this.edges.append('g')
-        .attr('transform', `translate(${-this.margins.left},${initialY})`);
+        .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
       button.attr('cursor', 'pointer');
-      button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
+      button.append('rect').attr('width', this.visMargins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
       button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
       const path = button.datum(sortNames[i]);
       path
