@@ -19,18 +19,16 @@ export class View {
   private sortKey: string;
   private edges: any;
   private matrix: Cell[][];
-  private edgeWidth: number = 0;
-  private edgeHeight: number = 0;
   private attributeRows: any;
   private tooltip: any;
   private order: any;
-  private margins: { left: number, top: number, right: number, bottom: number };
+  private visMargins: { left: number, top: number, right: number, bottom: number };
   private attributes: any;
   private orderingScale: ScaleBand<number> = scaleBand<number>();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
-  private nodeFontSize: string = '12';
+  private nodeFontSize: string = '10';
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private colMargin: number = 5;
@@ -42,17 +40,18 @@ export class View {
   private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
   private maxNumConnections: number = -Infinity;
-  private matrixWidth: number;
-  private matrixHeight: number;
+  private matrixNodeLength: number;
+  private cellSize: number;
 
   constructor(
     network: Network,
     visualizedAttributes: string[],
-    matrixWidth: number,
-    matrixHeight: number,
+    matrixNodeLength: number,
+    cellSize: number,
+    visMargins: { left: number, top: number, right: number, bottom: number },
   ) {
     this.network = network;
-    this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
+    this.visMargins = visMargins;
     this.provenance = this.setUpProvenance();
     this.sortKey = 'name';
     this.matrix = [];
@@ -61,8 +60,8 @@ export class View {
     this.selectedNodesAndNeighbors = {};
     this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
-    this.matrixWidth = matrixWidth;
-    this.matrixHeight = matrixHeight;
+    this.matrixNodeLength = matrixNodeLength;
+    this.cellSize = cellSize;
 
     this.icons = {
       quant: {
@@ -238,33 +237,20 @@ export class View {
    * @return None
    */
   private initializeEdges(): void {
-    // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
-
-    // set the dimensions of a cell
-    const cellSize = 11;
-
     // set the radius for cells
-    const cellRadius = 2;
-
-    // set the size of the number of nodes
-    const matrixNodeLength = this.network.nodes.length;
+    const cellRadius = 3;
 
     // set the matrix highlight
-    const matrixHighlightLength = matrixNodeLength * cellSize;
-
-    // Use the smallest side as the length of the matrix
-    this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
-    this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
+    const matrixHighlightLength = this.matrixNodeLength * this.cellSize;
 
     // Creates scalable SVG
     this.edges = select('#matrix')
       .append('g')
-      .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
+      .attr('transform', `translate(${this.visMargins.left},${this.visMargins.top})`);
 
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
-    .range([0, (matrixNodeLength * cellSize)]).domain(range(0, matrixNodeLength, 1));
+    .range([0, (matrixHighlightLength)]).domain(range(0, this.matrixNodeLength, 1));
 
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
@@ -294,9 +280,9 @@ export class View {
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -matrixHighlightLength - this.margins.bottom)
+      .attr('x', -matrixHighlightLength - this.visMargins.bottom)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
+      .attr('width', matrixHighlightLength + this.visMargins.top + this.visMargins.bottom)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -305,9 +291,9 @@ export class View {
       .append('rect')
       .classed('topoRow', true)
       .attr('id', (d: Node) => `topoRow${d.id}`)
-      .attr('x', -this.margins.left)
+      .attr('x', -this.visMargins.left)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.left + this.margins.right)
+      .attr('width', matrixHighlightLength + this.visMargins.left + this.visMargins.right)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -321,9 +307,13 @@ export class View {
       .append('rect')
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
-      .attr('x', (d: Cell) => this.orderingScale(d.x))
-      .attr('width', cellSize)
-      .attr('height', cellSize)
+      .attr('x', (d: Cell) => {
+        const xLocation = this.orderingScale(d.x);
+        return (xLocation !== undefined ? xLocation + 1 : undefined);
+      })
+      .attr('y', 1)
+      .attr('width', this.cellSize - 2)
+      .attr('height', this.cellSize - 2)
       .attr('rx', cellRadius)
       .style('fill', (d: Cell) => cellColorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
@@ -472,15 +462,33 @@ export class View {
    * @return none
    */
   private appendEdgeLabels(): void {
+    // constants for manipulating the x and y values of the different clip parts
+    const clipXValue = 74;
+    const clipYValue = 10;
+
+    // clip path for row labels
+    select('#matrix')
+      .append('clipPath')
+      .attr('id', 'text-clip');
+
+    // the shape of the clip path
+    select('#text-clip')
+      .append('rect')
+      .attr('x', -(clipXValue + 6))
+      .attr('y', -clipYValue)
+      .attr('width', clipXValue)
+      .attr('height', 600);
+
     this.edgeRows.append('text')
+      .attr('clip-path', 'url(#text-clip)')
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
-      .attr('x', -3)
-      .attr('y', this.orderingScale.bandwidth() / 2)
-      .attr('dy', '.32em')
-      .attr('text-anchor', 'end')
-      .style('font-size', this.nodeFontSize.toString() + 'pt')
+      .attr('x', -clipXValue)
+      .attr('y', clipYValue / 2)
+      .attr('dy', '.75em')
+      .attr('text-anchor', 'start')
+      .style('font-size', `${this.nodeFontSize}pt`)
       .text((d: Node) => d._key)
       .on('mouseover', (d: Node) => this.hoverNode(d.id))
       .on('mouseout', (d: Node) => this.unHoverNode(d.id))
@@ -531,7 +539,7 @@ export class View {
       .attr('x', verticalOffset)
       .attr('dy', '.32em')
       .attr('text-anchor', 'start')
-      .style('font-size', this.nodeFontSize)
+      .style('font-size', `${this.nodeFontSize}pt`)
       .text((d: Node) => d._key)
       .on('click', (d: Node) => {
         this.selectElement(d);
@@ -562,18 +570,21 @@ export class View {
       .data(this.matrix)
       .enter();
 
+    // vertical grid lines
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(${this.orderingScale(i)},0)rotate(-90)`;
       })
       .attr('x1', -this.orderingScale.range()[1]);
 
+    // horizontal grid lines
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       })
       .attr('x2', this.orderingScale.range()[1]);
 
+    // vertical grid line edges
     gridLines
       .append('line')
       .attr('x1', this.orderingScale.range()[1])
@@ -583,6 +594,7 @@ export class View {
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
 
+    // horizontal grid line edges
     gridLines
       .append('line')
       .attr('x1', 0)
@@ -757,7 +769,7 @@ export class View {
 
     this.attributes = select('#attributes')
       .append('g')
-      .attr('transform', `translate(0,${this.margins.top})`);
+      .attr('transform', `translate(0,${this.visMargins.top})`);
 
     // add zebras and highlight rows
     this.attributes.selectAll('.highlightRow')
@@ -814,17 +826,28 @@ export class View {
       .classed('column-headers', true);
 
     // Draw buttons for alternative sorts
-    let initialY = -this.margins.left + 10;
+    let initialY = -this.visMargins.left + 10;
     const buttonHeight = 15;
     const text = ['name', 'cluster', 'interacts'];
     const sortNames = ['shortName', 'clusterLeaf', 'edges'];
     const iconNames = ['alphabetical', 'categorical', 'quant'];
     for (let i = 0; i < 3; i++) {
       const button = this.edges.append('g')
-        .attr('transform', `translate(${-this.margins.left},${initialY})`);
+        .attr(
+          'transform',
+          `translate(${-this.visMargins.left},${initialY})`,
+        );
       button.attr('cursor', 'pointer');
-      button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
-      button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
+      button
+        .append('rect')
+        .attr('width', this.visMargins.left - 5)
+        .attr('height', buttonHeight).attr('fill', 'none')
+        .attr('stroke', 'gray').attr('stroke-width', 1);
+      button
+        .append('text')
+        .attr('x', 27)
+        .attr('y', 10)
+        .attr('font-size', 11).text(text[i]);
       const path = button.datum(sortNames[i]);
       path
         .append('path').attr('class', 'sortIcon').attr('d', (d: any) => {

@@ -23,30 +23,22 @@ export default Vue.extend({
 
   data(): {
     browser: Dimensions,
-    visDimensions: Dimensions,
     visMargins: any,
     matrix: any,
     attributes: any,
     view: View|undefined,
+    cellSize: number,
     } {
     return {
       browser: {
         height: 0,
         width: 0,
       },
-      visDimensions: {
-        height: 0,
-        width: 0 ,
-      },
-      visMargins: {
-        left: 25,
-        right: 25,
-        top: 25,
-        bottom: 25,
-      },
+      visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrix: undefined,
       attributes: undefined,
       view: undefined,
+      cellSize: 15,
     };
   },
 
@@ -62,16 +54,20 @@ export default Vue.extend({
       };
     },
 
+    matrixNodeLength(): number {
+      return this.network.nodes.length;
+    },
+
     matrixWidth(): number {
-      return this.visDimensions.width * 0.75;
+      return this.matrixNodeLength * this.cellSize + this.visMargins.left + this.visMargins.right;
     },
 
     matrixHeight(): number {
-      return this.visDimensions.height;
+      return this.matrixNodeLength * this.cellSize + this.visMargins.top + this.visMargins.bottom;
     },
 
     attributesWidth(): number {
-      return this.visDimensions.width * 0.25 - 15; // 15 for the scrollbar
+      return 300;
     },
 
     attributesHeight(): number {
@@ -94,10 +90,6 @@ export default Vue.extend({
       || document.documentElement.clientHeight
       || document.body.clientHeight;
 
-    // Set dimensions of the node link
-    this.visDimensions.width = this.browser.width * 0.75;
-    this.visDimensions.height = this.browser.height - 24;
-
     // Size the svgs
     this.matrix = d3
       .select(this.$refs.matrix)
@@ -115,8 +107,9 @@ export default Vue.extend({
     this.view = new View(
       this.network,
       this.visualizedAttributes,
-      this.matrixWidth,
-      this.matrixHeight,
+      this.matrixNodeLength,
+      this.cellSize,
+      this.visMargins,
     );
   },
 
