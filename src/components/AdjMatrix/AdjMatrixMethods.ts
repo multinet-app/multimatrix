@@ -8,9 +8,12 @@ import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/
 import 'science';
 import 'reorder.js';
 import { Dimensions, Link, Network, Node, Cell, State } from '@/types';
+
 declare const reorder: any;
+
 export class View {
   public visualizedAttributes: string[] = [];
+
   private network: Network;
   private icons: { [key: string]: { [d: string]: string}};
   private sortKey: string;
@@ -41,6 +44,7 @@ export class View {
   private maxNumConnections: number = -Infinity;
   private matrixWidth: number;
   private matrixHeight: number;
+
   constructor(
     network: Network,
     visualizedAttributes: string[],
@@ -59,6 +63,7 @@ export class View {
     this.visualizedAttributes = visualizedAttributes;
     this.matrixWidth = matrixWidth;
     this.matrixHeight = matrixHeight;
+
     this.icons = {
       quant: {
         d: 'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
@@ -73,26 +78,34 @@ export class View {
         d: 'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
       },
     };
+
     this.network.nodes.forEach((node: Node, index: number) => {
       node.index = index;
       this.idMap[node.id] = index;
     });
+
     this.processData();
+
     // Kick off the rendering
     this.initializeEdges();
     this.initializeAttributes();
   }
+
+
   public updateAttributes(): void {
     // Set the column widths and margin
     const attrWidth = parseFloat(select('#attributes').attr('width'));
     const colWidth = attrWidth / this.visualizedAttributes.length - this.colMargin;
+
     // Update the column headers
     const columnHeaderGroups = this.columnHeaders
       .selectAll('text')
       .data(this.visualizedAttributes);
+
     columnHeaderGroups
       .exit()
       .remove();
+
     columnHeaderGroups
       .enter()
       .append('text')
@@ -108,12 +121,14 @@ export class View {
       .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
       .on('click', (d: string) => this.sort(d));
+
     // Calculate the attribute scales
     this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
         const minimum = min(this.network.nodes.map((node: Node) => node[col])) || '0';
         const maximum = max(this.network.nodes.map((node: Node) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
+
         const scale = scaleLinear().domain(domain).range([0, colWidth]);
         scale.clamp(true);
         this.attributeScales[col] = scale;
@@ -121,10 +136,13 @@ export class View {
         const values: string[] = this.network.nodes.map((node: Node) => node[col]);
         const domain = [...new Set(values)];
         const scale = scaleOrdinal(schemeCategory10).domain(domain);
+
         this.attributeScales[col] = scale;
       }
     });
+
     selectAll('.attr-axis').remove();
+
     // Add the scale bar at the top of the attr column
     this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
@@ -144,6 +162,7 @@ export class View {
           .style('text-anchor', (d: any, i: number) => i % 2 ? 'end' : 'start');
       }
     });
+
     selectAll('.glyph').remove();
     /* Create data columns data */
     this.visualizedAttributes.forEach((col: string, index: number) => {
@@ -182,11 +201,14 @@ export class View {
           });
       }
     });
+
     selectAll('.attrSortIcon').remove();
+
     // Add sort icons to the top of the header
     const path = this.columnHeaders
       .selectAll('path')
       .data(this.visualizedAttributes);
+
     path
       .enter()
       .append('path')
@@ -200,11 +222,16 @@ export class View {
       .attr('transform', (d: string, i: number) => `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200}, -1100)`)
       .style('fill', '#8B8B8B')
       .on('click', (d: string) => this.sort(d));
+
   }
+
+
   private isQuantitative(varName: string): boolean {
     const uniqueValues = [...new Set(this.network.nodes.map((node: Node) => parseFloat(node[varName])))];
     return uniqueValues.length > 5;
   }
+
+
   /**
    * initializes the edges view, renders all SVG elements and attaches listeners
    * to elements.
@@ -213,24 +240,32 @@ export class View {
   private initializeEdges(): void {
     // Set width and height based upon the calculated layout size. Grab the smaller of the 2
     const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
+
     // set the dimensions of a cell
     const cellSize = 15;
+
     // set the radius for cells
     const cellRadius = 3;
+
     // set the size of the number of nodes
-    const matrixNodeLength= this.network.nodes.length;
+    const matrixNodeLength = this.network.nodes.length;
+
     // set the matrix highlight
     const matrixHighlightLength = matrixNodeLength * cellSize;
+
     // Use the smallest side as the length of the matrix
     this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
     this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
+
     // Creates scalable SVG
     this.edges = select('#matrix')
       .append('g')
       .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
+
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
     .range([0, (matrixNodeLength * cellSize)]).domain(range(0, matrixNodeLength, 1));
+
     // creates column groupings
     this.edgeColumns = this.edges.selectAll('.column')
       .data(this.network.nodes)
@@ -239,6 +274,7 @@ export class View {
       .attr('transform', (d: Node, i: number) => {
         return `translate(${this.orderingScale(i)})rotate(-90)`;
       });
+
     // Draw each row
     this.edgeRows = this.edges.selectAll('.rowContainer')
       .data(this.network.nodes)
@@ -248,17 +284,19 @@ export class View {
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
+
+
     this.drawGridLines();
+
+
     // add the highlight columns
     this.edgeColumns
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -matrixHighlightLength-this.margins.bottom)
-      .attr('x', -matrixHighlightLength)
+      .attr('x', -matrixHighlightLength - this.margins.bottom)
       .attr('y', 0)
       .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
-      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom + 100)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -272,9 +310,11 @@ export class View {
       .attr('width', matrixHighlightLength + this.margins.left + this.margins.right)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
+
     const cellColorScale = scaleLinear<string>()
       .domain([0, this.maxNumConnections])
       .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+
     this.edgeRows.selectAll('.cell')
       .data((d: Node, i: number) => this.matrix[i])
       .enter()
@@ -297,10 +337,14 @@ export class View {
       })
       .on('click', this.selectElement)
       .attr('cursor', 'pointer');
+
     this.appendEdgeLabels();
+
     // Get tooltip
     this.tooltip = select('#tooltip');
   }
+
+
   /**
    * Draws the nested edge bars
    * @param  cells d3 selection corresponding to the matrix cell groups
@@ -309,11 +353,15 @@ export class View {
   private drawEdgeBars(cells: any): void {
     // bind squares to cells for the mouse over effect
     const dividers = this.isMultiEdge ? 2 : 1;
+
     // let squares = cells
     let offset = 0;
     let squareSize = this.orderingScale.bandwidth() - 2 * offset;
+
     for (let index = 0; index < dividers; index++) {
+
       const type = this.isMultiEdge ? this.attributeScales.edge.type.domain[index] : 'interacted';
+
       cells
         .append('rect')
         .classed(`nestedEdges nestedEdges${type}`, true)
@@ -324,10 +372,13 @@ export class View {
         .attr('height', squareSize)
         .attr('width', squareSize)
         .attr('fill', (d: any) => this.edgeScales[type](d[type]));
+
       // adjust offset and square size for the next edge type
       offset = squareSize / 4;
       squareSize = squareSize - 2 * offset;
+
     }
+
     // remove all edge rectangles that have no interactions
     cells
       .selectAll('.nestedEdges')
@@ -336,25 +387,36 @@ export class View {
       })
       .remove();
   }
+
+
   private hoverNode(nodeID: string): void {
     const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
     selectAll(cssSelector).classed('hovered', true);
   }
+
+
   private unHoverNode(nodeID: string): void {
     const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
     selectAll(cssSelector).classed('hovered', false);
   }
+
+
   private hoverEdge(cell: Cell): void {
     this.hoverNode(cell.rowID);
     this.hoverNode(cell.colID);
   }
+
+
   private unHoverEdge(cell: Cell): void {
     this.unHoverNode(cell.rowID);
     this.unHoverNode(cell.colID);
   }
+
+
   private selectElement(element: Cell | Node): void {
     let elementsToSelect: string[] = [];
     let newElement: { [key: string]: string[] };
+
     if (this.isCell(element)) {
       // Remove or add cell from selected cells
       if (element.cellName in this.selectedElements) {
@@ -364,8 +426,10 @@ export class View {
         elementsToSelect = [
         `[id="attrRow${element.colID}"]`, `[id="topoRow${element.colID}"]`, `[id="topoCol${element.colID}"]`,
         `[id="colLabel${element.colID}"]`, `[id="rowLabel${element.colID}"]`,
+
         `[id="attrRow${element.rowID}"]`, `[id="topoRow${element.rowID}"]`, `[id="topoCol${element.rowID}"]`,
         `[id="colLabel${element.rowID}"]`, `[id="rowLabel${element.rowID}"]`,
+
         `[id="${element.cellName}"]`,
         ];
         newElement = { [element.cellName]: elementsToSelect};
@@ -383,9 +447,12 @@ export class View {
         this.selectedElements = Object.assign(this.selectedElements, newElement);
       }
     }
+
+
     // Reset all nodes to not neighbor highlighted
     selectAll('.clicked')
       .classed('clicked', false);
+
     // Loop through the neighbor nodes to be highlighted and highlight them
     const selections: string[] = [];
     for (const elementID of Object.keys(this.selectedElements)) {
@@ -393,39 +460,43 @@ export class View {
         selections.push(elementToSelect);
       }
     }
+
     if (selections.length > 0) {
       selectAll(selections.join(',')).classed('clicked', true);
     }
   }
+
+
   /**
    * Renders column labels and row labels to the matrix.
    * @return none
    */
   private appendEdgeLabels(): void {
-    // add a clip path for the row labels
+    // constants for manipulating the x and y values of the different clip parts
+    const clipXValue = 74;
+    const clipYValue = 10;
+
+    // clip path for row labels
     let textClip = select('#matrix');
     textClip.append('clipPath')
     .attr('id', 'text-clip');
 
-    let clipShape = select('#text-clip').append('rect')
-    .attr('x', '-76')
-    .attr('y', '-5')
-    .attr('width', '60')
-    .attr('x', '-80')
-    .attr('y', '-10')
-    .attr('width', '71')
-    .attr('height', '600')
-
+    // the shape of the clip path
+    let clipShape = select('#text-clip')
+      .append('rect')
+      .attr('x', -(clipXValue + 6))
+      .attr('y', -clipYValue)
+      .attr('width', clipXValue)
+      .attr('height', 600);
 
     this.edgeRows.append('text')
-    .attr('clip-path', 'url(#text-clip)')
+      .attr('clip-path', 'url(#text-clip)')
       .attr('class', 'rowLabel')
       .attr('id', (d: Node) => `rowLabel${d.id}`)
       .attr('z-index', 30)
-      .attr('x', -76)
-      .attr('x', -74)
+      .attr('x', -clipXValue)
       .attr('y', (d:Node, i:number) => {
-        return 5;
+        return clipYValue / 2;
       })
       .attr('dy', '.75em')
       .attr('text-anchor', 'start')
@@ -445,6 +516,7 @@ export class View {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
+
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
     this.edgeColumns.append('path')
@@ -467,7 +539,10 @@ export class View {
         this.hideToolTip();
         this.unHoverNode(d.id);
       });
+
     verticalOffset = verticalOffset * 0.075 + 5;
+
+
     this.edgeColumns.append('text')
       .attr('id', (d: Node) => `colLabel${d.id}`)
       .attr('class', 'colLabel')
@@ -491,6 +566,8 @@ export class View {
         this.unHoverNode(d.id);
       });
   }
+
+
   /**
    * Draws the grid lines for the adjacency matrix.
    * @return none
@@ -499,22 +576,26 @@ export class View {
     const gridLines = this.edges
       .append('g')
       .attr('class', 'gridLines');
+
     const lines = gridLines
       .selectAll('line')
       .data(this.matrix)
       .enter();
-    // vertical grid lines
+
+      //vertical grid lines
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(${this.orderingScale(i)},0)rotate(-90)`;
       })
       .attr('x1', -this.orderingScale.range()[1]);
-    // horizontal grid lines 
+
+      // horizontal grid lines
     lines.append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       })
       .attr('x2', this.orderingScale.range()[1]);
+
     // vertical grid line edges
     gridLines
       .append('line')
@@ -524,6 +605,7 @@ export class View {
       .attr('y2', this.orderingScale.range()[1])
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
+    
     // horizontal grid line edges
     gridLines
       .append('line')
@@ -533,7 +615,10 @@ export class View {
       .attr('y2', this.orderingScale.range()[1])
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
+
   }
+
+
   /**
    * [changeInteractionWrapper description]
    * @param  nodeID ID of the node being changed with
@@ -554,19 +639,23 @@ export class View {
         if (interactionName === 'cell' && cell !== undefined) {
           interactID = cell.colID;
           interactedElement = cell.cellName; // + cellData.rowID;
+
           this.changeInteraction(currentState, interactID, 'cellCol', interactedElement);
           this.changeInteraction(currentState, interactID, 'cellRow', interactedElement);
           if (cell.cellName !== cell.correspondingCell) {
             interactedElement = cell.correspondingCell; // + cellData.rowID;
             interactID = cell.rowID;
+
             this.changeInteraction(currentState, interactID, 'cellCol', interactedElement);
             this.changeInteraction(currentState, interactID, 'cellRow', interactedElement);
           }
           return currentState;
+
           // interactID = cellData.rowID;
           // interactionName = interactionName + 'row'
         } else if (interactionName === 'attrRow') {
           return interactionName;
+
         } else if (interactionName === 'neighborSelect') {
           this.changeInteraction(currentState, interactID, interactionName, interactedElement);
           return currentState;
@@ -574,6 +663,8 @@ export class View {
       },
     };
   }
+
+
   /**
    * Adds the interacted node to the state object.
    * @param  state           [description]
@@ -601,6 +692,8 @@ export class View {
       state.selections[interaction][nodeID] = [interactionName];
     }
   }
+
+
   private selectNeighborNodes(nodeID: string, neighbors: string[]): void {
     // Remove or add node from column selected nodes
     if (nodeID in this.selectedNodesAndNeighbors) {
@@ -609,9 +702,11 @@ export class View {
       const newElement = { [nodeID]: neighbors };
       this.selectedNodesAndNeighbors = Object.assign(this.selectedNodesAndNeighbors, newElement);
     }
+
     // Reset all nodes to not neighbor highlighted
     selectAll('.neighbor')
       .classed('neighbor', false);
+
     // Loop through the neighbor nodes to be highlighted and highlight them
     const selections: string[] = [];
     for (const node of Object.keys(this.selectedNodesAndNeighbors)) {
@@ -621,44 +716,56 @@ export class View {
         selections.push(`[id="nodeLabelRow${neighborNode}"]`);
       }
     }
+
     if (selections.length > 0) {
       selectAll(selections.join(',')).classed('neighbor', true);
     }
   }
+
+
   /**
    * [sort description]
    * @return [description]
    */
   private sort(order: string): void {
     const nodeIDs = this.network.nodes.map((node: Node) => node.id);
+
     this.order = this.changeOrder(order, nodeIDs.includes(order));
     this.orderingScale.domain(this.order);
+
     const transitionTime = 500;
+
     (selectAll('.rowContainer') as any)
       .transition()
       .duration(transitionTime)
       .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
+
     (selectAll('.attrRowContainer') as any)
       .transition()
       .duration(transitionTime)
       .attr('transform', (d: Node, i: number) =>  `translate(0,${this.orderingScale(i)})`);
+
     // if any other method other than neighbors sort, sort the columns too
     if (!nodeIDs.includes(order)) {
       this.edges.selectAll('.column')
         .transition()
         .duration(transitionTime)
         .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`);
+
       (selectAll('.rowContainer') as any)
         .selectAll('.cell')
         .transition()
         .duration(transitionTime)
         .attr('x', (d: Node, i: number) => this.orderingScale(i));
     }
+
     selectAll('.sortIcon')
       .style('fill', '#8B8B8B')
       .filter((d: any) => d.id === order)
       .style('fill', '#EBB769');
   }
+
+
   /**
    * [initializeAttributes description]
    * @return [description]
@@ -669,10 +776,13 @@ export class View {
     // let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
     // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
     // this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
+
     const attributeWidth = 1000; // Just has to be larger than the attributes panel (so that we render to the edge)
+
     this.attributes = select('#attributes')
       .append('g')
       .attr('transform', `translate(0,${this.margins.top})`);
+
     // add zebras and highlight rows
     this.attributes.selectAll('.highlightRow')
       .data(this.network.nodes)
@@ -684,6 +794,7 @@ export class View {
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill', (d: Node, i: number) => i % 2 === 0 ? '#fff' : '#eee');
+
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
       .selectAll('.attrRowContainer')
@@ -692,12 +803,14 @@ export class View {
       .append('g')
       .attr('class', 'attrRowContainer')
       .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
+
     this.attributeRows
       .append('line')
       .attr('x1', 0)
       .attr('x2', attributeWidth)
       .attr('stroke', '2px')
       .attr('stroke-opacity', 0.3);
+
     this.attributeRows
       .append('rect')
       .attr('x', 0)
@@ -720,8 +833,10 @@ export class View {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
+
     this.columnHeaders = this.attributes.append('g')
       .classed('column-headers', true);
+
     // Draw buttons for alternative sorts
     let initialY = -this.margins.left + 10;
     const buttonHeight = 15;
@@ -746,16 +861,22 @@ export class View {
       initialY += buttonHeight + 5;
     }
   }
+
+
   private isSelected(node: Node): boolean {
     const currentState = this.getApplicationState();
     const clicked: string[] = currentState.clicked;
     return clicked.includes(node.id);
   }
+
+
   private showToolTip(d: Cell|Node, i: number, nodes: any): void {
     const matrix = nodes[i]
       .getScreenCTM()
       .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
+
     let message = '';
+
     if (this.isCell(d)) {
       // Get link source and target
       message = `
@@ -765,6 +886,7 @@ export class View {
     } else {
       // Get node id
       message = `ID: ${d.id}`;
+
       // Loop through other props to add to tooltip
       for (const key of Object.keys(d)) {
         if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
@@ -772,34 +894,44 @@ export class View {
         }
       }
     }
+
     this.tooltip.html(message);
+
     this.tooltip
       .style('left', `${window.pageXOffset + matrix.e}px`)
       .style('top', `${window.pageYOffset + matrix.f - this.tooltip.node().getBoundingClientRect().height}px`);
+
     this.tooltip.transition()
       .delay(100)
       .duration(200)
       .style('opacity', .9);
   }
+
+
   private hideToolTip(): void {
     this.tooltip.transition(25)
     .style('opacity', 0);
   }
+
+
   private sortObserver(type: string, isNode: boolean = false): number[] {
     let order;
     this.sortKey = type;
     if (type === 'clusterSpectral' || type === 'clusterBary' || type === 'clusterLeaf') {
       const links: any[] = Array(this.network.links.length);
+
       this.network.links.forEach((link: Link, index: number) => {
         links[index] = {
           source: this.network.nodes.find((node: Node) => node.id === link.source),
           target: this.network.nodes.find((node: Node) => node.id === link.target),
         };
       });
+
       const sortableNetwork = reorder.graph()
         .nodes(this.network.nodes)
         .links(links)
         .init();
+
       if (type === 'clusterBary') {
         const barycenter = reorder.barycenter_order(sortableNetwork);
         order = reorder.adjacent_exchange(sortableNetwork, barycenter[0], barycenter[1])[1];
@@ -829,6 +961,8 @@ export class View {
     this.order = order;
     return order;
   }
+
+
   /**
    * Initializes the provenance library and sets observers.
    * @return [none]
@@ -854,10 +988,14 @@ export class View {
         search: {},
       },
     };
+
     const provenance = ProvenanceLibrary.initProvenance(initialState);
     this.provenance = provenance;
+
     return provenance;
   }
+
+
   /**
    * Initializes the matrix and fills it with link occurrences.
    * @return [description]
@@ -875,6 +1013,7 @@ export class View {
           z: 0,
         }; });
     });
+
     // Count occurrences of links and store it in the matrix
     this.network.links.forEach(
       (link: Link) => {
@@ -882,6 +1021,7 @@ export class View {
         this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
       },
     );
+
     // Find max value of z
     this.matrix.forEach((row: Cell[]) => {
       row.forEach((cell: Cell) => {
@@ -891,6 +1031,8 @@ export class View {
       });
     });
   }
+
+
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
@@ -898,11 +1040,15 @@ export class View {
   private getApplicationState(): State {
     return this.provenance.graph().current.state;
   }
+
+
   private changeOrder(type: string, node: boolean): number[] {
     const action = this.generateSortAction(type);
     this.provenance.applyAction(action);
     return this.sortObserver(type, node);
   }
+
+
   private generateSortAction(sortKey: string): { label: string, action: (key: string) => State, args: any[] } {
     return {
       label: 'sort',
@@ -911,18 +1057,23 @@ export class View {
         // add time stamp to the state graph
         currentState.time = Date.now();
         currentState.event = 'sort';
+
         currentState.sortKey = key;
         if (this.mouseOverEvents !== undefined) {
           this.mouseOverEvents.length = 0;
         }
+
         return currentState;
       },
       args: [sortKey],
     };
   }
+
+
   private isCell(element: any): element is Cell {
     return element.hasOwnProperty('cellName');
   }
+
   private capitalizeFirstLetter(word: string) {
     return word[0].toUpperCase() + word.slice(1);
   }
