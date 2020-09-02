@@ -18,6 +18,7 @@ export default Vue.extend({
     selectNeighbors: boolean,
     visualizedAttributes: string[],
     nodeEditor: boolean,
+    connectivity: any,
   } {
     return {
       network: {
@@ -29,6 +30,21 @@ export default Vue.extend({
       selectNeighbors: true,
       visualizedAttributes: [],
       nodeEditor: false,
+      connectivity: {
+        node1: {
+          type: '',
+          value: '',
+        },
+        hop: {
+          type: '',
+          operator: '',
+          value: '',
+        },
+        node2: {
+          type: '',
+          value: '',
+        },
+      },
     };
   },
 
@@ -169,20 +185,24 @@ export default Vue.extend({
                         <v-row class="py-0">
                           <v-col class="pa-2">
                             <v-select
+                              v-model="connectivity.node1.type"
                               dense
                               hide-details
                               outlined
                               label="Node Type"
+                              items="Origin"
                             ></v-select>
                           </v-col>
                         </v-row>
                         <v-row class="py-0">
                           <v-col class="pa-2">
                             <v-select
+                              v-model="connectivity.node1.value"
                               dense
                               hide-details
                               outlined
                               label="Value"
+                              :items="['Any', 'SLC']"
                             ></v-select>
                           </v-col>
                         </v-row>
@@ -208,10 +228,12 @@ export default Vue.extend({
                         <v-row class="py-0">
                           <v-col class="pa-2">
                             <v-select
+                              v-model="connectivity.hop.type"
                               dense
                               hide-details
                               outlined
                               label="Edge Type"
+                              :items="['Airline', 'Average Dep. Delay']"
                             ></v-select>
                           </v-col>
                         </v-row>
@@ -221,19 +243,22 @@ export default Vue.extend({
                             cols="5"
                           >
                             <v-select
+                              v-model="connectivity.hop.operator"
                               dense
                               hide-details
                               outlined
-                              :items="['<','>','=']"
-                              value="<"
+                              label="<"
+                              :items="['<', '=']"
                             ></v-select>
                           </v-col>
                           <v-col class="pa-2">
                             <v-select
+                              v-model="connectivity.hop.value"
                               dense
                               hide-details
                               outlined
                               label="Value"
+                              :items="['AA', '30']"
                             ></v-select>
                           </v-col>
                         </v-row>
@@ -259,20 +284,24 @@ export default Vue.extend({
                         <v-row class="py-0">
                           <v-col class="pa-2">
                             <v-select
+                              v-model="connectivity.node2.type"
                               dense
                               hide-details
                               outlined
                               label="Node Type"
+                              items="Destination"
                             ></v-select>
                           </v-col>
                         </v-row>
                         <v-row class="py-0">
                           <v-col class="pa-2">
                             <v-select
+                              v-model="connectivity.node2.value"
                               dense
                               hide-details
                               outlined
                               label="Value"
+                              items="JFK"
                             ></v-select>
                           </v-col>
                         </v-row>
@@ -282,7 +311,9 @@ export default Vue.extend({
                   <v-divider />
                 </v-card-text>
                 <v-card-actions class="pa-3">
+                  <!-- DERYA -->
                   <v-btn
+                    v-on:click="connectivityExample(connectivity)"
                     color="primary"
                     block
                     depressed

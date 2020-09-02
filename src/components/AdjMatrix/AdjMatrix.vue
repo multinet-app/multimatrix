@@ -127,6 +127,46 @@ export default Vue.extend({
         this.view.updateAttributes();
       }
     },
+    changeMatrix() {
+      d3.select("#matrix").selectAll("*").remove();
+
+      this.browser.width =
+        window.innerWidth ||
+        document.documentElement.clientWidth ||
+        document.body.clientWidth;
+
+      this.browser.height =
+        window.innerHeight ||
+        document.documentElement.clientHeight ||
+        document.body.clientHeight;
+
+      // Set dimensions of the node link
+      this.visDimensions.width = this.browser.width * 0.75;
+      this.visDimensions.height = this.browser.height - 24;
+
+      // Size the svgs
+      this.matrix = d3
+        .select(this.$refs.matrix)
+        .attr("width", this.matrixWidth)
+        .attr("height", this.matrixHeight)
+        .attr("viewBox", `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
+
+      this.attributes = d3
+        .select(this.$refs.attributes)
+        .attr("width", this.attributesWidth)
+        .attr("height", this.attributesHeight)
+        .attr(
+          "viewBox",
+          `0 0 ${this.attributesWidth} ${this.attributesHeight}`
+        );
+      // Define the View
+      this.view = new View(
+        this.network,
+        this.visualizedAttributes,
+        this.matrixWidth,
+        this.matrixHeight
+      );
+    },
   },
 });
 </script>
