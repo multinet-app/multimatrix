@@ -22,13 +22,13 @@ export default Vue.extend({
   },
 
   data(): {
-    browser: Dimensions,
-    visMargins: any,
-    matrix: any,
-    attributes: any,
-    view: View|undefined,
-    cellSize: number,
-    } {
+    browser: Dimensions;
+    visMargins: any;
+    matrix: any;
+    attributes: any;
+    view: View | undefined;
+    cellSize: number;
+  } {
     return {
       browser: {
         height: 0,
@@ -44,10 +44,7 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const {
-        network,
-        visualizedAttributes,
-      } = this;
+      const { network, visualizedAttributes } = this;
       return {
         network,
         visualizedAttributes,
@@ -59,11 +56,19 @@ export default Vue.extend({
     },
 
     matrixWidth(): number {
-      return this.matrixNodeLength * this.cellSize + this.visMargins.left + this.visMargins.right;
+      return (
+        this.matrixNodeLength * this.cellSize +
+        this.visMargins.left +
+        this.visMargins.right
+      );
     },
 
     matrixHeight(): number {
-      return this.matrixNodeLength * this.cellSize + this.visMargins.top + this.visMargins.bottom;
+      return (
+        this.matrixNodeLength * this.cellSize +
+        this.visMargins.top +
+        this.visMargins.bottom
+      );
     },
 
     attributesWidth(): number {
@@ -79,16 +84,21 @@ export default Vue.extend({
     properties() {
       this.updateVis();
     },
+    network() {
+      this.changeMatrix();
+    },
   },
 
   async mounted(this: any) {
-    this.browser.width = window.innerWidth
-      || document.documentElement.clientWidth
-      || document.body.clientWidth;
+    this.browser.width =
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth;
 
-    this.browser.height = window.innerHeight
-      || document.documentElement.clientHeight
-      || document.body.clientHeight;
+    this.browser.height =
+      window.innerHeight ||
+      document.documentElement.clientHeight ||
+      document.body.clientHeight;
 
     // Size the svgs
     this.matrix = d3
@@ -109,7 +119,7 @@ export default Vue.extend({
       this.visualizedAttributes,
       this.matrixNodeLength,
       this.cellSize,
-      this.visMargins,
+      this.visMargins
     );
   },
 
@@ -120,15 +130,57 @@ export default Vue.extend({
         this.view.updateAttributes();
       }
     },
+    changeMatrix(this: any) {
+      d3.select('#matrix')
+        .selectAll('*')
+        .remove();
+
+      this.browser.width =
+        window.innerWidth ||
+        document.documentElement.clientWidth ||
+        document.body.clientWidth;
+
+      this.browser.height =
+        window.innerHeight ||
+        document.documentElement.clientHeight ||
+        document.body.clientHeight;
+
+      // Set dimensions of the node link
+      this.visDimensions.width = this.browser.width * 0.75;
+      this.visDimensions.height = this.browser.height - 24;
+
+      // Size the svgs
+      this.matrix = d3
+        .select(this.$refs.matrix)
+        .attr('width', this.matrixWidth)
+        .attr('height', this.matrixHeight)
+        .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
+
+      this.attributes = d3
+        .select(this.$refs.attributes)
+        .attr('width', this.attributesWidth)
+        .attr('height', this.attributesHeight)
+        .attr(
+          'viewBox',
+          `0 0 ${this.attributesWidth} ${this.attributesHeight}`
+        );
+      // Define the View
+      this.view = new View(
+        this.network,
+        this.visualizedAttributes,
+        this.matrixWidth,
+        this.matrixHeight
+      );
+    },
   },
 });
 </script>
 
 <template>
   <div>
-    <svg id="matrix" ref="matrix" width="800" height="900" />
-    <svg id="attributes" ref="attributes" width="300" height="900" />
-    <div id="tooltip" ref="tooltip" />
+    <svg id='matrix' ref='matrix' width='800' height='900' />
+    <svg id='attributes' ref='attributes' width='300' height='900' />
+    <div id='tooltip' ref='tooltip' />
   </div>
 </template>
 

@@ -6976,10 +6976,10 @@ multicast-dns@^6.0.1:
     dns-packet "^1.3.1"
     thunky "^1.0.2"
 
-multinet@^0.14.0:
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/multinet/-/multinet-0.14.0.tgz#7800f75127b90b35b98069a69d8e36ebf970144e"
-  integrity sha512-AZFQoXQUtsRJvoHqBu8koJNOAyUiWH3yKmCoL9UBl6+e+YG4j1nGlQ+tp0PnKixnh8M/kjr5hysqXWX7zF1X+A==
+multinet@^0.16.0:
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/multinet/-/multinet-0.16.0.tgz#7361fc87fbc84745f82f45bb8dd5ccd4d6a1f39b"
+  integrity sha512-aqbuRPG5XwGgK1ChhQwGmKkMJcrefbB7H0bKtLIU3OJp1iDwKSWhQ+wdfzPHvPweRt4f798suXdybN1v/uf8hw==
   dependencies:
     axios "^0.19.0"
 
