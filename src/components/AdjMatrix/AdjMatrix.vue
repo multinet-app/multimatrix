@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
 import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 
@@ -22,13 +22,13 @@ export default Vue.extend({
   },
 
   data(): {
-    browser: Dimensions,
-    visMargins: any,
-    matrix: any,
-    attributes: any,
-    view: View|undefined,
-    cellSize: number,
-    } {
+    browser: Dimensions;
+    visMargins: any;
+    matrix: any;
+    attributes: any;
+    view: View | undefined;
+    cellSize: number;
+  } {
     return {
       browser: {
         height: 0,
@@ -44,10 +44,7 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const {
-        network,
-        visualizedAttributes,
-      } = this;
+      const { network, visualizedAttributes } = this;
       return {
         network,
         visualizedAttributes,
@@ -59,11 +56,19 @@ export default Vue.extend({
     },
 
     matrixWidth(): number {
-      return this.matrixNodeLength * this.cellSize + this.visMargins.left + this.visMargins.right;
+      return (
+        this.matrixNodeLength * this.cellSize +
+        this.visMargins.left +
+        this.visMargins.right
+      );
     },
 
     matrixHeight(): number {
-      return this.matrixNodeLength * this.cellSize + this.visMargins.top + this.visMargins.bottom;
+      return (
+        this.matrixNodeLength * this.cellSize +
+        this.visMargins.top +
+        this.visMargins.bottom
+      );
     },
 
     attributesWidth(): number {
@@ -82,13 +87,15 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    this.browser.width = window.innerWidth
-      || document.documentElement.clientWidth
-      || document.body.clientWidth;
+    this.browser.width =
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth;
 
-    this.browser.height = window.innerHeight
-      || document.documentElement.clientHeight
-      || document.body.clientHeight;
+    this.browser.height =
+      window.innerHeight ||
+      document.documentElement.clientHeight ||
+      document.body.clientHeight;
 
     // Size the svgs
     this.matrix = d3

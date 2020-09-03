@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
@@ -12,11 +12,11 @@ export default Vue.extend({
   },
 
   data(): {
-    network: Network,
-    workspace: string,
-    networkName: string,
-    selectNeighbors: boolean,
-    visualizedAttributes: string[],
+    network: Network;
+    workspace: string;
+    networkName: string;
+    selectNeighbors: boolean;
+    visualizedAttributes: string[];
   } {
     return {
       network: {
@@ -55,9 +55,11 @@ export default Vue.extend({
   methods: {
     exportNetwork() {
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify(this.network)], {
-        type: `text/json`,
-      }));
+      a.href = URL.createObjectURL(
+        new Blob([JSON.stringify(this.network)], {
+          type: `text/json`,
+        }),
+      );
       a.download = `${this.networkName}.json`;
       a.click();
     },
@@ -71,9 +73,10 @@ export default Vue.extend({
       <!-- control panel content -->
       <v-col cols="3">
         <v-card>
-          <v-card-title class="pb-6">MultiNet Adjacency Matrix Controls</v-card-title>
+          <v-card-title class="pb-6"
+            >MultiNet Adjacency Matrix Controls</v-card-title
+          >
           <v-card-text>
-
             <v-select
               v-model="visualizedAttributes"
               :items="attributeList"
@@ -85,13 +88,16 @@ export default Vue.extend({
               persistent-hint
             />
 
-            <v-card-subtitle class="pb-0 px-0" style="display: flex; align-items: center; justify-content: space-between">
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
               Autoselect neighbors
-              <v-switch
-                class="ma-0"
-                v-model="selectNeighbors"
-                hide-details
-              />
+              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
             </v-card-subtitle>
           </v-card-text>
 
@@ -99,7 +105,6 @@ export default Vue.extend({
             <v-btn small @click="exportNetwork">Export Network</v-btn>
           </v-card-actions>
         </v-card>
-
       </v-col>
 
       <!-- AdjMatrix component -->
@@ -114,7 +119,7 @@ export default Vue.extend({
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
-            />
+          />
         </v-row>
       </v-col>
     </v-row>
@@ -122,7 +127,7 @@ export default Vue.extend({
 </template>
 
 <style scoped>
-  .v-card {
-    max-height: calc(100vh - 24px);
-  }
+.v-card {
+  max-height: calc(100vh - 24px);
+}
 </style>
