@@ -7,7 +7,7 @@ import { axisTop } from 'd3-axis';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
-import { Dimensions, Link, Network, Node, Cell, State } from '@/types';
+import { Link, Network, Node, Cell, State } from '@/types';
 
 declare const reorder: any;
 
@@ -33,10 +33,10 @@ export class View {
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
-  private nodeFontSize: string = '10';
+  private nodeFontSize = '10';
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
-  private colMargin: number = 5;
+  private colMargin = 5;
   private provenance: any;
   private idMap: { [key: string]: number };
   private isMultiEdge: boolean;
@@ -44,7 +44,7 @@ export class View {
   private selectedNodesAndNeighbors: { [key: string]: string[] };
   private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
-  private maxNumConnections: number = -Infinity;
+  private maxNumConnections = -Infinity;
   private matrixNodeLength: number;
   private cellSize: number;
 
@@ -129,7 +129,7 @@ export class View {
       .on('click', (d: string) => this.sort(d));
 
     // Calculate the attribute scales
-    this.visualizedAttributes.forEach((col: string, index: number) => {
+    this.visualizedAttributes.forEach((col: string) => {
       if (this.isQuantitative(col)) {
         const minimum =
           min(this.network.nodes.map((node: Node) => node[col])) || '0';
@@ -156,7 +156,7 @@ export class View {
     // Add the scale bar at the top of the attr column
     this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
-        const barScaleVis = this.attributes
+        this.attributes
           .append('g')
           .attr('class', 'attr-axis')
           .attr(
@@ -393,9 +393,7 @@ export class View {
         .append('rect')
         .classed(`nestedEdges nestedEdges${type}`, true)
         .attr('x', offset)
-        .attr('y', (d: any) => {
-          return offset;
-        })
+        .attr('y', offset)
         .attr('height', squareSize)
         .attr('width', squareSize)
         .attr('fill', (d: any) => this.edgeScales[type](d[type]));
@@ -937,7 +935,7 @@ export class View {
       path
         .append('path')
         .attr('class', 'sortIcon')
-        .attr('d', (d: any) => {
+        .attr('d', (_d: any, i: number) => {
           return this.icons[iconNames[i]].d;
         })
         .style('fill', () =>
@@ -1001,7 +999,7 @@ export class View {
     this.tooltip.transition(25).style('opacity', 0);
   }
 
-  private sortObserver(type: string, isNode: boolean = false): number[] {
+  private sortObserver(type: string, isNode = false): number[] {
     let order;
     this.sortKey = type;
     if (
@@ -1171,7 +1169,7 @@ export class View {
   }
 
   private isCell(element: any): element is Cell {
-    return element.hasOwnProperty('cellName');
+    return Object.prototype.hasOwnProperty.call(element, 'cellName');
   }
 
   private capitalizeFirstLetter(word: string) {

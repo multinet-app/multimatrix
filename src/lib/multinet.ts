@@ -79,7 +79,7 @@ export async function loadData(
     network: Network;
   } = {
     tables: { nodeTables: [], edgeTable: '' },
-    nodes: Array(),
+    nodes: [],
     links: [],
     network: { nodes: [], links: [] },
   };

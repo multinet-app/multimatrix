@@ -17,7 +17,7 @@ export default Vue.extend({
     },
     visualizedAttributes: {
       type: Array,
-      default: [],
+      default: () => [],
     },
   },
 
