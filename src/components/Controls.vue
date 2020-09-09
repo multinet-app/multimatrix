@@ -311,7 +311,6 @@ export default Vue.extend({
                   <v-divider />
                 </v-card-text>
                 <v-card-actions class="pa-3">
-                  <!-- DERYA -->
                   <v-btn
                     v-on:click="connectivityExample(connectivity)"
                     color="primary"
