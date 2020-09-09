@@ -51,5 +51,9 @@
     "vue-template-compiler": "^2.6.10",
     "vuetify-loader": "^1.3.0"
   },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions"
+  ],
   "repository": "https://github.com/multinet-app/view-adjmatrix"
 }
