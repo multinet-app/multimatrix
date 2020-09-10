@@ -144,6 +144,22 @@ svg >>> .baseCell {
   fill-opacity: 0;
 }
 
+svg >>> .rowLabels {
+  max-width: 75px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 12pt;
+  z-index: 100;
+}
+
+svg >>> .colLabels {
+  max-width: 55px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 12pt;
+  z-index: 100;
+}
+
 svg >>> .hoveredCell {
   stroke-width: 1px;
   stroke: darkgray;
