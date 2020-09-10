@@ -561,17 +561,20 @@ export class View {
 
     verticalOffset = verticalOffset * 0.075 + 5;
 
-    this.edgeColumns
-      .append('text')
-      .attr('id', (d: Node) => `colLabel${d.id}`)
-      .attr('class', 'colLabel')
-      .attr('z-index', 30)
-      .attr('y', this.orderingScale.bandwidth() / 2)
-      .attr('x', verticalOffset)
-      .attr('dy', '.32em')
-      .attr('text-anchor', 'start')
-      .style('font-size', `${this.nodeFontSize}pt`)
+    // constant for starting the column label container
+    const columnLabelContainerStart = 20;
+
+    const edgeColumnForeignObject = this.edgeColumns
+      .append('foreignObject')
+      .attr('y', -5)
+      .attr('x', columnLabelContainerStart)
+      .attr('width', labelContainerWidth)
+      .attr('height', labelContainerHeight);
+
+    const colLabel = edgeColumnForeignObject
+      .append('xhtml:p')
       .text((d: Node) => d._key)
+      .classed('colLabels', true)
       .on('click', (d: Node) => {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
