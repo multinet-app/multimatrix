@@ -1,6 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
+import VisQuery from '@/components/VisQuery/VisQuery.vue';
 
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
@@ -9,6 +10,7 @@ import { Network } from '@/types';
 export default Vue.extend({
   components: {
     AdjMatrix,
+    VisQuery,
   },
 
   data(): {
@@ -105,6 +107,21 @@ export default Vue.extend({
             <v-btn small @click="exportNetwork">Export Network</v-btn>
           </v-card-actions>
         </v-card>
+      </v-col>
+
+    <!-- VisQuery component -->
+      <v-col class="ma-0 pl-0 pr-0">
+        <v-row row wrap class="ma-0 pa-0">
+          <!-- Bind schema classification here -->
+          <vis-query
+            ref="visquery"
+            v-if="workspace"
+            v-bind="{
+              network,
+            }"
+            @restart-simulation="hello()"
+          />
+        </v-row>
       </v-col>
 
       <!-- AdjMatrix component -->
