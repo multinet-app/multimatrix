@@ -503,39 +503,22 @@ export class View {
    * @return none
    */
   private appendEdgeLabels(): void {
-    // constants for manipulating the x and y values of the different clip parts
-    const clipXValue = 74;
-    const clipYValue = 10;
+    const labelContainerHeight = 25;
+    const rowLabelContainerStart = 75;
+    const labelContainerWidth = rowLabelContainerStart;
 
-    // clip path for row labels
-    select('#matrix').append('clipPath').attr('id', 'text-clip');
+    // add foreign objects for label
+    const edgeRowForeignObject = this.edgeRows
+      .append('foreignObject')
+      .attr('x', -rowLabelContainerStart)
+      .attr('y', -5)
+      .attr('width', labelContainerWidth)
+      .attr('height', labelContainerHeight);
 
-    // the shape of the clip path
-    select('#text-clip')
-      .append('rect')
-      .attr('x', -(clipXValue + 6))
-      .attr('y', -clipYValue)
-      .attr('width', clipXValue)
-      .attr('height', 600);
-
-    this.edgeRows
-      .append('text')
-      .attr('clip-path', 'url(#text-clip)')
-      .attr('class', 'rowLabel')
-      .attr('id', (d: Node) => `rowLabel${d.id}`)
-      .attr('z-index', 30)
-      .attr('x', -clipXValue)
-      .attr('y', clipYValue / 2)
-      .attr('dy', '.75em')
-      .attr('text-anchor', 'start')
-      .style('font-size', `${this.nodeFontSize}pt`)
+    const rowLabel = edgeRowForeignObject
+      .append('xhtml:p')
       .text((d: Node) => d._key)
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
-      .on('mouseover', (d: Node, i: number, nodes: any) => {
-        this.showToolTip(d, i, nodes);
-        this.hoverNode(d.id);
-      })
+      .classed('rowLabels', true)
       .on('mouseout', (d: Node) => {
         this.hideToolTip();
         this.unHoverNode(d.id);
@@ -576,17 +559,20 @@ export class View {
 
     verticalOffset = verticalOffset * 0.075 + 5;
 
-    this.edgeColumns
-      .append('text')
-      .attr('id', (d: Node) => `colLabel${d.id}`)
-      .attr('class', 'colLabel')
-      .attr('z-index', 30)
-      .attr('y', this.orderingScale.bandwidth() / 2)
-      .attr('x', verticalOffset)
-      .attr('dy', '.32em')
-      .attr('text-anchor', 'start')
-      .style('font-size', `${this.nodeFontSize}pt`)
+    // constant for starting the column label container
+    const columnLabelContainerStart = 20;
+
+    const edgeColumnForeignObject = this.edgeColumns
+      .append('foreignObject')
+      .attr('y', -5)
+      .attr('x', columnLabelContainerStart)
+      .attr('width', labelContainerWidth)
+      .attr('height', labelContainerHeight);
+
+    const colLabel = edgeColumnForeignObject
+      .append('xhtml:p')
       .text((d: Node) => d._key)
+      .classed('colLabels', true)
       .on('click', (d: Node) => {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
