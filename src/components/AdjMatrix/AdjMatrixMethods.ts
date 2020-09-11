@@ -515,7 +515,7 @@ export class View {
       .attr('width', labelContainerWidth)
       .attr('height', labelContainerHeight);
 
-    const rowLabel = edgeRowForeignObject
+    edgeRowForeignObject
       .append('xhtml:p')
       .text((d: Node) => d._key)
       .classed('rowLabels', true)
@@ -569,7 +569,7 @@ export class View {
       .attr('width', labelContainerWidth)
       .attr('height', labelContainerHeight);
 
-    const colLabel = edgeColumnForeignObject
+    edgeColumnForeignObject
       .append('xhtml:p')
       .text((d: Node) => d._key)
       .classed('colLabels', true)
