@@ -935,7 +935,7 @@ export class View {
       path
         .append('path')
         .attr('class', 'sortIcon')
-        .attr('d', (_d: any, i: number) => {
+        .attr('d', (d: any, i: number) => {
           return this.icons[iconNames[i]].d;
         })
         .style('fill', () =>
