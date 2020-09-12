@@ -110,7 +110,6 @@ export default Vue.extend({
               Show GridLines
               <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
             </v-card-subtitle>
-            
           </v-card-text>
 
           <v-card-actions>
