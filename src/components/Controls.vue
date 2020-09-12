@@ -99,10 +99,36 @@ export default Vue.extend({
               Autoselect neighbors
               <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
             </v-card-subtitle>
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Show GridLines
+              <v-switch class="ma-0" v-model="showGridLines" hide-details />
+            </v-card-subtitle>
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Show GridLines
+              <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
+            </v-card-subtitle>
+            
           </v-card-text>
 
           <v-card-actions>
             <v-btn small @click="exportNetwork">Export Network</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn small> Show Gridlines</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
