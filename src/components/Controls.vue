@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
-
+import { selectAll } from 'd3-selection';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
@@ -64,6 +64,17 @@ export default Vue.extend({
       );
       a.download = `${this.networkName}.json`;
       a.click();
+    },
+  },
+  watch: {
+    showGridLines: function () {
+      if (this.showGridLines) {
+        // console.log('show gridlines');
+        selectAll('.gridLines').attr('opacity', 1);
+      } else {
+        // console.log('hide grid lines');
+        selectAll('.gridLines').attr('opacity', 0);
+      }
     },
   },
 });
