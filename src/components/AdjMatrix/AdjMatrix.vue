@@ -15,10 +15,6 @@ export default Vue.extend({
       type: Boolean,
       default: true,
     },
-    showGridLines: {
-      type: Boolean,
-      default: true,
-    },
     visualizedAttributes: {
       type: Array,
       default: () => [],
