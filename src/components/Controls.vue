@@ -12,14 +12,14 @@ export default Vue.extend({
   },
 
   data(): {
-    network: Network,
-    workspace: string,
-    networkName: string,
-    selectNeighbors: boolean,
-    visualizedAttributes: string[],
-    nodeEditor: boolean,
+    network: Network;
+    workspace: string;
+    networkName: string;
+    selectNeighbors: boolean;
+    visualizedAttributes: string[];
+    nodeEditor: boolean;
     // connectivity is left with type any since it is a temp object in our AQL example
-    connectivity: any,
+    connectivity: any;
   } {
     return {
       network: {
@@ -96,24 +96,19 @@ export default Vue.extend({
       stateless
       value="true"
     >
-      <v-toolbar
-        color="grey lighten-2"
-      >
+      <v-toolbar color="grey lighten-2">
         <v-toolbar-title class="d-flex align-center">
           <div>
             <v-row class="mx-0 align-center">
-              <v-col
-                class="app-logo pb-0 pt-2 px-0"
-                cols="3"
-              >
+              <v-col class="app-logo pb-0 pt-2 px-0" cols="3">
                 <img
                   src="../assets/logo/app_logo.svg"
                   alt="Multinet"
                   width="100%"
-                >
+                />
               </v-col>
               <v-col class="multinet-title text-left" cols="3">
-                Multinet<br>
+                Multinet<br />
                 <small>Adjacency Matrix</small>
               </v-col>
             </v-row>
@@ -147,10 +142,7 @@ export default Vue.extend({
               hide-overlay
               v-model="nodeEditor"
             >
-              <v-card
-                class="add-hops"
-                tile
-              >
+              <v-card class="add-hops" tile>
                 <v-card-title class="px-3 subtitle-2">
                   Manage Nodes/Edges
                 </v-card-title>
@@ -165,21 +157,14 @@ export default Vue.extend({
                       value="1"
                     />
                   </div>
-                  <v-expansion-panels
-                    class="manage-panels pt-3"
-                    flat
-                  >
+                  <v-expansion-panels class="manage-panels pt-3" flat>
                     <v-expansion-panel class="ma-0">
                       <v-divider />
                       <v-expansion-panel-header>
                         Node 1
                         <v-spacer />
                         <div class="panel-icons">
-                          <v-icon
-                            class="float-right"
-                            color="amber"
-                            size="20"
-                          >
+                          <v-icon class="float-right" color="amber" size="20">
                             mdi-alert
                           </v-icon>
                         </div>
@@ -218,11 +203,7 @@ export default Vue.extend({
                         Hop 1-2
                         <v-spacer />
                         <div class="panel-icons">
-                          <v-icon
-                            class="float-right"
-                            color="amber"
-                            size="20"
-                          >
+                          <v-icon class="float-right" color="amber" size="20">
                             mdi-alert
                           </v-icon>
                         </div>
@@ -241,10 +222,7 @@ export default Vue.extend({
                           </v-col>
                         </v-row>
                         <v-row class="py-0">
-                          <v-col
-                            class="pa-2"
-                            cols="5"
-                          >
+                          <v-col class="pa-2" cols="5">
                             <v-select
                               v-model="connectivity.hop.operator"
                               dense
@@ -274,11 +252,7 @@ export default Vue.extend({
                         Node 2
                         <v-spacer />
                         <div class="panel-icons">
-                          <v-icon
-                            class="float-right"
-                            color="amber"
-                            size="20"
-                          >
+                          <v-icon class="float-right" color="amber" size="20">
                             mdi-alert
                           </v-icon>
                         </div>
@@ -335,12 +309,7 @@ export default Vue.extend({
             </span>
           </v-list-item-icon>
           <v-list-item-content class="pt-2">
-            <v-select
-              dense
-              hide-details
-              outlined
-              label="Rows"
-            ></v-select>
+            <v-select dense hide-details outlined label="Rows"></v-select>
           </v-list-item-content>
         </v-list-item>
 
@@ -361,22 +330,13 @@ export default Vue.extend({
             </span>
           </v-list-item-icon>
           <v-list-item-content class="pt-2">
-            <v-select
-              dense
-              hide-details
-              outlined
-              label="Columns"
-            ></v-select>
+            <v-select dense hide-details outlined label="Columns"></v-select>
           </v-list-item-content>
         </v-list-item>
 
         <v-divider />
-
       </v-list>
-      <v-overlay
-        absolute
-        v-if="nodeEditor"
-      />
+      <v-overlay absolute v-if="nodeEditor" />
     </v-navigation-drawer>
 
     <!-- AdjMatrix component -->
@@ -391,7 +351,7 @@ export default Vue.extend({
             visualizedAttributes,
           }"
           @restart-simulation="hello()"
-          />
+        />
       </v-row>
     </v-col>
   </div>
@@ -415,11 +375,11 @@ export default Vue.extend({
 .workspaces {
   /* 171px = height of app-bar + workspace button + list subheader */
   height: calc(100vh - 171px);
-  overflow-y:scroll;
+  overflow-y: scroll;
 }
 
 .workspace-icon {
-  opacity: .4;
+  opacity: 0.4;
 }
 
 sm {
@@ -446,7 +406,7 @@ sm {
 }
 
 .multinet-title {
-  line-height: .7em;
+  line-height: 0.7em;
   padding-top: 16px;
 }
 </style>
