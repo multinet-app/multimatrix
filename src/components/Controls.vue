@@ -108,7 +108,7 @@ export default Vue.extend({
               "
             >
               Autoselect neighbors
-              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
+              <v-checkbox class="ma-0" v-model="selectNeighbors" hide-details />
             </v-card-subtitle>
             <v-card-subtitle
               class="pb-0 px-0"
