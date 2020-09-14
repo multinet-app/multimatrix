@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
-
+import { selectAll } from 'd3-selection';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
@@ -16,6 +16,7 @@ export default Vue.extend({
     workspace: string;
     networkName: string;
     selectNeighbors: boolean;
+    showGridLines: boolean;
     visualizedAttributes: string[];
   } {
     return {
@@ -26,6 +27,7 @@ export default Vue.extend({
       workspace: '',
       networkName: '',
       selectNeighbors: true,
+      showGridLines: true,
       visualizedAttributes: [],
     };
   },
@@ -64,6 +66,15 @@ export default Vue.extend({
       a.click();
     },
   },
+  watch: {
+    showGridLines: function () {
+      if (this.showGridLines) {
+        selectAll('.gridLines').attr('opacity', 1);
+      } else {
+        selectAll('.gridLines').attr('opacity', 0);
+      }
+    },
+  },
 });
 </script>
 
@@ -99,6 +110,17 @@ export default Vue.extend({
               Autoselect neighbors
               <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
             </v-card-subtitle>
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Show GridLines
+              <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
+            </v-card-subtitle>
           </v-card-text>
 
           <v-card-actions>
@@ -116,6 +138,7 @@ export default Vue.extend({
             v-bind="{
               network,
               selectNeighbors,
+              showGridLines,
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
