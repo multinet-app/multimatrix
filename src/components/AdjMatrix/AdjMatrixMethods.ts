@@ -7,7 +7,7 @@ import { axisTop } from 'd3-axis';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
-import { Dimensions, Link, Network, Node, Cell, State } from '@/types';
+import { Link, Network, Node, Cell, State } from '@/types';
 
 declare const reorder: any;
 
@@ -15,25 +15,28 @@ export class View {
   public visualizedAttributes: string[] = [];
 
   private network: Network;
-  private icons: { [key: string]: { [d: string]: string}};
+  private icons: { [key: string]: { [d: string]: string } };
   private sortKey: string;
   private edges: any;
   private matrix: Cell[][];
-  private edgeWidth: number = 0;
-  private edgeHeight: number = 0;
   private attributeRows: any;
   private tooltip: any;
   private order: any;
-  private margins: { left: number, top: number, right: number, bottom: number };
+  private visMargins: {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+  };
   private attributes: any;
   private orderingScale: ScaleBand<number> = scaleBand<number>();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
-  private nodeFontSize: string = '12';
+  private nodeFontSize = '10';
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
-  private colMargin: number = 5;
+  private colMargin = 5;
   private provenance: any;
   private idMap: { [key: string]: number };
   private isMultiEdge: boolean;
@@ -41,18 +44,19 @@ export class View {
   private selectedNodesAndNeighbors: { [key: string]: string[] };
   private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
-  private maxNumConnections: number = -Infinity;
-  private matrixWidth: number;
-  private matrixHeight: number;
+  private maxNumConnections = -Infinity;
+  private matrixNodeLength: number;
+  private cellSize: number;
 
   constructor(
     network: Network,
     visualizedAttributes: string[],
-    matrixWidth: number,
-    matrixHeight: number,
+    matrixNodeLength: number,
+    cellSize: number,
+    visMargins: { left: number; top: number; right: number; bottom: number },
   ) {
     this.network = network;
-    this.margins = { left: 75, top: 75, right: 0, bottom: 10 };
+    this.visMargins = visMargins;
     this.provenance = this.setUpProvenance();
     this.sortKey = 'name';
     this.matrix = [];
@@ -61,21 +65,25 @@ export class View {
     this.selectedNodesAndNeighbors = {};
     this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
-    this.matrixWidth = matrixWidth;
-    this.matrixHeight = matrixHeight;
+    this.matrixNodeLength = matrixNodeLength;
+    this.cellSize = cellSize;
 
     this.icons = {
       quant: {
-        d: 'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
+        d:
+          'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
       },
       alphabetical: {
-        d: 'M401.1,331.2h-189c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.8C407.7,334.2,404.8,331.2,401.1,331.2z M223.7,344.3H266c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-42.3V344.3z M223.7,373H300c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-76.3V373.7z M263.6,447.8c0,2-1.6,3.6-3.6,3.6h-36.4v-18.8H260c2,0,3.6,1.6,3.6,3.6V447.8z M321.5,418.4c0,2-1.6,3.6-3.6,3.6h-94.2v-18.8h94.2c2,0,3.6,1.6,3.6,3.6V418.4z M392.6,449.5h-34.3V442l22.6-27h-21.7v-8.8h33.2v7.5l-21.5,27h21.7V449.5z M381,394.7l-3.7,6.4l-3.7-6.4h2.7v-14.6h2v14.6H381z M387,380l-3.4-9.7h-13.5l-3.3,9.7h-10.2l15.8-43.3h9l15.8,43.3H387z M371.8,363.4H382l-5.1-15.3L371.8,363.4z',
+        d:
+          'M401.1,331.2h-189c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.8C407.7,334.2,404.8,331.2,401.1,331.2z M223.7,344.3H266c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-42.3V344.3z M223.7,373H300c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-76.3V373.7z M263.6,447.8c0,2-1.6,3.6-3.6,3.6h-36.4v-18.8H260c2,0,3.6,1.6,3.6,3.6V447.8z M321.5,418.4c0,2-1.6,3.6-3.6,3.6h-94.2v-18.8h94.2c2,0,3.6,1.6,3.6,3.6V418.4z M392.6,449.5h-34.3V442l22.6-27h-21.7v-8.8h33.2v7.5l-21.5,27h21.7V449.5z M381,394.7l-3.7,6.4l-3.7-6.4h2.7v-14.6h2v14.6H381z M387,380l-3.4-9.7h-13.5l-3.3,9.7h-10.2l15.8-43.3h9l15.8,43.3H387z M371.8,363.4H382l-5.1-15.3L371.8,363.4z',
       },
       categorical: {
-        d: 'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.4C407.7,333.7,404.7,330.7,401,330.7z M272.9,374.3h-52.4v-17.1h52.4V374.3z M272.9,354h-52.4v-17h52.4V354z M332.1,414.9h-52.4v-17h52.4V414.9z M332.1,394.6h-52.4v-17h52.4V394.6z M394.8,456.5h-52.4v-17h52.4V456.5z M394.8,434.9h-52.4v-17h52.4V434.9z',
+        d:
+          'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.4C407.7,333.7,404.7,330.7,401,330.7z M272.9,374.3h-52.4v-17.1h52.4V374.3z M272.9,354h-52.4v-17h52.4V354z M332.1,414.9h-52.4v-17h52.4V414.9z M332.1,394.6h-52.4v-17h52.4V394.6z M394.8,456.5h-52.4v-17h52.4V456.5z M394.8,434.9h-52.4v-17h52.4V434.9z',
       },
       cellSort: {
-        d: 'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
+        d:
+          'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
       },
     };
 
@@ -91,20 +99,18 @@ export class View {
     this.initializeAttributes();
   }
 
-
   public updateAttributes(): void {
     // Set the column widths and margin
     const attrWidth = parseFloat(select('#attributes').attr('width'));
-    const colWidth = attrWidth / this.visualizedAttributes.length - this.colMargin;
+    const colWidth =
+      attrWidth / this.visualizedAttributes.length - this.colMargin;
 
     // Update the column headers
     const columnHeaderGroups = this.columnHeaders
       .selectAll('text')
       .data(this.visualizedAttributes);
 
-    columnHeaderGroups
-      .exit()
-      .remove();
+    columnHeaderGroups.exit().remove();
 
     columnHeaderGroups
       .enter()
@@ -123,17 +129,21 @@ export class View {
       .on('click', (d: string) => this.sort(d));
 
     // Calculate the attribute scales
-    this.visualizedAttributes.forEach((col: string, index: number) => {
+    this.visualizedAttributes.forEach((col: string) => {
       if (this.isQuantitative(col)) {
-        const minimum = min(this.network.nodes.map((node: Node) => node[col])) || '0';
-        const maximum = max(this.network.nodes.map((node: Node) => node[col])) || '0';
+        const minimum =
+          min(this.network.nodes.map((node: Node) => node[col])) || '0';
+        const maximum =
+          max(this.network.nodes.map((node: Node) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
 
         const scale = scaleLinear().domain(domain).range([0, colWidth]);
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
-        const values: string[] = this.network.nodes.map((node: Node) => node[col]);
+        const values: string[] = this.network.nodes.map(
+          (node: Node) => node[col],
+        );
         const domain = [...new Set(values)];
         const scale = scaleOrdinal(schemeCategory10).domain(domain);
 
@@ -146,20 +156,27 @@ export class View {
     // Add the scale bar at the top of the attr column
     this.visualizedAttributes.forEach((col: string, index: number) => {
       if (this.isQuantitative(col)) {
-        const barScaleVis = this.attributes
+        this.attributes
           .append('g')
           .attr('class', 'attr-axis')
-          .attr('transform', `translate(${(colWidth + this.colMargin) * index},-15)`)
-          .call(axisTop(this.attributeScales[col])
-            .tickValues(this.attributeScales[col].domain())
-            .tickFormat((d: any) => {
-              if ((d / 1000) >= 1) {
-                d = Math.round(d / 1000) + 'K';
-              }
-              return parseFloat(d).toFixed(4);
-            }))
+          .attr(
+            'transform',
+            `translate(${(colWidth + this.colMargin) * index},-15)`,
+          )
+          .call(
+            axisTop(this.attributeScales[col])
+              .tickValues(this.attributeScales[col].domain())
+              .tickFormat((d: any) => {
+                if (d / 1000 >= 1) {
+                  d = Math.round(d / 1000) + 'K';
+                }
+                return parseFloat(d).toFixed(4);
+              }),
+          )
           .selectAll('text')
-          .style('text-anchor', (d: any, i: number) => i % 2 ? 'end' : 'start');
+          .style('text-anchor', (d: any, i: number) =>
+            i % 2 ? 'end' : 'start',
+          );
       }
     });
 
@@ -219,18 +236,25 @@ export class View {
         const type = this.isQuantitative(d) ? 'quant' : 'categorical';
         return this.icons[type].d;
       })
-      .attr('transform', (d: string, i: number) => `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200}, -1100)`)
+      .attr(
+        'transform',
+        (d: string, i: number) =>
+          `scale(0.1)translate(${
+            (colWidth + this.colMargin) * i * 10 - 200
+          }, -1100)`,
+      )
       .style('fill', '#8B8B8B')
       .on('click', (d: string) => this.sort(d));
-
   }
-
 
   private isQuantitative(varName: string): boolean {
-    const uniqueValues = [...new Set(this.network.nodes.map((node: Node) => parseFloat(node[varName])))];
+    const uniqueValues = [
+      ...new Set(
+        this.network.nodes.map((node: Node) => parseFloat(node[varName])),
+      ),
+    ];
     return uniqueValues.length > 5;
   }
-
 
   /**
    * initializes the edges view, renders all SVG elements and attaches listeners
@@ -238,45 +262,39 @@ export class View {
    * @return None
    */
   private initializeEdges(): void {
-    // Set width and height based upon the calculated layout size. Grab the smaller of the 2
-    const sideLength = Math.min(this.matrixWidth, this.matrixHeight);
-
-    // set the dimensions of a cell
-    const cellSize = 11;
-
     // set the radius for cells
-    const cellRadius = 2;
-
-    // set the size of the number of nodes
-    const matrixNodeLength = this.network.nodes.length;
+    const cellRadius = 3;
 
     // set the matrix highlight
-    const matrixHighlightLength = matrixNodeLength * cellSize;
-
-    // Use the smallest side as the length of the matrix
-    this.edgeWidth = sideLength - (this.margins.left + this.margins.right);
-    this.edgeHeight = sideLength - (this.margins.top + this.margins.bottom);
+    const matrixHighlightLength = this.matrixNodeLength * this.cellSize;
 
     // Creates scalable SVG
     this.edges = select('#matrix')
       .append('g')
-      .attr('transform', `translate(${this.margins.left},${this.margins.top})`);
+      .attr(
+        'transform',
+        `translate(${this.visMargins.left},${this.visMargins.top})`,
+      );
 
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
-    .range([0, (matrixNodeLength * cellSize)]).domain(range(0, matrixNodeLength, 1));
+      .domain(range(0, this.matrixNodeLength, 1))
+      .range([0, matrixHighlightLength]);
 
     // creates column groupings
-    this.edgeColumns = this.edges.selectAll('.column')
+    this.edgeColumns = this.edges
+      .selectAll('.column')
       .data(this.network.nodes)
-      .enter().append('g')
+      .enter()
+      .append('g')
       .attr('class', 'column')
       .attr('transform', (d: Node, i: number) => {
         return `translate(${this.orderingScale(i)})rotate(-90)`;
       });
 
     // Draw each row
-    this.edgeRows = this.edges.selectAll('.rowContainer')
+    this.edgeRows = this.edges
+      .selectAll('.rowContainer')
       .data(this.network.nodes)
       .enter()
       .append('g')
@@ -285,18 +303,19 @@ export class View {
         return `translate(0,${this.orderingScale(i)})`;
       });
 
-
     this.drawGridLines();
-
 
     // add the highlight columns
     this.edgeColumns
       .append('rect')
       .classed('topoCol', true)
       .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -matrixHighlightLength - this.margins.bottom)
+      .attr('x', -matrixHighlightLength - this.visMargins.bottom)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.top + this.margins.bottom)
+      .attr(
+        'width',
+        matrixHighlightLength + this.visMargins.top + this.visMargins.bottom,
+      )
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -305,9 +324,12 @@ export class View {
       .append('rect')
       .classed('topoRow', true)
       .attr('id', (d: Node) => `topoRow${d.id}`)
-      .attr('x', -this.margins.left)
+      .attr('x', -this.visMargins.left)
       .attr('y', 0)
-      .attr('width', matrixHighlightLength + this.margins.left + this.margins.right)
+      .attr(
+        'width',
+        matrixHighlightLength + this.visMargins.left + this.visMargins.right,
+      )
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
@@ -315,15 +337,20 @@ export class View {
       .domain([0, this.maxNumConnections])
       .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
-    this.edgeRows.selectAll('.cell')
+    this.edgeRows
+      .selectAll('.cell')
       .data((d: Node, i: number) => this.matrix[i])
       .enter()
       .append('rect')
       .attr('class', 'cell')
       .attr('id', (d: Cell) => d.cellName)
-      .attr('x', (d: Cell) => this.orderingScale(d.x))
-      .attr('width', cellSize)
-      .attr('height', cellSize)
+      .attr('x', (d: Cell) => {
+        const xLocation = this.orderingScale(d.x);
+        return xLocation !== undefined ? xLocation + 1 : undefined;
+      })
+      .attr('y', 1)
+      .attr('width', this.cellSize - 2)
+      .attr('height', this.cellSize - 2)
       .attr('rx', cellRadius)
       .style('fill', (d: Cell) => cellColorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
@@ -344,7 +371,6 @@ export class View {
     this.tooltip = select('#tooltip');
   }
 
-
   /**
    * Draws the nested edge bars
    * @param  cells d3 selection corresponding to the matrix cell groups
@@ -359,16 +385,15 @@ export class View {
     let squareSize = this.orderingScale.bandwidth() - 2 * offset;
 
     for (let index = 0; index < dividers; index++) {
-
-      const type = this.isMultiEdge ? this.attributeScales.edge.type.domain[index] : 'interacted';
+      const type = this.isMultiEdge
+        ? this.attributeScales.edge.type.domain[index]
+        : 'interacted';
 
       cells
         .append('rect')
         .classed(`nestedEdges nestedEdges${type}`, true)
         .attr('x', offset)
-        .attr('y', (d: any) => {
-          return offset;
-        })
+        .attr('y', offset)
         .attr('height', squareSize)
         .attr('width', squareSize)
         .attr('fill', (d: any) => this.edgeScales[type](d[type]));
@@ -376,7 +401,6 @@ export class View {
       // adjust offset and square size for the next edge type
       offset = squareSize / 4;
       squareSize = squareSize - 2 * offset;
-
     }
 
     // remove all edge rectangles that have no interactions
@@ -388,30 +412,25 @@ export class View {
       .remove();
   }
 
-
   private hoverNode(nodeID: string): void {
     const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
     selectAll(cssSelector).classed('hovered', true);
   }
-
 
   private unHoverNode(nodeID: string): void {
     const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
     selectAll(cssSelector).classed('hovered', false);
   }
 
-
   private hoverEdge(cell: Cell): void {
     this.hoverNode(cell.rowID);
     this.hoverNode(cell.colID);
   }
 
-
   private unHoverEdge(cell: Cell): void {
     this.unHoverNode(cell.rowID);
     this.unHoverNode(cell.colID);
   }
-
 
   private selectElement(element: Cell | Node): void {
     let elementsToSelect: string[] = [];
@@ -424,34 +443,47 @@ export class View {
       } else {
         // Get all the elements to be selected
         elementsToSelect = [
-        `[id="attrRow${element.colID}"]`, `[id="topoRow${element.colID}"]`, `[id="topoCol${element.colID}"]`,
-        `[id="colLabel${element.colID}"]`, `[id="rowLabel${element.colID}"]`,
+          `[id="attrRow${element.colID}"]`,
+          `[id="topoRow${element.colID}"]`,
+          `[id="topoCol${element.colID}"]`,
+          `[id="colLabel${element.colID}"]`,
+          `[id="rowLabel${element.colID}"]`,
 
-        `[id="attrRow${element.rowID}"]`, `[id="topoRow${element.rowID}"]`, `[id="topoCol${element.rowID}"]`,
-        `[id="colLabel${element.rowID}"]`, `[id="rowLabel${element.rowID}"]`,
+          `[id="attrRow${element.rowID}"]`,
+          `[id="topoRow${element.rowID}"]`,
+          `[id="topoCol${element.rowID}"]`,
+          `[id="colLabel${element.rowID}"]`,
+          `[id="rowLabel${element.rowID}"]`,
 
-        `[id="${element.cellName}"]`,
+          `[id="${element.cellName}"]`,
         ];
-        newElement = { [element.cellName]: elementsToSelect};
-        this.selectedElements = Object.assign(this.selectedElements, newElement);
+        newElement = { [element.cellName]: elementsToSelect };
+        this.selectedElements = Object.assign(
+          this.selectedElements,
+          newElement,
+        );
       }
     } else {
       if (element.id in this.selectedElements) {
         delete this.selectedElements[element.id];
       } else {
         elementsToSelect = [
-        `[id="attrRow${element.id}"]`, `[id="topoRow${element.id}"]`, `[id="topoCol${element.id}"]`,
-        `[id="colLabel${element.id}"]`, `[id="rowLabel${element.id}"]`,
+          `[id="attrRow${element.id}"]`,
+          `[id="topoRow${element.id}"]`,
+          `[id="topoCol${element.id}"]`,
+          `[id="colLabel${element.id}"]`,
+          `[id="rowLabel${element.id}"]`,
         ];
-        newElement = { [element.id]: elementsToSelect};
-        this.selectedElements = Object.assign(this.selectedElements, newElement);
+        newElement = { [element.id]: elementsToSelect };
+        this.selectedElements = Object.assign(
+          this.selectedElements,
+          newElement,
+        );
       }
     }
 
-
     // Reset all nodes to not neighbor highlighted
-    selectAll('.clicked')
-      .classed('clicked', false);
+    selectAll('.clicked').classed('clicked', false);
 
     // Loop through the neighbor nodes to be highlighted and highlight them
     const selections: string[] = [];
@@ -466,28 +498,27 @@ export class View {
     }
   }
 
-
   /**
    * Renders column labels and row labels to the matrix.
    * @return none
    */
   private appendEdgeLabels(): void {
-    this.edgeRows.append('text')
-      .attr('class', 'rowLabel')
-      .attr('id', (d: Node) => `rowLabel${d.id}`)
-      .attr('z-index', 30)
-      .attr('x', -3)
-      .attr('y', this.orderingScale.bandwidth() / 2)
-      .attr('dy', '.32em')
-      .attr('text-anchor', 'end')
-      .style('font-size', this.nodeFontSize.toString() + 'pt')
+    const labelContainerHeight = 25;
+    const rowLabelContainerStart = 75;
+    const labelContainerWidth = rowLabelContainerStart;
+
+    // add foreign objects for label
+    const edgeRowForeignObject = this.edgeRows
+      .append('foreignObject')
+      .attr('x', -rowLabelContainerStart)
+      .attr('y', -5)
+      .attr('width', labelContainerWidth)
+      .attr('height', labelContainerHeight);
+
+    edgeRowForeignObject
+      .append('xhtml:p')
       .text((d: Node) => d._key)
-      .on('mouseover', (d: Node) => this.hoverNode(d.id))
-      .on('mouseout', (d: Node) => this.unHoverNode(d.id))
-      .on('mouseover', (d: Node, i: number, nodes: any) => {
-        this.showToolTip(d, i, nodes);
-        this.hoverNode(d.id);
-      })
+      .classed('rowLabels', true)
       .on('mouseout', (d: Node) => {
         this.hideToolTip();
         this.unHoverNode(d.id);
@@ -499,12 +530,18 @@ export class View {
 
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
-    this.edgeColumns.append('path')
+    this.edgeColumns
+      .append('path')
       .attr('id', (d: Node) => `sortIcon${d.id}`)
       .attr('class', 'sortIcon')
       .attr('d', this.icons.cellSort.d)
-      .style('fill', (d: Node) => d === this.orderType ? '#EBB769' : '#8B8B8B')
-      .attr('transform', `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`)
+      .style('fill', (d: Node) =>
+        d === this.orderType ? '#EBB769' : '#8B8B8B',
+      )
+      .attr(
+        'transform',
+        `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
+      )
       .on('click', (d: Node) => {
         this.sort(d.id);
         const action = this.changeInteractionWrapper('neighborSelect');
@@ -522,17 +559,20 @@ export class View {
 
     verticalOffset = verticalOffset * 0.075 + 5;
 
+    // constant for starting the column label container
+    const columnLabelContainerStart = 20;
 
-    this.edgeColumns.append('text')
-      .attr('id', (d: Node) => `colLabel${d.id}`)
-      .attr('class', 'colLabel')
-      .attr('z-index', 30)
-      .attr('y', this.orderingScale.bandwidth() / 2)
-      .attr('x', verticalOffset)
-      .attr('dy', '.32em')
-      .attr('text-anchor', 'start')
-      .style('font-size', this.nodeFontSize)
+    const edgeColumnForeignObject = this.edgeColumns
+      .append('foreignObject')
+      .attr('y', -5)
+      .attr('x', columnLabelContainerStart)
+      .attr('width', labelContainerWidth)
+      .attr('height', labelContainerHeight);
+
+    edgeColumnForeignObject
+      .append('xhtml:p')
       .text((d: Node) => d._key)
+      .classed('colLabels', true)
       .on('click', (d: Node) => {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
@@ -547,33 +587,32 @@ export class View {
       });
   }
 
-
   /**
    * Draws the grid lines for the adjacency matrix.
    * @return none
    */
   private drawGridLines(): void {
-    const gridLines = this.edges
-      .append('g')
-      .attr('class', 'gridLines');
+    const gridLines = this.edges.append('g').attr('class', 'gridLines');
 
-    const lines = gridLines
-      .selectAll('line')
-      .data(this.matrix)
-      .enter();
+    const lines = gridLines.selectAll('line').data(this.matrix).enter();
 
-    lines.append('line')
+    // vertical grid lines
+    lines
+      .append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(${this.orderingScale(i)},0)rotate(-90)`;
       })
       .attr('x1', -this.orderingScale.range()[1]);
 
-    lines.append('line')
+    // horizontal grid lines
+    lines
+      .append('line')
       .attr('transform', (d: any, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       })
       .attr('x2', this.orderingScale.range()[1]);
 
+    // vertical grid line edges
     gridLines
       .append('line')
       .attr('x1', this.orderingScale.range()[1])
@@ -583,6 +622,7 @@ export class View {
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
 
+    // horizontal grid line edges
     gridLines
       .append('line')
       .attr('x1', 0)
@@ -591,9 +631,7 @@ export class View {
       .attr('y2', this.orderingScale.range()[1])
       .style('stroke', '#aaa')
       .style('opacity', 0.3);
-
   }
-
 
   /**
    * [changeInteractionWrapper description]
@@ -616,14 +654,34 @@ export class View {
           interactID = cell.colID;
           interactedElement = cell.cellName; // + cellData.rowID;
 
-          this.changeInteraction(currentState, interactID, 'cellCol', interactedElement);
-          this.changeInteraction(currentState, interactID, 'cellRow', interactedElement);
+          this.changeInteraction(
+            currentState,
+            interactID,
+            'cellCol',
+            interactedElement,
+          );
+          this.changeInteraction(
+            currentState,
+            interactID,
+            'cellRow',
+            interactedElement,
+          );
           if (cell.cellName !== cell.correspondingCell) {
             interactedElement = cell.correspondingCell; // + cellData.rowID;
             interactID = cell.rowID;
 
-            this.changeInteraction(currentState, interactID, 'cellCol', interactedElement);
-            this.changeInteraction(currentState, interactID, 'cellRow', interactedElement);
+            this.changeInteraction(
+              currentState,
+              interactID,
+              'cellCol',
+              interactedElement,
+            );
+            this.changeInteraction(
+              currentState,
+              interactID,
+              'cellRow',
+              interactedElement,
+            );
           }
           return currentState;
 
@@ -631,15 +689,18 @@ export class View {
           // interactionName = interactionName + 'row'
         } else if (interactionName === 'attrRow') {
           return interactionName;
-
         } else if (interactionName === 'neighborSelect') {
-          this.changeInteraction(currentState, interactID, interactionName, interactedElement);
+          this.changeInteraction(
+            currentState,
+            interactID,
+            interactionName,
+            interactedElement,
+          );
           return currentState;
         }
       },
     };
   }
-
 
   /**
    * Adds the interacted node to the state object.
@@ -650,12 +711,16 @@ export class View {
    * @return                 [description]
    */
   private changeInteraction(
-    state: State, nodeID: string,
-    interaction: keyof State['selections'], interactionName: string = interaction,
+    state: State,
+    nodeID: string,
+    interaction: keyof State['selections'],
+    interactionName: string = interaction,
   ): void {
     if (nodeID in state.selections[interaction]) {
       // Remove element if in list, if list is empty, delete key
-      const currentIndex = state.selections[interaction][nodeID].indexOf(interactionName);
+      const currentIndex = state.selections[interaction][nodeID].indexOf(
+        interactionName,
+      );
       if (currentIndex > -1) {
         state.selections[interaction][nodeID].splice(currentIndex, 1);
         if (state.selections[interaction][nodeID].length === 0) {
@@ -669,19 +734,20 @@ export class View {
     }
   }
 
-
   private selectNeighborNodes(nodeID: string, neighbors: string[]): void {
     // Remove or add node from column selected nodes
     if (nodeID in this.selectedNodesAndNeighbors) {
       delete this.selectedNodesAndNeighbors[nodeID];
     } else {
       const newElement = { [nodeID]: neighbors };
-      this.selectedNodesAndNeighbors = Object.assign(this.selectedNodesAndNeighbors, newElement);
+      this.selectedNodesAndNeighbors = Object.assign(
+        this.selectedNodesAndNeighbors,
+        newElement,
+      );
     }
 
     // Reset all nodes to not neighbor highlighted
-    selectAll('.neighbor')
-      .classed('neighbor', false);
+    selectAll('.neighbor').classed('neighbor', false);
 
     // Loop through the neighbor nodes to be highlighted and highlight them
     const selections: string[] = [];
@@ -698,7 +764,6 @@ export class View {
     }
   }
 
-
   /**
    * [sort description]
    * @return [description]
@@ -714,19 +779,30 @@ export class View {
     (selectAll('.rowContainer') as any)
       .transition()
       .duration(transitionTime)
-      .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
+      .attr(
+        'transform',
+        (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+      );
 
     (selectAll('.attrRowContainer') as any)
       .transition()
       .duration(transitionTime)
-      .attr('transform', (d: Node, i: number) =>  `translate(0,${this.orderingScale(i)})`);
+      .attr(
+        'transform',
+        (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+      );
 
     // if any other method other than neighbors sort, sort the columns too
     if (!nodeIDs.includes(order)) {
-      this.edges.selectAll('.column')
+      this.edges
+        .selectAll('.column')
         .transition()
         .duration(transitionTime)
-        .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`);
+        .attr(
+          'transform',
+          (d: any, i: number) =>
+            `translate(${this.orderingScale(i)},0)rotate(-90)`,
+        );
 
       (selectAll('.rowContainer') as any)
         .selectAll('.cell')
@@ -740,7 +816,6 @@ export class View {
       .filter((d: any) => d.id === order)
       .style('fill', '#EBB769');
   }
-
 
   /**
    * [initializeAttributes description]
@@ -757,10 +832,11 @@ export class View {
 
     this.attributes = select('#attributes')
       .append('g')
-      .attr('transform', `translate(0,${this.margins.top})`);
+      .attr('transform', `translate(0,${this.visMargins.top})`);
 
     // add zebras and highlight rows
-    this.attributes.selectAll('.highlightRow')
+    this.attributes
+      .selectAll('.highlightRow')
       .data(this.network.nodes)
       .enter()
       .append('rect')
@@ -769,7 +845,7 @@ export class View {
       .attr('y', (d: Node, i: number) => this.orderingScale(i))
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth())
-      .attr('fill', (d: Node, i: number) => i % 2 === 0 ? '#fff' : '#eee');
+      .attr('fill', (d: Node, i: number) => (i % 2 === 0 ? '#fff' : '#eee'));
 
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
@@ -778,7 +854,10 @@ export class View {
       .enter()
       .append('g')
       .attr('class', 'attrRowContainer')
-      .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
+      .attr(
+        'transform',
+        (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+      );
 
     this.attributeRows
       .append('line')
@@ -810,27 +889,44 @@ export class View {
         this.selectNeighborNodes(d.id, d.neighbors);
       });
 
-    this.columnHeaders = this.attributes.append('g')
+    this.columnHeaders = this.attributes
+      .append('g')
       .classed('column-headers', true);
 
     // Draw buttons for alternative sorts
-    let initialY = -this.margins.left + 10;
+    let initialY = -this.visMargins.left + 10;
     const buttonHeight = 15;
     const text = ['name', 'cluster', 'interacts'];
     const sortNames = ['shortName', 'clusterLeaf', 'edges'];
     const iconNames = ['alphabetical', 'categorical', 'quant'];
     for (let i = 0; i < 3; i++) {
-      const button = this.edges.append('g')
-        .attr('transform', `translate(${-this.margins.left},${initialY})`);
+      const button = this.edges
+        .append('g')
+        .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
       button.attr('cursor', 'pointer');
-      button.append('rect').attr('width', this.margins.left - 5).attr('height', buttonHeight).attr('fill', 'none').attr('stroke', 'gray').attr('stroke-width', 1);
-      button.append('text').attr('x', 27).attr('y', 10).attr('font-size', 11).text(text[i]);
+      button
+        .append('rect')
+        .attr('width', this.visMargins.left - 5)
+        .attr('height', buttonHeight)
+        .attr('fill', 'none')
+        .attr('stroke', 'gray')
+        .attr('stroke-width', 1);
+      button
+        .append('text')
+        .attr('x', 27)
+        .attr('y', 10)
+        .attr('font-size', 11)
+        .text(text[i]);
       const path = button.datum(sortNames[i]);
       path
-        .append('path').attr('class', 'sortIcon').attr('d', (d: any) => {
+        .append('path')
+        .attr('class', 'sortIcon')
+        .attr('d', (d: any, i: number) => {
           return this.icons[iconNames[i]].d;
         })
-        .style('fill', () => sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B')
+        .style('fill', () =>
+          sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B',
+        )
         .attr('transform', 'scale(0.1)translate(-195,-320)')
         .attr('cursor', 'pointer');
       button.on('click', () => this.sort(sortNames[i]));
@@ -838,15 +934,13 @@ export class View {
     }
   }
 
-
   private isSelected(node: Node): boolean {
     const currentState = this.getApplicationState();
     const clicked: string[] = currentState.clicked;
     return clicked.includes(node.id);
   }
 
-
-  private showToolTip(d: Cell|Node, i: number, nodes: any): void {
+  private showToolTip(d: Cell | Node, i: number, nodes: any): void {
     const matrix = nodes[i]
       .getScreenCTM()
       .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
@@ -875,42 +969,56 @@ export class View {
 
     this.tooltip
       .style('left', `${window.pageXOffset + matrix.e}px`)
-      .style('top', `${window.pageYOffset + matrix.f - this.tooltip.node().getBoundingClientRect().height}px`);
+      .style(
+        'top',
+        `${
+          window.pageYOffset +
+          matrix.f -
+          this.tooltip.node().getBoundingClientRect().height
+        }px`,
+      );
 
-    this.tooltip.transition()
-      .delay(100)
-      .duration(200)
-      .style('opacity', .9);
+    this.tooltip.transition().delay(100).duration(200).style('opacity', 0.9);
   }
-
 
   private hideToolTip(): void {
-    this.tooltip.transition(25)
-    .style('opacity', 0);
+    this.tooltip.transition(25).style('opacity', 0);
   }
 
-
-  private sortObserver(type: string, isNode: boolean = false): number[] {
+  private sortObserver(type: string, isNode = false): number[] {
     let order;
     this.sortKey = type;
-    if (type === 'clusterSpectral' || type === 'clusterBary' || type === 'clusterLeaf') {
+    if (
+      type === 'clusterSpectral' ||
+      type === 'clusterBary' ||
+      type === 'clusterLeaf'
+    ) {
       const links: any[] = Array(this.network.links.length);
 
       this.network.links.forEach((link: Link, index: number) => {
         links[index] = {
-          source: this.network.nodes.find((node: Node) => node.id === link.source),
-          target: this.network.nodes.find((node: Node) => node.id === link.target),
+          source: this.network.nodes.find(
+            (node: Node) => node.id === link.source,
+          ),
+          target: this.network.nodes.find(
+            (node: Node) => node.id === link.target,
+          ),
         };
       });
 
-      const sortableNetwork = reorder.graph()
+      const sortableNetwork = reorder
+        .graph()
         .nodes(this.network.nodes)
         .links(links)
         .init();
 
       if (type === 'clusterBary') {
         const barycenter = reorder.barycenter_order(sortableNetwork);
-        order = reorder.adjacent_exchange(sortableNetwork, barycenter[0], barycenter[1])[1];
+        order = reorder.adjacent_exchange(
+          sortableNetwork,
+          barycenter[0],
+          barycenter[1],
+        )[1];
       } else if (type === 'clusterSpectral') {
         order = reorder.spectral_order(sortableNetwork);
       } else if (type === 'clusterLeaf') {
@@ -918,26 +1026,30 @@ export class View {
         order = reorder.optimal_leaf_order()(mat);
       }
     } else if (this.sortKey === 'edges') {
-      order = range(this.network.nodes.length)
-      .sort((a, b) => this.network.nodes[b][type] - this.network.nodes[a][type]);
+      order = range(this.network.nodes.length).sort(
+        (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
+      );
     } else if (isNode === true) {
-      order = range(this.network.nodes.length)
-      .sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
       order = range(this.network.nodes.length).sort((a, b) =>
-        Number(this.network.nodes[b].neighbors.includes(type)) - Number(this.network.nodes[a].neighbors.includes(type)),
+        this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
+      );
+      order = range(this.network.nodes.length).sort(
+        (a, b) =>
+          Number(this.network.nodes[b].neighbors.includes(type)) -
+          Number(this.network.nodes[a].neighbors.includes(type)),
       );
     } else if (this.sortKey === 'shortName') {
       order = range(this.network.nodes.length).sort((a, b) =>
         this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
       );
     } else {
-      order = range(this.network.nodes.length)
-      .sort((a, b) => this.network.nodes[b][type] - this.network.nodes[a][type]);
+      order = range(this.network.nodes.length).sort(
+        (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
+      );
     }
     this.order = order;
     return order;
   }
-
 
   /**
    * Initializes the provenance library and sets observers.
@@ -971,7 +1083,6 @@ export class View {
     return provenance;
   }
 
-
   /**
    * Initializes the matrix and fills it with link occurrences.
    * @return [description]
@@ -987,16 +1098,15 @@ export class View {
           x: colNode.index,
           y: rowNode.index,
           z: 0,
-        }; });
+        };
+      });
     });
 
     // Count occurrences of links and store it in the matrix
-    this.network.links.forEach(
-      (link: Link) => {
-        this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-        this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
-      },
-    );
+    this.network.links.forEach((link: Link) => {
+      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
+      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+    });
 
     // Find max value of z
     this.matrix.forEach((row: Cell[]) => {
@@ -1008,7 +1118,6 @@ export class View {
     });
   }
 
-
   /**
    * returns an object containing the current provenance state.
    * @return [the provenance state]
@@ -1017,15 +1126,15 @@ export class View {
     return this.provenance.graph().current.state;
   }
 
-
   private changeOrder(type: string, node: boolean): number[] {
     const action = this.generateSortAction(type);
     this.provenance.applyAction(action);
     return this.sortObserver(type, node);
   }
 
-
-  private generateSortAction(sortKey: string): { label: string, action: (key: string) => State, args: any[] } {
+  private generateSortAction(
+    sortKey: string,
+  ): { label: string; action: (key: string) => State; args: any[] } {
     return {
       label: 'sort',
       action: (key: string) => {
@@ -1045,9 +1154,8 @@ export class View {
     };
   }
 
-
   private isCell(element: any): element is Cell {
-    return element.hasOwnProperty('cellName');
+    return Object.prototype.hasOwnProperty.call(element, 'cellName');
   }
 
   private capitalizeFirstLetter(word: string) {

@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 
@@ -74,9 +74,11 @@ export default Vue.extend({
   methods: {
     exportNetwork() {
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify(this.network)], {
-        type: `text/json`,
-      }));
+      a.href = URL.createObjectURL(
+        new Blob([JSON.stringify(this.network)], {
+          type: `text/json`,
+        }),
+      );
       a.download = `${this.networkName}.json`;
       a.click();
     },

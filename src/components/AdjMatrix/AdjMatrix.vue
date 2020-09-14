@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
 import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 
@@ -17,18 +17,18 @@ export default Vue.extend({
     },
     visualizedAttributes: {
       type: Array,
-      default: [],
+      default: () => [],
     },
   },
 
   data(): {
-    browser: Dimensions,
-    visDimensions: Dimensions,
-    visMargins: any,
-    matrix: any,
-    attributes: any,
-    view: View|undefined,
-    } {
+    browser: Dimensions;
+    visMargins: any;
+    matrix: any;
+    attributes: any;
+    view: View | undefined;
+    cellSize: number;
+  } {
     return {
       browser: {
         height: 0,
@@ -38,40 +38,45 @@ export default Vue.extend({
         height: 0,
         width: 0,
       },
-      visMargins: {
-        left: 25,
-        right: 25,
-        top: 25,
-        bottom: 25,
-      },
+      visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrix: undefined,
       attributes: undefined,
       view: undefined,
+      cellSize: 15,
     };
   },
 
   computed: {
     properties(this: any) {
-      const {
-        network,
-        visualizedAttributes,
-      } = this;
+      const { network, visualizedAttributes } = this;
       return {
         network,
         visualizedAttributes,
       };
     },
 
+    matrixNodeLength(): number {
+      return this.network.nodes.length;
+    },
+
     matrixWidth(): number {
-      return this.visDimensions.width * 0.75;
+      return (
+        this.matrixNodeLength * this.cellSize +
+        this.visMargins.left +
+        this.visMargins.right
+      );
     },
 
     matrixHeight(): number {
-      return this.visDimensions.height;
+      return (
+        this.matrixNodeLength * this.cellSize +
+        this.visMargins.top +
+        this.visMargins.bottom
+      );
     },
 
     attributesWidth(): number {
-      return this.visDimensions.width * 0.25 - 15; // 15 for the scrollbar
+      return 300;
     },
 
     attributesHeight(): number {
@@ -86,17 +91,15 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    this.browser.width = window.innerWidth
-      || document.documentElement.clientWidth
-      || document.body.clientWidth;
+    this.browser.width =
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth;
 
-    this.browser.height = window.innerHeight
-      || document.documentElement.clientHeight
-      || document.body.clientHeight;
-
-    // Set dimensions of the node link
-    this.visDimensions.width = this.browser.width * 0.75;
-    this.visDimensions.height = this.browser.height - 24;
+    this.browser.height =
+      window.innerHeight ||
+      document.documentElement.clientHeight ||
+      document.body.clientHeight;
 
     // Size the svgs
     this.matrix = d3
@@ -115,8 +118,9 @@ export default Vue.extend({
     this.view = new View(
       this.network,
       this.visualizedAttributes,
-      this.matrixWidth,
-      this.matrixHeight,
+      this.matrixNodeLength,
+      this.cellSize,
+      this.visMargins,
     );
   },
 
@@ -182,6 +186,22 @@ export default Vue.extend({
 <style scoped>
 svg >>> .baseCell {
   fill-opacity: 0;
+}
+
+svg >>> .rowLabels {
+  max-width: 75px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 12pt;
+  z-index: 100;
+}
+
+svg >>> .colLabels {
+  max-width: 55px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 12pt;
+  z-index: 100;
 }
 
 svg >>> .hoveredCell {
