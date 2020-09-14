@@ -16,6 +16,7 @@ export default Vue.extend({
     workspace: string;
     networkName: string;
     selectNeighbors: boolean;
+    showGridLines: boolean;
     visualizedAttributes: string[];
   } {
     return {
@@ -26,6 +27,7 @@ export default Vue.extend({
       workspace: '',
       networkName: '',
       selectNeighbors: true,
+      showGridLines: true,
       visualizedAttributes: [],
     };
   },
@@ -127,6 +129,7 @@ export default Vue.extend({
             v-bind="{
               network,
               selectNeighbors,
+              showGridLines,
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
