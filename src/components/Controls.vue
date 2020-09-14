@@ -18,6 +18,7 @@ export default Vue.extend({
     selectNeighbors: boolean,
     visualizedAttributes: string[],
     nodeEditor: boolean,
+    // connectivity is left with type any since it is a temp object in our AQL example
     connectivity: any,
   } {
     return {
