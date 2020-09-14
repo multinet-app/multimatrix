@@ -128,7 +128,7 @@ export default Vue.extend({
       }
     },
     changeMatrix(this: any) {
-      d3.select("#matrix").selectAll("*").remove();
+      d3.select('#matrix').selectAll('*').remove();
 
       this.browser.width =
         window.innerWidth ||
@@ -147,24 +147,24 @@ export default Vue.extend({
       // Size the svgs
       this.matrix = d3
         .select(this.$refs.matrix)
-        .attr("width", this.matrixWidth)
-        .attr("height", this.matrixHeight)
-        .attr("viewBox", `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
+        .attr('width', this.matrixWidth)
+        .attr('height', this.matrixHeight)
+        .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
       this.attributes = d3
         .select(this.$refs.attributes)
-        .attr("width", this.attributesWidth)
-        .attr("height", this.attributesHeight)
+        .attr('width', this.attributesWidth)
+        .attr('height', this.attributesHeight)
         .attr(
-          "viewBox",
-          `0 0 ${this.attributesWidth} ${this.attributesHeight}`
+          'viewBox',
+          `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
         );
       // Define the View
       this.view = new View(
         this.network,
         this.visualizedAttributes,
         this.matrixWidth,
-        this.matrixHeight
+        this.matrixHeight,
       );
     },
   },
