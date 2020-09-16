@@ -74,7 +74,6 @@ export default Vue.extend({
 
       if (result !== null) {
         const { index, 1: token } = result;
-        console.log(index, token);
 
         const newPath = window.location.href.slice(0, index);
         window.history.replaceState({}, window.document.title, newPath);
