@@ -70,7 +70,7 @@ export async function loadData(
   workspace: string,
   networkName: string,
   apiRoot: string = process.env.VUE_APP_MULTINET_HOST,
-  token: string
+  token: string,
 ): Promise<Network> {
   // Define local variables that will store the api url and the responses from the database
   const multinet: {
@@ -86,7 +86,7 @@ export async function loadData(
   };
 
   const api = multinetApi(apiRoot);
-  api.setAuthToken(token)
+  api.setAuthToken(token);
 
   // Fetch the names of all the node and edge tables
   multinet.tables = await api.graph(workspace, networkName);
