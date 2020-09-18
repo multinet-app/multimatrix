@@ -99,6 +99,7 @@ export default Vue.extend({
               persistent-hint
             />
 
+            <!-- Auto-Select Neighbors Card --> 
             <v-card-subtitle
               class="pb-0 px-0"
               style="
@@ -110,6 +111,8 @@ export default Vue.extend({
               Autoselect neighbors
               <v-checkbox class="ma-0" v-model="selectNeighbors" hide-details />
             </v-card-subtitle>
+
+            <!-- Gridline Toggle Card -->
             <v-card-subtitle
               class="pb-0 px-0"
               style="
@@ -121,6 +124,21 @@ export default Vue.extend({
               Show GridLines
               <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
             </v-card-subtitle>
+
+            <!-- Matrix Legend -->
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Matrix Legend
+              <!-- <v-checkbox class="ma-0" v-model="showGridLines" hide-details /> -->
+            </v-card-subtitle>
+
+
           </v-card-text>
 
           <v-card-actions>
