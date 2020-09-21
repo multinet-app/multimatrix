@@ -6,7 +6,7 @@ import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
-const loginTokenRegex = /&loginToken=(\S+)/;
+const loginTokenRegex = /#loginToken=(\S+)/;
 export default Vue.extend({
   components: {
     AdjMatrix,
