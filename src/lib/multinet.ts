@@ -70,7 +70,7 @@ export async function loadData(
   workspace: string,
   networkName: string,
   apiRoot: string = process.env.VUE_APP_MULTINET_HOST,
-  loginToken: string,
+  loginToken: string | null,
 ): Promise<Network> {
   // Define local variables that will store the api url and the responses from the database
   const multinet: {
