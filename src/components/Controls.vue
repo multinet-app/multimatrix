@@ -166,7 +166,6 @@ export default Vue.extend({
               "
             >
               Matrix Legend
-              <!-- <v-checkbox class="ma-0" v-model="showGridLines" hide-details /> -->
               <svg id="matrix-legend"></svg>
             </v-card-subtitle>
           </v-card-text>
