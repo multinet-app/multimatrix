@@ -62,7 +62,6 @@ export default Vue.extend({
     this.network.nodes.forEach((element) => {
       neighborsList.push(element.neighbors.length);
     });
-    console.log(neighborsList);
     // find the max and min neighbors
     const maxNumConnectionsLegend = max(neighborsList);
     const minNumConnections = min(neighborsList);
