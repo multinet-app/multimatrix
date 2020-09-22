@@ -2,6 +2,7 @@
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 import * as d3 from 'd3';
+// import {legendColor} from, 'd3-svg-legend'
 // import { scaleBand, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
 // import * as d3Legend from "d3-legend";
 import { getUrlVars } from '@/lib/utils';
@@ -55,7 +56,7 @@ export default Vue.extend({
     this.workspace = workspace;
     this.networkName = networkName;
 
-    // // build legend for matrix 
+    // // build legend for matrix
     // const neighborsList: number[] = [];
     // // get a list of all the neighbors for each node
     // this.network.nodes.forEach(element => {
@@ -65,10 +66,22 @@ export default Vue.extend({
     // const maxNumConnectionsLegend = d3.max(neighborsList);
     // const minNumConnections = d3.min(neighborsList);
 
-    // // set up color scale
+    // // set up color scale (currently only supports continuous data)
     // const cellColorScaleLegend = scaleLinear<string>()
     //   .domain([0, maxNumConnectionsLegend])
     //   .range(['#feebe2', '#690000']);
+
+    // const legendSVG = d3.select('#matrix-legend');
+    // legendSVG.append('g').classed('legendLinear', true).attr('transform('),
+    //   'translate(20, 20';
+
+    // const legendLinear = d3
+    //   .legendColor()
+    //   .shapeWidth(40)
+    //   .orient('horizontal')
+    //   .scale(cellColorScaleLegend);
+
+    // legendSVG.select('.legendLinear').call(legendLinear);
   },
 
   methods: {
