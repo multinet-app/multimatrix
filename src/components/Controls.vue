@@ -81,8 +81,6 @@ export default Vue.extend({
       .scale(cellColorScaleLegend);
 
     legendSVG.select('.legendLinear').call(legendLinear);
-
-    // console.log(this.network.nodes);
   },
 
   methods: {
