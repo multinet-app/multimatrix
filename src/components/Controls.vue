@@ -1,7 +1,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
-import { selectAll } from 'd3-selection';
+import * as d3 from 'd3';
+// import { scaleBand, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
+// import * as d3Legend from "d3-legend";
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
@@ -52,6 +54,21 @@ export default Vue.extend({
     this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
+
+    // // build legend for matrix 
+    // const neighborsList: number[] = [];
+    // // get a list of all the neighbors for each node
+    // this.network.nodes.forEach(element => {
+    //   neighborsList.push(element.neighbors.length);
+    // });
+    // // find the max and min neighbors
+    // const maxNumConnectionsLegend = d3.max(neighborsList);
+    // const minNumConnections = d3.min(neighborsList);
+
+    // // set up color scale
+    // const cellColorScaleLegend = scaleLinear<string>()
+    //   .domain([0, maxNumConnectionsLegend])
+    //   .range(['#feebe2', '#690000']);
   },
 
   methods: {
@@ -69,9 +86,9 @@ export default Vue.extend({
   watch: {
     showGridLines: function () {
       if (this.showGridLines) {
-        selectAll('.gridLines').attr('opacity', 1);
+        d3.selectAll('.gridLines').attr('opacity', 1);
       } else {
-        selectAll('.gridLines').attr('opacity', 0);
+        d3.selectAll('.gridLines').attr('opacity', 0);
       }
     },
   },
@@ -99,7 +116,7 @@ export default Vue.extend({
               persistent-hint
             />
 
-            <!-- Auto-Select Neighbors Card --> 
+            <!-- Auto-Select Neighbors Card -->
             <v-card-subtitle
               class="pb-0 px-0"
               style="
@@ -136,9 +153,8 @@ export default Vue.extend({
             >
               Matrix Legend
               <!-- <v-checkbox class="ma-0" v-model="showGridLines" hide-details /> -->
+              <svg id="matrix-legend"></svg>
             </v-card-subtitle>
-
-
           </v-card-text>
 
           <v-card-actions>
