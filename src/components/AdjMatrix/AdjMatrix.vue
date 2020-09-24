@@ -118,6 +118,7 @@ export default Vue.extend({
       this.cellSize,
       this.visMargins,
     );
+    this.$emit('matrixView', this.view);
   },
 
   methods: {

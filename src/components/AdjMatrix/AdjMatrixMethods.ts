@@ -44,7 +44,7 @@ export class View {
   private selectedNodesAndNeighbors: { [key: string]: string[] };
   private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
-  private maxNumConnections = -Infinity;
+  public maxNumConnections = -Infinity;
   private matrixNodeLength: number;
   private cellSize: number;
 
