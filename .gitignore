@@ -9,3 +9,6 @@ dist/
 
 # General config
 .env
+
+# yarn error log file
+yarn-error.log
