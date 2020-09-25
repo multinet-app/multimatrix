@@ -6,6 +6,7 @@ import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
+const loginTokenRegex = /#loginToken=(\S+)/;
 export default Vue.extend({
   components: {
     AdjMatrix,
@@ -49,7 +50,9 @@ export default Vue.extend({
         `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
       );
     }
-    this.network = await loadData(workspace, networkName, host);
+    const loginToken = this.checkUrlForLogin();
+
+    this.network = await loadData(workspace, networkName, host, loginToken);
     this.workspace = workspace;
     this.networkName = networkName;
   },
@@ -64,6 +67,20 @@ export default Vue.extend({
       );
       a.download = `${this.networkName}.json`;
       a.click();
+    },
+
+    checkUrlForLogin(this: any): string | null {
+      const result = loginTokenRegex.exec(window.location.href);
+
+      if (result !== null) {
+        const { index, 1: token } = result;
+
+        const newPath = window.location.href.slice(0, index);
+        window.history.replaceState({}, window.document.title, newPath);
+        return token;
+      }
+
+      return null;
     },
   },
   watch: {
