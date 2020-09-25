@@ -8,7 +8,6 @@ import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/
 import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
-import { ScaleLinear } from 'd3';
 
 declare const reorder: any;
 
