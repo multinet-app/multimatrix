@@ -69,7 +69,6 @@ export default Vue.extend({
       a.click();
     },
     createLegend(maxConnections: number) {
-
       // set up color scale (currently only supports continuous data)
       const cellColorScaleLegend = scaleLinear<string>()
         .domain([0, maxConnections])
