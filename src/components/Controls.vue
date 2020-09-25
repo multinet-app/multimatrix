@@ -2,7 +2,7 @@
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 import { select, selectAll } from 'd3-selection';
-// import { min, max } from 'd3-array';
+import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { scaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
@@ -21,7 +21,6 @@ export default Vue.extend({
     selectNeighbors: boolean;
     showGridLines: boolean;
     visualizedAttributes: string[];
-    matrixView: undefined;
   } {
     return {
       network: {
@@ -33,7 +32,6 @@ export default Vue.extend({
       selectNeighbors: true,
       showGridLines: true,
       visualizedAttributes: [],
-      matrixView: undefined,
     };
   },
 
@@ -57,9 +55,6 @@ export default Vue.extend({
     this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
-
-    // call legend function
-    this.createLegend();
   },
 
   methods: {
@@ -73,22 +68,11 @@ export default Vue.extend({
       a.download = `${this.networkName}.json`;
       a.click();
     },
-    createLegend() {
-      // // build legend for matrix
-      // const neighborsList: number[] = [];
-
-      // // get a list of all the neighbors for each node
-      // this.network.nodes.forEach((element) => {
-      //   neighborsList.push(element.neighbors.length);
-      // });
-
-      // find the max and min neighbors
-      // const maxNumConnectionsLegend = max(neighborsList);
-      // const minNumConnections = min(neighborsList);
+    createLegend(maxConnections: number) {
 
       // set up color scale (currently only supports continuous data)
       const cellColorScaleLegend = scaleLinear<string>()
-        .domain([0, this.matrixView.maxNumConnections])
+        .domain([0, maxConnections])
         .range(['#feebe2', '#690000']);
 
       const legendSVG = select('#matrix-legend');
@@ -97,10 +81,12 @@ export default Vue.extend({
         .classed('legendLinear', true)
         .attr('transform', 'translate(-10, 100)');
 
+      // construct the legend and format the labels to have 0 decimal places
       const legendLinear = legendColor()
         .shapeWidth(40)
         .orient('horizontal')
-        .scale(cellColorScaleLegend);
+        .scale(cellColorScaleLegend)
+        .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);
     },
@@ -198,6 +184,7 @@ export default Vue.extend({
               matrixView,
             }"
             @restart-simulation="hello()"
+            @updateMaxNumConnections="createLegend"
           />
         </v-row>
       </v-col>

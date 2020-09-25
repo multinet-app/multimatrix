@@ -118,7 +118,7 @@ export default Vue.extend({
       this.cellSize,
       this.visMargins,
     );
-    this.$emit('matrixView', this.view);
+    this.$emit('updateMaxNumConnections', this.view.maxNumConnections);
   },
 
   methods: {
