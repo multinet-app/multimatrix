@@ -4,7 +4,7 @@ import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
-import { ScaleLinear,} from 'd3-scale';
+import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
