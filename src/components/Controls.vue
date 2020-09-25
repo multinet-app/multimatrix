@@ -4,7 +4,7 @@ import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
-import { scaleLinear } from 'd3-scale';
+import { ScaleLinear,} from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
@@ -68,12 +68,7 @@ export default Vue.extend({
       a.download = `${this.networkName}.json`;
       a.click();
     },
-    createLegend(maxConnections: number) {
-
-      // set up color scale (currently only supports continuous data)
-      const cellColorScaleLegend = scaleLinear<string>()
-        .domain([0, maxConnections])
-        .range(['#feebe2', '#690000']);
+    createLegend(colorScale: ScaleLinear<string, number>) {
 
       const legendSVG = select('#matrix-legend');
       legendSVG
@@ -85,7 +80,7 @@ export default Vue.extend({
       const legendLinear = legendColor()
         .shapeWidth(40)
         .orient('horizontal')
-        .scale(cellColorScaleLegend)
+        .scale(colorScale)
         .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);

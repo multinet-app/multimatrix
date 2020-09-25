@@ -8,6 +8,7 @@ import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/
 import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
+import { ScaleLinear } from 'd3';
 
 declare const reorder: any;
 
@@ -30,6 +31,7 @@ export class View {
   };
   private attributes: any;
   private orderingScale: ScaleBand<number> = scaleBand<number>();
+  public colorScale: ScaleLinear<string, number> = scaleLinear<string, number>();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
@@ -44,7 +46,7 @@ export class View {
   private selectedNodesAndNeighbors: { [key: string]: string[] };
   private selectedElements: { [key: string]: string[] };
   private mouseOverEvents: any;
-  public maxNumConnections = -Infinity;
+  private maxNumConnections = -Infinity;
   private matrixNodeLength: number;
   private cellSize: number;
 
@@ -333,9 +335,11 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
-    const cellColorScale = scaleLinear<string>()
-      .domain([0, this.maxNumConnections])
-      .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+    // const cellColorScale = scaleLinear<string>()
+    //   .domain([0, this.maxNumConnections])
+    //   .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+    this.colorScale.domain([0, this.maxNumConnections])
+    .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
     this.edgeRows
       .selectAll('.cell')
@@ -352,7 +356,7 @@ export class View {
       .attr('width', this.cellSize - 2)
       .attr('height', this.cellSize - 2)
       .attr('rx', cellRadius)
-      .style('fill', (d: Cell) => cellColorScale(d.z))
+      .style('fill', (d: Cell) => this.colorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
       .on('mouseover', (d: Cell, i: number, nodes: any) => {
         this.showToolTip(d, i, nodes);
