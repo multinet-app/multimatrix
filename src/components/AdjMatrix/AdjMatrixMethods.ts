@@ -1,5 +1,5 @@
 /* The View displays the data given to it by the model. */
-import { scaleBand, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
+import { scaleBand, ScaleLinear, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
@@ -30,7 +30,10 @@ export class View {
   };
   private attributes: any;
   private orderingScale: ScaleBand<number> = scaleBand<number>();
-  public colorScale: ScaleLinear<string, number> = scaleLinear<string, number>();
+  public colorScale: ScaleLinear<string, number> = scaleLinear<
+    string,
+    number
+  >();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
@@ -334,8 +337,9 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
-    this.colorScale.domain([0, this.maxNumConnections])
-    .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+    this.colorScale
+      .domain([0, this.maxNumConnections])
+      .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
     this.edgeRows
       .selectAll('.cell')

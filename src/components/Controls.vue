@@ -79,7 +79,7 @@ export default Vue.extend({
         .attr('transform', 'translate(-10, 100)');
 
       // construct the legend and format the labels to have 0 decimal places
-      const legendLinear = legendColor()
+      const legendLinear = (legendColor() as any)
         .shapeWidth(40)
         .orient('horizontal')
         .scale(colorScale)
