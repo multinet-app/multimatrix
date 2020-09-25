@@ -334,9 +334,6 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
-    // const cellColorScale = scaleLinear<string>()
-    //   .domain([0, this.maxNumConnections])
-    //   .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
     this.colorScale.domain([0, this.maxNumConnections])
     .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
