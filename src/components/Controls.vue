@@ -180,7 +180,6 @@ export default Vue.extend({
               selectNeighbors,
               showGridLines,
               visualizedAttributes,
-              matrixView,
             }"
             @restart-simulation="hello()"
             @updateMaxNumConnections="createLegend"
