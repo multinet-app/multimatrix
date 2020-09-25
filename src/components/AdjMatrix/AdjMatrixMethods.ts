@@ -1,5 +1,11 @@
 /* The View displays the data given to it by the model. */
-import { scaleBand, ScaleLinear, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
+import {
+  scaleBand,
+  ScaleLinear,
+  scaleLinear,
+  scaleOrdinal,
+  ScaleBand,
+} from 'd3-scale';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
