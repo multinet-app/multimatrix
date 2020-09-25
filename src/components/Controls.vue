@@ -177,7 +177,7 @@ export default Vue.extend({
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
-            @updateMaxNumConnections="createLegend"
+            @updateMatrixLegendScale="createLegend"
           />
         </v-row>
       </v-col>

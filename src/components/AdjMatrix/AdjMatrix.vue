@@ -118,7 +118,7 @@ export default Vue.extend({
       this.cellSize,
       this.visMargins,
     );
-    this.$emit('updateMaxNumConnections', this.view.colorScale);
+    this.$emit('updateMatrixLegendScale', this.view.colorScale);
   },
 
   methods: {
