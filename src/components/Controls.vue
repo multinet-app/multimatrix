@@ -69,7 +69,6 @@ export default Vue.extend({
       a.click();
     },
     createLegend(colorScale: ScaleLinear<string, number>) {
-
       const legendSVG = select('#matrix-legend');
       legendSVG
         .append('g')
