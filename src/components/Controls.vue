@@ -1,7 +1,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
-import { selectAll } from 'd3-selection';
+import { select, selectAll } from 'd3-selection';
+import { format } from 'd3-format';
+import { legendColor } from 'd3-svg-legend';
+import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
@@ -68,7 +71,22 @@ export default Vue.extend({
       a.download = `${this.networkName}.json`;
       a.click();
     },
+    createLegend(colorScale: ScaleLinear<string, number>) {
+      const legendSVG = select('#matrix-legend');
+      legendSVG
+        .append('g')
+        .classed('legendLinear', true)
+        .attr('transform', 'translate(-10, 100)');
 
+      // construct the legend and format the labels to have 0 decimal places
+      const legendLinear = (legendColor() as any)
+        .shapeWidth(40)
+        .orient('horizontal')
+        .scale(colorScale)
+        .labelFormat(format('.0f'));
+
+      legendSVG.select('.legendLinear').call(legendLinear);
+    },
     checkUrlForLogin(this: any): string | null {
       const result = loginTokenRegex.exec(window.location.href);
 
@@ -116,6 +134,7 @@ export default Vue.extend({
               persistent-hint
             />
 
+            <!-- Auto-Select Neighbors Card -->
             <v-card-subtitle
               class="pb-0 px-0"
               style="
@@ -127,6 +146,8 @@ export default Vue.extend({
               Autoselect neighbors
               <v-checkbox class="ma-0" v-model="selectNeighbors" hide-details />
             </v-card-subtitle>
+
+            <!-- Gridline Toggle Card -->
             <v-card-subtitle
               class="pb-0 px-0"
               style="
@@ -137,6 +158,19 @@ export default Vue.extend({
             >
               Show GridLines
               <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
+            </v-card-subtitle>
+
+            <!-- Matrix Legend -->
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Matrix Legend
+              <svg id="matrix-legend"></svg>
             </v-card-subtitle>
           </v-card-text>
 
@@ -159,6 +193,7 @@ export default Vue.extend({
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
+            @updateMatrixLegendScale="createLegend"
           />
         </v-row>
       </v-col>
