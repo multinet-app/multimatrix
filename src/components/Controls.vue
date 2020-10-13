@@ -1,16 +1,20 @@
 <script lang="ts">
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
-import VisQuery from '@/components/VisQuery/VisQuery.vue';
-
+import TreeList from '@/components/TreeList.vue';
+import { select, selectAll } from 'd3-selection';
+import { format } from 'd3-format';
+import { legendColor } from 'd3-svg-legend';
+import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
+const loginTokenRegex = /#loginToken=(\S+)/;
 export default Vue.extend({
   components: {
     AdjMatrix,
-    VisQuery,
+    TreeList,
   },
 
   data(): {
@@ -18,6 +22,7 @@ export default Vue.extend({
     workspace: string;
     networkName: string;
     selectNeighbors: boolean;
+    showGridLines: boolean;
     visualizedAttributes: string[];
   } {
     return {
@@ -28,6 +33,7 @@ export default Vue.extend({
       workspace: '',
       networkName: '',
       selectNeighbors: true,
+      showGridLines: true,
       visualizedAttributes: [],
     };
   },
@@ -46,10 +52,12 @@ export default Vue.extend({
     const { workspace, networkName, host } = getUrlVars();
     if (!workspace || !networkName) {
       throw new Error(
-        `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
+        `Workspace and network must be set! workspace=${workspace} graph=${networkName}`,
       );
     }
-    this.network = await loadData(workspace, networkName, host);
+    const loginToken = this.checkUrlForLogin();
+
+    this.network = await loadData(workspace, networkName, host, loginToken);
     this.workspace = workspace;
     this.networkName = networkName;
   },
@@ -64,6 +72,44 @@ export default Vue.extend({
       );
       a.download = `${this.networkName}.json`;
       a.click();
+    },
+    createLegend(colorScale: ScaleLinear<string, number>) {
+      const legendSVG = select('#matrix-legend');
+      legendSVG
+        .append('g')
+        .classed('legendLinear', true)
+        .attr('transform', 'translate(-10, 100)');
+
+      // construct the legend and format the labels to have 0 decimal places
+      const legendLinear = (legendColor() as any)
+        .shapeWidth(40)
+        .orient('horizontal')
+        .scale(colorScale)
+        .labelFormat(format('.0f'));
+
+      legendSVG.select('.legendLinear').call(legendLinear);
+    },
+    checkUrlForLogin(this: any): string | null {
+      const result = loginTokenRegex.exec(window.location.href);
+
+      if (result !== null) {
+        const { index, 1: token } = result;
+
+        const newPath = window.location.href.slice(0, index);
+        window.history.replaceState({}, window.document.title, newPath);
+        return token;
+      }
+
+      return null;
+    },
+  },
+  watch: {
+    showGridLines: function () {
+      if (this.showGridLines) {
+        selectAll('.gridLines').attr('opacity', 1);
+      } else {
+        selectAll('.gridLines').attr('opacity', 0);
+      }
     },
   },
 });
@@ -90,6 +136,7 @@ export default Vue.extend({
               persistent-hint
             />
 
+            <!-- Auto-Select Neighbors Card -->
             <v-card-subtitle
               class="pb-0 px-0"
               style="
@@ -99,7 +146,33 @@ export default Vue.extend({
               "
             >
               Autoselect neighbors
-              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
+              <v-checkbox class="ma-0" v-model="selectNeighbors" hide-details />
+            </v-card-subtitle>
+
+            <!-- Gridline Toggle Card -->
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Show GridLines
+              <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
+            </v-card-subtitle>
+
+            <!-- Matrix Legend -->
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Matrix Legend
+              <svg id="matrix-legend"></svg>
             </v-card-subtitle>
           </v-card-text>
 
@@ -109,12 +182,12 @@ export default Vue.extend({
         </v-card>
       </v-col>
 
-    <!-- VisQuery component -->
+      <!-- TreeList component -->
       <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
           <!-- Bind schema classification here -->
-          <vis-query
-            ref="visquery"
+          <tree-list
+            ref="treelist"
             v-if="workspace"
             v-bind="{
               network,
@@ -133,9 +206,11 @@ export default Vue.extend({
             v-bind="{
               network,
               selectNeighbors,
+              showGridLines,
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
+            @updateMatrixLegendScale="createLegend"
           />
         </v-row>
       </v-col>
