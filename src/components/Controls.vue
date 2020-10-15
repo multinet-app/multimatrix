@@ -101,7 +101,12 @@ export default Vue.extend({
       return null;
     },
     clickButton() {
-      console.log('clicked the aggregate button');
+      // console.log('clicked the aggregate button');
+      console.log("the nodes in the work");
+      console.log(this.network.nodes);
+      this.network.nodes.forEach(element => {
+        console.log(element["ORIGIN_STATE"]);
+      });
     },
   },
   watch: {
