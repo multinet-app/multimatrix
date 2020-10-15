@@ -100,6 +100,9 @@ export default Vue.extend({
 
       return null;
     },
+    clickButton() {
+      console.log('clicked the aggregate button');
+    },
   },
   watch: {
     showGridLines: function () {
@@ -173,6 +176,10 @@ export default Vue.extend({
               <svg id="matrix-legend"></svg>
             </v-card-subtitle>
           </v-card-text>
+
+          <v-card-actions>
+            <v-btn small @click="clickButton">aggregate California</v-btn>
+          </v-card-actions>
 
           <v-card-actions>
             <v-btn small @click="exportNetwork">Export Network</v-btn>
