@@ -92,7 +92,6 @@ export default Vue.extend({
   watch: {},
 
   async mounted(this: any) {
-    // can add constructor stuff here
     this.root;
     this.nodesLength;
     this.browser.width =
@@ -105,79 +104,38 @@ export default Vue.extend({
       document.documentElement.clientHeight ||
       document.body.clientHeight;
 
-    // Set up vars for tree
-    // this.i = 0;
     this.nodeSize = 17;
     this.duration = 500;
-    this.format = d3.format(',');
     this.width = 800;
+    this.height = 900;
 
     this.nodeEnterTransition = d3
       .transition()
       .duration(750)
       .ease(d3.easeLinear);
 
-    this.columns = [
-      {
-        label: 'Size',
-        value: (d: any) => this.format(d.value),
-        // format,
-        x: 280,
-      },
-      {
-        label: 'Count',
-        value: (d: any) => (d.children ? 0 : 1),
-        format: (value: number, d: any) =>
-          d.children ? this.format(value) : '-',
-        x: 340,
-      },
-    ];
-
-    // set up data to proper formate
-    const links = this.classData;
-    const childColumn = links.columns[0];
-    const parentColumn = links.columns[1];
-
-    const stratify = d3
-      .stratify()
-      .id((d: any) => d[childColumn])
-      .parentId((d: any) => d[parentColumn]);
-
-    this.data = stratify(links);
-
-    this.root = d3
-      .hierarchy(this.data)
-      .eachBefore((d: any) => (d.index = this.i++));
-    this.nodeslength = this.root.descendants();
-
     // Size the svgs
     this.svg = d3
       .select(this.$refs.treelist)
       .attr(
         'viewBox',
-        `${-this.nodeSize / 2} ${(-this.nodeSize * 3) / 2} ${this.width} ${
-          (this.nodeslength.length + 1) * this.nodeSize
+        `${-this.nodeSize / 2} ${this.nodeSize * 4} ${this.height} ${
+          this.width
         }`,
       )
       .style('overflow', 'visible');
-    //   .attr('width', 800)
-    //   .attr('height', 900)
-    //   .attr('viewBox', `0 0 ${800} ${900}`);
 
-    this.update(this, this.root);
+    this.update();
   },
 
   methods: {
-    // add the functions here
-    update(this: any, source: any) {
-      console.log(source);
-      const nodes = source.descendants();
-      const height = (nodes.length + 1) * this.nodeSize;
-      this.svg.transition().attr('height', height);
+    update(this: any) {
+      let i = 0;
+      const nodes = this.root.descendants();
 
       const node = this.svg
         .selectAll('.node')
-        .data(nodes, (d: any) => d.id || (d.id = ++this.i));
+        .data(nodes, (d: any) => d.id || (d.id = ++i));
 
       const link = this.svg
         .append('g')
@@ -203,7 +161,7 @@ export default Vue.extend({
           'transform',
           (d: any) => `translate(0,${d.index * this.nodeSize})`,
         )
-        .on('click', (d: any) => this.click(this, d));
+        .on('click', this.click);
 
       nodeEnter
         .append('circle')
@@ -225,27 +183,6 @@ export default Vue.extend({
           .join('/'),
       );
 
-      for (const { label, value, x } of this.columns) {
-        //format,
-        this.svg
-          .append('text')
-          .attr('dy', '0.32em')
-          .attr('y', -this.nodeSize)
-          .attr('x', x)
-          .attr('text-anchor', 'end')
-          .attr('font-weight', 'bold')
-          .text(label);
-
-        nodeEnter
-          .append('text')
-          .attr('dy', '0.32em')
-          .attr('x', x)
-          .attr('text-anchor', 'end')
-          .attr('fill', (d: any) => (d.children ? null : '#555'))
-          .data(this.root.copy().sum(value).descendants())
-          .text((d: any) => this.format(d.value, d));
-      }
-
       node
         .exit()
         .transition()
@@ -262,21 +199,26 @@ export default Vue.extend({
     },
 
     click(this: any, d: any) {
-      //   const that = this;
       const allPaths = [];
       allPaths.push(d.index);
       if (d.parent) {
         if (d.children) {
           d._children = d.children;
           d.children = null;
-          d._children.map((c: any) => allPaths.push(c.index));
+          const allChildren = d.descendants();
+          allChildren[0]['_children'].forEach(function (c: any) {
+            allPaths.push(c.index);
+            c.descendants().forEach((gc: any) => {
+              allPaths.push(gc.index);
+            });
+          });
         } else {
           d.children = d._children;
           d._children = null;
         }
         allPaths.map((p) => d3.selectAll(`path.link${p}`).remove());
         d3.select(this).remove();
-        this.update(d);
+        this.update();
       }
     },
   },
