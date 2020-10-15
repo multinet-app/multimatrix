@@ -10,6 +10,40 @@ import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
 const loginTokenRegex = /#loginToken=(\S+)/;
+
+/**
+ * This function takes a list of nodes and identifies a supernode
+ * and returns a new super node and a list of edges associated with the supernode
+ */
+// function superGraph(nodes: any[], edges: any[]) {
+//   // look through all the nodes and identify if california is a supernode
+//   nodes.forEach((node) => {
+//     // console.log(node);
+//     if (node['ORIGIN_STATE'] === 'California') {
+//       console.log(node);
+//     }
+//   });
+//   console.log(edges);
+// }
+
+// define static method for constructing super nodes
+// function constructSuper(nodes: Array<any>) {
+//   // list for storing all the neighbors of a super node
+//   const superNeighbors = new Set();
+//   console.log('the nodes');
+//   console.log(nodes);
+//   nodes.forEach((element) => {
+//     element['neighbors'].forEach((neighbor: any) => {
+//       superNeighbors.add(neighbor);
+//     });
+//   });
+
+//   console.log('the neighbors of the super node');
+//   console.log(superNeighbors);
+//   const superNeighborList: any[] = [...superNeighbors];
+//   console.log(superNeighborList);
+
+// }
 export default Vue.extend({
   components: {
     AdjMatrix,
@@ -60,6 +94,8 @@ export default Vue.extend({
     this.networkName = networkName;
   },
 
+  // define a static method for computing super nodes
+
   methods: {
     exportNetwork() {
       const a = document.createElement('a');
@@ -102,11 +138,9 @@ export default Vue.extend({
     },
     clickButton() {
       // console.log('clicked the aggregate button');
-      console.log("the nodes in the work");
-      console.log(this.network.nodes);
-      this.network.nodes.forEach(element => {
-        console.log(element["ORIGIN_STATE"]);
-      });
+      console.log('the network data');
+      console.log(this.network);
+      // superGraph(this.network.nodes, this.network.links);
     },
   },
   watch: {
