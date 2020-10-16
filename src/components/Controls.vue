@@ -15,35 +15,64 @@ const loginTokenRegex = /#loginToken=(\S+)/;
  * This function takes a list of nodes and identifies a supernode
  * and returns a new super node and a list of edges associated with the supernode
  */
-// function superGraph(nodes: any[], edges: any[]) {
-//   // look through all the nodes and identify if california is a supernode
-//   nodes.forEach((node) => {
-//     // console.log(node);
-//     if (node['ORIGIN_STATE'] === 'California') {
-//       console.log(node);
-//     }
-//   });
-//   console.log(edges);
-// }
+function superGraph(nodes: any[], edges: any[]) {
+  // print the nodes
+  console.log('the original nodes');
+  console.log(nodes);
+  // print the edges
+  console.log('the original edges');
+  console.log(edges);
 
-// define static method for constructing super nodes
-// function constructSuper(nodes: Array<any>) {
-//   // list for storing all the neighbors of a super node
-//   const superNeighbors = new Set();
-//   console.log('the nodes');
-//   console.log(nodes);
-//   nodes.forEach((element) => {
-//     element['neighbors'].forEach((neighbor: any) => {
-//       superNeighbors.add(neighbor);
-//     });
-//   });
+  // get all the california nodes
+  const californiaNodes = nodes.filter(
+    (node) => node['ORIGIN_STATE'] === 'California',
+  );
 
-//   console.log('the neighbors of the super node');
-//   console.log(superNeighbors);
-//   const superNeighborList: any[] = [...superNeighbors];
-//   console.log(superNeighborList);
+  // get all the non-california nodes
+  const otherNodes = nodes.filter(
+    (node) => node['ORIGIN_STATE'] !== 'California',
+  );
 
-// }
+  console.log('california nodes');
+  console.log(californiaNodes);
+
+  // modify all the california node id and keys
+  californiaNodes.forEach((node) => {
+    node['_key'] = 'CA';
+    node['id'] = 'nodes/CA';
+  });
+
+  // modify all the neighbors of the other nodes to reflect the california super node change
+  otherNodes.forEach((node) => {
+    const nodeNeighbors = node['neighbors'];
+    for (let i = 0; i < nodeNeighbors.length; i++) {
+      if (
+        nodeNeighbors[i] === 'nodes/SFO' ||
+        nodeNeighbors[i] === 'nodes/OAK'
+      ) {
+        nodeNeighbors[i] = 'nodes/CA';
+      }
+    }
+    console.log(node['neighbors']);
+  });
+
+  // update all the edge source and destinations
+  edges.forEach((edge) => {
+    if (edge['source'] === 'nodes/SFO' || edge['source'] === 'nodes/OAK') {
+      edge['source'] = 'nodes/CA';
+    }
+    if (edge['target'] === 'nodes/SFO' || edge['target'] === 'nodes/OAK') {
+      edge['target'] = 'nodes/CA';
+    }
+  });
+  console.log('new edges');
+
+  const newNodes = otherNodes.concat(californiaNodes);
+  const newEdges = edges;
+
+  return { nodes: newNodes, links: newEdges };
+}
+
 export default Vue.extend({
   components: {
     AdjMatrix,
@@ -92,6 +121,9 @@ export default Vue.extend({
     this.network = await loadData(workspace, networkName, host, loginToken);
     this.workspace = workspace;
     this.networkName = networkName;
+
+    // console.log('the network after uploading');
+    // console.log(this.network);
   },
 
   // define a static method for computing super nodes
@@ -138,9 +170,11 @@ export default Vue.extend({
     },
     clickButton() {
       // console.log('clicked the aggregate button');
-      console.log('the network data');
-      console.log(this.network);
-      // superGraph(this.network.nodes, this.network.links);
+      // function that takes the nodes and links and modifies them to create a super node network
+      const superResult = superGraph(this.network.nodes, this.network.links);
+      console.log('the result of the supergraph function');
+      console.log(superResult);
+      console.log('clicked the aggregate button');
     },
   },
   watch: {
@@ -216,8 +250,9 @@ export default Vue.extend({
             </v-card-subtitle>
           </v-card-text>
 
+          <!--button for aggregating by california -->
           <v-card-actions>
-            <v-btn small @click="clickButton">aggregate California</v-btn>
+            <v-btn small @click="clickButton">Aggregate California</v-btn>
           </v-card-actions>
 
           <v-card-actions>
