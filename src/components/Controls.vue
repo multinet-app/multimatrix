@@ -8,6 +8,7 @@ import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
+// import { View } from './AdjMatrix/AdjMatrixMethods';
 
 const loginTokenRegex = /#loginToken=(\S+)/;
 
@@ -121,12 +122,7 @@ export default Vue.extend({
     this.network = await loadData(workspace, networkName, host, loginToken);
     this.workspace = workspace;
     this.networkName = networkName;
-
-    // console.log('the network after uploading');
-    // console.log(this.network);
   },
-
-  // define a static method for computing super nodes
 
   methods: {
     exportNetwork() {
@@ -168,13 +164,16 @@ export default Vue.extend({
 
       return null;
     },
-    clickButton() {
+    clickButton(this: any) {
       // console.log('clicked the aggregate button');
       // function that takes the nodes and links and modifies them to create a super node network
       const superResult = superGraph(this.network.nodes, this.network.links);
-      console.log('the result of the supergraph function');
-      console.log(superResult);
-      console.log('clicked the aggregate button');
+      // console.log('the result of the supergraph function');
+      // console.log(superResult);
+      // console.log('clicked the aggregate button');
+      this.network = superResult;
+
+      // remove visualization and rebuild it
     },
   },
   watch: {
