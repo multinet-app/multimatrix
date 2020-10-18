@@ -12,66 +12,85 @@ import { Network } from '@/types';
 
 const loginTokenRegex = /#loginToken=(\S+)/;
 
-/**
- * This function takes a list of nodes and identifies a supernode
- * and returns a new super node and a list of edges associated with the supernode
- */
+// This function takes a list of nodes and identifies a supernode
+// and returns a new super node and a list of edges associated with the supernode
+
 function superGraph(nodes: any[], edges: any[]) {
+  // build a new list of nodes for a new network
+  const newNodes: any[] = [];
+  nodes.forEach((node: any) => {
+    const newNode: any = {};
+    newNode['ORIGIN'] = node['ORIGIN'];
+    newNode['ORIGIN_CITY'] = node['ORIGIN_CITY'];
+    newNode['ORIGIN_STATE'] = node['ORIGIN_STATE'];
+    newNode['_key'] = node['_key'];
+    newNode['_id'] = node['id'];
+    newNode['parent'] = undefined;
+    console.log(newNode);
+    newNodes.push(newNode);
+  });
+
+  // Construct a supernode using the node interface and add some more fields
+  const californiaSuperNode: any = {};
+  californiaSuperNode['_key'] = 'CA';
+  californiaSuperNode['ORIGIN_STATE'] = 'California';
+  californiaSuperNode['ORIGIN'] = 'California';
+  californiaSuperNode['_id'] = 'supernodes/CA';
+  californiaSuperNode['children'] = [];
+
+  // add the super node
+  newNodes.push(californiaSuperNode);
+
+  // add an index
+  for (let index = 0; index < newNodes.length; index++) {
+    newNodes[index]['index'] = index;
+  }
+
+  const superIndex = newNodes.findIndex(
+    (node: any) => node['_id'] === 'supernodes/CA',
+  );
+  console.log('The value of the index is: ', superIndex);
+
+  newNodes.forEach((node) => {
+    if (
+      node['_id'] !== 'supernodes/CA' &&
+      node['ORIGIN_STATE'] === 'California'
+    ) {
+      node['parent'] = superIndex;
+      newNodes[superIndex]['children'].push(node['index']);
+    }
+  });
+
+  console.log('THE NEW NODE LIST');
+  console.log(newNodes);
+
+  // // print the list of new nodes
+  // console.log('the new nodes');
+  // console.log(newNodes);
   // print the nodes
-  console.log('the original nodes');
-  console.log(nodes);
-  // print the edges
+  // console.log('the original nodes');
+  // console.log(nodes);
+  // // print the edges
   console.log('the original edges');
   console.log(edges);
 
-  // get all the california nodes
-  const californiaNodes = nodes.filter(
-    (node) => node['ORIGIN_STATE'] === 'California',
-  );
 
-  // get all the non-california nodes
-  const otherNodes = nodes.filter(
-    (node) => node['ORIGIN_STATE'] !== 'California',
-  );
+  // // update all the edge source and destinations
+  // edges.forEach((edge) => {
+  //   if (edge['source'] === 'nodes/SFO' || edge['source'] === 'nodes/OAK') {
+  //     edge['source'] = 'nodes/CA';
+  //   }
+  //   if (edge['target'] === 'nodes/SFO' || edge['target'] === 'nodes/OAK') {
+  //     edge['target'] = 'nodes/CA';
+  //   }
+  // });
+  // console.log('new edges');
+  // console.log(edges);
 
-  console.log('california nodes');
-  console.log(californiaNodes);
+  // const newNodes = otherNodes.concat(californiaNodes);
+  // const newEdges = edges;
 
-  // modify all the california node id and keys
-  californiaNodes.forEach((node) => {
-    node['_key'] = 'CA';
-    node['id'] = 'nodes/CA';
-  });
-
-  // modify all the neighbors of the other nodes to reflect the california super node change
-  otherNodes.forEach((node) => {
-    const nodeNeighbors = node['neighbors'];
-    for (let i = 0; i < nodeNeighbors.length; i++) {
-      if (
-        nodeNeighbors[i] === 'nodes/SFO' ||
-        nodeNeighbors[i] === 'nodes/OAK'
-      ) {
-        nodeNeighbors[i] = 'nodes/CA';
-      }
-    }
-    console.log(node['neighbors']);
-  });
-
-  // update all the edge source and destinations
-  edges.forEach((edge) => {
-    if (edge['source'] === 'nodes/SFO' || edge['source'] === 'nodes/OAK') {
-      edge['source'] = 'nodes/CA';
-    }
-    if (edge['target'] === 'nodes/SFO' || edge['target'] === 'nodes/OAK') {
-      edge['target'] = 'nodes/CA';
-    }
-  });
-  console.log('new edges');
-
-  const newNodes = otherNodes.concat(californiaNodes);
-  const newEdges = edges;
-
-  return { nodes: newNodes, links: newEdges };
+  // return { nodes: newNodes, links: newEdges };
 }
 
 export default Vue.extend({
@@ -167,11 +186,11 @@ export default Vue.extend({
     clickButton(this: any) {
       // console.log('clicked the aggregate button');
       // function that takes the nodes and links and modifies them to create a super node network
-      const superResult = superGraph(this.network.nodes, this.network.links);
+      superGraph(this.network.nodes, this.network.links);
       // console.log('the result of the supergraph function');
       // console.log(superResult);
       // console.log('clicked the aggregate button');
-      this.network = superResult;
+      // this.network = superResult;
 
       // remove visualization and rebuild it
     },

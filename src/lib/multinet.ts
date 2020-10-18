@@ -32,11 +32,10 @@ async function _downloadAllRows(
     });
     output = output.concat(table.rows);
   }
-
   return output;
 }
 
-function _renameLinkVars(links: any[]): Link[] {
+export function _renameLinkVars(links: any[]): Link[] {
   for (const row of links) {
     row.id = row._id;
     row.source = row._from;
@@ -49,15 +48,16 @@ function _renameLinkVars(links: any[]): Link[] {
   return links;
 }
 
-function _renameNodeVars(nodes: any[]): Node[] {
+export function _renameNodeVars(nodes: any[]): Node[] {
   for (const row of nodes) {
+    // console.log(row);
     row.id = row._id;
     delete row._id;
   }
   return nodes;
 }
 
-function _defineNeighbors(nodes: any[], links: any[]) {
+export function _defineNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   for (const link of links) {
     nodes.filter((d: Node) => d._id === link._from)[0].neighbors.push(link._to);

@@ -86,7 +86,7 @@ export default Vue.extend({
     },
     network() {
       this.changeMatrix();
-    }
+    },
   },
 
   async mounted(this: any) {
