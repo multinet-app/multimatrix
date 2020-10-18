@@ -6,7 +6,12 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
-import { loadData } from '@/lib/multinet';
+import {
+  loadData,
+  _renameNodeVars,
+  _renameLinkVars,
+  _defineNeighbors,
+} from '@/lib/multinet';
 import { Network } from '@/types';
 // import { View } from './AdjMatrix/AdjMatrixMethods';
 
@@ -60,15 +65,15 @@ function superGraph(nodes: any[], edges: any[]) {
     }
   });
 
-  console.log('THE NEW NODE LIST');
-  console.log(newNodes);
+  // console.log('THE NEW NODE LIST');
+  // console.log(newNodes);
 
   // node dictionary
   const newNodeDict: any = {};
   newNodes.forEach((node) => {
     newNodeDict[node['_id']] = node['parent'];
   });
-  console.log(newNodeDict);
+  // console.log(newNodeDict);
 
   // construct new edges
   const newLinks: any = [];
@@ -92,11 +97,10 @@ function superGraph(nodes: any[], edges: any[]) {
   });
 
   // update all the source and destinations
-  newLinks.forEach((link:any) => {
+  newLinks.forEach((link: any) => {
     const linkFrom = link['_from'];
     const linkTo = link['_to'];
     if (newNodeDict[linkFrom] != undefined) {
-      console.log(newNodeDict[linkFrom]);
       const index = newNodeDict[linkFrom];
       const newLinkFrom = newNodes[index]['_id'];
       link['_from'] = newLinkFrom;
@@ -108,35 +112,36 @@ function superGraph(nodes: any[], edges: any[]) {
     }
   });
 
-  console.log('NEW LINKS!!!');
-  console.log(newLinks);
+  // update the edge id of the links
+  for (let index = 0; index < newLinks.length; index++) {
+    const edgeName = 'edges/' + index;
+    newLinks[index]['_id'] = edgeName;
+  }
 
-  // // print the list of new nodes
-  // console.log('the new nodes');
-  // console.log(newNodes);
-  // print the nodes
+  // construct the neighbors for the nodes
+  const neighborNodes = _defineNeighbors(newNodes, newLinks);
+  console.log('THE NEIGHBOR NODES');
+  console.log(neighborNodes);
+
+  // construct the new network
+  const network = {
+    nodes: _renameNodeVars(neighborNodes),
+    links: _renameLinkVars(newLinks),
+  };
+
+  // console.log("THE NEW NETWORK!!!");
+  // console.log(network);
+  // // // print the list of new nodes
+  // // console.log('the new nodes');
+  // // console.log(newNodes);
+  // // print the nodes
   // console.log('the original nodes');
   // console.log(nodes);
-  // // print the edges
-  console.log('the original edges');
-  console.log(edges);
-
-  // // update all the edge source and destinations
-  // edges.forEach((edge) => {
-  //   if (edge['source'] === 'nodes/SFO' || edge['source'] === 'nodes/OAK') {
-  //     edge['source'] = 'nodes/CA';
-  //   }
-  //   if (edge['target'] === 'nodes/SFO' || edge['target'] === 'nodes/OAK') {
-  //     edge['target'] = 'nodes/CA';
-  //   }
-  // });
-  // console.log('new edges');
+  // // // print the edges
+  // console.log('the original edges');
   // console.log(edges);
 
-  // const newNodes = otherNodes.concat(californiaNodes);
-  // const newEdges = edges;
-
-  // return { nodes: newNodes, links: newEdges };
+  return network;
 }
 
 export default Vue.extend({
@@ -232,13 +237,11 @@ export default Vue.extend({
     clickButton(this: any) {
       // console.log('clicked the aggregate button');
       // function that takes the nodes and links and modifies them to create a super node network
-      superGraph(this.network.nodes, this.network.links);
-      // console.log('the result of the supergraph function');
+      const superResult = superGraph(this.network.nodes, this.network.links);
+      console.log('the result of the supergraph function');
       // console.log(superResult);
       // console.log('clicked the aggregate button');
-      // this.network = superResult;
-
-      // remove visualization and rebuild it
+      this.network = superResult;
     },
   },
   watch: {
