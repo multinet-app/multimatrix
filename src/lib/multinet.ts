@@ -50,7 +50,6 @@ export function _renameLinkVars(links: any[]): Link[] {
 
 export function _renameNodeVars(nodes: any[]): Node[] {
   for (const row of nodes) {
-    // console.log(row);
     row.id = row._id;
     delete row._id;
   }

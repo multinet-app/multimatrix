@@ -26,15 +26,14 @@ function superGraph(nodes: any[], edges: any[]) {
     newNode['_key'] = node['_key'];
     newNode['_id'] = node['id'];
     newNode['parent'] = undefined;
-    console.log(newNode);
     newNodes.push(newNode);
   });
 
   // Construct a supernode using the node interface and add some more fields
   const californiaSuperNode: any = {};
-  californiaSuperNode['_key'] = 'CA';
+  californiaSuperNode['ORIGIN'] = 'CA';
   californiaSuperNode['ORIGIN_STATE'] = 'California';
-  californiaSuperNode['ORIGIN'] = 'California';
+  californiaSuperNode['_key'] = 'CA';
   californiaSuperNode['_id'] = 'supernodes/CA';
   californiaSuperNode['children'] = [];
 
@@ -46,10 +45,10 @@ function superGraph(nodes: any[], edges: any[]) {
     newNodes[index]['index'] = index;
   }
 
+  // find the index of the super node
   const superIndex = newNodes.findIndex(
     (node: any) => node['_id'] === 'supernodes/CA',
   );
-  console.log('The value of the index is: ', superIndex);
 
   newNodes.forEach((node) => {
     if (
@@ -64,6 +63,54 @@ function superGraph(nodes: any[], edges: any[]) {
   console.log('THE NEW NODE LIST');
   console.log(newNodes);
 
+  // node dictionary
+  const newNodeDict: any = {};
+  newNodes.forEach((node) => {
+    newNodeDict[node['_id']] = node['parent'];
+  });
+  console.log(newNodeDict);
+
+  // construct new edges
+  const newLinks: any = [];
+  edges.forEach((link) => {
+    const newLink: any = {};
+    newLink['_key'] = link['_key'];
+    newLink['_from'] = link['source'];
+    newLink['_to'] = link['target'];
+    newLink['ORIGIN_STATE'] = link['ORIGIN_STATE'];
+    newLink['DEST_STATE'] = link['DEST_STATE'];
+    newLink['AIR_TIME_MEDIAN'] = link['AIR_TIME_MEDIAN'];
+    newLink['AIR_TIME_MEAN'] = link['AIR_TIME_MEAN'];
+    newLink['DEP_DELAY_MAX'] = link['DEP_DELAY_MAX'];
+    newLink['AIR_TIME_MAX'] = link['AIR_TIME_MAX'];
+    newLink['AIRLINE'] = link['AIRLINE'];
+    newLink['AIR_TIME_MIN'] = link['AIR_TIME_MIN'];
+    newLink['DEP_DELAY_MEDIAN'] = link['DEP_DELAY_MEDIAN'];
+    newLink['DEP_DELAY_MEAN'] = link['DEP_DELAY_MEAN'];
+    newLink['DEP_DELAY_MIN'] = link['DEP_DELAY_MIN'];
+    newLinks.push(newLink);
+  });
+
+  // update all the source and destinations
+  newLinks.forEach((link:any) => {
+    const linkFrom = link['_from'];
+    const linkTo = link['_to'];
+    if (newNodeDict[linkFrom] != undefined) {
+      console.log(newNodeDict[linkFrom]);
+      const index = newNodeDict[linkFrom];
+      const newLinkFrom = newNodes[index]['_id'];
+      link['_from'] = newLinkFrom;
+    }
+    if (newNodeDict[linkTo] != undefined) {
+      const index = newNodeDict[linkTo];
+      const newLinkTo = newNodes[index]['_id'];
+      link['_to'] = newLinkTo;
+    }
+  });
+
+  console.log('NEW LINKS!!!');
+  console.log(newLinks);
+
   // // print the list of new nodes
   // console.log('the new nodes');
   // console.log(newNodes);
@@ -73,7 +120,6 @@ function superGraph(nodes: any[], edges: any[]) {
   // // print the edges
   console.log('the original edges');
   console.log(edges);
-
 
   // // update all the edge source and destinations
   // edges.forEach((edge) => {
