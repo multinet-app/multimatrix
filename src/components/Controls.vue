@@ -118,10 +118,13 @@ function superGraph(nodes: any[], edges: any[]) {
     newLinks[index]['_id'] = edgeName;
   }
 
+  // console.log("THE NEW LINKS!!!!");
+  // console.log(newLinks);
+
   // construct the neighbors for the nodes
   const neighborNodes = _defineNeighbors(newNodes, newLinks);
-  console.log('THE NEIGHBOR NODES');
-  console.log(neighborNodes);
+  // console.log('THE NEIGHBOR NODES');
+  // console.log(neighborNodes);
 
   // construct the new network
   const network = {
@@ -238,7 +241,7 @@ export default Vue.extend({
       // console.log('clicked the aggregate button');
       // function that takes the nodes and links and modifies them to create a super node network
       const superResult = superGraph(this.network.nodes, this.network.links);
-      console.log('the result of the supergraph function');
+      // console.log('the result of the supergraph function');
       // console.log(superResult);
       // console.log('clicked the aggregate button');
       this.network = superResult;
