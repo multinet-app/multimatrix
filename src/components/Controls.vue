@@ -114,7 +114,7 @@ function superGraph(nodes: any[], edges: any[]) {
 
   // update the edge id of the links
   for (let index = 0; index < newLinks.length; index++) {
-    const edgeName = 'edges/' + index;
+    const edgeName = `edges/${index}`;
     newLinks[index]['_id'] = edgeName;
   }
 
