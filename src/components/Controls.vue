@@ -6,12 +6,7 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
-import {
-  loadData,
-  //renameNodeVars,
-  //renameLinkVars,
-  //defineNeighbors,
-} from '@/lib/multinet';
+import { loadData, defineSuperNeighbors } from '@/lib/multinet';
 import { Network } from '@/types';
 // import { View } from './AdjMatrix/AdjMatrixMethods';
 
@@ -23,28 +18,29 @@ const loginTokenRegex = /#loginToken=(\S+)/;
 // in the network
 function superGraph(nodes: any[], edges: any[]) {
   // print the original nodes and edges
-  console.log('THE ORIGINAL NODES');
-  console.log(nodes);
-  console.log('THE ORIGINAL EDGES');
-  console.log(edges);
+  // console.log('THE ORIGINAL NODES');
+  // console.log(nodes);
+  // console.log('THE ORIGINAL EDGES');
+  // console.log(edges);
 
   // de-construct nodes into their original components and
   // make a new list of nodes
   const newNodes: any[] = [];
   nodes.forEach((node, index) => {
-    const newNode = Object.assign(node);
+    const newNode = {
+      ...node,
+      // add new attributes for the new nodes
+      // parent - attribute for identifying the supernode parent
+      // index - attribute for keeping track of the index for visualizing the network
+      parent: undefined,
+      index: index,
+    };
 
     // remove the properties that will not be used
     // and properties that will be recalculated for visualization
     delete newNode._rev;
     delete newNode.index;
     delete newNode.neighbors;
-
-    // add new attributes for the new nodes
-    // parent - attribute for identifying the supernode parent
-    // index - attribute for keeping track of the index for visualizing the network
-    newNode.parent = undefined;
-    newNode.index = index;
 
     // add new node to node list
     newNodes.push(newNode);
@@ -53,25 +49,33 @@ function superGraph(nodes: any[], edges: any[]) {
     // console.log("NEW NODE");
     // console.log(newNode)
   });
-
-  // create a new supernode
+  // create a new supernode and a new super node list
+  const superNodes: any[] = [];
   const californiaSuperNode: any = {};
   californiaSuperNode.ORIGIN = [];
   californiaSuperNode.ORIGIN_STATE = 'California';
   californiaSuperNode._key = 'CA';
   californiaSuperNode.id = 'supernodes/CA';
-  californiaSuperNode.index = 0;
+  superNodes.push(californiaSuperNode);
 
-  // print information about the California super node
-  // console.log("CALIFORNIA SUPER NODE");
-  // console.log(californiaSuperNode);
+  // update the index attribute of a superNode
+  superNodes.forEach((superNode, index) => {
+    superNode.index = index;
+  });
+
+  // print information about the super node list
+  // console.log("THE SUPER NODE LIST");
+  // console.log(superNodes);
 
   // update the parent field of the node if it has a super node with the super node id
   // update the super node origin list with the child node id
   newNodes.forEach((node) => {
     if (node.ORIGIN_STATE === 'California') {
-      node.parent = californiaSuperNode.id;
-      californiaSuperNode.ORIGIN.push(node.id);
+      const superNode = superNodes.find(
+        (superNode) => superNode.ORIGIN_STATE === 'California',
+      );
+      node.parent = superNode.id;
+      superNode.ORIGIN.push(node.id);
     }
   });
 
@@ -79,73 +83,94 @@ function superGraph(nodes: any[], edges: any[]) {
   // console.log("UPDATED NODE LIST WITH PARENT FIELD VALUE");
   // console.log(newNodes);
   // console.log("UPDATE SUPER NODE WITH ORIGIN INFORMATION");
-  // console.log(californiaSuperNode);
+  // console.log(superNodes);
 
+  // create a dictionary that stores information about nodes and their parents
+  // for re-routing the links between nodes and supernodes
+  const nodeParentDict: any = {};
+  newNodes.forEach((node) => {
+    nodeParentDict[node.id] = node.parent;
+  });
 
-  //   // node dictionary for looking up parents for re-routing edges to supernode
-  //   const newNodeDict: any = {};
-  //   newNodes.forEach((node) => {
-  //     newNodeDict[node['_id']] = node['parent'];
-  //   });
-  //   // console.log("PARENT DICTIONARY");
-  //   // console.log(newNodeDict);
+  // // print information about the node-parent dictionary
+  // console.log('PARENT DICTIONARY');
+  // console.log(nodeParentDict);
 
-  //   // construct new edges
-  //   const newLinks: any = [];
-  //   edges.forEach((link) => {
-  //     const newLink: any = {};
-  //     newLink['_key'] = link['_key'];
-  //     newLink['_from'] = link['source'];
-  //     newLink['_to'] = link['target'];
-  //     newLink['ORIGIN_STATE'] = link['ORIGIN_STATE'];
-  //     newLink['DEST_STATE'] = link['DEST_STATE'];
-  //     newLink['AIR_TIME_MEDIAN'] = link['AIR_TIME_MEDIAN'];
-  //     newLink['AIR_TIME_MEAN'] = link['AIR_TIME_MEAN'];
-  //     newLink['DEP_DELAY_MAX'] = link['DEP_DELAY_MAX'];
-  //     newLink['AIR_TIME_MAX'] = link['AIR_TIME_MAX'];
-  //     newLink['AIRLINE'] = link['AIRLINE'];
-  //     newLink['AIR_TIME_MIN'] = link['AIR_TIME_MIN'];
-  //     newLink['DEP_DELAY_MEDIAN'] = link['DEP_DELAY_MEDIAN'];
-  //     newLink['DEP_DELAY_MEAN'] = link['DEP_DELAY_MEAN'];
-  //     newLink['DEP_DELAY_MIN'] = link['DEP_DELAY_MIN'];
-  //     newLinks.push(newLink);
-  //   });
+  // de-construct edges into their original components and
+  // make a new list of edges for the supergraph network
+  const newLinks: any = [];
+  edges.forEach((link, index) => {
+    const newLink = {
+      ...link,
+    };
 
-  //   // update all the source and destinations
-  //   newLinks.forEach((link: any) => {
-  //     const linkFrom = link['_from'];
-  //     const linkTo = link['_to'];
-  //     if (newNodeDict[linkFrom] != undefined) {
-  //       const index = newNodeDict[linkFrom];
-  //       const newLinkFrom = newNodes[index]['_id'];
-  //       link['_from'] = newLinkFrom;
-  //     }
-  //     if (newNodeDict[linkTo] != undefined) {
-  //       const index = newNodeDict[linkTo];
-  //       const newLinkTo = newNodes[index]['_id'];
-  //       link['_to'] = newLinkTo;
-  //     }
-  //   });
+    // remove attributes that will be re-calculated for the links
+    // and attributes that are not used for aggregation/visualization
+    delete newLink._rev;
 
-  //   // update the edge id of the links
-  //   for (let index = 0; index < newLinks.length; index++) {
-  //     const edgeName = 'edges/' + index;
-  //     newLinks[index]['_id'] = edgeName;
-  //   }
+    // add new attributes for the new links
+    // id - attribute for visualization and determining the neighbors for the network
+    newLink.index = 'edges/' + index;
 
-  //   // console.log("THE NEW LINKS!!!!");
-  //   // console.log(newLinks);
+    newLinks.push(newLink);
 
-  //   // construct the neighbors for the nodes
-  //   const neighborNodes = _defineNeighbors(newNodes, newLinks);
-  //   // console.log('THE NEIGHBOR NODES');
-  //   // console.log(neighborNodes);
+    // print information about the new link
+    // console.log("NEW LINK");
+    // console.log(newLink);
+  });
 
-  //   // construct the new network
-  //   const network = {
-  //     nodes: _renameNodeVars(neighborNodes),
-  //     links: _renameLinkVars(newLinks),
-  //   };
+  // update the _from, _to values and in attribute values for target and source
+  // which are needed for using d3 to visualize the network
+  newLinks.forEach((link: any) => {
+    const linkFrom = link._from;
+    const linkTo = link._to;
+    if (nodeParentDict[linkFrom] != undefined) {
+      const newLinkFrom = nodeParentDict[linkFrom];
+      link._from = newLinkFrom;
+      link.source = link._from;
+    }
+    if (nodeParentDict[linkTo] != undefined) {
+      const newLinkTo = nodeParentDict[linkTo];
+      link._to = newLinkTo;
+      link.target = link._to;
+    }
+  });
+
+  // print information about the new links and new nodes
+  // console.log('NEW NODES');
+  // console.log(newNodes);
+  // console.log('NEW LINKS');
+  // console.log(newLinks);
+
+  // combine the superNodes with the new nodes before updating all the neighbors
+  const combinedNodes = superNodes.concat(newNodes);
+
+  // print information about combined nodes
+  // console.log("THE COMBINED NODES");
+  // console.log(combinedNodes);
+
+  // construct the neighbors for the nodes
+  const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
+
+  // print information about the neighbor nodes
+  // console.log('THE NEIGHBOR NODES');
+  // console.log(neighborNodes);
+
+  // remove the parent node property
+  neighborNodes.forEach((node) => {
+    delete node.parent;
+  });
+
+  // remove all the nodes who do not have any neighbors
+  const finalNodes = neighborNodes.filter((node) => node.neighbors.length != 0);
+
+  // construct the new network
+  const network = {
+    nodes: finalNodes,
+    links: newLinks,
+  };
+
+  return network;
 }
 
 export default Vue.extend({
@@ -242,13 +267,14 @@ export default Vue.extend({
       // print that the button was clicked
       // console.log('clicked the aggregate button');
 
+      // call the super graph function and print stuff
+      // const superNetwork = superGraph(this.network.nodes, this.network.links);
+      // // console.log(superNetwork);
+
       // call the supergraph function to generate the new nodes and the new edges for the super graph
       // assign to a variable that can update the network which updates the visualization
-      // const superResult = superGraph(this.network.nodes, this.network.links);
-      // this.network = superResult;
-
-      // call the super graph function and print stuff
-      superGraph(this.network.nodes, this.network.links);
+      const superNetwork = superGraph(this.network.nodes, this.network.links);
+      this.network = superNetwork;
     },
   },
   watch: {

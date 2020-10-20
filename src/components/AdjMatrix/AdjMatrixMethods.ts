@@ -97,11 +97,6 @@ export class View {
       },
     };
 
-    // remove all the nodes who do not have any neighbors
-    this.network.nodes = this.network.nodes.filter(
-      (node) => node['neighbors'].length != 0,
-    );
-
     this.network.nodes.forEach((node: Node, index: number) => {
       node.index = index;
       this.idMap[node.id] = index;

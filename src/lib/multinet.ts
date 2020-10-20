@@ -37,7 +37,7 @@ async function _downloadAllRows(
 
 // Function to refactor link properties to visualize links with d3
 // keep the _from and _to fields to make it easier to folllow the multinet data format
-export function renameLinkVars(links: any[]): Link[] {
+export function _renameLinkVars(links: any[]): Link[] {
   for (const row of links) {
     row.id = row._id;
     row.source = row._from;
@@ -51,7 +51,7 @@ export function renameLinkVars(links: any[]): Link[] {
 }
 
 // Function that refactors node id property for visualizing nodes with d3
-export function renameNodeVars(nodes: any[]): Node[] {
+function _renameNodeVars(nodes: any[]): Node[] {
   for (const row of nodes) {
     row.id = row._id;
     delete row._id;
@@ -60,11 +60,21 @@ export function renameNodeVars(nodes: any[]): Node[] {
 }
 
 // Function that constructs the neighbors for a node in a network
-export function defineNeighbors(nodes: any[], links: any[]) {
+function _defineNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   for (const link of links) {
     nodes.filter((d: Node) => d._id === link._from)[0].neighbors.push(link._to);
     nodes.filter((d: Node) => d._id === link._to)[0].neighbors.push(link._from);
+  }
+  return nodes;
+}
+
+// Function that constructs the neighbors for a node in a super network
+export function defineSuperNeighbors(nodes: any[], links: any[]) {
+  nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
+  for (const link of links) {
+    nodes.filter((d: Node) => d.id === link._from)[0].neighbors.push(link._to);
+    nodes.filter((d: Node) => d.id === link._to)[0].neighbors.push(link._from);
   }
   return nodes;
 }
@@ -113,12 +123,12 @@ export async function loadData(
   );
 
   // Define neighbors
-  multinet.nodes = defineNeighbors(multinet.nodes, multinet.links);
+  multinet.nodes = _defineNeighbors(multinet.nodes, multinet.links);
 
   // Set the network
   multinet.network = {
-    nodes: renameNodeVars(multinet.nodes),
-    links: renameLinkVars(multinet.links),
+    nodes: _renameNodeVars(multinet.nodes),
+    links: _renameLinkVars(multinet.links),
   };
 
   return multinet.network;
