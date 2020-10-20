@@ -35,20 +35,23 @@ async function _downloadAllRows(
   return output;
 }
 
-export function _renameLinkVars(links: any[]): Link[] {
+// Function to refactor link properties to visualize links with d3
+// keep the _from and _to fields to make it easier to folllow the multinet data format
+export function renameLinkVars(links: any[]): Link[] {
   for (const row of links) {
     row.id = row._id;
     row.source = row._from;
     row.target = row._to;
 
     delete row._id;
-    delete row._from;
-    delete row._to;
+    // delete row._from;
+    // delete row._to;
   }
   return links;
 }
 
-export function _renameNodeVars(nodes: any[]): Node[] {
+// Function that refactors node id property for visualizing nodes with d3
+export function renameNodeVars(nodes: any[]): Node[] {
   for (const row of nodes) {
     row.id = row._id;
     delete row._id;
@@ -56,7 +59,8 @@ export function _renameNodeVars(nodes: any[]): Node[] {
   return nodes;
 }
 
-export function _defineNeighbors(nodes: any[], links: any[]) {
+// Function that constructs the neighbors for a node in a network
+export function defineNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   for (const link of links) {
     nodes.filter((d: Node) => d._id === link._from)[0].neighbors.push(link._to);
@@ -109,12 +113,12 @@ export async function loadData(
   );
 
   // Define neighbors
-  multinet.nodes = _defineNeighbors(multinet.nodes, multinet.links);
+  multinet.nodes = defineNeighbors(multinet.nodes, multinet.links);
 
   // Set the network
   multinet.network = {
-    nodes: _renameNodeVars(multinet.nodes),
-    links: _renameLinkVars(multinet.links),
+    nodes: renameNodeVars(multinet.nodes),
+    links: renameLinkVars(multinet.links),
   };
 
   return multinet.network;
