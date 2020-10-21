@@ -1,5 +1,11 @@
 /* The View displays the data given to it by the model. */
-import { scaleBand, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
+import {
+  scaleBand,
+  ScaleLinear,
+  scaleLinear,
+  scaleOrdinal,
+  ScaleBand,
+} from 'd3-scale';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
@@ -30,6 +36,10 @@ export class View {
   };
   private attributes: any;
   private orderingScale: ScaleBand<number> = scaleBand<number>();
+  public colorScale: ScaleLinear<string, number> = scaleLinear<
+    string,
+    number
+  >();
   private edgeRows: any;
   private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
@@ -333,7 +343,7 @@ export class View {
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill-opacity', 0);
 
-    const cellColorScale = scaleLinear<string>()
+    this.colorScale
       .domain([0, this.maxNumConnections])
       .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
@@ -352,7 +362,7 @@ export class View {
       .attr('width', this.cellSize - 2)
       .attr('height', this.cellSize - 2)
       .attr('rx', cellRadius)
-      .style('fill', (d: Cell) => cellColorScale(d.z))
+      .style('fill', (d: Cell) => this.colorScale(d.z))
       .style('fill-opacity', (d: Cell) => d.z)
       .on('mouseover', (d: Cell, i: number, nodes: any) => {
         this.showToolTip(d, i, nodes);
