@@ -34,6 +34,10 @@ export default Vue.extend({
         height: 0,
         width: 0,
       },
+      visDimensions: {
+        height: 0,
+        width: 0,
+      },
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrix: undefined,
       attributes: undefined,
@@ -133,10 +137,12 @@ export default Vue.extend({
     },
     changeMatrix(this: any) {
       d3.select('#matrix').selectAll('*').remove();
+
       this.browser.width =
         window.innerWidth ||
         document.documentElement.clientWidth ||
         document.body.clientWidth;
+
       this.browser.height =
         window.innerHeight ||
         document.documentElement.clientHeight ||
@@ -150,6 +156,7 @@ export default Vue.extend({
         .attr('width', this.matrixWidth)
         .attr('height', this.matrixHeight)
         .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
+
       this.attributes = d3
         .select(this.$refs.attributes)
         .attr('width', this.attributesWidth)
@@ -158,6 +165,7 @@ export default Vue.extend({
           'viewBox',
           `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
         );
+
       this.view = new View(
         this.network,
         this.visualizedAttributes,

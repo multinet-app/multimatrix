@@ -10,8 +10,6 @@ import { loadData, defineSuperNeighbors } from '@/lib/multinet';
 import { Network } from '@/types';
 // import { View } from './AdjMatrix/AdjMatrixMethods';
 
-const loginTokenRegex = /#loginToken=(\S+)/;
-
 // This function takes the original nodes and edges from the network
 // and creates a new list of supernodes and a new list of edges
 // to reflect the connections between a supernode and the original nodes
@@ -171,6 +169,9 @@ export default Vue.extend({
     selectNeighbors: boolean;
     showGridLines: boolean;
     visualizedAttributes: string[];
+    nodeEditor: boolean;
+    // connectivity is left with type any since it is a temp object in our AQL example
+    connectivity: any;
   } {
     return {
       network: {
@@ -182,6 +183,22 @@ export default Vue.extend({
       selectNeighbors: true,
       showGridLines: true,
       visualizedAttributes: [],
+      nodeEditor: false,
+      connectivity: {
+        node1: {
+          type: '',
+          value: '',
+        },
+        hop: {
+          type: '',
+          operator: '',
+          value: '',
+        },
+        node2: {
+          type: '',
+          value: '',
+        },
+      },
     };
   },
 
@@ -202,9 +219,8 @@ export default Vue.extend({
         `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
       );
     }
-    const loginToken = this.checkUrlForLogin();
 
-    this.network = await loadData(workspace, networkName, host, loginToken);
+    this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
   },
@@ -235,19 +251,6 @@ export default Vue.extend({
         .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);
-    },
-    checkUrlForLogin(this: any): string | null {
-      const result = loginTokenRegex.exec(window.location.href);
-
-      if (result !== null) {
-        const { index, 1: token } = result;
-
-        const newPath = window.location.href.slice(0, index);
-        window.history.replaceState({}, window.document.title, newPath);
-        return token;
-      }
-
-      return null;
     },
     clickButton(this: any) {
       // print that the button was clicked
@@ -369,7 +372,64 @@ export default Vue.extend({
 </template>
 
 <style scoped>
+.app-logo {
+  width: 48px;
+}
+
+.row-number {
+  align-items: center;
+  border-radius: 100px;
+  display: flex;
+  font-size: 12px;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.workspaces {
+  /* 171px = height of app-bar + workspace button + list subheader */
+  height: calc(100vh - 171px);
+  overflow-y: scroll;
+}
+
+.workspace-icon {
+  opacity: 0.4;
+}
+
+sm {
+  font-size: 10px;
+  font-weight: 300;
+  font-style: italic;
+}
+
 .v-card {
   max-height: calc(100vh - 24px);
+}
+
+.manage-panels {
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.manage-panels .v-expansion-panel:nth-child(odd) {
+  background: #f7f7f7;
+}
+
+.panel-icons {
+  width: 24px !important;
+}
+
+.multinet-title {
+  line-height: 0.7em;
+  padding-top: 16px;
+}
+</style>
+
+<style>
+.app-sidebar .v-navigation-drawer__content {
+  overflow: hidden;
+}
+.add-hops {
+  border-right: 1px solid #ccc !important;
 }
 </style>
