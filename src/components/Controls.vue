@@ -111,7 +111,7 @@ function superGraph(nodes: any[], edges: any[]) {
 
     // add new attributes for the new links
     // id - attribute for visualization and determining the neighbors for the network
-    newLink.index = 'edges/' + index;
+    newLink.index = `edges/${index}`;
 
     newLinks.push(newLink);
 
