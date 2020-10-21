@@ -30,9 +30,7 @@ function superGraph(nodes: any[], edges: any[]) {
     const newNode = {
       ...node,
       // add new attributes for the new nodes
-      // parent - attribute for identifying the supernode parent
       // index - attribute for keeping track of the index for visualizing the network
-      parent: undefined,
       index: index,
     };
 
@@ -80,23 +78,6 @@ function superGraph(nodes: any[], edges: any[]) {
     }
   });
 
-  // print the updated new node list and the updated super node information
-  // console.log("UPDATED NODE LIST WITH PARENT FIELD VALUE");
-  // console.log(newNodes);
-  // console.log("UPDATE SUPER NODE WITH ORIGIN INFORMATION");
-  // console.log(superNodes);
-
-  // create a dictionary that stores information about nodes and their parents
-  // for re-routing the links between nodes and supernodes
-  const nodeParentDict: any = {};
-  newNodes.forEach((node) => {
-    nodeParentDict[node.id] = node.parent;
-  });
-
-  // // print information about the node-parent dictionary
-  // console.log('PARENT DICTIONARY');
-  // console.log(nodeParentDict);
-
   // de-construct edges into their original components and
   // make a new list of edges for the supergraph network
   const newLinks: any = [];
@@ -120,21 +101,30 @@ function superGraph(nodes: any[], edges: any[]) {
     // console.log(newLink);
   });
 
+  // // print information about the new links
+  // console.log('NEW LINKS');
+  // console.log(newLinks);
+
   // update the _from, _to values and in attribute values for target and source
   // which are needed for using d3 to visualize the network
   newLinks.forEach((link: any) => {
     const linkFrom = link._from;
     const linkTo = link._to;
-    if (nodeParentDict[linkFrom] != undefined) {
-      const newLinkFrom = nodeParentDict[linkFrom];
-      link._from = newLinkFrom;
-      link.source = link._from;
-    }
-    if (nodeParentDict[linkTo] != undefined) {
-      const newLinkTo = nodeParentDict[linkTo];
-      link._to = newLinkTo;
-      link.target = link._to;
-    }
+    superNodes.forEach((superNode) => {
+      // check if the _from and _to are in the origin list
+      superNode.ORIGIN.forEach((origin: any) => {
+        if (linkFrom === origin) {
+          const newLinkFrom = superNode.id;
+          link._from = newLinkFrom;
+          link.source = link._from;
+        }
+        if (linkTo === origin) {
+          const newLinkTo = superNode.id;
+          link._to = newLinkTo;
+          link.target = link._to;
+        }
+      });
+    });
   });
 
   // print information about the new links and new nodes
@@ -156,11 +146,6 @@ function superGraph(nodes: any[], edges: any[]) {
   // print information about the neighbor nodes
   // console.log('THE NEIGHBOR NODES');
   // console.log(neighborNodes);
-
-  // remove the parent node property
-  neighborNodes.forEach((node) => {
-    delete node.parent;
-  });
 
   // remove all the nodes who do not have any neighbors
   const finalNodes = neighborNodes.filter((node) => node.neighbors.length != 0);
