@@ -50,13 +50,14 @@ function superGraph(nodes: any[], edges: any[]) {
     // console.log(newNode)
   });
   // create a new supernode and a new super node list
-  const superNodes: any[] = [];
-  const californiaSuperNode: any = {};
-  californiaSuperNode.ORIGIN = [];
-  californiaSuperNode.ORIGIN_STATE = 'California';
-  californiaSuperNode._key = 'CA';
-  californiaSuperNode.id = 'supernodes/CA';
-  superNodes.push(californiaSuperNode);
+  const superNodes: any[] = [
+    {
+      ORIGIN: [],
+      ORIGIN_STATE: 'California',
+      _key: 'CA',
+      id: 'supernodes/CA',
+    },
+  ];
 
   // update the index attribute of a superNode
   superNodes.forEach((superNode, index) => {
