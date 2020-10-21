@@ -19,7 +19,7 @@
     "core-js": "^3.4.3",
     "d3": "^5.14.2",
     "d3-svg-legend": "^2.25.6",
-    "multinet": "^0.17.0",
+    "multinet": "^0.18.0",
     "provenance-lib-core": "^6.0.0",
     "reorder.js": "^1.0.6",
     "science": "^1.9.3",
