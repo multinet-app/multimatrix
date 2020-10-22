@@ -35,22 +35,16 @@ async function _downloadAllRows(
   return output;
 }
 
-// Function to refactor link properties to visualize links with d3
-// keep the _from and _to fields to make it easier to folllow the multinet data format
 export function _renameLinkVars(links: any[]): Link[] {
   for (const row of links) {
     row.id = row._id;
     row.source = row._from;
     row.target = row._to;
-
     delete row._id;
-    // delete row._from;
-    // delete row._to;
   }
   return links;
 }
 
-// Function that refactors node id property for visualizing nodes with d3
 function _renameNodeVars(nodes: any[]): Node[] {
   for (const row of nodes) {
     row.id = row._id;
@@ -59,7 +53,6 @@ function _renameNodeVars(nodes: any[]): Node[] {
   return nodes;
 }
 
-// Function that constructs the neighbors for a node in a network
 function _defineNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   for (const link of links) {

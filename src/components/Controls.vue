@@ -15,12 +15,6 @@ import { Network } from '@/types';
 // to reflect the connections between a supernode and the original nodes
 // in the network
 function superGraph(nodes: any[], edges: any[]) {
-  // print the original nodes and edges
-  // console.log('THE ORIGINAL NODES');
-  // console.log(nodes);
-  // console.log('THE ORIGINAL EDGES');
-  // console.log(edges);
-
   // de-construct nodes into their original components and
   // make a new list of nodes
   const newNodes: any[] = [];
@@ -40,10 +34,6 @@ function superGraph(nodes: any[], edges: any[]) {
 
     // add new node to node list
     newNodes.push(newNode);
-
-    // print the new node and its attribute
-    // console.log("NEW NODE");
-    // console.log(newNode)
   });
   // create a new supernode and a new super node list
   const superNodes: any[] = [
@@ -59,10 +49,6 @@ function superGraph(nodes: any[], edges: any[]) {
   superNodes.forEach((superNode, index) => {
     superNode.index = index;
   });
-
-  // print information about the super node list
-  // console.log("THE SUPER NODE LIST");
-  // console.log(superNodes);
 
   // update the parent field of the node if it has a super node with the super node id
   // update the super node origin list with the child node id
@@ -93,15 +79,7 @@ function superGraph(nodes: any[], edges: any[]) {
     newLink.index = `edges/${index}`;
 
     newLinks.push(newLink);
-
-    // print information about the new link
-    // console.log("NEW LINK");
-    // console.log(newLink);
   });
-
-  // // print information about the new links
-  // console.log('NEW LINKS');
-  // console.log(newLinks);
 
   // update the _from, _to values and in attribute values for target and source
   // which are needed for using d3 to visualize the network
@@ -125,25 +103,11 @@ function superGraph(nodes: any[], edges: any[]) {
     });
   });
 
-  // print information about the new links and new nodes
-  // console.log('NEW NODES');
-  // console.log(newNodes);
-  // console.log('NEW LINKS');
-  // console.log(newLinks);
-
   // combine the superNodes with the new nodes before updating all the neighbors
   const combinedNodes = superNodes.concat(newNodes);
 
-  // print information about combined nodes
-  // console.log("THE COMBINED NODES");
-  // console.log(combinedNodes);
-
   // construct the neighbors for the nodes
   const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
-
-  // print information about the neighbor nodes
-  // console.log('THE NEIGHBOR NODES');
-  // console.log(neighborNodes);
 
   // remove all the nodes who do not have any neighbors
   const finalNodes = neighborNodes.filter((node) => node.neighbors.length != 0);
@@ -253,13 +217,6 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
     clickButton(this: any) {
-      // print that the button was clicked
-      // console.log('clicked the aggregate button');
-
-      // call the super graph function and print stuff
-      // const superNetwork = superGraph(this.network.nodes, this.network.links);
-      // // console.log(superNetwork);
-
       // call the supergraph function to generate the new nodes and the new edges for the super graph
       // assign to a variable that can update the network which updates the visualization
       const superNetwork = superGraph(this.network.nodes, this.network.links);
