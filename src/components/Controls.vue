@@ -28,7 +28,6 @@ function superGraph(nodes: any[], edges: any[]) {
 
     // remove the properties that will not be used
     // and properties that will be recalculated for visualization
-    delete newNode._rev;
     delete newNode.index;
     delete newNode.neighbors;
 
@@ -57,7 +56,6 @@ function superGraph(nodes: any[], edges: any[]) {
       const superNode = superNodes.find(
         (superNode) => superNode.ORIGIN_STATE === 'California',
       );
-      node.parent = superNode.id;
       superNode.ORIGIN.push(node.id);
     }
   });
@@ -69,10 +67,6 @@ function superGraph(nodes: any[], edges: any[]) {
     const newLink = {
       ...link,
     };
-
-    // remove attributes that will be re-calculated for the links
-    // and attributes that are not used for aggregation/visualization
-    delete newLink._rev;
 
     // add new attributes for the new links
     // id - attribute for visualization and determining the neighbors for the network

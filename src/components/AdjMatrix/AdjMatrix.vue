@@ -143,9 +143,7 @@ export default Vue.extend({
         window.innerHeight ||
         document.documentElement.clientHeight ||
         document.body.clientHeight;
-      // Set dimensions of the node link
-      // this.visDimensions.width = this.browser.width * 0.75;
-      // this.visDimensions.height = this.browser.height - 24;
+
       // Size the svgs
       this.matrix = d3
         .select(this.$refs.matrix)
