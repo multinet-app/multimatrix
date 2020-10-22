@@ -110,7 +110,16 @@ function superGraph(nodes: any[], edges: any[]) {
   const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
 
   // remove all the nodes who do not have any neighbors
-  const finalNodes = neighborNodes.filter((node) => node.neighbors.length != 0);
+  let finalNodes = neighborNodes;
+  superNodes.forEach((superNode) => {
+    const children = superNode.ORIGIN;
+    finalNodes.forEach((node) => {
+      if (children.includes(node.id)) {
+        const nodeIDValue = node.id;
+        finalNodes = finalNodes.filter((node) => node.id != nodeIDValue);
+      }
+    });
+  });
 
   // construct the new network
   const network = {
