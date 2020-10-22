@@ -305,7 +305,6 @@ export default Vue.extend({
             </v-card-subtitle>
           </v-card-text>
 
-          <!--button for aggregating by california -->
           <v-card-actions>
             <v-btn small @click="clickButton">Aggregate California</v-btn>
           </v-card-actions>

@@ -35,40 +35,40 @@ async function _downloadAllRows(
   return output;
 }
 
-export function _renameLinkVars(links: any[]): Link[] {
-  for (const row of links) {
-    row.id = row._id;
-    row.source = row._from;
-    row.target = row._to;
-    delete row._id;
-  }
+function _renameLinkVars(links: any[]): Link[] {
+  links.forEach((link) => {
+    link.id = link._id;
+    link.source = link._from;
+    link.target = link._to;
+    delete link._id;
+  });
   return links;
 }
 
 function _renameNodeVars(nodes: any[]): Node[] {
-  for (const row of nodes) {
-    row.id = row._id;
-    delete row._id;
-  }
+  nodes.forEach((node) => {
+    node.id = node._id;
+    delete node._id;
+  });
   return nodes;
 }
 
 function _defineNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
-  for (const link of links) {
+  links.forEach((link) => {
     nodes.filter((d: Node) => d._id === link._from)[0].neighbors.push(link._to);
     nodes.filter((d: Node) => d._id === link._to)[0].neighbors.push(link._from);
-  }
+  });
   return nodes;
 }
 
 // Function that constructs the neighbors for a node in a super network
 export function defineSuperNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
-  for (const link of links) {
+  links.forEach((link) => {
     nodes.filter((d: Node) => d.id === link._from)[0].neighbors.push(link._to);
     nodes.filter((d: Node) => d.id === link._to)[0].neighbors.push(link._from);
-  }
+  });
   return nodes;
 }
 
