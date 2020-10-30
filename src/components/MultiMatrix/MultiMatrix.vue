@@ -42,6 +42,10 @@ export default Vue.extend({
       type: Array as PropType<string[]>,
       default: () => [],
     },
+    directional: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data(): {
@@ -171,7 +175,14 @@ export default Vue.extend({
     properties() {
       this.updateVis();
     },
+
     network() {
+      this.generateIdMap();
+      this.processData();
+      this.changeMatrix();
+    },
+
+    directional() {
       this.generateIdMap();
       this.processData();
       this.changeMatrix();
@@ -291,7 +302,10 @@ export default Vue.extend({
       // Count occurrences of links and store it in the matrix
       this.network.links.forEach((link: Link) => {
         this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-        this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+
+        if (!this.directional) {
+          this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+        }
       });
 
       // Find max value of z
