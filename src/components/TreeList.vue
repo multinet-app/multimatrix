@@ -26,46 +26,58 @@ export default Vue.extend({
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       //class data will take an input as a csv probably
       classData: [
-        { name: 'RC1', parent: '' },
-        { name: 'Bipolar', parent: 'Neuron' },
-        { name: 'Amacrine', parent: 'Neuron' },
-        { name: 'Photoreceptor', parent: 'Neuron' },
-        { name: 'Horizontal', parent: 'Neuron' },
-        { name: 'Ganglion', parent: 'Neuron' },
-        { name: 'Null', parent: 'Neuron' },
-        { name: 'CB', parent: 'Bipolar' },
-        { name: 'RodBC', parent: 'Bipolar' },
-        { name: 'CBb', parent: 'CB' },
+        { name: 'AC', parent: 'Neuron' },
+        { name: 'Vasculature', parent: 'Volume' },
+        { name: 'AC IPC', parent: 'AC' },
+        { name: 'AC OFF', parent: 'AC' },
+        { name: 'AC ON', parent: 'AC' },
+        { name: 'AC ON OFF', parent: 'AC' },
+        { name: 'AC TH1', parent: 'AC' },
+        { name: 'Asc', parent: 'Glia' },
+        { name: 'BC', parent: 'Neuron' },
+        { name: 'CB', parent: 'BC' },
+        { name: 'CB OFF', parent: 'CB' },
+        { name: 'CB ON', parent: 'CB' },
         { name: 'CBa', parent: 'CB' },
-        { name: 'GAC', parent: 'Amacrine' },
-        { name: 'YAC', parent: 'Amacrine' },
-        { name: 'non G/Y-AC', parent: 'Amacrine' },
-        { name: 'AII', parent: 'GAC' },
-        { name: 'IAC', parent: 'YAC' },
-        { name: 'AI', parent: 'YAC' },
-        { name: 'Rod', parent: 'Photoreceptor' },
-        { name: 'Cone', parent: 'Photoreceptor' },
-        { name: 'Indeterminate', parent: 'Photoreceptor' },
-        { name: 'ON', parent: 'Ganglion' },
-        { name: 'OFF', parent: 'Ganglion' },
-        { name: 'ON/OFF', parent: 'Ganglion' },
-        { name: 'Neuron', parent: 'RC1' },
-        { name: 'Glia', parent: 'RC1' },
-        { name: 'Müller glia', parent: 'Glia' },
-        { name: 'Microglia', parent: 'Glia' },
-        { name: 'Astrocytes', parent: 'Glia' },
-        { name: 'Misnamed', parent: 'RC1' },
+        { name: 'CBb', parent: 'CB' },
+        { name: 'ConePR', parent: 'PR' },
+        { name: 'DS', parent: 'GC' },
+        { name: 'EC', parent: 'Vasculature' },
+        { name: 'GAC', parent: 'AC' },
+        { name: 'GAC Aii', parent: 'GAC' },
+        { name: 'GAC yAC', parent: 'AC' },
+        { name: 'GC', parent: 'Neuron' },
+        { name: 'GC OFF', parent: 'GC' },
+        { name: 'GC ON', parent: 'GC' },
+        { name: 'GC ON OFF', parent: 'GC' },
+        { name: 'Glia', parent: 'Volume' },
+        { name: 'HC', parent: 'Neuron' },
+        { name: 'HCa', parent: 'HC' },
+        { name: 'HCb', parent: 'HC' },
+        { name: 'IBC', parent: 'Peri' },
+        { name: 'IndPR', parent: 'PR' },
+        { name: 'MC', parent: 'Glia' },
+        { name: 'Neuron', parent: 'Volume' },
+        { name: 'Null', parent: 'Volume' },
+        { name: 'Peri', parent: 'Vasculature' },
+        { name: 'PR', parent: 'Neuron' },
+        { name: 'RBC', parent: 'Vasculature' },
+        { name: 'RodBC', parent: 'BC' },
+        { name: 'RodPR', parent: 'PR' },
+        { name: 'tDS', parent: 'GC' },
+        { name: 'uG', parent: 'Glia' },
+        { name: 'Vessel', parent: 'Volume' },
+        { name: 'Volume', parent: '' },
+        { name: 'WBC', parent: 'Vasculature' },
+        { name: 'yAC', parent: 'AC' },
+        { name: 'yAC Ai', parent: 'yAC' },
+        { name: 'yAC IAC', parent: 'yAC' },
+        { name: 'yAC SAC', parent: 'yAC' },
       ],
     };
   },
 
   computed: {
-    // properties(this: any) {
-    //   const { network } = this;
-    //   return {
-    //     network,
-    //   };
-    // },
     root(): any {
       let i = 0;
       const links = JSON.parse(JSON.stringify(this.classData));
@@ -106,8 +118,8 @@ export default Vue.extend({
 
     this.nodeSize = 17;
     this.duration = 500;
-    this.width = 800;
-    this.height = 900;
+    this.width = d3.select(this.$refs.treelist).attr('width');
+    this.height = d3.select(this.$refs.treelist).attr('height');
 
     this.nodeEnterTransition = d3
       .transition()

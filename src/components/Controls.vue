@@ -2,6 +2,7 @@
 import Vue from 'vue';
 import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 import TreeList from '@/components/TreeList.vue';
+import QueryBuilder from '@/components/QueryBuilder.vue';
 import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -15,6 +16,7 @@ export default Vue.extend({
   components: {
     AdjMatrix,
     TreeList,
+    QueryBuilder,
   },
 
   data(): {
@@ -188,6 +190,21 @@ export default Vue.extend({
           <!-- Bind schema classification here -->
           <tree-list
             ref="treelist"
+            v-if="workspace"
+            v-bind="{
+              network,
+            }"
+            @restart-simulation="hello()"
+          />
+        </v-row>
+      </v-col>
+
+      <!-- QueryBuilder component -->
+      <v-col class="ma-0 pl-0 pr-0">
+        <v-row row wrap class="ma-0 pa-0">
+          <!-- Bind schema classification here -->
+          <query-builder
+            ref="querybuilder"
             v-if="workspace"
             v-bind="{
               network,
