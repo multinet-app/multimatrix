@@ -137,7 +137,8 @@ export class View {
       .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
       .on("click", (d: string) => {
-        console.log("hello world", d);
+        console.log("clicked the text label");
+        console.log(d);
         return;
       })
       // .on('click', (d: string) => this.sort(d));
