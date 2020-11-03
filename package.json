@@ -1,8 +1,8 @@
 {
-  "name": "MultiMatrix",
+  "name": "multimatrix",
   "version": "0.1.0",
   "private": true,
-  "description": "A first class MultiNet adjacency matrix visualization",
+  "description": "An adjacency matrix visualization for MultiNet",
   "author": "Visualization Design Lab <vdl.sci.utah.edu>",
   "scripts": {
     "serve": "vue-cli-service serve",
