@@ -22,7 +22,7 @@ jobs:
     - uses: actions/cache@v1
       id: yarn-cache
       with:
-        path: /home/runner/work/view-adjmatrix/view-adjmatrix/node_modules
+        path: /home/runner/work/multimatrix/multimatrix/node_modules
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}-cache
 
     - name: Install yarn packages

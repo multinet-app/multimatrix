@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from 'vue';
-import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
+import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
 import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -11,7 +11,7 @@ import { Network } from '@/types';
 
 export default Vue.extend({
   components: {
-    AdjMatrix,
+    MultiMatrix,
   },
 
   data(): {
@@ -104,9 +104,7 @@ export default Vue.extend({
       <!-- control panel content -->
       <v-col cols="3">
         <v-card>
-          <v-card-title class="pb-6"
-            >MultiNet Adjacency Matrix Controls</v-card-title
-          >
+          <v-card-title class="pb-6">MultiMatrix Controls</v-card-title>
           <v-card-text>
             <v-select
               v-model="visualizedAttributes"
@@ -165,11 +163,11 @@ export default Vue.extend({
         </v-card>
       </v-col>
 
-      <!-- AdjMatrix component -->
+      <!-- MultiMatrix component -->
       <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
-          <adj-matrix
-            ref="adjmatrix"
+          <multi-matrix
+            ref="multimatrix"
             v-if="workspace"
             v-bind="{
               network,
