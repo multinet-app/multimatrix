@@ -18,12 +18,17 @@ function superGraph(nodes: any[], edges: any[]) {
   // de-construct nodes into their original components and
   // make a new list of nodes
   const newNodes: any[] = [];
-  nodes.forEach((node) => {
+  nodes.forEach((node, index) => {
     const newNode = {
       ...node,
       // add new attributes for the new nodes
+      // index - attribute for keeping track of the index for visualizing the network
+      index: index,
     };
 
+    // remove the properties that will not be used
+    // and properties that will be recalculated for visualization
+    delete newNode.index;
     delete newNode.neighbors;
 
     // add new node to node list
@@ -38,6 +43,11 @@ function superGraph(nodes: any[], edges: any[]) {
       id: 'supernodes/CA',
     },
   ];
+
+  // update the index attribute of a superNode
+  superNodes.forEach((superNode, index) => {
+    superNode.index = index;
+  });
 
   // update the parent field of the node if it has a super node with the super node id
   // update the super node origin list with the child node id

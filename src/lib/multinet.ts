@@ -56,8 +56,10 @@ function _renameNodeVars(nodes: any[]): Node[] {
 function _defineNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   links.forEach((link) => {
-    nodes.filter((d: Node) => d._id === link._from)[0].neighbors.push(link._to);
-    nodes.filter((d: Node) => d._id === link._to)[0].neighbors.push(link._from);
+    const findNodeFrom = nodes.find(node => node._id === link._from);
+    const findNodeTo = nodes.find(node => node._id === link._to);
+    findNodeFrom.neighbors.push(link._to);
+    findNodeTo.neighbors.push(link._from);
   });
   return nodes;
 }
@@ -66,8 +68,10 @@ function _defineNeighbors(nodes: any[], links: any[]) {
 export function defineSuperNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   links.forEach((link) => {
-    nodes.filter((d: Node) => d.id === link._from)[0].neighbors.push(link._to);
-    nodes.filter((d: Node) => d.id === link._to)[0].neighbors.push(link._from);
+    const findNodeFrom = nodes.find(node => node.id === link._from);
+    const findNodeTo = nodes.find(node => node.id === link._to);
+    findNodeFrom.neighbors.push(link._to);
+    findNodeTo.neighbors.push(link._from);
   });
   return nodes;
 }
