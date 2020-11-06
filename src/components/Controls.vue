@@ -18,12 +18,12 @@ function superGraph(nodes: any[], edges: any[]) {
   // de-construct nodes into their original components and
   // make a new list of nodes
   const newNodes: any[] = [];
-  nodes.forEach((node, index) => {
+  nodes.forEach((node) => {
     const newNode = {
       ...node,
       // add new attributes for the new nodes
       // index - attribute for keeping track of the index for visualizing the network
-      index: index,
+      // index: index,
     };
 
     // remove the properties that will not be used
