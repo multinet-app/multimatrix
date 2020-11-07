@@ -1,22 +1,16 @@
 <script lang="ts">
 import * as d3 from 'd3';
-import Vue, { PropType } from 'vue';
+import Vue from 'vue';
 
-import { Dimensions, Network } from '@/types';
-// import { scaleOrdinal } from 'd3';
+import { Dimensions } from '@/types';
 
 export default Vue.extend({
-  props: {
-    network: {
-      type: Object as PropType<Network>,
-      required: true,
-    },
-  },
-
   data(): {
     browser: Dimensions;
     visMargins: { left: number; top: number; right: number; bottom: number };
     schemaData: any;
+    start: number[];
+    end: number[];
   } {
     return {
       browser: {
@@ -17009,6 +17003,8 @@ export default Vue.extend({
           },
         ],
       },
+      start: [0, 0],
+      end: [0, 0],
     };
   },
 
@@ -17027,6 +17023,7 @@ export default Vue.extend({
     this.width = d3.select(this.$refs.schemaView).attr('width');
     this.height = d3.select(this.$refs.schemaView).attr('height');
 
+    ///////////////////////////////////////////
     // temp fix for data
     const nodeSet: string[] = [];
     const linkList: any[] = [];
@@ -17041,6 +17038,7 @@ export default Vue.extend({
 
     this.schemaData.links = linkList;
     // ends here
+    ///////////////////////////////////////////
 
     // I'm sure there is a better way to do this
     this.schema = JSON.parse(JSON.stringify(this.schemaData));
@@ -17057,13 +17055,31 @@ export default Vue.extend({
         d3
           .forceCenter()
           .x(this.width / 2)
-          .y(this.height / 2),
+          .y((this.height / 8) * 3),
       );
 
-    // come back to how to set this up!
-    // this.colors: scaleOrdinal<string, string> = d3.scaleOrdinal(d3.schemeCategory10);
+    this.colors = d3.scaleOrdinal(d3.schemeCategory10);
 
     this.svg = d3.select(this.$refs.schemaView);
+
+    // Draw schema rect
+    this.svg
+      .append('rect')
+      .attr('width', this.width)
+      .attr('height', (this.height / 4) * 3)
+      .attr('stroke', 'black')
+      .attr('fill', 'none');
+
+    // Draw motif rect
+    this.svg
+      .append('rect')
+      .attr('width', this.width)
+      .attr('height', this.height / 4)
+      .attr('stroke', 'black')
+      .attr('transform', `translate(0, ${(this.height / 4) * 3})`)
+      .attr('fill', 'none');
+
+    this.network = this.svg.append('g');
 
     this.createSchema(this.schema);
   },
@@ -17072,9 +17088,10 @@ export default Vue.extend({
     createSchema(this: any, schema: any) {
       const linksData = schema.links;
       const nodesData = schema.nodes;
-      console.log(linksData, nodesData);
 
-      const edges = this.svg
+      const edges = this.network
+        .append('g')
+        .attr('class', 'link')
         .selectAll('line')
         .data(linksData)
         .enter()
@@ -17082,21 +17099,21 @@ export default Vue.extend({
         .style('stroke', '#ccc')
         .style('stroke-width', 1);
 
-      const nodes = this.svg
+      const nodes = this.network
         .selectAll('circle')
         .data(nodesData)
         .enter()
         .append('circle')
         .attr('r', 10)
-        .style('fill', 'pink');
-      // .style('fill', function (d: any) {
-      //   return this.colors(d.Label);
-      // });
+        // .style('fill', 'pink')
+        .attr('class', 'node')
+        .style('fill', (d: any) => {
+          return this.colors(d.Label);
+        });
 
-      //Add a simple tooltip
+      // Simple tooltip
       nodes.append('title').text((d: any) => d.Label);
 
-      //Every time the simulation "ticks", this will be called
       this.force.on('tick', function () {
         edges
           .attr('x1', function (d: any) {
@@ -17114,12 +17131,71 @@ export default Vue.extend({
 
         nodes
           .attr('cx', function (d: any) {
-            return d.x;
+            return (d.x = Math.max(10, Math.min(800 - 10, d.x)));
           })
           .attr('cy', function (d: any) {
-            return d.y;
+            return (d.y = Math.max(10, Math.min((900 / 4) * 3 - 10, d.y)));
           });
       });
+
+      // Drag functions
+      function dragstarted() {
+        d3.select(this).clone(true).classed('notclone', true); // look into this
+        d3.select(this).raise().attr('stroke', 'black').classed('clone', true);
+      }
+
+      function dragged(d: any) {
+        d3.select(this)
+          .attr('cx', (d.x = d3.event.x))
+          .attr('cy', (d.y = d3.event.y));
+      }
+
+      function dragended() {
+        const mouseCoordinates = d3.mouse(this);
+        const networkHeight: number = d3.select('#schemaView').attr('height');
+        const networkWidth: number = d3.select('#schemaView').attr('width');
+
+        if (mouseCoordinates[1] > (networkHeight / 4) * 3) {
+          if (mouseCoordinates[0] < networkWidth / 2) {
+            d3.select(this)
+              .attr('cx', networkWidth / 4)
+              .attr('cy', (networkHeight / 8) * 7)
+              .attr('r', 20);
+            // this is out of scope...
+            // this.start[0] = 1;
+            // this.start[1] = d.index;
+            this.runMotifSearch();
+          } else if (
+            mouseCoordinates[0] >= networkWidth / 2 &&
+            mouseCoordinates[0] < networkWidth
+          ) {
+            d3.select(this)
+              .attr('cx', (networkWidth / 4) * 3)
+              .attr('cy', (networkHeight / 8) * 7)
+              .attr('r', 20);
+            // this.end[0] = 1;
+            // this.end[1] = d.index;
+            this.runMotifSearch();
+          } else {
+            d3.select(this).remove();
+          }
+        } else {
+          d3.select(this).remove();
+        }
+      }
+
+      nodes.call(
+        d3
+          .drag()
+          .on('start', dragstarted)
+          .on('drag', dragged)
+          .on('end', dragended),
+      );
+    },
+    runMotifSearch(this: any) {
+      if (this.start[0] + this.end[0] === 2) {
+        console.log('QUERY:', this.start[1], this.end[1]);
+      }
     },
   },
 });
@@ -17127,8 +17203,7 @@ export default Vue.extend({
 
 <template>
   <div>
-    <svg id="schemaView" ref="schemaView" width="800" height="600" />
-    <svg id="querybuilder" ref="querybuilder" width="800" height="300" />
+    <svg id="schemaView" ref="schemaView" width="800" height="900" />
   </div>
 </template>
 
@@ -17138,7 +17213,6 @@ svg >>> .node {
 }
 
 svg >>> .node:hover {
-  font-weight: bold;
-  fill: orange;
+  stroke: slategray;
 }
 </style>

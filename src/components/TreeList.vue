@@ -131,8 +131,8 @@ export default Vue.extend({
       .select(this.$refs.treelist)
       .attr(
         'viewBox',
-        `${-this.nodeSize / 2} ${this.nodeSize * 4} ${this.height} ${
-          this.width
+        `${-this.nodeSize / 2} ${this.nodeSize * 28} ${this.height / 4} ${
+          this.width / 4
         }`,
       )
       .style('overflow', 'visible');
@@ -239,7 +239,7 @@ export default Vue.extend({
 
 <template>
   <div>
-    <svg id="treelist" ref="treelist" width="800" height="900" />
+    <svg id="treelist" ref="treelist" width="200" height="900" />
   </div>
 </template>
 
