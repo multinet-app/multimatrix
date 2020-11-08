@@ -27,6 +27,7 @@ export default Vue.extend({
     showGridLines: boolean;
     visualizedAttributes: string[];
     treeListValues: string[];
+    treeListHover: string;
   } {
     return {
       network: {
@@ -39,6 +40,7 @@ export default Vue.extend({
       showGridLines: true,
       visualizedAttributes: [],
       treeListValues: [],
+      treeListHover: '',
     };
   },
 
@@ -108,6 +110,9 @@ export default Vue.extend({
     },
     updateSchema(this: any, diffList: string[]) {
       return (this.treeListValues = diffList);
+    },
+    hoverNodes(this: any, hoveredNode: string) {
+      return (this.treeListHover = hoveredNode);
     },
   },
   watch: {
@@ -201,6 +206,7 @@ export default Vue.extend({
             }"
             @restart-simulation="hello()"
             @updateSchema="updateSchema"
+            @hoverSchema="hoverNodes"
           />
         </v-row>
       </v-col>
@@ -215,6 +221,7 @@ export default Vue.extend({
             v-bind="{
               network,
               treeListValues,
+              treeListHover,
             }"
             @restart-simulation="hello()"
           />

@@ -10,6 +10,10 @@ export default Vue.extend({
       type: Array,
       default: () => [],
     },
+    treeListHover: {
+      type: String,
+      default: () => '',
+    },
   },
 
   data(): {
@@ -17017,17 +17021,21 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { network, treeListValues } = this;
+      const { network, treeListValues, treeListHover } = this;
       return {
         network,
         treeListValues,
+        treeListHover,
       };
     },
   },
 
   watch: {
-    properties() {
+    treeListValues() {
       this.updateSchema();
+    },
+    treeListHover() {
+      this.hoverSchema();
     },
   },
 
@@ -17117,8 +17125,7 @@ export default Vue.extend({
         .enter()
         .append('circle')
         .attr('r', 10)
-        // .style('fill', 'pink')
-        .attr('class', 'node')
+        .attr('class', (d: any) => `node.${d.Label}`)
         .style('fill', (d: any) => {
           return this.colors(d.Label);
         });
@@ -17209,8 +17216,28 @@ export default Vue.extend({
         console.log('QUERY:', this.start[1], this.end[1]);
       }
     },
+
+    // Pranav's function here
     updateSchema() {
+      console.log('schema', this.schema.nodes);
+      const nestedSchema: any = d3
+        .nest()
+        .key(function (d: any) {
+          return d.Label;
+        })
+        .entries(this.schema.nodes);
+      console.log('Nested', nestedSchema);
       console.log('CHANGE', this.treeListValues);
+    },
+    hoverSchema() {
+      d3.selectAll(`node.${this.treeListHover}`)
+        .on('mouseover', function () {
+          d3.select(this).classed('hover', true);
+        })
+        .on('mouseout', function () {
+          d3.select(this).classed('hover', false);
+        });
+      console.log('hover', this.treeListHover);
     },
   },
 });
