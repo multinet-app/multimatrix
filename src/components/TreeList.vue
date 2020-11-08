@@ -100,6 +100,11 @@ export default Vue.extend({
     nodesLength(): any {
       return this.root.descendants();
     },
+    familyTree(): string[] {
+      const familyTree = this.classData.map((d: any) => d.name);
+
+      return familyTree;
+    },
   },
   watch: {},
 
@@ -142,12 +147,10 @@ export default Vue.extend({
 
   methods: {
     update(this: any) {
-      let i = 0;
       const nodes = this.root.descendants();
-
       const node = this.svg
         .selectAll('.node')
-        .data(nodes, (d: any) => d.id || (d.id = ++i));
+        .data(nodes, (d: any) => d.id || (d.id = d.data.id));
 
       const link = this.svg
         .append('g')
@@ -212,25 +215,40 @@ export default Vue.extend({
 
     click(this: any, d: any) {
       const allPaths = [];
+      const change: string[] = this.familyTree.filter((i) => i == d.id);
       allPaths.push(d.index);
+
       if (d.parent) {
         if (d.children) {
           d._children = d.children;
           d.children = null;
-          const allChildren = d.descendants();
-          allChildren[0]['_children'].forEach(function (c: any) {
+          d._children.forEach((c: any) => {
             allPaths.push(c.index);
-            c.descendants().forEach((gc: any) => {
-              allPaths.push(gc.index);
-            });
+            change.push(c.id);
+            if (c.children) {
+              c.children.forEach((gc: any) => {
+                allPaths.push(gc.index);
+                change.push(gc.id);
+              });
+            }
           });
         } else {
           d.children = d._children;
+          d.children.forEach((c: any) => {
+            change.push(c.id);
+            if (c.children) {
+              c.children.forEach((gc: any) => {
+                change.push(gc.id);
+              });
+            }
+          });
           d._children = null;
         }
         allPaths.map((p) => d3.selectAll(`path.link${p}`).remove());
         d3.select(this).remove();
+
         this.update();
+        this.$emit('updateSchema', change);
       }
     },
   },

@@ -26,6 +26,7 @@ export default Vue.extend({
     selectNeighbors: boolean;
     showGridLines: boolean;
     visualizedAttributes: string[];
+    treeListValues: string[];
   } {
     return {
       network: {
@@ -37,6 +38,7 @@ export default Vue.extend({
       selectNeighbors: true,
       showGridLines: true,
       visualizedAttributes: [],
+      treeListValues: [],
     };
   },
 
@@ -103,6 +105,9 @@ export default Vue.extend({
       }
 
       return null;
+    },
+    updateSchema(this: any, diffList: string[]) {
+      return (this.treeListValues = diffList);
     },
   },
   watch: {
@@ -195,6 +200,7 @@ export default Vue.extend({
               network,
             }"
             @restart-simulation="hello()"
+            @updateSchema="updateSchema"
           />
         </v-row>
       </v-col>
@@ -208,6 +214,7 @@ export default Vue.extend({
             v-if="workspace"
             v-bind="{
               network,
+              treeListValues,
             }"
             @restart-simulation="hello()"
           />

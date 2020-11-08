@@ -5,6 +5,13 @@ import Vue from 'vue';
 import { Dimensions } from '@/types';
 
 export default Vue.extend({
+  props: {
+    treeListValues: {
+      type: Array,
+      default: () => [],
+    },
+  },
+
   data(): {
     browser: Dimensions;
     visMargins: { left: number; top: number; right: number; bottom: number };
@@ -25,7 +32,7 @@ export default Vue.extend({
             _id: 'marclab_nodes/284',
             _rev: '_bVtR-ke--J',
             TypeID: '1',
-            Label: 'GAC Aii',
+            Label: 'Bunny',
             Tags: '',
             BoundingRect:
               "{'Geometry': {'CoordinateSystemId': 0, 'WellKnownText': 'POLYGON ((6096.003915042581 49556.139278322116, 68709.670721697039 49556.139278322116, 68709.670721697039 79379.546223905214, 6096.003915042581 79379.546223905214, 6096.003915042581 49556.139278322116))', 'WellKnownBinary': None}}",
@@ -17010,14 +17017,19 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { network } = this;
+      const { network, treeListValues } = this;
       return {
         network,
+        treeListValues,
       };
     },
   },
 
-  watch: {},
+  watch: {
+    properties() {
+      this.updateSchema();
+    },
+  },
 
   async mounted(this: any) {
     this.width = d3.select(this.$refs.schemaView).attr('width');
@@ -17196,6 +17208,9 @@ export default Vue.extend({
       if (this.start[0] + this.end[0] === 2) {
         console.log('QUERY:', this.start[1], this.end[1]);
       }
+    },
+    updateSchema() {
+      console.log('CHANGE', this.treeListValues);
     },
   },
 });
