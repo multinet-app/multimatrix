@@ -34,7 +34,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
   // create the list of super nodes
   const superNodes: {
-    CHILDREN: never[];
+    CHILDREN: any[];
     GROUP: unknown;
     _key: unknown;
     id: string;
@@ -49,26 +49,36 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     superNodes.push(superNode);
   });
 
-  console.log('THE LIST OF SUPERNODES');
-  console.log(superNodes);
-  //   // create a new supernode and a new super node list
-  //   const superNodes: any[] = [
-  //     {
-  //       CHILDREN: [],
-  //       GROUP: attribute,
-  //       _key: attribute,
-  //       id: 'supernodes/' + attribute,
-  //     },
-  //   ];
+  //   console.log('THE NEW NODES');
+  //   console.log(newNodes);
+  // update the parent field of the node if it has a super node with the super node id
+  // update the super node origin list with the child node id
+  // newNodes.forEach((node) => {
+  //   if (node.ORIGIN_STATE === 'California') {
+  //     const superNode = superNodes.find(
+  //       (superNode) => superNode.ORIGIN_STATE === 'California',
+  //     );
+  //     superNode.ORIGIN.push(node.id);
+  //   }
+  // });
 
-  //   // update the parent field of the node if it has a super node with the super node id
-  //   // update the super node origin list with the child node id
-  //   newNodes.forEach((node) => {
-  //     if (node.ORIGIN_STATE === 'California') {
+  newNodes.forEach((node: any) => {
+    if (selectedAttributes.has(node[attribute])) {
+      const superNode = superNodes.find(
+        (superNode) => superNode.GROUP === node[attribute],
+      );
+      if (superNode != undefined) superNode.CHILDREN.push(node.id);
+    }
+  });
+
+  console.log("THE UPDATED SUPER NODES");
+  console.log(superNodes);
+  //   newNodes.forEach((node: any) => {
+  //     if (selectedAttributes.has(node[attribute])) {
   //       const superNode = superNodes.find(
-  //         (superNode) => superNode.ORIGIN_STATE === 'California',
+  //         (superNode) => superNode.GROUP === node[attribute],
   //       );
-  //       superNode.ORIGIN.push(node.id);
+  //       superNode.CHILDREN.push(node.id)
   //     }
   //   });
 
