@@ -205,7 +205,7 @@ export default Vue.extend({
 
       legendSVG.select('.legendLinear').call(legendLinear);
     },
-    clickButton(this: any) {
+    aggregateCaliforniaNodes(this: any) {
       // Compute a new graph based on aggregating California airports into a supernode.
       this.network = superGraph(this.network.nodes, this.network.links);
     },
@@ -284,7 +284,9 @@ export default Vue.extend({
           </v-card-text>
 
           <v-card-actions>
-            <v-btn small @click="clickButton">Aggregate California</v-btn>
+            <v-btn small @click="aggregateCaliforniaNodes"
+              >Aggregate California</v-btn
+            >
           </v-card-actions>
 
           <v-card-actions>
