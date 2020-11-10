@@ -8,7 +8,6 @@ import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import { loadData, defineSuperNeighbors } from '@/lib/multinet';
 import { Network } from '@/types';
-// import { View } from './AdjMatrix/AdjMatrixMethods';
 
 // This function takes the original nodes and edges from the network
 // and creates a new list of supernodes and a new list of edges
