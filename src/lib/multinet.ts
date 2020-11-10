@@ -32,6 +32,7 @@ async function _downloadAllRows(
     });
     output = output.concat(table.rows);
   }
+
   return output;
 }
 
