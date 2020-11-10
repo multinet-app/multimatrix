@@ -139,7 +139,7 @@ export class View {
       .attr('width', colWidth)
       .on('click', (d: string) => {
         console.log('clicked the text label');
-        superGraph(this.network.nodes, this.network.links, d);
+        this.network = superGraph(this.network.nodes, this.network.links, d);
         return;
       });
     // .on('click', (d: string) => this.sort(d));
