@@ -136,12 +136,12 @@ export class View {
       .attr('y', 16)
       .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
-      .on("click", (d: string) => {
-        console.log("clicked the text label");
+      .on('click', (d: string) => {
+        console.log('clicked the text label');
         console.log(d);
         return;
-      })
-      // .on('click', (d: string) => this.sort(d));
+      });
+    // .on('click', (d: string) => this.sort(d));
 
     // Calculate the attribute scales
     this.visualizedAttributes.forEach((col: string) => {
@@ -260,11 +260,11 @@ export class View {
       )
       .style('fill', '#8B8B8B')
       .on('click', (d: string) => {
-        console.log("clicked the sort icon");
+        console.log('clicked the sort icon');
         console.log(d);
         return;
       });
-      // .on('click', (d: string) => this.sort(d));
+    // .on('click', (d: string) => this.sort(d));
   }
 
   private isQuantitative(varName: string): boolean {
