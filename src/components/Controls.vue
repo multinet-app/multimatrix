@@ -206,10 +206,8 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
     clickButton(this: any) {
-      // call the supergraph function to generate the new nodes and the new edges for the super graph
-      // assign to a variable that can update the network which updates the visualization
-      const superNetwork = superGraph(this.network.nodes, this.network.links);
-      this.network = superNetwork;
+      // Compute a new graph based on aggregating California airports into a supernode.
+      this.network = superGraph(this.network.nodes, this.network.links);
     },
   },
   watch: {
