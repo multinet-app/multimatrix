@@ -6,111 +6,8 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
-import { loadData, superGraph } from '@/lib/multinet';
+import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
-
-// // This function takes the original nodes and edges from the network
-// // and creates a new list of supernodes and a new list of edges
-// // to reflect the connections between a supernode and the original nodes
-// // in the network
-// export function superGraph(nodes: any[], edges: any[], attribute: string) {
-//   // de-construct nodes into their original components and
-//   // make a new list of nodes
-//   console.log('The attribute');
-//   console.log(attribute);
-//   const newNodes: any[] = [];
-//   nodes.forEach((node) => {
-//     const newNode = {
-//       ...node,
-//     };
-
-//     // remove the properties that will not be used
-//     // and properties that will be recalculated for visualization
-//     delete newNode.neighbors;
-
-//     // add new node to node list
-//     newNodes.push(newNode);
-//   });
-//   // create a new supernode and a new super node list
-//   const superNodes: any[] = [
-//     {
-//       ORIGIN: [],
-//       ORIGIN_STATE: 'California',
-//       _key: 'CA',
-//       id: 'supernodes/CA',
-//     },
-//   ];
-
-//   // update the parent field of the node if it has a super node with the super node id
-//   // update the super node origin list with the child node id
-//   newNodes.forEach((node) => {
-//     if (node.ORIGIN_STATE === 'California') {
-//       const superNode = superNodes.find(
-//         (superNode) => superNode.ORIGIN_STATE === 'California',
-//       );
-//       superNode.ORIGIN.push(node.id);
-//     }
-//   });
-
-//   // de-construct edges into their original components and
-//   // make a new list of edges for the supergraph network
-//   const newLinks: any = [];
-//   edges.forEach((link) => {
-//     const newLink = {
-//       ...link,
-//     };
-
-//     newLinks.push(newLink);
-//   });
-
-//   // update the _from, _to values and in attribute values for target and source
-//   // which are needed for using d3 to visualize the network
-//   newLinks.forEach((link: any) => {
-//     const linkFrom = link._from;
-//     const linkTo = link._to;
-//     superNodes.forEach((superNode) => {
-//       // check if the _from and _to are in the origin list
-//       superNode.ORIGIN.forEach((origin: any) => {
-//         if (linkFrom === origin) {
-//           const newLinkFrom = superNode.id;
-//           link._from = newLinkFrom;
-//           link.source = link._from;
-//         }
-//         if (linkTo === origin) {
-//           const newLinkTo = superNode.id;
-//           link._to = newLinkTo;
-//           link.target = link._to;
-//         }
-//       });
-//     });
-//   });
-
-//   // combine the superNodes with the new nodes before updating all the neighbors
-//   const combinedNodes = superNodes.concat(newNodes);
-
-//   // construct the neighbors for the nodes
-//   const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
-
-//   // remove all the nodes who do not have any neighbors
-//   let finalNodes = neighborNodes;
-//   superNodes.forEach((superNode) => {
-//     const children = superNode.ORIGIN;
-//     finalNodes.forEach((node) => {
-//       if (children.includes(node.id)) {
-//         const nodeIDValue = node.id;
-//         finalNodes = finalNodes.filter((node) => node.id != nodeIDValue);
-//       }
-//     });
-//   });
-
-//   // construct the new network
-//   const network = {
-//     nodes: finalNodes,
-//     links: newLinks,
-//   };
-
-//   return network;
-// }
 
 export default Vue.extend({
   components: {
@@ -208,8 +105,12 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
     aggregateCaliforniaNodes(this: any) {
-      // Compute a new graph based on aggregating California airports into a supernode.
-      this.network = superGraph(this.network.nodes, this.network.links, 'ORIGIN STATE');
+      // // Compute a new graph based on aggregating California airports into a supernode.
+      // this.network = superGraph(
+      //   this.network.nodes,
+      //   this.network.links,
+      //   'ORIGIN STATE',
+      // );
     },
   },
   watch: {

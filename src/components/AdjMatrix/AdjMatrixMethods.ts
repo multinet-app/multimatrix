@@ -10,6 +10,7 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
+import { superGraph } from '@/lib/AggMethods';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
@@ -138,7 +139,7 @@ export class View {
       .attr('width', colWidth)
       .on('click', (d: string) => {
         console.log('clicked the text label');
-        console.log(d);
+        superGraph(this.network.nodes, this.network.links, d);
         return;
       });
     // .on('click', (d: string) => this.sort(d));
