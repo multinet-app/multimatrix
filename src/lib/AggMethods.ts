@@ -24,26 +24,53 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     // add new node to node list
     newNodes.push(newNode);
   });
-  // create a new supernode and a new super node list
-  const superNodes: any[] = [
-    {
-      CHILDREN: [],
-      GROUP: attribute,
-      _key: attribute,
-      id: 'supernodes/' + attribute,
-    },
-  ];
 
-  // update the parent field of the node if it has a super node with the super node id
-  // update the super node origin list with the child node id
+  // create a list that results of the selected attribute from the nodes
+  const selectedAttributes = new Set();
+
   newNodes.forEach((node) => {
-    if (node.ORIGIN_STATE === 'California') {
-      const superNode = superNodes.find(
-        (superNode) => superNode.ORIGIN_STATE === 'California',
-      );
-      superNode.ORIGIN.push(node.id);
-    }
+    selectedAttributes.add(node[attribute]);
   });
+
+  // create the list of super nodes
+  const superNodes: {
+    CHILDREN: never[];
+    GROUP: unknown;
+    _key: unknown;
+    id: string;
+  }[] = [];
+  selectedAttributes.forEach((attr) => {
+    const superNode = {
+      CHILDREN: [],
+      GROUP: attr,
+      _key: attr,
+      id: 'supernodes/' + attr,
+    };
+    superNodes.push(superNode);
+  });
+
+  console.log('THE LIST OF SUPERNODES');
+  console.log(superNodes);
+  //   // create a new supernode and a new super node list
+  //   const superNodes: any[] = [
+  //     {
+  //       CHILDREN: [],
+  //       GROUP: attribute,
+  //       _key: attribute,
+  //       id: 'supernodes/' + attribute,
+  //     },
+  //   ];
+
+  //   // update the parent field of the node if it has a super node with the super node id
+  //   // update the super node origin list with the child node id
+  //   newNodes.forEach((node) => {
+  //     if (node.ORIGIN_STATE === 'California') {
+  //       const superNode = superNodes.find(
+  //         (superNode) => superNode.ORIGIN_STATE === 'California',
+  //       );
+  //       superNode.ORIGIN.push(node.id);
+  //     }
+  //   });
 
   // // de-construct edges into their original components and
   // // make a new list of edges for the supergraph network
@@ -78,7 +105,9 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   //   });
   // });
 
-  // // combine the superNodes with the new nodes before updating all the neighbors
+  // // combine the superNodes with the new
+  //
+  //  nodes before updating all the neighbors
   // const combinedNodes = superNodes.concat(newNodes);
 
   // // construct the neighbors for the nodes
