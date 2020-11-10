@@ -24,26 +24,26 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     // add new node to node list
     newNodes.push(newNode);
   });
-  // // create a new supernode and a new super node list
-  // const superNodes: any[] = [
-  //   {
-  //     ORIGIN: [],
-  //     ORIGIN_STATE: 'California',
-  //     _key: 'CA',
-  //     id: 'supernodes/CA',
-  //   },
-  // ];
+  // create a new supernode and a new super node list
+  const superNodes: any[] = [
+    {
+      CHILDREN: [],
+      GROUP: attribute,
+      _key: attribute,
+      id: 'supernodes/' + attribute,
+    },
+  ];
 
-  // // update the parent field of the node if it has a super node with the super node id
-  // // update the super node origin list with the child node id
-  // newNodes.forEach((node) => {
-  //   if (node.ORIGIN_STATE === 'California') {
-  //     const superNode = superNodes.find(
-  //       (superNode) => superNode.ORIGIN_STATE === 'California',
-  //     );
-  //     superNode.ORIGIN.push(node.id);
-  //   }
-  // });
+  // update the parent field of the node if it has a super node with the super node id
+  // update the super node origin list with the child node id
+  newNodes.forEach((node) => {
+    if (node.ORIGIN_STATE === 'California') {
+      const superNode = superNodes.find(
+        (superNode) => superNode.ORIGIN_STATE === 'California',
+      );
+      superNode.ORIGIN.push(node.id);
+    }
+  });
 
   // // de-construct edges into their original components and
   // // make a new list of edges for the supergraph network
