@@ -8,7 +8,6 @@ import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import { loadData, defineSuperNeighbors } from '@/lib/multinet';
 import { Network } from '@/types';
-// import { View } from './AdjMatrix/AdjMatrixMethods';
 
 // This function takes the original nodes and edges from the network
 // and creates a new list of supernodes and a new list of edges
@@ -18,17 +17,13 @@ function superGraph(nodes: any[], edges: any[]) {
   // de-construct nodes into their original components and
   // make a new list of nodes
   const newNodes: any[] = [];
-  nodes.forEach((node, index) => {
+  nodes.forEach((node) => {
     const newNode = {
       ...node,
-      // add new attributes for the new nodes
-      // index - attribute for keeping track of the index for visualizing the network
-      index: index,
     };
 
     // remove the properties that will not be used
     // and properties that will be recalculated for visualization
-    delete newNode.index;
     delete newNode.neighbors;
 
     // add new node to node list
@@ -44,11 +39,6 @@ function superGraph(nodes: any[], edges: any[]) {
     },
   ];
 
-  // update the index attribute of a superNode
-  superNodes.forEach((superNode, index) => {
-    superNode.index = index;
-  });
-
   // update the parent field of the node if it has a super node with the super node id
   // update the super node origin list with the child node id
   newNodes.forEach((node) => {
@@ -63,14 +53,10 @@ function superGraph(nodes: any[], edges: any[]) {
   // de-construct edges into their original components and
   // make a new list of edges for the supergraph network
   const newLinks: any = [];
-  edges.forEach((link, index) => {
+  edges.forEach((link) => {
     const newLink = {
       ...link,
     };
-
-    // add new attributes for the new links
-    // id - attribute for visualization and determining the neighbors for the network
-    newLink.index = `edges/${index}`;
 
     newLinks.push(newLink);
   });
@@ -219,11 +205,9 @@ export default Vue.extend({
 
       legendSVG.select('.legendLinear').call(legendLinear);
     },
-    clickButton(this: any) {
-      // call the supergraph function to generate the new nodes and the new edges for the super graph
-      // assign to a variable that can update the network which updates the visualization
-      const superNetwork = superGraph(this.network.nodes, this.network.links);
-      this.network = superNetwork;
+    aggregateCaliforniaNodes(this: any) {
+      // Compute a new graph based on aggregating California airports into a supernode.
+      this.network = superGraph(this.network.nodes, this.network.links);
     },
   },
   watch: {
@@ -300,7 +284,9 @@ export default Vue.extend({
           </v-card-text>
 
           <v-card-actions>
-            <v-btn small @click="clickButton">Aggregate California</v-btn>
+            <v-btn small @click="aggregateCaliforniaNodes"
+              >Aggregate California</v-btn
+            >
           </v-card-actions>
 
           <v-card-actions>
