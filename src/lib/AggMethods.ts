@@ -27,6 +27,9 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     selectedAttributes.add(node[attribute]);
   });
 
+  // // print out the selected attributes
+  // console.log(selectedAttributes);
+
   // create the list of super nodes
   const superNodes: {
     CHILDREN: any[];
@@ -44,6 +47,9 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     superNodes.push(superNode);
   });
 
+  // print out the super nodes
+  // console.log(superNodes);
+
   newNodes.forEach((node: any) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superNodes.find(
@@ -52,6 +58,9 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
       if (superNode != undefined) superNode.CHILDREN.push(node.id);
     }
   });
+
+  // print out the updated supernodes
+  // console.log(superNodes);
 
   // de-construct edges into their original components and
   // make a new list of edges for the supergraph network
@@ -63,6 +72,9 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
     newLinks.push(newLink);
   });
+
+  // print out the new links
+  // console.log(newLinks);
 
   // update the _from, _to values and in attribute values for target and source
   // which are needed for using d3 to visualize the network
@@ -87,16 +99,21 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     });
   });
 
+  // print out information for superLinks
+  // console.log(newLinks)
+
   // combine the superNodes with the new
   //  nodes before updating all the neighbors
-  // const combinedNodes = superNodes.concat(newNodes);
+  const combinedNodes = superNodes.concat(newNodes);
 
   // console.log("THE COMBINED NODES")
   // console.log(newLinks);
 
   // construct the neighbors for the nodes
-  const neighborNodes = defineSuperNeighbors(superNodes, newLinks);
-  console.log(neighborNodes);
+  const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
+
+  // print out the new supernode network with associated neighbors
+  // console.log(neighborNodes);
 
   // remove all the nodes who do not have any neighbors
   let finalNodes = neighborNodes;
@@ -110,11 +127,17 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     });
   });
 
+  // print out the information relating to the final nodes
+  // console.log(finalNodes);
+
   // construct the new network
   const network = {
     nodes: finalNodes,
     links: newLinks,
   };
+
+  // print out the final network
+  // console.log(network);
 
   return network;
 }
