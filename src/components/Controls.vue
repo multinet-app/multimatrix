@@ -105,12 +105,6 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
     aggregateCaliforniaNodes(this: any) {
-      // // Compute a new graph based on aggregating California airports into a supernode.
-      // this.network = superGraph(
-      //   this.network.nodes,
-      //   this.network.links,
-      //   'ORIGIN STATE',
-      // );
     },
   },
   watch: {
