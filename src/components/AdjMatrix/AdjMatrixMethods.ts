@@ -142,7 +142,6 @@ export class View {
         this.network = superGraph(this.network.nodes, this.network.links, d);
         return;
       });
-    // .on('click', (d: string) => this.sort(d));
 
     // Calculate the attribute scales
     this.visualizedAttributes.forEach((col: string) => {
