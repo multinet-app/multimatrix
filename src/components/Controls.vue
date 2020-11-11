@@ -20,6 +20,7 @@ export default Vue.extend({
     networkName: string;
     selectNeighbors: boolean;
     showGridLines: boolean;
+    enableGraffinity: boolean;
     visualizedAttributes: string[];
     nodeEditor: boolean;
     // connectivity is left with type any since it is a temp object in our AQL example
@@ -34,6 +35,7 @@ export default Vue.extend({
       networkName: '',
       selectNeighbors: true,
       showGridLines: true,
+      enableGraffinity: false,
       visualizedAttributes: [],
       nodeEditor: false,
       connectivity: {
@@ -172,6 +174,23 @@ export default Vue.extend({
               <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
             </v-card-subtitle>
 
+            <!-- Graffinity Toggle -->
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Enable Graffinity Features
+              <v-checkbox
+                class="ma-0"
+                v-model="enableGraffinity"
+                hide-details
+              />
+            </v-card-subtitle>
+
             <!-- Matrix Legend -->
             <v-card-subtitle
               class="pb-0 px-0"
@@ -208,6 +227,7 @@ export default Vue.extend({
               network,
               selectNeighbors,
               showGridLines,
+              enableGraffinity,
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
