@@ -106,9 +106,6 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   //  nodes before updating all the neighbors
   const combinedNodes = superNodes.concat(newNodes);
 
-  // console.log("THE COMBINED NODES")
-  // console.log(newLinks);
-
   // construct the neighbors for the nodes
   const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
 
