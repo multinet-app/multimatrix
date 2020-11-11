@@ -140,7 +140,6 @@ export class View {
       .on('click', (d: string) => {
         console.log('clicked the text label');
         this.network = superGraph(this.network.nodes, this.network.links, d);
-        return;
       });
 
     // Calculate the attribute scales
