@@ -34,10 +34,6 @@ export default Vue.extend({
         height: 0,
         width: 0,
       },
-      visDimensions: {
-        height: 0,
-        width: 0,
-      },
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrix: undefined,
       attributes: undefined,
@@ -87,6 +83,9 @@ export default Vue.extend({
   watch: {
     properties() {
       this.updateVis();
+    },
+    network() {
+      this.changeMatrix();
     },
   },
 
@@ -145,10 +144,6 @@ export default Vue.extend({
         document.documentElement.clientHeight ||
         document.body.clientHeight;
 
-      // Set dimensions of the node link
-      this.visDimensions.width = this.browser.width * 0.75;
-      this.visDimensions.height = this.browser.height - 24;
-
       // Size the svgs
       this.matrix = d3
         .select(this.$refs.matrix)
@@ -164,12 +159,13 @@ export default Vue.extend({
           'viewBox',
           `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
         );
-      // Define the View
+
       this.view = new View(
         this.network,
         this.visualizedAttributes,
-        this.matrixWidth,
-        this.matrixHeight,
+        this.matrixNodeLength,
+        this.cellSize,
+        this.visMargins,
       );
     },
   },
