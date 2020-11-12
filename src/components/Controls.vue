@@ -105,6 +105,7 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
     aggregateCaliforniaNodes(this: any) {
+      //
     },
   },
   watch: {

@@ -95,7 +95,7 @@ export default Vue.extend({
   async mounted(this: any) {
     eventBus.$on('updateNetwork', (network: Network) => {
       this.network = network;
-      });
+    });
 
     this.browser.width =
       window.innerWidth ||
