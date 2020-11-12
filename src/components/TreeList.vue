@@ -133,33 +133,37 @@ export default Vue.extend({
   computed: {
     root(): any {
       let i = 0;
+      let links: any[] = [];
       if (this.currentClassification == 'Rabbit') {
-        const links = JSON.parse(JSON.stringify(this.rabbit));
-        const childColumn = Object.keys(links[0])[0];
-        const parentColumn = Object.keys(links[0])[1];
-        const stratify = d3
-          .stratify()
-          .id((d: any) => d[childColumn])
-          .parentId((d: any) => d[parentColumn]);
-        const stratifiedData = stratify(links);
-        const root = d3
-          .hierarchy(stratifiedData)
-          .eachBefore((d: any) => (d.index = i++));
-        return root;
+        links = JSON.parse(JSON.stringify(this.rabbit));
       } else {
-        const links = JSON.parse(JSON.stringify(this.mouse));
-        const childColumn = Object.keys(links[0])[0];
-        const parentColumn = Object.keys(links[0])[1];
-        const stratify = d3
-          .stratify()
-          .id((d: any) => d[childColumn])
-          .parentId((d: any) => d[parentColumn]);
-        const stratifiedData = stratify(links);
-        const root = d3
-          .hierarchy(stratifiedData)
-          .eachBefore((d: any) => (d.index = i++));
-        return root;
+        links = JSON.parse(JSON.stringify(this.mouse));
       }
+      const childColumn = Object.keys(links[0])[0];
+      const parentColumn = Object.keys(links[0])[1];
+      const stratify = d3
+        .stratify()
+        .id((d: any) => d[childColumn])
+        .parentId((d: any) => d[parentColumn]);
+      const stratifiedData = stratify(links);
+      const root = d3
+        .hierarchy(stratifiedData)
+        .eachBefore((d: any) => (d.index = i++));
+
+      // Function to only show children, return after transition works
+      // function collapse(d: any) {
+      //   if (d.children) {
+      //     d._children = d.children;
+      //     d._children.forEach(collapse);
+      //     d.children = null;
+      //   }
+      // }
+      // root.children.forEach((c: any) => {
+      //   if (c.children) {
+      //     c.children.forEach(collapse);
+      //   }
+      // });
+      return root;
     },
     nodesLength(): any {
       return this.root.descendants();
@@ -217,7 +221,7 @@ export default Vue.extend({
       console.log('UPDATED TREE', this.currentClassification);
       const nodes = this.root.descendants();
       const node = this.svg
-        .selectAll('.node')
+        .selectAll('.option')
         .data(nodes, (d: any) => d.id || (d.id = d.data.id));
 
       const link = this.svg
@@ -237,7 +241,7 @@ export default Vue.extend({
         )
         .attr('class', (d: any) => `link${d.source.index}`);
 
-      const nodeEnter = node.enter().append('g').attr('class', 'node');
+      const nodeEnter = node.enter().append('g').attr('class', 'option');
 
       nodeEnter
         .attr(
@@ -338,11 +342,11 @@ export default Vue.extend({
 </template>
 
 <style scoped>
-svg >>> .node {
+svg >>> .option {
   cursor: pointer;
 }
 
-svg >>> .node:hover {
+svg >>> .option:hover {
   font-weight: bold;
   fill: orange;
 }

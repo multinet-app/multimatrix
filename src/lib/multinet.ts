@@ -37,32 +37,43 @@ async function _downloadAllRows(
 }
 
 function _renameLinkVars(links: any[]): Link[] {
-  for (const row of links) {
-    row.id = row._id;
-    row.source = row._from;
-    row.target = row._to;
-
-    delete row._id;
-    delete row._from;
-    delete row._to;
-  }
+  links.forEach((link) => {
+    link.id = link._id;
+    link.source = link._from;
+    link.target = link._to;
+    delete link._id;
+  });
   return links;
 }
 
 function _renameNodeVars(nodes: any[]): Node[] {
-  for (const row of nodes) {
-    row.id = row._id;
-    delete row._id;
-  }
+  nodes.forEach((node) => {
+    node.id = node._id;
+    delete node._id;
+  });
   return nodes;
 }
 
 function _defineNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
-  for (const link of links) {
-    nodes.filter((d: Node) => d._id === link._from)[0].neighbors.push(link._to);
-    nodes.filter((d: Node) => d._id === link._to)[0].neighbors.push(link._from);
-  }
+  links.forEach((link) => {
+    const findNodeFrom = nodes.find((node) => node._id === link._from);
+    const findNodeTo = nodes.find((node) => node._id === link._to);
+    findNodeFrom.neighbors.push(link._to);
+    findNodeTo.neighbors.push(link._from);
+  });
+  return nodes;
+}
+
+// Function that constructs the neighbors for a node in a super network
+export function defineSuperNeighbors(nodes: any[], links: any[]) {
+  nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
+  links.forEach((link) => {
+    const findNodeFrom = nodes.find((node) => node.id === link._from);
+    const findNodeTo = nodes.find((node) => node.id === link._to);
+    findNodeFrom.neighbors.push(link._to);
+    findNodeTo.neighbors.push(link._from);
+  });
   return nodes;
 }
 
@@ -70,7 +81,6 @@ export async function loadData(
   workspace: string,
   networkName: string,
   apiRoot: string = process.env.VUE_APP_MULTINET_HOST,
-  loginToken: string | null,
 ): Promise<Network> {
   // Define local variables that will store the api url and the responses from the database
   const multinet: {
@@ -86,10 +96,6 @@ export async function loadData(
   };
 
   const api = multinetApi(apiRoot);
-
-  if (loginToken !== null) {
-    api.setAuthToken(loginToken);
-  }
 
   // Fetch the names of all the node and edge tables
   multinet.tables = await api.graph(workspace, networkName);
