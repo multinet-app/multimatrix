@@ -9,6 +9,9 @@ import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
+// This is to be removed (stop-gap solution to superGraph network update)
+export const eventBus = new Vue();
+
 export default Vue.extend({
   components: {
     AdjMatrix,
@@ -75,6 +78,11 @@ export default Vue.extend({
     this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
+
+    // Catch network update events here to propagate new data into the app.
+    eventBus.$on('updateNetwork', (network: Network) => {
+      this.network = network;
+    });
   },
 
   methods: {
@@ -105,6 +113,7 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
     aggregateCaliforniaNodes(this: any) {
+      //
     },
   },
   watch: {

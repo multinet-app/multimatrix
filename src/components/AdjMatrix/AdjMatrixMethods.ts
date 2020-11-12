@@ -16,6 +16,9 @@ import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
 
+// This is to be removed (stop-gap solution to superGraph network update)
+import { eventBus } from '@/components/Controls.vue';
+
 declare const reorder: any;
 
 export class View {
@@ -140,6 +143,7 @@ export class View {
       .on('click', (d: string) => {
         console.log('clicked the text label');
         this.network = superGraph(this.network.nodes, this.network.links, d);
+        eventBus.$emit('updateNetwork', this.network);
       });
 
     // Calculate the attribute scales
