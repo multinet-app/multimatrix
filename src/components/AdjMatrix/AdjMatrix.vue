@@ -5,9 +5,6 @@ import Vue, { PropType } from 'vue';
 import { View } from '@/components/AdjMatrix/AdjMatrixMethods';
 import { Dimensions, Network } from '@/types';
 
-// This is to be removed (stop-gap solution to superGraph network update)
-export const eventBus = new Vue();
-
 export default Vue.extend({
   props: {
     network: {
@@ -93,10 +90,6 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    eventBus.$on('updateNetwork', (network: Network) => {
-      this.network = network;
-    });
-
     this.browser.width =
       window.innerWidth ||
       document.documentElement.clientWidth ||

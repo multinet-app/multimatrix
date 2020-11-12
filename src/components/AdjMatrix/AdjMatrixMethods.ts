@@ -17,7 +17,7 @@ import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
 
 // This is to be removed (stop-gap solution to superGraph network update)
-import { eventBus } from '@/components/AdjMatrix/AdjMatrix.vue';
+import { eventBus } from '@/components/Controls.vue';
 
 declare const reorder: any;
 
