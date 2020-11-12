@@ -84,6 +84,9 @@ export default Vue.extend({
     properties() {
       this.updateVis();
     },
+    network() {
+      this.changeMatrix();
+    },
   },
 
   async mounted(this: any) {
@@ -127,6 +130,43 @@ export default Vue.extend({
         this.view.visualizedAttributes = this.visualizedAttributes as string[];
         this.view.updateAttributes();
       }
+    },
+    changeMatrix(this: any) {
+      d3.select('#matrix').selectAll('*').remove();
+
+      this.browser.width =
+        window.innerWidth ||
+        document.documentElement.clientWidth ||
+        document.body.clientWidth;
+
+      this.browser.height =
+        window.innerHeight ||
+        document.documentElement.clientHeight ||
+        document.body.clientHeight;
+
+      // Size the svgs
+      this.matrix = d3
+        .select(this.$refs.matrix)
+        .attr('width', this.matrixWidth)
+        .attr('height', this.matrixHeight)
+        .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
+
+      this.attributes = d3
+        .select(this.$refs.attributes)
+        .attr('width', this.attributesWidth)
+        .attr('height', this.attributesHeight)
+        .attr(
+          'viewBox',
+          `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
+        );
+
+      this.view = new View(
+        this.network,
+        this.visualizedAttributes,
+        this.matrixNodeLength,
+        this.cellSize,
+        this.visMargins,
+      );
     },
   },
 });

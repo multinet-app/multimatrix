@@ -11,7 +11,6 @@ import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
-const loginTokenRegex = /#loginToken=(\S+)/;
 export default Vue.extend({
   components: {
     AdjMatrix,
@@ -61,9 +60,8 @@ export default Vue.extend({
         `Workspace and network must be set! workspace=${workspace} graph=${networkName}`,
       );
     }
-    const loginToken = this.checkUrlForLogin();
 
-    this.network = await loadData(workspace, networkName, host, loginToken);
+    this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
   },
@@ -95,19 +93,7 @@ export default Vue.extend({
 
       legendSVG.select('.legendLinear').call(legendLinear);
     },
-    checkUrlForLogin(this: any): string | null {
-      const result = loginTokenRegex.exec(window.location.href);
-
-      if (result !== null) {
-        const { index, 1: token } = result;
-
-        const newPath = window.location.href.slice(0, index);
-        window.history.replaceState({}, window.document.title, newPath);
-        return token;
-      }
-
-      return null;
-    },
+    aggregateCaliforniaNodes(this: any) {},
     updateSchema(this: any, diffList: string[]) {
       return (this.treeListValues = diffList);
     },
@@ -189,6 +175,12 @@ export default Vue.extend({
           </v-card-text>
 
           <v-card-actions>
+            <v-btn small @click="aggregateCaliforniaNodes"
+              >Aggregate California</v-btn
+            >
+          </v-card-actions>
+
+          <v-card-actions>
             <v-btn small @click="exportNetwork">Export Network</v-btn>
           </v-card-actions>
         </v-card>
@@ -250,7 +242,64 @@ export default Vue.extend({
 </template>
 
 <style scoped>
+.app-logo {
+  width: 48px;
+}
+
+.row-number {
+  align-items: center;
+  border-radius: 100px;
+  display: flex;
+  font-size: 12px;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.workspaces {
+  /* 171px = height of app-bar + workspace button + list subheader */
+  height: calc(100vh - 171px);
+  overflow-y: scroll;
+}
+
+.workspace-icon {
+  opacity: 0.4;
+}
+
+sm {
+  font-size: 10px;
+  font-weight: 300;
+  font-style: italic;
+}
+
 .v-card {
   max-height: calc(100vh - 24px);
+}
+
+.manage-panels {
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.manage-panels .v-expansion-panel:nth-child(odd) {
+  background: #f7f7f7;
+}
+
+.panel-icons {
+  width: 24px !important;
+}
+
+.multinet-title {
+  line-height: 0.7em;
+  padding-top: 16px;
+}
+</style>
+
+<style>
+.app-sidebar .v-navigation-drawer__content {
+  overflow: hidden;
+}
+.add-hops {
+  border-right: 1px solid #ccc !important;
 }
 </style>
