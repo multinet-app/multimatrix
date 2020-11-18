@@ -261,12 +261,6 @@ export class View {
           }, -1100)`,
       )
       .style('fill', '#8B8B8B')
-      .on('click', (d: string) => {
-        console.log('clicked the sort icon');
-        console.log(d);
-        return;
-      });
-    // .on('click', (d: string) => this.sort(d));
   }
 
   private isQuantitative(varName: string): boolean {
