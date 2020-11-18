@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from 'vue';
-import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
+// import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
 import TreeList from '@/components/TreeList.vue';
 import QueryBuilder from '@/components/QueryBuilder.vue';
 import { select, selectAll } from 'd3-selection';
@@ -13,7 +13,6 @@ import { Network } from '@/types';
 
 export default Vue.extend({
   components: {
-    AdjMatrix,
     TreeList,
     QueryBuilder,
   },
@@ -27,6 +26,8 @@ export default Vue.extend({
     visualizedAttributes: string[];
     treeListValues: string[];
     treeListHover: string;
+    currentSchema: any;
+    treeRelationships: any[];
   } {
     return {
       network: {
@@ -40,6 +41,8 @@ export default Vue.extend({
       visualizedAttributes: [],
       treeListValues: [],
       treeListHover: '',
+      currentSchema: {},
+      treeRelationships: [],
     };
   },
 
@@ -93,12 +96,17 @@ export default Vue.extend({
 
       legendSVG.select('.legendLinear').call(legendLinear);
     },
-    aggregateCaliforniaNodes(this: any) {},
+    changeSchema(this: any, schema: any[]) {
+      return (this.currentSchema = schema);
+    },
     updateSchema(this: any, diffList: string[]) {
       return (this.treeListValues = diffList);
     },
     hoverNodes(this: any, hoveredNode: string) {
       return (this.treeListHover = hoveredNode);
+    },
+    relationships(this: any, allSchema: any[]) {
+      return (this.treeRelationships = allSchema);
     },
   },
   watch: {
@@ -175,12 +183,6 @@ export default Vue.extend({
           </v-card-text>
 
           <v-card-actions>
-            <v-btn small @click="aggregateCaliforniaNodes"
-              >Aggregate California</v-btn
-            >
-          </v-card-actions>
-
-          <v-card-actions>
             <v-btn small @click="exportNetwork">Export Network</v-btn>
           </v-card-actions>
         </v-card>
@@ -198,7 +200,9 @@ export default Vue.extend({
             }"
             @restart-simulation="hello()"
             @updateSchema="updateSchema"
+            @changeSchema="changeSchema"
             @hoverSchema="hoverNodes"
+            @relationships="relationships"
           />
         </v-row>
       </v-col>
@@ -214,13 +218,15 @@ export default Vue.extend({
               network,
               treeListValues,
               treeListHover,
+              currentSchema,
+              treeRelationships,
             }"
             @restart-simulation="hello()"
           />
         </v-row>
       </v-col>
 
-      <!-- AdjMatrix component -->
+      <!-- AdjMatrix component
       <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
           <adj-matrix
@@ -236,7 +242,7 @@ export default Vue.extend({
             @updateMatrixLegendScale="createLegend"
           />
         </v-row>
-      </v-col>
+      </v-col> -->
     </v-row>
   </v-container>
 </template>

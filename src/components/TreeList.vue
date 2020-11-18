@@ -68,7 +68,7 @@ export default Vue.extend({
         { name: 'RodPR', parent: 'PR' },
         { name: 'tDS', parent: 'GC' },
         { name: 'uG', parent: 'Glia' },
-        { name: 'Vessel', parent: 'Volume' },
+        { name: 'Vessel', parent: 'Vasculature' },
         { name: 'Volume', parent: '' },
         { name: 'WBC', parent: 'Vasculature' },
         { name: 'yAC', parent: 'AC' },
@@ -117,7 +117,6 @@ export default Vue.extend({
         { name: 'RodPR', parent: 'PR' },
         { name: 'tDS', parent: 'GC' },
         { name: 'uG', parent: 'Glia' },
-        { name: 'Vessel', parent: 'Volume' },
         { name: 'Volume', parent: '' },
         { name: 'WBC', parent: 'Vasculature' },
         { name: 'yAC', parent: 'AC' },
@@ -139,6 +138,7 @@ export default Vue.extend({
       } else {
         links = JSON.parse(JSON.stringify(this.mouse));
       }
+      this.$emit('relationships', links);
       const childColumn = Object.keys(links[0])[0];
       const parentColumn = Object.keys(links[0])[1];
       const stratify = d3
@@ -151,18 +151,18 @@ export default Vue.extend({
         .eachBefore((d: any) => (d.index = i++));
 
       // Function to only show children, return after transition works
-      // function collapse(d: any) {
-      //   if (d.children) {
-      //     d._children = d.children;
-      //     d._children.forEach(collapse);
-      //     d.children = null;
-      //   }
-      // }
-      // root.children.forEach((c: any) => {
-      //   if (c.children) {
-      //     c.children.forEach(collapse);
-      //   }
-      // });
+      function collapse(d: any) {
+        if (d.children) {
+          d._children = d.children;
+          d._children.forEach(collapse);
+          d.children = null;
+        }
+      }
+      root.children.forEach((c: any) => {
+        if (c.children) {
+          c.children.forEach(collapse);
+        }
+      });
       return root;
     },
     nodesLength(): any {
@@ -218,8 +218,9 @@ export default Vue.extend({
 
   methods: {
     update(this: any) {
-      console.log('UPDATED TREE', this.currentClassification);
+      d3.select('#treelist').selectAll('*').remove();
       const nodes = this.root.descendants();
+      this.$emit('changeSchema', nodes.slice(1));
       const node = this.svg
         .selectAll('.option')
         .data(nodes, (d: any) => d.id || (d.id = d.data.id));

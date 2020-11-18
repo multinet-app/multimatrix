@@ -32,15 +32,15 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
   // create the list of super nodes
   const superNodes: {
-    CHILDREN: any[];
-    GROUP: unknown;
+    children: any[];
+    group: unknown;
     _key: unknown;
     id: string;
   }[] = [];
   selectedAttributes.forEach((attr) => {
     const superNode = {
-      CHILDREN: [],
-      GROUP: attr,
+      children: [],
+      group: attr,
       _key: attr,
       id: 'supernodes/' + attr,
     };
@@ -53,9 +53,9 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   newNodes.forEach((node: any) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superNodes.find(
-        (superNode) => superNode.GROUP === node[attribute],
+        (superNode) => superNode.group === node[attribute],
       );
-      if (superNode != undefined) superNode.CHILDREN.push(node.id);
+      if (superNode != undefined) superNode.children.push(node.id);
     }
   });
 
@@ -84,7 +84,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
     superNodes.forEach((superNode) => {
       // check if the _from and _to are in the origin list
-      superNode.CHILDREN.forEach((origin: any) => {
+      superNode.children.forEach((origin: any) => {
         if (linkFrom === origin) {
           const newLinkFrom = superNode.id;
           link._from = newLinkFrom;
@@ -115,7 +115,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   // remove all the nodes who do not have any neighbors
   let finalNodes = neighborNodes;
   superNodes.forEach((superNode) => {
-    const children = superNode.CHILDREN;
+    const children = superNode.children;
     finalNodes.forEach((node) => {
       if (children.includes(node.id)) {
         const nodeIDValue = node.id;
@@ -135,6 +135,134 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
   // print out the final network
   // console.log(network);
+
+  return network;
+}
+
+// This function takes the original nodes and edges from the network
+// and creates a new list of schema nodes and a new list of schema edges
+// to reflect the connections between a schema node and the original nodes
+// in the network based on a classification hierarchy
+
+export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[], schema: any[], label: string) {
+  // de-construct nodes into their original components and
+  // make a new list of nodes
+  const newNodes: any[] = [];
+  nodes.forEach((node) => {
+    const newNode = {
+      ...node,
+    };
+
+    // remove the properties that will not be used
+    delete newNode.neighbors;
+
+    // add new node to node list
+    newNodes.push(newNode);
+  });
+
+  // store current schema as set
+  const selectedAttributes = new Set(selectedSchema)
+
+  // create the list of super nodes
+  const superNodes: {
+    children: any[];
+    group: unknown;
+    _key: unknown;
+    id: string;
+  }[] = [];
+  selectedAttributes.forEach((attr) => {
+    const superNode = {
+      children: [],
+      group: attr,
+      _key: attr,
+      id: 'supernodes/' + attr,
+    };
+    superNodes.push(superNode);
+  });
+
+  // recursive function to check lineage
+  function lineage(key: any, counter: number, node: any) {
+
+    // Check for fuzzy match of key first
+    if (schema[key] === undefined) {
+      for (const k in schema) {
+        const startswith = k.replace(' ', '').slice(0, 3)
+        if (key.startsWith(startswith)) {
+          key = k
+        }
+      }
+    }
+
+    // check if key is part of selectedAttributes
+    if (selectedAttributes.has(key)) {
+      const superNode = superNodes.find(
+        (superNode) => superNode.group === key,
+      );
+      if (superNode != undefined) superNode.children.push(node.id);
+    }
+    else if (selectedAttributes.has(schema[key])) {
+      const superNode = superNodes.find(
+        (superNode) => superNode.group === schema[key],
+      );
+      if (superNode != undefined) superNode.children.push(node.id);
+    } else if (counter === 5) {
+      const superNode = superNodes.find(
+        (superNode) => superNode.group === 'Null',
+      );
+      if (superNode != undefined) superNode.children.push(node.id);
+    } else {
+      const newKey: string = schema[key]
+      counter += 1
+      lineage(newKey, counter, node)
+    }
+
+  }
+
+  newNodes.forEach((node: any) => {
+    const key: string = node[label].toUpperCase().trim()
+    if (key) {
+      lineage(key, 0, node)
+    }
+  });
+
+  //  remove super nodes that dont have children
+  const finalNodes: any[] = superNodes.filter((superNode) => superNode.children.length > 0)
+
+  // make a new list of edges for the supergraph network
+  const newLinks: any = [];
+
+  edges.forEach((link: any) => {
+    if (link) {
+      const linkFrom = link.source;
+      const linkTo = link.target;
+
+      finalNodes.forEach((superNode) => {
+        // check if the _from and _to are in the origin list
+        superNode.children.forEach((origin: any) => {
+          if (linkFrom === origin) {
+            const newLinkFrom = superNode.id;
+            link._from = newLinkFrom;
+            link.source = link._from;
+          }
+          if (linkTo === origin) {
+            const newLinkTo = superNode.id;
+            link._to = newLinkTo;
+            link.target = link._to;
+          }
+        });
+      });
+      const startswith = "supernodes"
+      if (link.source.startsWith(startswith) && link.target.startsWith(startswith)) {
+        newLinks.push(link)
+      }
+    }
+  });
+
+  // construct the new network
+  const network = {
+    nodes: finalNodes,
+    links: newLinks,
+  };
 
   return network;
 }

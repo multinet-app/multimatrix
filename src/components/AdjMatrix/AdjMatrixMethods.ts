@@ -253,8 +253,7 @@ export class View {
       .attr(
         'transform',
         (d: string, i: number) =>
-          `scale(0.1)translate(${
-            (colWidth + this.colMargin) * i * 10 - 200
+          `scale(0.1)translate(${(colWidth + this.colMargin) * i * 10 - 200
           }, -1100)`,
       )
       .style('fill', '#8B8B8B')
@@ -990,10 +989,9 @@ export class View {
       .style('left', `${window.pageXOffset + matrix.e}px`)
       .style(
         'top',
-        `${
-          window.pageYOffset +
-          matrix.f -
-          this.tooltip.node().getBoundingClientRect().height
+        `${window.pageYOffset +
+        matrix.f -
+        this.tooltip.node().getBoundingClientRect().height
         }px`,
       );
 
@@ -1123,8 +1121,8 @@ export class View {
 
     // Count occurrences of links and store it in the matrix
     this.network.links.forEach((link: Link) => {
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+      this.matrix[this.idMap[link.source.id]][this.idMap[link.target.id]].z += 1;
+      this.matrix[this.idMap[link.target.id]][this.idMap[link.source.id]].z += 1;
     });
 
     // Find max value of z

@@ -11,6 +11,8 @@ async function _downloadAllRows(
   let table = await api.table(workspace, tableName, { offset: 0, limit: 100 });
 
   // If the table is large, don't download the data
+  // Modified to show larger networks
+  // TODO modify to use this function to pull network for schema before drawing matrix
   if (
     (table.count > 100 && tableType === 'node') ||
     (table.count > 2000 && tableType === 'link')
