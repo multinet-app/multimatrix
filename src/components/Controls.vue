@@ -187,12 +187,6 @@ export default Vue.extend({
           </v-card-text>
 
           <v-card-actions>
-            <v-btn small @click="aggregateCaliforniaNodes"
-              >Aggregate California</v-btn
-            >
-          </v-card-actions>
-
-          <v-card-actions>
             <v-btn small @click="exportNetwork">Export Network</v-btn>
           </v-card-actions>
         </v-card>

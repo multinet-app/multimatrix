@@ -28,7 +28,8 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   });
 
   // // print out the selected attributes
-  // console.log(selectedAttributes);
+  console.log('THE SELECTED ATTRIBUTES');
+  console.log(selectedAttributes);
 
   // create the list of super nodes
   const superNodes: {
