@@ -19,17 +19,19 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     // add new node to node list
     newNodes.push(newNode);
   });
-
   // create a list that results of the selected attribute from the nodes
-  const selectedAttributes = new Set();
+  const selectedAttributes = new Set<string>();
 
-  newNodes.forEach((node) => {
+  newNodes.forEach((node: any) => {
     selectedAttributes.add(node[attribute]);
   });
 
-  // // print out the selected attributes
-  console.log('THE SELECTED ATTRIBUTES');
-  console.log(selectedAttributes);
+  // print out the selected attributes
+  // console.log('THE SELECTED ATTRIBUTES');
+  // console.log(selectedAttributes);
+
+  // dictionary data structure for constant time lookup for supernodes
+  const superMap = new Map<string, any>();
 
   // create the list of super nodes
   const superNodes: {
@@ -38,24 +40,26 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     _key: unknown;
     id: string;
   }[] = [];
-  selectedAttributes.forEach((attr) => {
+  selectedAttributes.forEach((attr: string) => {
     const superNode = {
       CHILDREN: [],
       GROUP: attr,
       _key: attr,
       id: 'supernodes/' + attr,
     };
+    superMap.set(attr, superNode);
     superNodes.push(superNode);
   });
 
   // print out the super nodes
+  // console.log('THE SUPER NODES');
   // console.log(superNodes);
+  // console.log('THE SUPER MAP');
+  // console.log(superMap);
 
   newNodes.forEach((node: any) => {
     if (selectedAttributes.has(node[attribute])) {
-      const superNode = superNodes.find(
-        (superNode) => superNode.GROUP === node[attribute],
-      );
+      const superNode = superMap.get(node[attribute]);
       if (superNode != undefined) superNode.CHILDREN.push(node.id);
     }
   });
