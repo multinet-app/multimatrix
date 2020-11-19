@@ -3,10 +3,11 @@
 // to reflect the connections between a supernode and the original nodes
 // in the network
 import { defineSuperNeighbors } from '@/lib/multinet';
+import { Link, Node } from '@/types';
 export function superGraph(nodes: any[], edges: any[], attribute: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
-  const newNodes: any[] = [];
+  const newNodes: Node[] = [];
   nodes.map((node) => {
     const newNode = {
       ...node,
@@ -22,7 +23,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   // create a list that results of the selected attribute from the nodes
   const selectedAttributes = new Set<string>();
 
-  newNodes.forEach((node: any) => {
+  newNodes.forEach((node: Node) => {
     selectedAttributes.add(node[attribute]);
   });
 
@@ -34,18 +35,14 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   const superMap = new Map<string, any>();
 
   // create the list of super nodes
-  const superNodes: {
-    CHILDREN: any[];
-    GROUP: unknown;
-    _key: unknown;
-    id: string;
-  }[] = [];
+  const superNodes: Node[] = [];
   selectedAttributes.forEach((attr: string) => {
     const superNode = {
       CHILDREN: [],
       GROUP: attr,
       _key: attr,
       id: 'supernodes/' + attr,
+      neighbors: [],
     };
     superMap.set(attr, superNode);
     superNodes.push(superNode);
@@ -69,7 +66,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
   // de-construct edges into their original components and
   // make a new list of edges for the supergraph network
-  const newLinks: any = [];
+  const newLinks: Link[] = [];
   edges.forEach((link) => {
     const newLink = {
       ...link,
@@ -83,7 +80,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
   // update the _from, _to values and in attribute values for target and source
   // which are needed for using d3 to visualize the network
-  newLinks.forEach((link: any) => {
+  newLinks.forEach((link: Link) => {
     const linkFrom = link._from;
     const linkTo = link._to;
 
