@@ -7,7 +7,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
   const newNodes: any[] = [];
-  nodes.forEach((node) => {
+  nodes.map((node) => {
     const newNode = {
       ...node,
     };

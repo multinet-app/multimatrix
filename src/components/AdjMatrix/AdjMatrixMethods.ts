@@ -260,7 +260,7 @@ export class View {
             (colWidth + this.colMargin) * i * 10 - 200
           }, -1100)`,
       )
-      .style('fill', '#8B8B8B')
+      .style('fill', '#8B8B8B');
   }
 
   private isQuantitative(varName: string): boolean {
