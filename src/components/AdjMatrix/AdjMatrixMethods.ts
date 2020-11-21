@@ -10,10 +10,14 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
+import { superGraph } from '@/lib/aggregation';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
+
+// This is to be removed (stop-gap solution to superGraph network update)
+import { eventBus } from '@/components/Controls.vue';
 
 declare const reorder: any;
 
@@ -136,7 +140,10 @@ export class View {
       .attr('y', 16)
       .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
-      .on('click', (d: string) => this.sort(d));
+      .on('click', (d: string) => {
+        this.network = superGraph(this.network.nodes, this.network.links, d);
+        eventBus.$emit('updateNetwork', this.network);
+      });
 
     // Calculate the attribute scales
     this.visualizedAttributes.forEach((col: string) => {
@@ -253,8 +260,7 @@ export class View {
             (colWidth + this.colMargin) * i * 10 - 200
           }, -1100)`,
       )
-      .style('fill', '#8B8B8B')
-      .on('click', (d: string) => this.sort(d));
+      .style('fill', '#8B8B8B');
   }
 
   private isQuantitative(varName: string): boolean {
