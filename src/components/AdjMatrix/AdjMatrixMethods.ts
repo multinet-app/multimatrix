@@ -309,6 +309,12 @@ export class View {
       .enter()
       .append('g')
       .attr('class', 'rowContainer')
+      .attr('transform', `translate(0, 0)`);
+
+    this.edgeRows
+      .transition()
+      .duration(500)
+      // addd a transition somewhere here? for the rows?
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
