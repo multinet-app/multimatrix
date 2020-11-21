@@ -10,6 +10,10 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
+import { library, dom } from '@fortawesome/fontawesome-svg-core';
+import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
+library.add(faAngleRight);
+dom.watch();
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
@@ -522,6 +526,8 @@ export class View {
     const labelContainerHeight = 25;
     const rowLabelContainerStart = 75;
     const labelContainerWidth = rowLabelContainerStart;
+    const chevronWidth = 25;
+    const chevronHeight = 25;
 
     // add foreign objects for label
     const edgeRowForeignObject = this.edgeRows
@@ -543,6 +549,19 @@ export class View {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
+    
+    // add row chevron widgets
+    const rowDropWidget = this.edgeRows
+      .append('foreignObject')
+      .attr('x', -(rowLabelContainerStart + 10))
+      .attr('y', -5)
+      .attr('width', chevronWidth)
+      .attr('height', chevronHeight);
+    
+    rowDropWidget.append('svg')
+      .classed('fa', true)
+      .classed('fa-angle-right', true);
+    
 
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
