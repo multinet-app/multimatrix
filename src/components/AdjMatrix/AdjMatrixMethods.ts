@@ -61,7 +61,7 @@ export class View {
   private maxNumConnections = -Infinity;
   private matrixNodeLength: number;
   private cellSize: number;
-
+  private clickBool: number;
   constructor(
     network: Network,
     visualizedAttributes: string[],
@@ -81,6 +81,7 @@ export class View {
     this.visualizedAttributes = visualizedAttributes;
     this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
+    this.clickBool = 0;
 
     this.icons = {
       quant: {
@@ -526,8 +527,8 @@ export class View {
     const labelContainerHeight = 25;
     const rowLabelContainerStart = 75;
     const labelContainerWidth = rowLabelContainerStart;
-    const chevronWidth = 25;
-    const chevronHeight = 25;
+    const chevronWidth = 30;
+    const chevronHeight = 30;
 
     // add foreign objects for label
     const edgeRowForeignObject = this.edgeRows
@@ -549,19 +550,25 @@ export class View {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
-    
+
     // add row chevron widgets
     const rowDropWidget = this.edgeRows
       .append('foreignObject')
-      .attr('x', -(rowLabelContainerStart + 10))
+      .attr('x', -(rowLabelContainerStart + 40))
       .attr('y', -5)
       .attr('width', chevronWidth)
       .attr('height', chevronHeight);
-    
-    rowDropWidget.append('svg')
+
+    rowDropWidget
+      .append('xhtml:div')
+      .append('i')
       .classed('fa', true)
       .classed('fa-angle-right', true);
-    
+
+    rowDropWidget.on('click', (d: Node) => {
+      console.log(d._key);
+      console.log(d);
+    });
 
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
