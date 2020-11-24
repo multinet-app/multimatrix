@@ -88,6 +88,9 @@ export default Vue.extend({
     properties() {
       this.updateVis();
     },
+    network() {
+      this.changeMatrix();
+    },
   },
 
   async mounted(this: any) {
@@ -145,10 +148,6 @@ export default Vue.extend({
         document.documentElement.clientHeight ||
         document.body.clientHeight;
 
-      // Set dimensions of the node link
-      this.visDimensions.width = this.browser.width * 0.75;
-      this.visDimensions.height = this.browser.height - 24;
-
       // Size the svgs
       this.matrix = d3
         .select(this.$refs.matrix)
@@ -164,12 +163,13 @@ export default Vue.extend({
           'viewBox',
           `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
         );
-      // Define the View
+
       this.view = new View(
         this.network,
         this.visualizedAttributes,
-        this.matrixWidth,
-        this.matrixHeight,
+        this.matrixNodeLength,
+        this.cellSize,
+        this.visMargins,
       );
     },
   },
