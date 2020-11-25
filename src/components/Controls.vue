@@ -95,7 +95,6 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
     changeSchema(this: any, schema: any[]) {
-      console.log('@controls', schema);
       return (this.currentSchema = schema);
     },
     hoverNodes(this: any, hoveredNode: string) {

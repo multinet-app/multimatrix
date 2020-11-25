@@ -8,14 +8,14 @@ async function _downloadAllRows(
   tableName: string,
   tableType: 'node' | 'link',
 ) {
-  let table = await api.table(workspace, tableName, { offset: 0, limit: 100 });
+  let table = await api.table(workspace, tableName, { offset: 0, limit: 1000 });
 
   // If the table is large, don't download the data
   // Modified to show larger networks
   // TODO modify to use this function to pull network for schema before drawing matrix
   if (
-    (table.count > 100 && tableType === 'node') ||
-    (table.count > 2000 && tableType === 'link')
+    (table.count > 13000 && tableType === 'node') ||
+    (table.count > 22000 && tableType === 'link')
   ) {
     throw new Error(
       `The table called ${tableName} is too large, not downloading.`,
@@ -30,7 +30,7 @@ async function _downloadAllRows(
   while (output.length < table.count) {
     table = await api.table(workspace, tableName, {
       offset: output.length,
-      limit: 100,
+      limit: 1000,
     });
     output = output.concat(table.rows);
   }

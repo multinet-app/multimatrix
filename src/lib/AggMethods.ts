@@ -120,10 +120,12 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 // to reflect the connections between a schema node and the original nodes
 // in the network based on a classification hierarchy
 
-export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[], schema: any[], label: string) {
+export function schemaGraph(data: any[], selectedSchema: string[], schema: any[], label: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
-  // console.log("N", nodes, "E", edges, "SS", selectedSchema, "S", schema)
+  const nodes = data.nodes
+  const edges = data.links
+  // console.log("N", nodes, "E", edges, "SS", selectedSchema, "S", schema, "L", label)
 
   const newNodes: any[] = [];
   nodes.forEach((node) => {
@@ -142,7 +144,7 @@ export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[]
   const selectedAttributes = new Set(selectedSchema)
 
   // create the list of super nodes
-  // TODO do not hardcode Label
+  // TODO do not hardcode Label key in superNode object
   const superNodes: {
     children: any[];
     Label: unknown;
@@ -166,42 +168,33 @@ export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[]
 
       // Check for fuzzy match of key first
       if (schema[key] === undefined) {
-        // console.log("1", key)
         for (const k in schema) {
           const startswith = k.replace(' ', '').slice(0, 3)
-          // console.log("Compares with:", startswith)
           if (key.startsWith(startswith)) {
             key = k
-            // console.log("2", key)
           }
         }
       }
 
       // check if key is part of selectedAttributes
       if (selectedAttributes.has(key)) {
-        // console.log("3", key)
         const superNode = superNodes.find(
           (superNode) => superNode.Label === key,
         );
         if (superNode != undefined) superNode.children.push(node.id);
       }
-      // if key is not in set, check if it's parent is
       else if (selectedAttributes.has(schema[key])) {
-        // console.log("4", schema[key])
         const superNode = superNodes.find(
           (superNode) => superNode.Label === schema[key],
         );
         if (superNode != undefined) superNode.children.push(node.id);
-        // to catch keys with typos
       } else if (counter === 5) {
-        // console.log("5", 'Null')
         const superNode = superNodes.find(
           (superNode) => superNode.Label === 'Null',
         );
         if (superNode != undefined) superNode.children.push(node.id);
         // if parent is not in set, update key to be parent
       } else {
-        // console.log("6", key, '-->', schema[key])
         const newKey: string = schema[key]
         counter += 1
         lineage(newKey, counter, node)
@@ -212,10 +205,13 @@ export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[]
   }
 
   newNodes.forEach((node: any) => {
-    const key: string = node[label].toUpperCase().trim()
-    if (key) {
-      // console.log("STARTING:", key)
-      lineage(key, 0, node)
+    console.log(node)
+    if (node[label]) {
+      const key: string = node[label].toUpperCase().trim()
+      if (key) {
+        // console.log("STARTING:", key)
+        lineage(key, 0, node)
+      }
     }
   });
 
