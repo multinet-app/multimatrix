@@ -24,7 +24,6 @@ export default Vue.extend({
     selectNeighbors: boolean;
     showGridLines: boolean;
     visualizedAttributes: string[];
-    treeListValues: string[];
     treeListHover: string;
     currentSchema: any;
     treeRelationships: any[];
@@ -39,7 +38,6 @@ export default Vue.extend({
       selectNeighbors: true,
       showGridLines: true,
       visualizedAttributes: [],
-      treeListValues: [],
       treeListHover: '',
       currentSchema: {},
       treeRelationships: [],
@@ -97,10 +95,8 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
     changeSchema(this: any, schema: any[]) {
+      console.log('@controls', schema);
       return (this.currentSchema = schema);
-    },
-    updateSchema(this: any, diffList: string[]) {
-      return (this.treeListValues = diffList);
     },
     hoverNodes(this: any, hoveredNode: string) {
       return (this.treeListHover = hoveredNode);
@@ -199,7 +195,6 @@ export default Vue.extend({
               network,
             }"
             @restart-simulation="hello()"
-            @updateSchema="updateSchema"
             @changeSchema="changeSchema"
             @hoverSchema="hoverNodes"
             @relationships="relationships"
@@ -216,7 +211,6 @@ export default Vue.extend({
             v-if="workspace"
             v-bind="{
               network,
-              treeListValues,
               treeListHover,
               currentSchema,
               treeRelationships,

@@ -89,8 +89,6 @@ export default Vue.extend({
         { name: 'CB', parent: 'BC' },
         { name: 'CB OFF', parent: 'CB' },
         { name: 'CB ON', parent: 'CB' },
-        { name: 'CB OFF', parent: 'CB' },
-        { name: 'CB ON', parent: 'CB' },
         { name: 'ConePR', parent: 'PR' },
         { name: 'DS', parent: 'GC' },
         { name: 'EC', parent: 'Vasculature' },
@@ -151,18 +149,19 @@ export default Vue.extend({
         .eachBefore((d: any) => (d.index = i++));
 
       // Function to only show children, return after transition works
-      function collapse(d: any) {
-        if (d.children) {
-          d._children = d.children;
-          d._children.forEach(collapse);
-          d.children = null;
-        }
-      }
-      root.children.forEach((c: any) => {
-        if (c.children) {
-          c.children.forEach(collapse);
-        }
-      });
+      // function collapse(d: any) {
+      //   if (d.children) {
+      //     d._children = d.children;
+      //     d._children.forEach(collapse);
+      //     d.children = null;
+      //   }
+      // }
+      // root.children.forEach((c: any) => {
+      //   if (c.children) {
+      //     c.children.forEach(collapse);
+      //   }
+      // });
+
       return root;
     },
     nodesLength(): any {
@@ -214,12 +213,23 @@ export default Vue.extend({
           this.width / 4
         }`,
       );
+
+    // Set up color scale
+    const colorDomainVals: string[] = this.root
+      .descendants()
+      .map((c) => (c.children ? null : c.data.id));
+
+    this.colorScale = d3
+      .scaleOrdinal()
+      .domain(colorDomainVals)
+      .range(d3.schemeCategory10);
   },
 
   methods: {
     update(this: any) {
       d3.select('#treelist').selectAll('*').remove();
       const nodes = this.root.descendants();
+
       this.$emit('changeSchema', nodes.slice(1));
       const node = this.svg
         .selectAll('.option')
@@ -255,8 +265,18 @@ export default Vue.extend({
       nodeEnter
         .append('circle')
         .attr('cx', (d: any) => d.depth * this.nodeSize)
-        .attr('r', 2.5)
-        .attr('fill', (d: any) => (d.children ? null : '#999'));
+        .attr('r', 4)
+        // .attr('fill', (d: any) => (d.children ? null : '#999'));
+        .style('fill', (d: any) => {
+          if (d.parent == null || d.parent.id == 'Volume') {
+            console.log();
+            return '#999';
+          } else if (d.children) {
+            return this.colorScale(d.id);
+          } else {
+            return this.colorScale(d.parent.id);
+          }
+        });
 
       nodeEnter
         .append('text')
@@ -322,7 +342,6 @@ export default Vue.extend({
         d3.select(this).remove();
 
         this.update();
-        this.$emit('updateSchema', change);
       }
     },
   },

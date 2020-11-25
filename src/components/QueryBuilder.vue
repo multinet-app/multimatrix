@@ -2,7 +2,7 @@
 /* eslint-disable prefer-const */
 import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
-import { superGraph, schemaGraph } from '@/lib/AggMethods';
+import { schemaGraph } from '@/lib/AggMethods';
 
 import { Dimensions, Network } from '@/types';
 
@@ -11,10 +11,6 @@ export default Vue.extend({
     network: {
       type: Object as PropType<Network>,
       required: true,
-    },
-    treeListValues: {
-      type: Array,
-      default: () => [],
     },
     treeListHover: {
       type: String,
@@ -8412,25 +8408,6 @@ export default Vue.extend({
         ],
         links: [
           {
-            _key: '5914307',
-            id: 'marclab_links/5914307',
-            source: 'marclab_nodes/223',
-            target: 'marclab_nodes/284',
-            _rev: '_bVtRUme--j',
-            ID: '393',
-            Label:
-              '223-284 via Gap Junction from 17519 -> 17518, 17520 -> 14350, 17521 -> 17419, 131778 -> 131779',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '117895.88382156088',
-            TotalTargetArea: '137223.79555953504',
-            MinZ: '271',
-            MaxZ: '289',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 17519, 'TargetID': 17518, 'Directional': False}, {'SourceID': 17520, 'TargetID': 14350, 'Directional': False}, {'SourceID': 17521, 'TargetID': 17419, 'Directional': False}, {'SourceID': 131778, 'TargetID': 131779, 'Directional': False}]",
-          },
-          {
             _key: '5914309',
             id: 'marclab_links/5914309',
             source: 'marclab_nodes/223',
@@ -8650,25 +8627,6 @@ export default Vue.extend({
             IsLoop: 'False',
             Links:
               "[{'SourceID': 29580, 'TargetID': 26271, 'Directional': False}, {'SourceID': 29586, 'TargetID': 29585, 'Directional': False}, {'SourceID': 29610, 'TargetID': 29611, 'Directional': False}, {'SourceID': 131781, 'TargetID': 131780, 'Directional': False}]",
-          },
-          {
-            _key: '5914307',
-            id: 'marclab_links/5914307',
-            source: 'marclab_nodes/223',
-            target: 'marclab_nodes/284',
-            _rev: '_bVtRUme--j',
-            ID: '393',
-            Label:
-              '223-284 via Gap Junction from 17519 -> 17518, 17520 -> 14350, 17521 -> 17419, 131778 -> 131779',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '117895.88382156088',
-            TotalTargetArea: '137223.79555953504',
-            MinZ: '271',
-            MaxZ: '289',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 17519, 'TargetID': 17518, 'Directional': False}, {'SourceID': 17520, 'TargetID': 14350, 'Directional': False}, {'SourceID': 17521, 'TargetID': 17419, 'Directional': False}, {'SourceID': 131778, 'TargetID': 131779, 'Directional': False}]",
           },
           {
             _key: '5914323',
@@ -12250,154 +12208,7 @@ export default Vue.extend({
             Links:
               "[{'SourceID': 113268, 'TargetID': 129331, 'Directional': False}, {'SourceID': 115796, 'TargetID': 113247, 'Directional': False}, {'SourceID': 129339, 'TargetID': 117225, 'Directional': False}]",
           },
-          {
-            _key: '5916316',
-            id: 'marclab_links/5916316',
-            source: 'marclab_nodes/5473',
-            target: 'marclab_nodes/5468',
-            _rev: '_bVtRUsO--n',
-            ID: '2402',
-            Label:
-              '5473-5468 via Gap Junction from 23883 -> 23882, 57147 -> 48271',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '331414.59231190814',
-            TotalTargetArea: '360818.1818938273',
-            MinZ: '198',
-            MaxZ: '205',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 23883, 'TargetID': 23882, 'Directional': False}, {'SourceID': 57147, 'TargetID': 48271, 'Directional': False}]",
-          },
-          {
-            _key: '5916333',
-            id: 'marclab_links/5916333',
-            source: 'marclab_nodes/5473',
-            target: 'marclab_nodes/5592',
-            _rev: '_bVtRUsS--d',
-            ID: '2419',
-            Label: '5473-5592 via Gap Junction from 23895 -> 23891',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '101618.643352606',
-            TotalTargetArea: '101618.6811498',
-            MinZ: '184',
-            MaxZ: '188',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 23895, 'TargetID': 23891, 'Directional': False}]",
-          },
-          {
-            _key: '5916334',
-            id: 'marclab_links/5916334',
-            source: 'marclab_nodes/5473',
-            target: 'marclab_nodes/5638',
-            _rev: '_bVtRUsS--f',
-            ID: '2420',
-            Label:
-              '5473-5638 via Gap Junction from 116863 -> 56467, 117099 -> 117098',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '115433.67787826735',
-            TotalTargetArea: '115433.6968689171',
-            MinZ: '254',
-            MaxZ: '262',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 116863, 'TargetID': 56467, 'Directional': False}, {'SourceID': 117099, 'TargetID': 117098, 'Directional': False}]",
-          },
-          {
-            _key: '5916335',
-            id: 'marclab_links/5916335',
-            source: 'marclab_nodes/5473',
-            target: 'marclab_nodes/6958',
-            _rev: '_bVtRUsS--h',
-            ID: '2421',
-            Label:
-              '5473-6958 via Gap Junction from 27460 -> 27461, 116540 -> 116539',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '48177.3110716884',
-            TotalTargetArea: '48177.327590310546',
-            MinZ: '188',
-            MaxZ: '203',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 27460, 'TargetID': 27461, 'Directional': False}, {'SourceID': 116540, 'TargetID': 116539, 'Directional': False}]",
-          },
-          {
-            _key: '5916337',
-            id: 'marclab_links/5916337',
-            source: 'marclab_nodes/5473',
-            target: 'marclab_nodes/15977',
-            _rev: '_bVtRUsS--l',
-            ID: '2423',
-            Label: '5473-15977 via Gap Junction from 117175 -> 117174',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '23421.215852579848',
-            TotalTargetArea: '23421.20449705637',
-            MinZ: '259',
-            MaxZ: '259',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 117175, 'TargetID': 117174, 'Directional': False}]",
-          },
-          {
-            _key: '5916338',
-            id: 'marclab_links/5916338',
-            source: 'marclab_nodes/5473',
-            target: 'marclab_nodes/57143',
-            _rev: '_bVtRUsS--n',
-            ID: '2424',
-            Label: '5473-57143 via Gap Junction from 57145 -> 57144',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '213406.45921170316',
-            TotalTargetArea: '49746.3669257166',
-            MinZ: '207',
-            MaxZ: '212',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 57145, 'TargetID': 57144, 'Directional': False}]",
-          },
-          {
-            _key: '5916336',
-            id: 'marclab_links/5916336',
-            source: 'marclab_nodes/15976',
-            target: 'marclab_nodes/5473',
-            _rev: '_bVtRUsS--j',
-            ID: '2422',
-            Label:
-              '15976-5473 via Gap Junction from 23888 -> 23887, 57152 -> 23886, 93195 -> 57146, 93309 -> 57412, 121834 -> 121833',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '737162.0054053864',
-            TotalTargetArea: '737161.9245382377',
-            MinZ: '198',
-            MaxZ: '227',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 23888, 'TargetID': 23887, 'Directional': False}, {'SourceID': 57152, 'TargetID': 23886, 'Directional': False}, {'SourceID': 93195, 'TargetID': 57146, 'Directional': False}, {'SourceID': 93309, 'TargetID': 57412, 'Directional': False}, {'SourceID': 121834, 'TargetID': 121833, 'Directional': False}]",
-          },
-          {
-            _key: '5916339',
-            id: 'marclab_links/5916339',
-            source: 'marclab_nodes/117127',
-            target: 'marclab_nodes/5473',
-            _rev: '_bVtRUsW--_',
-            ID: '2425',
-            Label: '117127-5473 via Gap Junction from 117140 -> 117141',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '17699.580497549232',
-            TotalTargetArea: '17699.580497549232',
-            MinZ: '219',
-            MaxZ: '219',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 117140, 'TargetID': 117141, 'Directional': False}]",
-          },
+
           {
             _key: '5914146',
             id: 'marclab_links/5914146',
@@ -13893,212 +13704,7 @@ export default Vue.extend({
             Links:
               "[{'SourceID': 29720, 'TargetID': 29719, 'Directional': False}, {'SourceID': 29724, 'TargetID': 29718, 'Directional': False}]",
           },
-          {
-            _key: '5915786',
-            id: 'marclab_links/5915786',
-            source: 'marclab_nodes/7114',
-            target: 'marclab_nodes/4877',
-            _rev: '_bVtRUqu--L',
-            ID: '1872',
-            Label:
-              '7114-4877 via Gap Junction from 91563 -> 91564, 135965 -> 135644',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '61471.63433742865',
-            TotalTargetArea: '60969.62192649831',
-            MinZ: '221',
-            MaxZ: '279',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 91563, 'TargetID': 91564, 'Directional': False}, {'SourceID': 135965, 'TargetID': 135644, 'Directional': False}]",
-          },
-          {
-            _key: '5916325',
-            id: 'marclab_links/5916325',
-            source: 'marclab_nodes/7114',
-            target: 'marclab_nodes/5468',
-            _rev: '_bVtRUsS--N',
-            ID: '2411',
-            Label:
-              '7114-5468 via Gap Junction from 48215 -> 48214, 51774 -> 48129, 93531 -> 93530, 118114 -> 118115, 121812 -> 121811',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '158111.885373775',
-            TotalTargetArea: '176505.1925783186',
-            MinZ: '225',
-            MaxZ: '268',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 48215, 'TargetID': 48214, 'Directional': False}, {'SourceID': 51774, 'TargetID': 48129, 'Directional': False}, {'SourceID': 93531, 'TargetID': 93530, 'Directional': False}, {'SourceID': 118114, 'TargetID': 118115, 'Directional': False}, {'SourceID': 121812, 'TargetID': 121811, 'Directional': False}]",
-          },
-          {
-            _key: '5917234',
-            id: 'marclab_links/5917234',
-            source: 'marclab_nodes/7114',
-            target: 'marclab_nodes/5599',
-            _rev: '_bVtRUvC--D',
-            ID: '3320',
-            Label: '7114-5599 via Gap Junction from 116822 -> 116821',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '118438.21699935137',
-            TotalTargetArea: '118438.22974505056',
-            MinZ: '245',
-            MaxZ: '250',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 116822, 'TargetID': 116821, 'Directional': False}]",
-          },
-          {
-            _key: '5917242',
-            id: 'marclab_links/5917242',
-            source: 'marclab_nodes/7114',
-            target: 'marclab_nodes/5600',
-            _rev: '_bVtRUvC--T',
-            ID: '3328',
-            Label:
-              '7114-5600 via Gap Junction from 26617 -> 26623, 71355 -> 26616, 116685 -> 122902, 116826 -> 116825, 116830 -> 116824, 124449 -> 124450, 124451 -> 124452',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '641992.313709319',
-            TotalTargetArea: '715669.6651447639',
-            MinZ: '269',
-            MaxZ: '295',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 26617, 'TargetID': 26623, 'Directional': False}, {'SourceID': 71355, 'TargetID': 26616, 'Directional': False}, {'SourceID': 116685, 'TargetID': 122902, 'Directional': False}, {'SourceID': 116826, 'TargetID': 116825, 'Directional': False}, {'SourceID': 116830, 'TargetID': 116824, 'Directional': False}, {'SourceID': 124449, 'TargetID': 124450, 'Directional': False}, {'SourceID': 124451, 'TargetID': 124452, 'Directional': False}]",
-          },
-          {
-            _key: '5918189',
-            id: 'marclab_links/5918189',
-            source: 'marclab_nodes/7114',
-            target: 'marclab_nodes/6203',
-            _rev: '_bVtRUx6--L',
-            ID: '4275',
-            Label: '7114-6203 via Gap Junction from 57229 -> 57213',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '77246.37748395056',
-            TotalTargetArea: '77246.36831408531',
-            MinZ: '229',
-            MaxZ: '232',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 57229, 'TargetID': 57213, 'Directional': False}]",
-          },
-          {
-            _key: '5918232',
-            id: 'marclab_links/5918232',
-            source: 'marclab_nodes/7114',
-            target: 'marclab_nodes/6958',
-            _rev: '_bVtRUyC--R',
-            ID: '4318',
-            Label:
-              '7114-6958 via Gap Junction from 116682 -> 116677, 117151 -> 117150, 122901 -> 116838',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '115436.1364755485',
-            TotalTargetArea: '172043.39376529242',
-            MinZ: '291',
-            MaxZ: '300',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 116682, 'TargetID': 116677, 'Directional': False}, {'SourceID': 117151, 'TargetID': 117150, 'Directional': False}, {'SourceID': 122901, 'TargetID': 116838, 'Directional': False}]",
-          },
-          {
-            _key: '5918336',
-            id: 'marclab_links/5918336',
-            source: 'marclab_nodes/7114',
-            target: 'marclab_nodes/115118',
-            _rev: '_bVtRUyW--X',
-            ID: '4422',
-            Label: '7114-115118 via Gap Junction from 124174 -> 124225',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '162437.8302854976',
-            TotalTargetArea: '157994.38037741394',
-            MinZ: '261',
-            MaxZ: '267',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 124174, 'TargetID': 124225, 'Directional': False}]",
-          },
-          {
-            _key: '5917208',
-            id: 'marclab_links/5917208',
-            source: 'marclab_nodes/5598',
-            target: 'marclab_nodes/7114',
-            _rev: '_bVtRUu6--f',
-            ID: '3294',
-            Label:
-              '5598-7114 via Gap Junction from 12557 -> 12522, 52987 -> 52986, 57186 -> 115116, 59068 -> 59067, 115153 -> 115152, 124186 -> 26610, 124208 -> 124209, 124446 -> 124447, 124467 -> 124466',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '1515325.1353864798',
-            TotalTargetArea: '1523996.1410993834',
-            MinZ: '212',
-            MaxZ: '263',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 12557, 'TargetID': 12522, 'Directional': False}, {'SourceID': 52987, 'TargetID': 52986, 'Directional': False}, {'SourceID': 57186, 'TargetID': 115116, 'Directional': False}, {'SourceID': 59068, 'TargetID': 59067, 'Directional': False}, {'SourceID': 115153, 'TargetID': 115152, 'Directional': False}, {'SourceID': 124186, 'TargetID': 26610, 'Directional': False}, {'SourceID': 124208, 'TargetID': 124209, 'Directional': False}, {'SourceID': 124446, 'TargetID': 124447, 'Directional': False}, {'SourceID': 124467, 'TargetID': 124466, 'Directional': False}]",
-          },
-          {
-            _key: '5917251',
-            id: 'marclab_links/5917251',
-            source: 'marclab_nodes/5601',
-            target: 'marclab_nodes/7114',
-            _rev: '_bVtRUvG--_',
-            ID: '3337',
-            Label:
-              '5601-7114 via Gap Junction from 36037 -> 122807, 57372 -> 57371, 134797 -> 127519',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '398813.42924069584',
-            TotalTargetArea: '386009.3711060483',
-            MinZ: '233',
-            MaxZ: '253',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 36037, 'TargetID': 122807, 'Directional': False}, {'SourceID': 57372, 'TargetID': 57371, 'Directional': False}, {'SourceID': 134797, 'TargetID': 127519, 'Directional': False}]",
-          },
-          {
-            _key: '5917291',
-            id: 'marclab_links/5917291',
-            source: 'marclab_nodes/5637',
-            target: 'marclab_nodes/7114',
-            _rev: '_bVtRUvK--n',
-            ID: '3377',
-            Label:
-              '5637-7114 via Gap Junction from 31387 -> 31386, 135627 -> 56056',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '65666.60078286583',
-            TotalTargetArea: '85381.60397038402',
-            MinZ: '227',
-            MaxZ: '245',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 31387, 'TargetID': 31386, 'Directional': False}, {'SourceID': 135627, 'TargetID': 56056, 'Directional': False}]",
-          },
-          {
-            _key: '5918334',
-            id: 'marclab_links/5918334',
-            source: 'marclab_nodes/15977',
-            target: 'marclab_nodes/7114',
-            _rev: '_bVtRUyW--T',
-            ID: '4420',
-            Label:
-              '15977-7114 via Gap Junction from 33950 -> 20437, 33954 -> 26611, 135959 -> 135960, 135962 -> 135963',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '296916.4369557267',
-            TotalTargetArea: '300939.43660086475',
-            MinZ: '262',
-            MaxZ: '292',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 33950, 'TargetID': 20437, 'Directional': False}, {'SourceID': 33954, 'TargetID': 26611, 'Directional': False}, {'SourceID': 135959, 'TargetID': 135960, 'Directional': False}, {'SourceID': 135962, 'TargetID': 135963, 'Directional': False}]",
-          },
+
           {
             _key: '5917327',
             id: 'marclab_links/5917327',
@@ -14619,282 +14225,7 @@ export default Vue.extend({
             Links:
               "[{'SourceID': 87676, 'TargetID': 87675, 'Directional': False}]",
           },
-          {
-            _key: '5916517',
-            id: 'marclab_links/5916517',
-            source: 'marclab_nodes/7225',
-            target: 'marclab_nodes/5528',
-            _rev: '_bVtRUs2--Z',
-            ID: '2603',
-            Label:
-              '7225-5528 via Gap Junction from 10026 -> 55031, 34318 -> 10028, 94494 -> 94493',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '347661.21911257814',
-            TotalTargetArea: '347661.238829033',
-            MinZ: '257',
-            MaxZ: '291',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 10026, 'TargetID': 55031, 'Directional': False}, {'SourceID': 34318, 'TargetID': 10028, 'Directional': False}, {'SourceID': 94494, 'TargetID': 94493, 'Directional': False}]",
-          },
-          {
-            _key: '5916800',
-            id: 'marclab_links/5916800',
-            source: 'marclab_nodes/7225',
-            target: 'marclab_nodes/5534',
-            _rev: '_bVtRUtu--H',
-            ID: '2886',
-            Label:
-              '7225-5534 via Gap Junction from 118276 -> 118277, 118285 -> 118284',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '108097.19090682203',
-            TotalTargetArea: '108097.17374944605',
-            MinZ: '286',
-            MaxZ: '297',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 118276, 'TargetID': 118277, 'Directional': False}, {'SourceID': 118285, 'TargetID': 118284, 'Directional': False}]",
-          },
-          {
-            _key: '5916818',
-            id: 'marclab_links/5916818',
-            source: 'marclab_nodes/7225',
-            target: 'marclab_nodes/5536',
-            _rev: '_bVtRUty--D',
-            ID: '2904',
-            Label: '7225-5536 via Gap Junction from 158865 -> 122501',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '103223.7274605776',
-            TotalTargetArea: '103223.7393604192',
-            MinZ: '293',
-            MaxZ: '297',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 158865, 'TargetID': 122501, 'Directional': False}]",
-          },
-          {
-            _key: '5918009',
-            id: 'marclab_links/5918009',
-            source: 'marclab_nodes/7225',
-            target: 'marclab_nodes/6127',
-            _rev: '_bVtRUxW--V',
-            ID: '4095',
-            Label:
-              '7225-6127 via Gap Junction from 118286 -> 118287, 118291 -> 118292, 118293 -> 118294, 122632 -> 122634',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '258295.51099597698',
-            TotalTargetArea: '251261.4063456204',
-            MinZ: '229',
-            MaxZ: '299',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 118286, 'TargetID': 118287, 'Directional': False}, {'SourceID': 118291, 'TargetID': 118292, 'Directional': False}, {'SourceID': 118293, 'TargetID': 118294, 'Directional': False}, {'SourceID': 122632, 'TargetID': 122634, 'Directional': False}]",
-          },
-          {
-            _key: '5916813',
-            id: 'marclab_links/5916813',
-            source: 'marclab_nodes/5535',
-            target: 'marclab_nodes/7225',
-            _rev: '_bVtRUtu--h',
-            ID: '2899',
-            Label:
-              '5535-7225 via Gap Junction from 38440 -> 38441, 122980 -> 122981',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '437512.34075035196',
-            TotalTargetArea: '437512.3442064532',
-            MinZ: '274',
-            MaxZ: '300',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 38440, 'TargetID': 38441, 'Directional': False}, {'SourceID': 122980, 'TargetID': 122981, 'Directional': False}]",
-          },
-          {
-            _key: '5918354',
-            id: 'marclab_links/5918354',
-            source: 'marclab_nodes/25155',
-            target: 'marclab_nodes/7225',
-            _rev: '_bVtRUya--T',
-            ID: '4440',
-            Label: '25155-7225 via Gap Junction from 25177 -> 25176',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '40837.03143983463',
-            TotalTargetArea: '40837.05080990787',
-            MinZ: '284',
-            MaxZ: '284',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 25177, 'TargetID': 25176, 'Directional': False}]",
-          },
-          {
-            _key: '5918355',
-            id: 'marclab_links/5918355',
-            source: 'marclab_nodes/38245',
-            target: 'marclab_nodes/7225',
-            _rev: '_bVtRUya--V',
-            ID: '4441',
-            Label: '38245-7225 via Gap Junction from 39165 -> 39167',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '52418.462682067366',
-            TotalTargetArea: '52418.48474642661',
-            MinZ: '305',
-            MaxZ: '305',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 39165, 'TargetID': 39167, 'Directional': False}]",
-          },
-          {
-            _key: '5917276',
-            id: 'marclab_links/5917276',
-            source: 'marclab_nodes/7279',
-            target: 'marclab_nodes/5607',
-            _rev: '_bVtRUvK--J',
-            ID: '3362',
-            Label:
-              '7279-5607 via Gap Junction from 38943 -> 38942, 121847 -> 121846, 121849 -> 121848, 123519 -> 123518',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '794084.3675375218',
-            TotalTargetArea: '831485.7651391987',
-            MinZ: '241',
-            MaxZ: '263',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 38943, 'TargetID': 38942, 'Directional': False}, {'SourceID': 121847, 'TargetID': 121846, 'Directional': False}, {'SourceID': 121849, 'TargetID': 121848, 'Directional': False}, {'SourceID': 123519, 'TargetID': 123518, 'Directional': False}]",
-          },
-          {
-            _key: '5918359',
-            id: 'marclab_links/5918359',
-            source: 'marclab_nodes/7279',
-            target: 'marclab_nodes/117112',
-            _rev: '_bVtRUya--d',
-            ID: '4445',
-            Label: '7279-117112 via Gap Junction from 123521 -> 123520',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '26364.593441356177',
-            TotalTargetArea: '26364.608959380366',
-            MinZ: '275',
-            MaxZ: '275',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 123521, 'TargetID': 123520, 'Directional': False}]",
-          },
-          {
-            _key: '5916801',
-            id: 'marclab_links/5916801',
-            source: 'marclab_nodes/5534',
-            target: 'marclab_nodes/7279',
-            _rev: '_bVtRUtu--J',
-            ID: '2887',
-            Label: '5534-7279 via Gap Junction from 34673 -> 34739',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '109773.27446414404',
-            TotalTargetArea: '109773.19936815056',
-            MinZ: '265',
-            MaxZ: '270',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 34673, 'TargetID': 34739, 'Directional': False}]",
-          },
-          {
-            _key: '5917293',
-            id: 'marclab_links/5917293',
-            source: 'marclab_nodes/5638',
-            target: 'marclab_nodes/7279',
-            _rev: '_bVtRUvO--B',
-            ID: '3379',
-            Label: '5638-7279 via Gap Junction from 117181 -> 118943',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '118347.74525386767',
-            TotalTargetArea: '118347.75135436998',
-            MinZ: '277',
-            MaxZ: '281',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 117181, 'TargetID': 118943, 'Directional': False}]",
-          },
-          {
-            _key: '5918237',
-            id: 'marclab_links/5918237',
-            source: 'marclab_nodes/6961',
-            target: 'marclab_nodes/7279',
-            _rev: '_bVtRUyC--b',
-            ID: '4323',
-            Label: '6961-7279 via Gap Junction from 34731 -> 34730',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '164793.3863361065',
-            TotalTargetArea: '164793.40024722245',
-            MinZ: '285',
-            MaxZ: '289',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 34731, 'TargetID': 34730, 'Directional': False}]",
-          },
-          {
-            _key: '5916302',
-            id: 'marclab_links/5916302',
-            source: 'marclab_nodes/7345',
-            target: 'marclab_nodes/5456',
-            _rev: '_bVtRUsO--L',
-            ID: '2388',
-            Label: '7345-5456 via Gap Junction from 122790 -> 122780',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '22249.367779374978',
-            TotalTargetArea: '22249.367779376185',
-            MinZ: '275',
-            MaxZ: '275',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 122790, 'TargetID': 122780, 'Directional': False}]",
-          },
-          {
-            _key: '5916814',
-            id: 'marclab_links/5916814',
-            source: 'marclab_nodes/7345',
-            target: 'marclab_nodes/5535',
-            _rev: '_bVtRUtu--j',
-            ID: '2900',
-            Label: '7345-5535 via Gap Junction from 47840 -> 122954',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '425540.9694371171',
-            TotalTargetArea: '415941.3983319766',
-            MinZ: '262',
-            MaxZ: '271',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 47840, 'TargetID': 122954, 'Directional': False}]",
-          },
-          {
-            _key: '5918224',
-            id: 'marclab_links/5918224',
-            source: 'marclab_nodes/6909',
-            target: 'marclab_nodes/7345',
-            _rev: '_bVtRUyC--B',
-            ID: '4310',
-            Label:
-              '6909-7345 via Gap Junction from 121675 -> 56577, 122645 -> 39139, 122788 -> 122787',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '649520.0986695155',
-            TotalTargetArea: '649520.0624613732',
-            MinZ: '235',
-            MaxZ: '292',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 121675, 'TargetID': 56577, 'Directional': False}, {'SourceID': 122645, 'TargetID': 39139, 'Directional': False}, {'SourceID': 122788, 'TargetID': 122787, 'Directional': False}]",
-          },
+
           {
             _key: '5918348',
             id: 'marclab_links/5918348',
@@ -15374,324 +14705,7 @@ export default Vue.extend({
             Links:
               "[{'SourceID': 122425, 'TargetID': 122423, 'Directional': False}]",
           },
-          {
-            _key: '5917311',
-            id: 'marclab_links/5917311',
-            source: 'marclab_nodes/7904',
-            target: 'marclab_nodes/5645',
-            _rev: '_bVtRUvO--l',
-            ID: '3397',
-            Label:
-              '7904-5645 via Gap Junction from 54315 -> 54314, 105842 -> 105841, 108583 -> 108581, 108591 -> 108588, 122376 -> 122377, 130621 -> 130620',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '284488.3034097398',
-            TotalTargetArea: '283621.87937236123',
-            MinZ: '261',
-            MaxZ: '281',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 54315, 'TargetID': 54314, 'Directional': False}, {'SourceID': 105842, 'TargetID': 105841, 'Directional': False}, {'SourceID': 108583, 'TargetID': 108581, 'Directional': False}, {'SourceID': 108591, 'TargetID': 108588, 'Directional': False}, {'SourceID': 122376, 'TargetID': 122377, 'Directional': False}, {'SourceID': 130621, 'TargetID': 130620, 'Directional': False}]",
-          },
-          {
-            _key: '5917964',
-            id: 'marclab_links/5917964',
-            source: 'marclab_nodes/7904',
-            target: 'marclab_nodes/6118',
-            _rev: '_bVtRUxO--P',
-            ID: '4050',
-            Label:
-              '7904-6118 via Gap Junction from 119475 -> 119474, 120800 -> 120797, 120815 -> 120814, 122374 -> 122375',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '416004.16834991676',
-            TotalTargetArea: '416004.0344102764',
-            MinZ: '241',
-            MaxZ: '258',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 119475, 'TargetID': 119474, 'Directional': False}, {'SourceID': 120800, 'TargetID': 120797, 'Directional': False}, {'SourceID': 120815, 'TargetID': 120814, 'Directional': False}, {'SourceID': 122374, 'TargetID': 122375, 'Directional': False}]",
-          },
-          {
-            _key: '5917973',
-            id: 'marclab_links/5917973',
-            source: 'marclab_nodes/7904',
-            target: 'marclab_nodes/6120',
-            _rev: '_bVtRUxO--h',
-            ID: '4059',
-            Label:
-              '7904-6120 via Gap Junction from 52426 -> 52427, 111574 -> 52425, 111593 -> 111592',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '741470.6583231641',
-            TotalTargetArea: '741470.4259090003',
-            MinZ: '235',
-            MaxZ: '256',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 52426, 'TargetID': 52427, 'Directional': False}, {'SourceID': 111574, 'TargetID': 52425, 'Directional': False}, {'SourceID': 111593, 'TargetID': 111592, 'Directional': False}]",
-          },
-          {
-            _key: '5918001',
-            id: 'marclab_links/5918001',
-            source: 'marclab_nodes/7904',
-            target: 'marclab_nodes/6123',
-            _rev: '_bVtRUxW--F',
-            ID: '4087',
-            Label: '7904-6123 via Gap Junction from 130622 -> 130616',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '84024.16051346019',
-            TotalTargetArea: '118613.42458210708',
-            MinZ: '277',
-            MaxZ: '279',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 130622, 'TargetID': 130616, 'Directional': False}]",
-          },
-          {
-            _key: '5918040',
-            id: 'marclab_links/5918040',
-            source: 'marclab_nodes/7904',
-            target: 'marclab_nodes/6146',
-            _rev: '_bVtRUxe--D',
-            ID: '4126',
-            Label:
-              '7904-6146 via Gap Junction from 120813 -> 120812, 121887 -> 120806, 131928 -> 121888',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '330595.2598509403',
-            TotalTargetArea: '333099.2888001518',
-            MinZ: '236',
-            MaxZ: '257',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 120813, 'TargetID': 120812, 'Directional': False}, {'SourceID': 121887, 'TargetID': 120806, 'Directional': False}, {'SourceID': 131928, 'TargetID': 121888, 'Directional': False}]",
-          },
-          {
-            _key: '5917535',
-            id: 'marclab_links/5917535',
-            source: 'marclab_nodes/7951',
-            target: 'marclab_nodes/5838',
-            _rev: '_bVtRUv6--V',
-            ID: '3621',
-            Label:
-              '7951-5838 via Gap Junction from 120669 -> 38029, 120670 -> 38030',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '152314.21018687208',
-            TotalTargetArea: '152314.21944901923',
-            MinZ: '299',
-            MaxZ: '302',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 120669, 'TargetID': 38029, 'Directional': False}, {'SourceID': 120670, 'TargetID': 38030, 'Directional': False}]",
-          },
-          {
-            _key: '5918169',
-            id: 'marclab_links/5918169',
-            source: 'marclab_nodes/7951',
-            target: 'marclab_nodes/6158',
-            _rev: '_bVtRUx2--L',
-            ID: '4255',
-            Label:
-              '7951-6158 via Gap Junction from 115479 -> 38074, 120644 -> 120643, 120667 -> 120666, 132454 -> 132453',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '748465.3795345156',
-            TotalTargetArea: '750520.085093591',
-            MinZ: '270',
-            MaxZ: '301',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 115479, 'TargetID': 38074, 'Directional': False}, {'SourceID': 120644, 'TargetID': 120643, 'Directional': False}, {'SourceID': 120667, 'TargetID': 120666, 'Directional': False}, {'SourceID': 132454, 'TargetID': 132453, 'Directional': False}]",
-          },
-          {
-            _key: '5917312',
-            id: 'marclab_links/5917312',
-            source: 'marclab_nodes/5645',
-            target: 'marclab_nodes/7951',
-            _rev: '_bVtRUvO--n',
-            ID: '3398',
-            Label:
-              '5645-7951 via Gap Junction from 47695 -> 118977, 118976 -> 118975, 118978 -> 47719, 118987 -> 47750',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '125932.8325076264',
-            TotalTargetArea: '125932.85799866397',
-            MinZ: '246',
-            MaxZ: '302',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 47695, 'TargetID': 118977, 'Directional': False}, {'SourceID': 118976, 'TargetID': 118975, 'Directional': False}, {'SourceID': 118978, 'TargetID': 47719, 'Directional': False}, {'SourceID': 118987, 'TargetID': 47750, 'Directional': False}]",
-          },
-          {
-            _key: '5917965',
-            id: 'marclab_links/5917965',
-            source: 'marclab_nodes/6118',
-            target: 'marclab_nodes/7951',
-            _rev: '_bVtRUxO--R',
-            ID: '4051',
-            Label:
-              '6118-7951 via Gap Junction from 32496 -> 32495, 40002 -> 40003, 40005 -> 40004, 120642 -> 115364, 120761 -> 120760, 120763 -> 120762, 120766 -> 120765, 120776 -> 120775',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '684729.5126708727',
-            TotalTargetArea: '667619.4918646044',
-            MinZ: '234',
-            MaxZ: '282',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 32496, 'TargetID': 32495, 'Directional': False}, {'SourceID': 40002, 'TargetID': 40003, 'Directional': False}, {'SourceID': 40005, 'TargetID': 40004, 'Directional': False}, {'SourceID': 120642, 'TargetID': 115364, 'Directional': False}, {'SourceID': 120761, 'TargetID': 120760, 'Directional': False}, {'SourceID': 120763, 'TargetID': 120762, 'Directional': False}, {'SourceID': 120766, 'TargetID': 120765, 'Directional': False}, {'SourceID': 120776, 'TargetID': 120775, 'Directional': False}]",
-          },
-          {
-            _key: '5918002',
-            id: 'marclab_links/5918002',
-            source: 'marclab_nodes/6123',
-            target: 'marclab_nodes/7951',
-            _rev: '_bVtRUxW--H',
-            ID: '4088',
-            Label:
-              '6123-7951 via Gap Junction from 37208 -> 37209, 48019 -> 132456, 118986 -> 38075, 132457 -> 48038',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '326859.3543678373',
-            TotalTargetArea: '324843.1699781142',
-            MinZ: '288',
-            MaxZ: '298',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 37208, 'TargetID': 37209, 'Directional': False}, {'SourceID': 48019, 'TargetID': 132456, 'Directional': False}, {'SourceID': 118986, 'TargetID': 38075, 'Directional': False}, {'SourceID': 132457, 'TargetID': 48038, 'Directional': False}]",
-          },
-          {
-            _key: '5917313',
-            id: 'marclab_links/5917313',
-            source: 'marclab_nodes/8032',
-            target: 'marclab_nodes/5645',
-            _rev: '_bVtRUvS--_',
-            ID: '3399',
-            Label: '8032-5645 via Gap Junction from 147836 -> 147835',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '19552.694525869905',
-            TotalTargetArea: '19552.69452586706',
-            MinZ: '252',
-            MaxZ: '252',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 147836, 'TargetID': 147835, 'Directional': False}]",
-          },
-          {
-            _key: '5917966',
-            id: 'marclab_links/5917966',
-            source: 'marclab_nodes/8032',
-            target: 'marclab_nodes/6118',
-            _rev: '_bVtRUxO--T',
-            ID: '4052',
-            Label: '8032-6118 via Gap Junction from 56502 -> 56501',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '135777.4562729513',
-            TotalTargetArea: '135777.3800151334',
-            MinZ: '244',
-            MaxZ: '247',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 56502, 'TargetID': 56501, 'Directional': False}]",
-          },
-          {
-            _key: '5917975',
-            id: 'marclab_links/5917975',
-            source: 'marclab_nodes/8032',
-            target: 'marclab_nodes/6120',
-            _rev: '_bVtRUxO--l',
-            ID: '4061',
-            Label:
-              '8032-6120 via Gap Junction from 30181 -> 30182, 32509 -> 32507',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '514436.37534115114',
-            TotalTargetArea: '514419.2991099997',
-            MinZ: '240',
-            MaxZ: '252',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 30181, 'TargetID': 30182, 'Directional': False}, {'SourceID': 32509, 'TargetID': 32507, 'Directional': False}]",
-          },
-          {
-            _key: '5918027',
-            id: 'marclab_links/5918027',
-            source: 'marclab_nodes/8032',
-            target: 'marclab_nodes/6141',
-            _rev: '_bVtRUxa--R',
-            ID: '4113',
-            Label:
-              '8032-6141 via Gap Junction from 26703 -> 61367, 26712 -> 61362, 32522 -> 32518, 61363 -> 26713, 61390 -> 26702',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '547298.7241723011',
-            TotalTargetArea: '547298.728813222',
-            MinZ: '233',
-            MaxZ: '278',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 26703, 'TargetID': 61367, 'Directional': False}, {'SourceID': 26712, 'TargetID': 61362, 'Directional': False}, {'SourceID': 32522, 'TargetID': 32518, 'Directional': False}, {'SourceID': 61363, 'TargetID': 26713, 'Directional': False}, {'SourceID': 61390, 'TargetID': 26702, 'Directional': False}]",
-          },
-          {
-            _key: '5918036',
-            id: 'marclab_links/5918036',
-            source: 'marclab_nodes/8032',
-            target: 'marclab_nodes/6142',
-            _rev: '_bVtRUxa--j',
-            ID: '4122',
-            Label:
-              '8032-6142 via Gap Junction from 32523 -> 16118, 32525 -> 32524',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '307914.886803127',
-            TotalTargetArea: '334748.83807468624',
-            MinZ: '245',
-            MaxZ: '267',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 32523, 'TargetID': 16118, 'Directional': False}, {'SourceID': 32525, 'TargetID': 32524, 'Directional': False}]",
-          },
-          {
-            _key: '5918041',
-            id: 'marclab_links/5918041',
-            source: 'marclab_nodes/8032',
-            target: 'marclab_nodes/6146',
-            _rev: '_bVtRUxe--F',
-            ID: '4127',
-            Label: '8032-6146 via Gap Junction from 32508 -> 56734',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '306223.3583289254',
-            TotalTargetArea: '306223.3215472956',
-            MinZ: '246',
-            MaxZ: '251',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 32508, 'TargetID': 56734, 'Directional': False}]",
-          },
-          {
-            _key: '5918196',
-            id: 'marclab_links/5918196',
-            source: 'marclab_nodes/8032',
-            target: 'marclab_nodes/6204',
-            _rev: '_bVtRUx6--Z',
-            ID: '4282',
-            Label: '8032-6204 via Gap Junction from 32521 -> 118116',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '197864.3162662759',
-            TotalTargetArea: '197864.30242183595',
-            MinZ: '218',
-            MaxZ: '224',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 32521, 'TargetID': 118116, 'Directional': False}]",
-          },
+
           {
             _key: '5914953',
             id: 'marclab_links/5914953',
@@ -16233,135 +15247,7 @@ export default Vue.extend({
             Links:
               "[{'SourceID': 50477, 'TargetID': 50478, 'Directional': False}]",
           },
-          {
-            _key: '5914152',
-            id: 'marclab_links/5914152',
-            source: 'marclab_nodes/11229',
-            target: 'marclab_nodes/176',
-            _rev: '_bVtRUmC--n',
-            ID: '238',
-            Label: '11229-176 via Gap Junction from 15635 -> 128724',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '155699.72320794218',
-            TotalTargetArea: '155699.723207942',
-            MinZ: '289',
-            MaxZ: '293',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 15635, 'TargetID': 128724, 'Directional': False}]",
-          },
-          {
-            _key: '5918502',
-            id: 'marclab_links/5918502',
-            source: 'marclab_nodes/11229',
-            target: 'marclab_nodes/15977',
-            _rev: '_bVtRUy2--W',
-            ID: '4588',
-            Label:
-              '11229-15977 via Gap Junction from 135683 -> 135682, 135684 -> 135685',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '59155.97652488807',
-            TotalTargetArea: '54931.42416187996',
-            MinZ: '275',
-            MaxZ: '284',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 135683, 'TargetID': 135682, 'Directional': False}, {'SourceID': 135684, 'TargetID': 135685, 'Directional': False}]",
-          },
-          {
-            _key: '5916802',
-            id: 'marclab_links/5916802',
-            source: 'marclab_nodes/5534',
-            target: 'marclab_nodes/11229',
-            _rev: '_bVtRUtu--L',
-            ID: '2888',
-            Label: '5534-11229 via Gap Junction from 118323 -> 118324',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '115377.70504509917',
-            TotalTargetArea: '115377.66368297866',
-            MinZ: '252',
-            MaxZ: '255',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 118323, 'TargetID': 118324, 'Directional': False}]",
-          },
-          {
-            _key: '5916815',
-            id: 'marclab_links/5916815',
-            source: 'marclab_nodes/5535',
-            target: 'marclab_nodes/11229',
-            _rev: '_bVtRUtu--l',
-            ID: '2901',
-            Label: '5535-11229 via Gap Junction from 32349 -> 28977',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '129325.10813061884',
-            TotalTargetArea: '143654.71835986798',
-            MinZ: '250',
-            MaxZ: '254',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 32349, 'TargetID': 28977, 'Directional': False}]",
-          },
-          {
-            _key: '5917255',
-            id: 'marclab_links/5917255',
-            source: 'marclab_nodes/5601',
-            target: 'marclab_nodes/11229',
-            _rev: '_bVtRUvG--H',
-            ID: '3341',
-            Label:
-              '5601-11229 via Gap Junction from 58588 -> 58587, 91444 -> 15633, 91480 -> 135680',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '213555.93460687174',
-            TotalTargetArea: '220255.67178421887',
-            MinZ: '265',
-            MaxZ: '275',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 58588, 'TargetID': 58587, 'Directional': False}, {'SourceID': 91444, 'TargetID': 15633, 'Directional': False}, {'SourceID': 91480, 'TargetID': 135680, 'Directional': False}]",
-          },
-          {
-            _key: '5917292',
-            id: 'marclab_links/5917292',
-            source: 'marclab_nodes/5637',
-            target: 'marclab_nodes/11229',
-            _rev: '_bVtRUvO--_',
-            ID: '3378',
-            Label:
-              '5637-11229 via Gap Junction from 39082 -> 39083, 58575 -> 58574, 135679 -> 56047, 135681 -> 56040',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '504091.7916145456',
-            TotalTargetArea: '849430.2447659158',
-            MinZ: '250',
-            MaxZ: '270',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 39082, 'TargetID': 39083, 'Directional': False}, {'SourceID': 58575, 'TargetID': 58574, 'Directional': False}, {'SourceID': 135679, 'TargetID': 56047, 'Directional': False}, {'SourceID': 135681, 'TargetID': 56040, 'Directional': False}]",
-          },
-          {
-            _key: '5917460',
-            id: 'marclab_links/5917460',
-            source: 'marclab_nodes/11408',
-            target: 'marclab_nodes/5729',
-            _rev: '_bVtRUvq--p',
-            ID: '3546',
-            Label: '11408-5729 via Gap Junction from 112645 -> 112620',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '34678.963960459885',
-            TotalTargetArea: '34678.9634398751',
-            MinZ: '284',
-            MaxZ: '284',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 112645, 'TargetID': 112620, 'Directional': False}]",
-          },
+
           {
             _key: '5916093',
             id: 'marclab_links/5916093',
@@ -16827,44 +15713,7 @@ export default Vue.extend({
             Links:
               "[{'SourceID': 14739, 'TargetID': 40866, 'Directional': False}]",
           },
-          {
-            _key: '5918234',
-            id: 'marclab_links/5918234',
-            source: 'marclab_nodes/57169',
-            target: 'marclab_nodes/6958',
-            _rev: '_bVtRUyC--V',
-            ID: '4320',
-            Label:
-              '57169-6958 via Gap Junction from 57173 -> 57175, 117083 -> 117082',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '360917.7632862787',
-            TotalTargetArea: '360918.05073416256',
-            MinZ: '202',
-            MaxZ: '210',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 57173, 'TargetID': 57175, 'Directional': False}, {'SourceID': 117083, 'TargetID': 117082, 'Directional': False}]",
-          },
-          {
-            _key: '5918535',
-            id: 'marclab_links/5918535',
-            source: 'marclab_nodes/57169',
-            target: 'marclab_nodes/15976',
-            _rev: '_bVtRUz---F',
-            ID: '4621',
-            Label:
-              '57169-15976 via Gap Junction from 57170 -> 57168, 57171 -> 57172, 117085 -> 117084',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '323189.82129896915',
-            TotalTargetArea: '323189.6393715074',
-            MinZ: '196',
-            MaxZ: '210',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 57170, 'TargetID': 57168, 'Directional': False}, {'SourceID': 57171, 'TargetID': 57172, 'Directional': False}, {'SourceID': 117085, 'TargetID': 117084, 'Directional': False}]",
-          },
+
           {
             _key: '5918404',
             id: 'marclab_links/5918404',
@@ -16919,60 +15768,6 @@ export default Vue.extend({
             IsLoop: 'False',
             Links:
               "[{'SourceID': 87676, 'TargetID': 87675, 'Directional': False}]",
-          },
-          {
-            _key: '5918319',
-            id: 'marclab_links/5918319',
-            source: 'marclab_nodes/89279',
-            target: 'marclab_nodes/7043',
-            _rev: '_bVtRUyS--e',
-            ID: '4405',
-            Label: '89279-7043 via Gap Junction from 89288 -> 89277',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '169302.718825977',
-            TotalTargetArea: '169302.7140161098',
-            MinZ: '291',
-            MaxZ: '296',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 89288, 'TargetID': 89277, 'Directional': False}]",
-          },
-          {
-            _key: '5916860',
-            id: 'marclab_links/5916860',
-            source: 'marclab_nodes/5561',
-            target: 'marclab_nodes/97352',
-            _rev: '_bVtRUt6--A',
-            ID: '2946',
-            Label: '5561-97352 via Gap Junction from 46120 -> 97353',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '88660.26923360785',
-            TotalTargetArea: '88660.26923360577',
-            MinZ: '177',
-            MaxZ: '180',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 46120, 'TargetID': 97353, 'Directional': False}]",
-          },
-          {
-            _key: '5919283',
-            id: 'marclab_links/5919283',
-            source: 'marclab_nodes/117132',
-            target: 'marclab_nodes/117127',
-            _rev: '_bVtRU1S--H',
-            ID: '5369',
-            Label: '117132-117127 via Gap Junction from 117133 -> 117131',
-            Type: 'Gap Junction',
-            Directional: 'False',
-            TotalSourceArea: '36302.76277001507',
-            TotalTargetArea: '103140.08801698452',
-            MinZ: '219',
-            MaxZ: '219',
-            IsLoop: 'False',
-            Links:
-              "[{'SourceID': 117133, 'TargetID': 117131, 'Directional': False}]",
           },
           {
             _key: '5918385',
@@ -17035,19 +15830,15 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { network, treeListValues, treeListHover } = this;
+      const { treeListHover, currentSchema } = this;
       return {
-        network,
-        treeListValues,
         treeListHover,
+        currentSchema,
       };
     },
   },
 
   watch: {
-    treeListValues() {
-      this.updateSchema();
-    },
     treeListHover() {
       this.hoverSchema();
     },
@@ -17060,7 +15851,14 @@ export default Vue.extend({
     this.width = d3.select(this.$refs.schemaView).attr('width');
     this.height = d3.select(this.$refs.schemaView).attr('height');
 
-    this.colors = d3.scaleOrdinal(d3.schemeCategory10);
+    const initialGroups: string[] = this.currentSchema.map((n) => {
+      n.children ? null : n.data.id;
+    });
+    // console.log(initialGroups);
+    this.colors = d3
+      .scaleOrdinal()
+      .domain(initialGroups)
+      .range(d3.schemeCategory10);
 
     this.svg = d3.select(this.$refs.schemaView);
 
@@ -17085,34 +15883,15 @@ export default Vue.extend({
   },
 
   methods: {
-    // Temp function to deal with edges with no nodes
-    checkLinks(this: any) {
-      const nodesList: string[] = this.schemaData.nodes.map((n: any) => {
-        return n.id;
-      });
-      const nodesSet = new Set(nodesList);
-
-      const newLinks: any[] = this.schemaData.links.map((l: any) => {
-        if (nodesSet.has(l.source) && nodesSet.has(l.target)) {
-          return l;
-        }
-      });
-      const network = {
-        nodes: this.schemaData.nodes,
-        links: newLinks,
-      };
-      return network;
-    },
-
     initializeSchema(this: any) {
       const childColumn = Object.keys(this.treeRelationships[0])[0];
       const parentColumn = Object.keys(this.treeRelationships[0])[1];
 
-      const children: string[] = this.treeRelationships.map(
-        (c) => c[childColumn].toUpperCase(),
+      const children: string[] = this.treeRelationships.map((c) =>
+        c[childColumn].toUpperCase(),
       );
-      const parents: string[] = this.treeRelationships.map(
-        (p) => p[parentColumn].toUpperCase(),
+      const parents: string[] = this.treeRelationships.map((p) =>
+        p[parentColumn].toUpperCase(),
       );
 
       // Create dictionary: children as keys, parents as values
@@ -17126,29 +15905,25 @@ export default Vue.extend({
       },
       {});
 
+      // Create list of all the current leaves
       const groups: string[] = [];
 
       this.currentSchema.forEach((n) => {
         if (n.children == null) {
-          groups.push(n.id);
+          groups.push(n.id.toUpperCase());
         }
       });
 
-      const network = this.checkLinks();
-      // Aggregate nodes based on schema view
-      const newNetwork = schemaGraph(
-        network.nodes,
-        network.links,
-        groups,
-        schemaDict,
-        'Label',
-      );
+      const nodes = JSON.parse(JSON.stringify(this.schemaData.nodes));
+      const links = JSON.parse(JSON.stringify(this.schemaData.links));
+
+      const newNetwork = schemaGraph(nodes, links, groups, schemaDict, 'Label');
       this.createSchema(newNetwork);
     },
     createSchema(this: any, schema: any) {
+      d3.select('#networkGroup').selectAll('*').remove();
       const linksData = schema.links;
       const nodesData = schema.nodes;
-      console.log('createSchema', linksData, nodesData);
 
       const force = d3
         .forceSimulation(nodesData)
@@ -17180,84 +15955,24 @@ export default Vue.extend({
         .join('circle')
         .attr('r', 10)
         .attr('class', (d: any) => `node.${d.Label}`)
-        .style('fill', (d: any) => {
-          return this.colors(d.group);
-        });
+        .style('fill', (d: any) => this.colors(d.Label));
 
       // Simple tooltip
       nodes.append('title').text((d: any) => d.Label);
 
-      force.on('tick', function () {
+      force.on('tick', () => {
         edges
-          // .attr('x1', function (d: any) {
-          //   return d.source.x;
-          // })
-          // .attr('y1', function (d: any) {
-          //   return d.source.y;
-          // })
-          // .attr('x2', function (d: any) {
-          //   return d.target.x;
-          // })
-          // .attr('y2', function (d: any) {
-          //   return d.target.y;
-          // });
-          .attr('d', function (d: any) {
-            let x1 = d.source.x,
-              y1 = d.source.y,
-              x2 = d.target.x,
-              y2 = d.target.y,
-              dx = x2 - x1,
-              dy = y2 - y1,
-              dr = Math.sqrt(dx * dx + dy * dy),
-              // Defaults for normal edge.
-              drx = dr,
-              dry = dr,
-              xRotation = 0, // degrees
-              largeArc = 0, // 1 or 0
-              sweep = 1; // 1 or 0
-
-            // Self edge.
-            if (x1 === x2 && y1 === y2) {
-              // Fiddle with this angle to get loop oriented.
-              xRotation = -45;
-
-              // Needs to be 1.
-              largeArc = 1;
-
-              // Change sweep to change orientation of loop.
-              //sweep = 0;
-
-              // Make drx and dry different to get an ellipse
-              // instead of a circle.
-              drx = 30;
-              dry = 20;
-
-              // For whatever reason the arc collapses to a point if the beginning
-              // and ending points of the arc are the same, so kludge it.
-              x2 = x2 + 1;
-              y2 = y2 + 1;
-            }
-
-            return (
-              'M' +
-              x1 +
-              ',' +
-              y1 +
-              'A' +
-              drx +
-              ',' +
-              dry +
-              ' ' +
-              xRotation +
-              ',' +
-              largeArc +
-              ',' +
-              sweep +
-              ' ' +
-              x2 +
-              ',' +
-              y2
-            );
+          .attr('x1', function (d: any) {
+            return d.source.x;
+          })
+          .attr('y1', function (d: any) {
+            return d.source.y;
+          })
+          .attr('x2', function (d: any) {
+            return d.target.x;
+          })
+          .attr('y2', function (d: any) {
+            return d.target.y;
           });
 
         nodes
@@ -17324,21 +16039,21 @@ export default Vue.extend({
       }
     },
 
-    // Pranav's function here
     updateSchema(this: any) {
-      // console.log('CHANGE in SCHEMA', this.treeListValues);
       d3.select('#networkGroup').selectAll('*').remove();
-      if (this.treeListValues[0] == this.currentParent) {
-        this.createSchema(this.network);
-      } else {
-        this.updatedSchema = superGraph(
-          this.network.nodes,
-          this.network.links,
-          'group',
-        );
-        this.createSchema(this.updatedSchema);
-      }
-      this.currentParent = this.treeListValues[0];
+
+      this.initializeSchema();
+      // if (this.treeListValues[0] == this.currentParent) {
+      //   this.createSchema(this.network);
+      // } else {
+      //   this.updatedSchema = superGraph(
+      //     this.network.nodes,
+      //     this.network.links,
+      //     'group',
+      //   );
+      //   this.createSchema(this.updatedSchema);
+      // }
+      // this.currentParent = this.treeListValues[0];
     },
     hoverSchema() {
       // d3.selectAll('.treehover').classed('treehover', false);
