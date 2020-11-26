@@ -320,7 +320,6 @@ export class View {
     this.edgeRows
       .transition()
       .duration(500)
-      // addd a transition somewhere here? for the rows?
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
