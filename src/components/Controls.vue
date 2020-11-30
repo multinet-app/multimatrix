@@ -9,6 +9,9 @@ import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
+// This is to be removed (stop-gap solution to superGraph network update)
+export const eventBus = new Vue();
+
 export default Vue.extend({
   components: {
     AdjMatrix,
@@ -77,6 +80,11 @@ export default Vue.extend({
     this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
+
+    // Catch network update events here to propagate new data into the app.
+    eventBus.$on('updateNetwork', (network: Network) => {
+      this.network = network;
+    });
   },
 
   methods: {
@@ -105,14 +113,6 @@ export default Vue.extend({
         .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);
-    },
-    aggregateCaliforniaNodes(this: any) {
-      // // Compute a new graph based on aggregating California airports into a supernode.
-      // this.network = superGraph(
-      //   this.network.nodes,
-      //   this.network.links,
-      //   'ORIGIN STATE',
-      // );
     },
   },
   watch: {
@@ -204,12 +204,6 @@ export default Vue.extend({
               <svg id="matrix-legend"></svg>
             </v-card-subtitle>
           </v-card-text>
-
-          <v-card-actions>
-            <v-btn small @click="aggregateCaliforniaNodes"
-              >Aggregate California</v-btn
-            >
-          </v-card-actions>
 
           <v-card-actions>
             <v-btn small @click="exportNetwork">Export Network</v-btn>

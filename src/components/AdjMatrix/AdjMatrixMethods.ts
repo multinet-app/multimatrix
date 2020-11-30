@@ -10,11 +10,14 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
-import { superGraph } from '@/lib/AggMethods';
+import { superGraph } from '@/lib/aggregation';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
+
+// This is to be removed (stop-gap solution to superGraph network update)
+import { eventBus } from '@/components/Controls.vue';
 
 declare const reorder: any;
 
@@ -144,6 +147,7 @@ export class View {
         console.log('clicked the text label');
         if (this.enableGraffinity) {
           this.network = superGraph(this.network.nodes, this.network.links, d);
+          eventBus.$emit('updateNetwork', this.network);
         }
       });
 
@@ -262,13 +266,7 @@ export class View {
             (colWidth + this.colMargin) * i * 10 - 200
           }, -1100)`,
       )
-      .style('fill', '#8B8B8B')
-      .on('click', (d: string) => {
-        console.log('clicked the sort icon');
-        console.log(d);
-        return;
-      });
-    // .on('click', (d: string) => this.sort(d));
+      .style('fill', '#8B8B8B');
   }
 
   private isQuantitative(varName: string): boolean {
