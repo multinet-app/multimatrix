@@ -23,6 +23,7 @@ declare const reorder: any;
 
 export class View {
   public visualizedAttributes: string[] = [];
+  public enableGraffinity: boolean;
 
   private network: Network;
   private icons: { [key: string]: { [d: string]: string } };
@@ -68,6 +69,7 @@ export class View {
     matrixNodeLength: number,
     cellSize: number,
     visMargins: { left: number; top: number; right: number; bottom: number },
+    enableGraffinity: boolean,
   ) {
     this.network = network;
     this.visMargins = visMargins;
@@ -81,6 +83,7 @@ export class View {
     this.visualizedAttributes = visualizedAttributes;
     this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
+    this.enableGraffinity = enableGraffinity;
 
     this.icons = {
       quant: {
@@ -141,8 +144,10 @@ export class View {
       .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
       .on('click', (d: string) => {
-        this.network = superGraph(this.network.nodes, this.network.links, d);
-        eventBus.$emit('updateNetwork', this.network);
+        if (this.enableGraffinity) {
+          this.network = superGraph(this.network.nodes, this.network.links, d);
+          eventBus.$emit('updateNetwork', this.network);
+        }
       });
 
     // Calculate the attribute scales

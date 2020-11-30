@@ -15,6 +15,10 @@ export default Vue.extend({
       type: Boolean,
       default: true,
     },
+    enableGraffinity: {
+      type: Boolean,
+      required: true,
+    },
     visualizedAttributes: {
       type: Array,
       default: () => [],
@@ -44,10 +48,11 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { network, visualizedAttributes } = this;
+      const { network, visualizedAttributes, enableGraffinity } = this;
       return {
         network,
         visualizedAttributes,
+        enableGraffinity,
       };
     },
 
@@ -120,6 +125,7 @@ export default Vue.extend({
       this.matrixNodeLength,
       this.cellSize,
       this.visMargins,
+      this.enableGraffinity,
     );
     this.$emit('updateMatrixLegendScale', this.view.colorScale);
   },
@@ -129,6 +135,8 @@ export default Vue.extend({
       if (this.view) {
         this.view.visualizedAttributes = this.visualizedAttributes as string[];
         this.view.updateAttributes();
+
+        this.view.enableGraffinity = this.enableGraffinity;
       }
     },
     changeMatrix(this: any) {
@@ -166,6 +174,7 @@ export default Vue.extend({
         this.matrixNodeLength,
         this.cellSize,
         this.visMargins,
+        this.enableGraffinity,
       );
     },
   },
