@@ -144,7 +144,6 @@ export class View {
       .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
       .on('click', (d: string) => {
-        console.log('clicked the text label');
         if (this.enableGraffinity) {
           this.network = superGraph(this.network.nodes, this.network.links, d);
           eventBus.$emit('updateNetwork', this.network);
