@@ -34,10 +34,6 @@ export default Vue.extend({
         height: 0,
         width: 0,
       },
-      visDimensions: {
-        height: 0,
-        width: 0,
-      },
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrix: undefined,
       attributes: undefined,
