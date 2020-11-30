@@ -318,7 +318,7 @@ export class View {
 
     this.edgeRows
       .transition()
-      .duration(500)
+      .duration(1100)
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
