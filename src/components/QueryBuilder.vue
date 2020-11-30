@@ -91,6 +91,9 @@ export default Vue.extend({
 
   methods: {
     initializeSchema(this: any) {
+      console.log('INITIALIZED!');
+
+      // move this to another function that watches for treeRelationships
       const childColumn = Object.keys(this.treeRelationships[0])[0];
       const parentColumn = Object.keys(this.treeRelationships[0])[1];
 
@@ -121,7 +124,16 @@ export default Vue.extend({
         }
       });
 
-      const newNetwork = schemaGraph(this.network, groups, schemaDict, 'Label');
+      // Deep copy of network edges necessary to avoid mutations in object structure during simulation
+      const edges = JSON.parse(JSON.stringify(this.network.links));
+
+      const newNetwork = schemaGraph(
+        this.network.nodes,
+        edges,
+        groups,
+        schemaDict,
+        'Label',
+      );
       this.createSchema(newNetwork);
     },
     createSchema(this: any, schema: any) {
@@ -167,7 +179,7 @@ export default Vue.extend({
         .data(nodesData)
         .join('circle')
         .attr('r', 10)
-        .attr('class', (d: any) => `node.${d.Label}`)
+        .attr('id', (d: any) => d.Label.replace(' ', ''))
         .style('fill', (d: any) => colors(d.Label));
 
       // Simple tooltip
@@ -254,28 +266,18 @@ export default Vue.extend({
 
     updateSchema(this: any) {
       d3.select('#networkGroup').selectAll('*').remove();
-
       this.initializeSchema();
-      // if (this.treeListValues[0] == this.currentParent) {
-      //   this.createSchema(this.network);
-      // } else {
-      //   this.updatedSchema = superGraph(
-      //     this.network.nodes,
-      //     this.network.links,
-      //     'group',
-      //   );
-      //   this.createSchema(this.updatedSchema);
-      // }
-      // this.currentParent = this.treeListValues[0];
     },
+
+    // Hover schema nodes based on tree list hover
     hoverSchema() {
-      // d3.selectAll('.treehover').classed('treehover', false);
-      const hoverClass = this.treeListHover.toString();
-      const hovered = d3
-        .selectAll('.node')
-        .selectAll(hoverClass)
-        .classed('treehover', true);
-      console.log('hover', this, hoverClass, hovered);
+      const hoverClass =
+        '#' + this.treeListHover.toString().toUpperCase().replace(' ', '');
+      d3.selectAll('.treehover').classed('treehover', false);
+
+      d3.select(hoverClass).attr('class', 'treehover');
+
+      console.log('hover', this, hoverClass);
     },
   },
 });
@@ -288,16 +290,17 @@ export default Vue.extend({
 </template>
 
 <style scoped>
-svg >>> .node {
+svg >>> circle {
   cursor: pointer;
 }
 
-svg >>> .node:hover {
-  stroke: slategray;
+svg >>> circle:hover {
+  stroke: black;
+  stroke-width: 2px;
 }
 
-svg >>> .node.treehover {
+svg >>> circle.treehover {
   stroke: black;
-  stroke-width: 3px;
+  stroke-width: 2px;
 }
 </style>

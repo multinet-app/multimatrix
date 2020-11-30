@@ -14,8 +14,8 @@ async function _downloadAllRows(
   // Modified to show larger networks
   // TODO modify to use this function to pull network for schema before drawing matrix
   if (
-    (table.count > 13000 && tableType === 'node') ||
-    (table.count > 22000 && tableType === 'link')
+    (table.count > 14000 && tableType === 'node') ||
+    (table.count > 23000 && tableType === 'link')
   ) {
     throw new Error(
       `The table called ${tableName} is too large, not downloading.`,

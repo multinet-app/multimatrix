@@ -120,11 +120,9 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 // to reflect the connections between a schema node and the original nodes
 // in the network based on a classification hierarchy
 
-export function schemaGraph(data: any[], selectedSchema: string[], schema: any[], label: string) {
+export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[], schema: any[], label: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
-  const nodes = data.nodes
-  const edges = data.links
   // console.log("N", nodes, "E", edges, "SS", selectedSchema, "S", schema, "L", label)
 
   const newNodes: any[] = [];
@@ -205,11 +203,9 @@ export function schemaGraph(data: any[], selectedSchema: string[], schema: any[]
   }
 
   newNodes.forEach((node: any) => {
-    console.log(node)
     if (node[label]) {
       const key: string = node[label].toUpperCase().trim()
       if (key) {
-        // console.log("STARTING:", key)
         lineage(key, 0, node)
       }
     }
