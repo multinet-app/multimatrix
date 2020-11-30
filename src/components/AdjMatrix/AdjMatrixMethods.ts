@@ -80,7 +80,6 @@ export class View {
     this.visualizedAttributes = visualizedAttributes;
     this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
-    this.clickBool = 0;
 
     this.icons = {
       quant: {
