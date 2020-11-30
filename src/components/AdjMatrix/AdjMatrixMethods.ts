@@ -61,7 +61,7 @@ export class View {
   private maxNumConnections = -Infinity;
   private matrixNodeLength: number;
   private cellSize: number;
-  
+
   constructor(
     network: Network,
     visualizedAttributes: string[],
