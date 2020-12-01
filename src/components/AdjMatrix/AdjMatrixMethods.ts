@@ -147,6 +147,8 @@ export class View {
         if (this.enableGraffinity) {
           this.network = superGraph(this.network.nodes, this.network.links, d);
           eventBus.$emit('updateNetwork', this.network);
+        } else {
+          this.sort(d);
         }
       });
 
@@ -265,7 +267,8 @@ export class View {
             (colWidth + this.colMargin) * i * 10 - 200
           }, -1100)`,
       )
-      .style('fill', '#8B8B8B');
+      .style('fill', '#8B8B8B')
+      .on('click', (d: string) => this.sort(d));
   }
 
   private isQuantitative(varName: string): boolean {
