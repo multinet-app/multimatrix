@@ -9,6 +9,9 @@ import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
+// This is to be removed (stop-gap solution to superGraph network update)
+export const eventBus = new Vue();
+
 export default Vue.extend({
   components: {
     MultiMatrix,
@@ -20,7 +23,11 @@ export default Vue.extend({
     networkName: string;
     selectNeighbors: boolean;
     showGridLines: boolean;
+    enableGraffinity: boolean;
     visualizedAttributes: string[];
+    nodeEditor: boolean;
+    // connectivity is left with type any since it is a temp object in our AQL example
+    connectivity: any;
   } {
     return {
       network: {
@@ -31,7 +38,24 @@ export default Vue.extend({
       networkName: '',
       selectNeighbors: true,
       showGridLines: true,
+      enableGraffinity: false,
       visualizedAttributes: [],
+      nodeEditor: false,
+      connectivity: {
+        node1: {
+          type: '',
+          value: '',
+        },
+        hop: {
+          type: '',
+          operator: '',
+          value: '',
+        },
+        node2: {
+          type: '',
+          value: '',
+        },
+      },
     };
   },
 
@@ -56,6 +80,11 @@ export default Vue.extend({
     this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
+
+    // Catch network update events here to propagate new data into the app.
+    eventBus.$on('updateNetwork', (network: Network) => {
+      this.network = network;
+    });
   },
 
   methods: {
@@ -143,6 +172,23 @@ export default Vue.extend({
               <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
             </v-card-subtitle>
 
+            <!-- Graffinity Toggle -->
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Enable Graffinity Features
+              <v-checkbox
+                class="ma-0"
+                v-model="enableGraffinity"
+                hide-details
+              />
+            </v-card-subtitle>
+
             <!-- Matrix Legend -->
             <v-card-subtitle
               class="pb-0 px-0"
@@ -173,6 +219,7 @@ export default Vue.extend({
               network,
               selectNeighbors,
               showGridLines,
+              enableGraffinity,
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
@@ -185,7 +232,64 @@ export default Vue.extend({
 </template>
 
 <style scoped>
+.app-logo {
+  width: 48px;
+}
+
+.row-number {
+  align-items: center;
+  border-radius: 100px;
+  display: flex;
+  font-size: 12px;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.workspaces {
+  /* 171px = height of app-bar + workspace button + list subheader */
+  height: calc(100vh - 171px);
+  overflow-y: scroll;
+}
+
+.workspace-icon {
+  opacity: 0.4;
+}
+
+sm {
+  font-size: 10px;
+  font-weight: 300;
+  font-style: italic;
+}
+
 .v-card {
   max-height: calc(100vh - 24px);
+}
+
+.manage-panels {
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.manage-panels .v-expansion-panel:nth-child(odd) {
+  background: #f7f7f7;
+}
+
+.panel-icons {
+  width: 24px !important;
+}
+
+.multinet-title {
+  line-height: 0.7em;
+  padding-top: 16px;
+}
+</style>
+
+<style>
+.app-sidebar .v-navigation-drawer__content {
+  overflow: hidden;
+}
+.add-hops {
+  border-right: 1px solid #ccc !important;
 }
 </style>
