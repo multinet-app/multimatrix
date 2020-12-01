@@ -320,6 +320,11 @@ export class View {
       .enter()
       .append('g')
       .attr('class', 'rowContainer')
+      .attr('transform', `translate(0, 0)`);
+
+    this.edgeRows
+      .transition()
+      .duration(1100)
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
