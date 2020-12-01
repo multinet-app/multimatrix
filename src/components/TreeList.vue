@@ -122,7 +122,7 @@ export default Vue.extend({
         { name: 'yAC IAC', parent: 'yAC' },
         { name: 'yAC SAC', parent: 'yAC' },
       ],
-      classifications: ['Rabbit', 'Mouse/Primate'],
+      classifications: ['RC1', 'Mouse/Primate'],
       currentClassification: '',
     };
   },
@@ -131,7 +131,7 @@ export default Vue.extend({
     root(): any {
       let i = 0;
       let links: any[] = [];
-      if (this.currentClassification == 'Rabbit') {
+      if (this.currentClassification == 'RC1') {
         links = JSON.parse(JSON.stringify(this.rabbit));
       } else {
         links = JSON.parse(JSON.stringify(this.mouse));
@@ -266,17 +266,17 @@ export default Vue.extend({
         .append('circle')
         .attr('cx', (d: any) => d.depth * this.nodeSize)
         .attr('r', 4)
-        // .attr('fill', (d: any) => (d.children ? null : '#999'));
-        .style('fill', (d: any) => {
-          if (d.parent == null || d.parent.id == 'Volume') {
-            console.log();
-            return '#999';
-          } else if (d.children) {
-            return this.colorScale(d.id);
-          } else {
-            return this.colorScale(d.parent.id);
-          }
-        });
+        .attr('fill', (d: any) => (d.children ? null : '#999'));
+      // .style('fill', (d: any) => {
+      //   if (d.parent == null || d.parent.id == 'Volume') {
+      //     console.log();
+      //     return '#999';
+      //   } else if (d.children) {
+      //     return this.colorScale(d.id);
+      //   } else {
+      //     return this.colorScale(d.parent.id);
+      //   }
+      // });
 
       nodeEnter
         .append('text')

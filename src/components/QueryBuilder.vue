@@ -87,12 +87,12 @@ export default Vue.extend({
       .attr('fill', 'none');
 
     this.networkGroup = this.svg.append('g').attr('id', 'networkGroup');
+
+    this.schemaDict = {};
   },
 
   methods: {
     initializeSchema(this: any) {
-      console.log('INITIALIZED!');
-
       // move this to another function that watches for treeRelationships
       const childColumn = Object.keys(this.treeRelationships[0])[0];
       const parentColumn = Object.keys(this.treeRelationships[0])[1];
@@ -114,7 +114,7 @@ export default Vue.extend({
         return schemaDict;
       },
       {});
-
+      this.schemaDict = schemaDict;
       // Create list of all the current leaves
       const groups: string[] = [];
 
@@ -156,13 +156,26 @@ export default Vue.extend({
             .y((this.height / 8) * 3),
         );
 
-      const initialGroups: string[] = this.currentSchema.map((n) => {
-        n.children ? null : n.data.id;
+      //  Create domain list for color scale
+      const initialGroupsList: string[] = this.currentSchema.map((n) => {
+        if (n.children == undefined) {
+          // return the parent ID if parent != root
+          if (n.parent.depth > 1) {
+            return n.parent.id;
+          } else {
+            return n.id;
+          }
+        }
       });
-      // console.log(initialGroups);
+      //  Create set to remove dumplicates + undefined
+      const initialGroupsSet = new Set(
+        initialGroupsList.filter((i) => i != undefined),
+      );
+
+      // Node colors
       const colors = d3
         .scaleOrdinal()
-        .domain(initialGroups)
+        .domain(initialGroupsSet)
         .range(d3.schemeCategory10);
 
       const edges = this.networkGroup
@@ -180,7 +193,15 @@ export default Vue.extend({
         .join('circle')
         .attr('r', 10)
         .attr('id', (d: any) => d.Label.replace(' ', ''))
-        .style('fill', (d: any) => colors(d.Label));
+        .style('fill', (d: any) => {
+          if (initialGroupsSet.has(d.Label)) {
+            return colors(d.Label);
+          } else {
+            return colors(this.schemaDict[d.Label]);
+          }
+        })
+        .attr('stroke', 'white')
+        .attr('stroke-width', 1);
 
       // Simple tooltip
       nodes.append('title').text((d: any) => d.Label);
@@ -275,9 +296,7 @@ export default Vue.extend({
         '#' + this.treeListHover.toString().toUpperCase().replace(' ', '');
       d3.selectAll('.treehover').classed('treehover', false);
 
-      d3.select(hoverClass).attr('class', 'treehover');
-
-      console.log('hover', this, hoverClass);
+      d3.select(hoverClass).attr('class', 'treehover').raise();
     },
   },
 });
