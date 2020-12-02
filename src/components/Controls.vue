@@ -1,8 +1,9 @@
 <script lang="ts">
 import Vue from 'vue';
-// import AdjMatrix from '@/components/AdjMatrix/AdjMatrix.vue';
+
 import TreeList from '@/components/TreeList.vue';
 import QueryBuilder from '@/components/QueryBuilder.vue';
+import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
 import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -11,10 +12,14 @@ import { getUrlVars } from '@/lib/utils';
 import { loadData } from '@/lib/multinet';
 import { Network } from '@/types';
 
+// This is to be removed (stop-gap solution to superGraph network update)
+export const eventBus = new Vue();
+
 export default Vue.extend({
   components: {
     TreeList,
     QueryBuilder,
+    MultiMatrix,
   },
 
   data(): {
@@ -23,6 +28,7 @@ export default Vue.extend({
     networkName: string;
     selectNeighbors: boolean;
     showGridLines: boolean;
+    enableGraffinity: boolean;
     visualizedAttributes: string[];
     treeListHover: string;
     currentSchema: any;
@@ -37,6 +43,7 @@ export default Vue.extend({
       networkName: '',
       selectNeighbors: true,
       showGridLines: true,
+      enableGraffinity: false,
       visualizedAttributes: [],
       treeListHover: '',
       currentSchema: {},
@@ -65,6 +72,11 @@ export default Vue.extend({
     this.network = await loadData(workspace, networkName, host);
     this.workspace = workspace;
     this.networkName = networkName;
+
+    // Catch network update events here to propagate new data into the app.
+    eventBus.$on('updateNetwork', (network: Network) => {
+      this.network = network;
+    });
   },
 
   methods: {
@@ -122,9 +134,7 @@ export default Vue.extend({
       <!-- control panel content -->
       <v-col cols="3">
         <v-card>
-          <v-card-title class="pb-6"
-            >MultiNet Adjacency Matrix Controls</v-card-title
-          >
+          <v-card-title class="pb-6">MultiMatrix Controls</v-card-title>
           <v-card-text>
             <v-select
               v-model="visualizedAttributes"
@@ -161,6 +171,23 @@ export default Vue.extend({
             >
               Show GridLines
               <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
+            </v-card-subtitle>
+
+            <!-- Graffinity Toggle -->
+            <v-card-subtitle
+              class="pb-0 px-0"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              Enable Graffinity Features
+              <v-checkbox
+                class="ma-0"
+                v-model="enableGraffinity"
+                hide-details
+              />
             </v-card-subtitle>
 
             <!-- Matrix Legend -->
@@ -219,23 +246,25 @@ export default Vue.extend({
         </v-row>
       </v-col>
 
-      <!-- AdjMatrix component
+      <!-- MultiMatrix component -->
       <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
-          <adj-matrix
-            ref="adjmatrix"
+          <multi-matrix
+            ref="multimatrix"
             v-if="workspace"
             v-bind="{
               network,
               selectNeighbors,
               showGridLines,
+              enableGraffinity,
               visualizedAttributes,
             }"
             @restart-simulation="hello()"
             @updateMatrixLegendScale="createLegend"
           />
         </v-row>
-      </v-col> -->
+      </v-col>
+      -->
     </v-row>
   </v-container>
 </template>

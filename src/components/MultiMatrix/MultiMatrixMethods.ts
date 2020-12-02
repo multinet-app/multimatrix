@@ -16,10 +16,14 @@ import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
 
+// This is to be removed (stop-gap solution to superGraph network update)
+import { eventBus } from '@/components/Controls.vue';
+
 declare const reorder: any;
 
 export class View {
   public visualizedAttributes: string[] = [];
+  public enableGraffinity: boolean;
 
   private network: Network;
   private icons: { [key: string]: { [d: string]: string } };
@@ -65,6 +69,7 @@ export class View {
     matrixNodeLength: number,
     cellSize: number,
     visMargins: { left: number; top: number; right: number; bottom: number },
+    enableGraffinity: boolean,
   ) {
     this.network = network;
     this.visMargins = visMargins;
@@ -78,6 +83,7 @@ export class View {
     this.visualizedAttributes = visualizedAttributes;
     this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
+    this.enableGraffinity = enableGraffinity;
 
     this.icons = {
       quant: {
@@ -138,8 +144,12 @@ export class View {
       .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
       .on('click', (d: string) => {
-        console.log('clicked the text label');
-        this.network = superGraph(this.network.nodes, this.network.links, d);
+        if (this.enableGraffinity) {
+          this.network = superGraph(this.network.nodes, this.network.links, d);
+          eventBus.$emit('updateNetwork', this.network);
+        } else {
+          this.sort(d);
+        }
       });
 
     // Calculate the attribute scales
@@ -257,12 +267,7 @@ export class View {
           }, -1100)`,
       )
       .style('fill', '#8B8B8B')
-      .on('click', (d: string) => {
-        console.log('clicked the sort icon');
-        console.log(d);
-        return;
-      });
-    // .on('click', (d: string) => this.sort(d));
+      .on('click', (d: string) => this.sort(d));
   }
 
   private isQuantitative(varName: string): boolean {
@@ -317,6 +322,11 @@ export class View {
       .enter()
       .append('g')
       .attr('class', 'rowContainer')
+      .attr('transform', `translate(0, 0)`);
+
+    this.edgeRows
+      .transition()
+      .duration(1100)
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
