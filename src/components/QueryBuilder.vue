@@ -45,11 +45,12 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { treeListHover, currentSchema, network } = this;
+      const { treeListHover, currentSchema, network, treeRelationships } = this;
       return {
         treeListHover,
         currentSchema,
         network,
+        treeRelationships,
       };
     },
   },
@@ -60,6 +61,9 @@ export default Vue.extend({
     },
     currentSchema() {
       this.initializeSchema();
+    },
+    treeRelationships() {
+      this.createColorDomain();
     },
   },
 
@@ -89,9 +93,30 @@ export default Vue.extend({
     this.networkGroup = this.svg.append('g').attr('id', 'networkGroup');
 
     this.schemaDict = {};
+    this.colorDomain = [];
   },
 
   methods: {
+    createColorDomain(this: any) {
+      //  Create domain list for color scale
+      const initialGroupsList: string[] = this.currentSchema.map((n) => {
+        if (n.children == undefined) {
+          // return the parent ID if parent != root
+          if (n.parent.depth > 1) {
+            return n.parent.id;
+          } else {
+            return n.id;
+          }
+        }
+      });
+      //  Create set to remove dumplicates + undefined
+      const initialGroupsSet = new Set(
+        initialGroupsList.filter((i) => i != undefined),
+      );
+
+      this.colorDomain = [...initialGroupsSet];
+      return this.colorDomain;
+    },
     initializeSchema(this: any) {
       // move this to another function that watches for treeRelationships
       const childColumn = Object.keys(this.treeRelationships[0])[0];
@@ -143,7 +168,7 @@ export default Vue.extend({
 
       const force = d3
         .forceSimulation(nodesData)
-        .force('charge', d3.forceManyBody())
+        .force('charge', d3.forceManyBody().strength(-150))
         .force(
           'link',
           d3.forceLink(linksData).id((d: any) => d.id),
@@ -197,11 +222,13 @@ export default Vue.extend({
           if (initialGroupsSet.has(d.Label)) {
             return colors(d.Label);
           } else {
-            return colors(this.schemaDict[d.Label]);
+            return colors(this.schemaDict[d.Label.toUpperCase()]);
           }
         })
         .attr('stroke', 'white')
         .attr('stroke-width', 1);
+      console.log(initialGroupsSet);
+      console.log(this.colorDomain);
 
       // Simple tooltip
       nodes.append('title').text((d: any) => d.Label);
