@@ -2,7 +2,7 @@
 /* eslint-disable prefer-const */
 import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
-import { schemaGraph } from '@/lib/AggMethods';
+import { schemaGraph } from '@/lib/aggregation';
 
 import { Dimensions, Network } from '@/types';
 
