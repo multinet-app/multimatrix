@@ -10,15 +10,20 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
+import { superGraph } from '@/lib/aggregation';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
 
+// This is to be removed (stop-gap solution to superGraph network update)
+import { eventBus } from '@/components/Controls.vue';
+
 declare const reorder: any;
 
 export class View {
   public visualizedAttributes: string[] = [];
+  public enableGraffinity: boolean;
 
   private network: Network;
   private icons: { [key: string]: { [d: string]: string } };
@@ -64,6 +69,7 @@ export class View {
     matrixNodeLength: number,
     cellSize: number,
     visMargins: { left: number; top: number; right: number; bottom: number },
+    enableGraffinity: boolean,
   ) {
     this.network = network;
     this.visMargins = visMargins;
@@ -77,6 +83,7 @@ export class View {
     this.visualizedAttributes = visualizedAttributes;
     this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
+    this.enableGraffinity = enableGraffinity;
 
     this.icons = {
       quant: {
@@ -136,7 +143,14 @@ export class View {
       .attr('y', 16)
       .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
       .attr('width', colWidth)
-      .on('click', (d: string) => this.sort(d));
+      .on('click', (d: string) => {
+        if (this.enableGraffinity) {
+          this.network = superGraph(this.network.nodes, this.network.links, d);
+          eventBus.$emit('updateNetwork', this.network);
+        } else {
+          this.sort(d);
+        }
+      });
 
     // Calculate the attribute scales
     this.visualizedAttributes.forEach((col: string) => {
@@ -309,6 +323,11 @@ export class View {
       .enter()
       .append('g')
       .attr('class', 'rowContainer')
+      .attr('transform', `translate(0, 0)`);
+
+    this.edgeRows
+      .transition()
+      .duration(1100)
       .attr('transform', (d: Node, i: number) => {
         return `translate(0,${this.orderingScale(i)})`;
       });
