@@ -4,7 +4,7 @@
 // in the network
 import { defineSuperNeighbors } from '@/lib/multinet';
 import { Link, Node } from '@/types';
-export function superGraph(nodes: any[], edges: any[], attribute: string) {
+export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
   const newNodes: Node[] = [];
@@ -15,7 +15,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
     // remove the properties that will not be used
     // and properties that will be recalculated for visualization
-    delete newNode.neighbors;
+    newNode.neighbors = [];
 
     // add new node to node list
     newNodes.push(newNode);
@@ -28,7 +28,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   });
 
   // dictionary data structure for constant time lookup for supernodes
-  const superMap = new Map<string, any>();
+  const superMap = new Map<string, Node>();
 
   // create the list of super nodes
   const superNodes: Node[] = [];
@@ -44,7 +44,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
     superNodes.push(superNode);
   });
 
-  newNodes.forEach((node: any) => {
+  newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
       if (superNode != undefined) superNode.CHILDREN.push(node.id);
@@ -70,7 +70,7 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
 
     superNodes.forEach((superNode) => {
       // check if the _from and _to are in the origin list
-      superNode.CHILDREN.forEach((origin: any) => {
+      superNode.CHILDREN.forEach((origin: string) => {
         if (linkFrom === origin) {
           const newLinkFrom = superNode.id;
           link._from = newLinkFrom;
@@ -111,4 +111,14 @@ export function superGraph(nodes: any[], edges: any[], attribute: string) {
   };
 
   return network;
+}
+
+// function that maps node names to nodes
+export function MapNetworkNodes(nodes: Node[]) {
+  const nodeMap = new Map<string, Node>();
+  nodes.forEach((node: Node) => {
+    nodeMap.set(node.id, node);
+  });
+
+  return nodeMap;
 }
