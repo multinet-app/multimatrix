@@ -112,3 +112,13 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
 
   return network;
 }
+
+// function that maps node names to nodes
+export function MapNetworkNodes(nodes: Node[]) {
+  const nodeMap = new Map<string, Node>();
+  nodes.forEach((node: Node) => {
+    nodeMap.set(node.id, node);
+  });
+
+  return nodeMap;
+}
