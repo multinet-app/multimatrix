@@ -33,6 +33,7 @@ export class View {
   public enableGraffinity: boolean;
 
   private network: Network;
+  private visNetwork: Network;
   private icons: { [key: string]: { [d: string]: string } };
   private sortKey: string;
   private edges: any;
@@ -79,6 +80,7 @@ export class View {
     enableGraffinity: boolean,
   ) {
     this.network = network;
+    this.visNetwork = network;
     this.visMargins = visMargins;
     this.provenance = this.setUpProvenance();
     this.sortKey = 'name';
@@ -111,7 +113,7 @@ export class View {
       },
     };
 
-    this.network.nodes.forEach((node: Node, index: number) => {
+    this.visNetwork.nodes.forEach((node: Node, index: number) => {
       node.index = index;
       this.idMap[node.id] = index;
     });
@@ -152,8 +154,12 @@ export class View {
       .attr('width', colWidth)
       .on('click', (d: string) => {
         if (this.enableGraffinity) {
-          this.network = superGraph(this.network.nodes, this.network.links, d);
-          eventBus.$emit('updateNetwork', this.network);
+          this.visNetwork = superGraph(this.visNetwork.nodes, this.visNetwork.links, d);
+          console.log("vis network nodes");
+          console.log(this.visNetwork.nodes);
+          console.log("original network nodes");
+          console.log(this.network.nodes);
+          eventBus.$emit('updateNetwork', this.visNetwork);
         } else {
           this.sort(d);
         }
@@ -163,16 +169,16 @@ export class View {
     this.visualizedAttributes.forEach((col: string) => {
       if (this.isQuantitative(col)) {
         const minimum =
-          min(this.network.nodes.map((node: Node) => node[col])) || '0';
+          min(this.visNetwork.nodes.map((node: Node) => node[col])) || '0';
         const maximum =
-          max(this.network.nodes.map((node: Node) => node[col])) || '0';
+          max(this.visNetwork.nodes.map((node: Node) => node[col])) || '0';
         const domain = [parseFloat(minimum), parseFloat(maximum)];
 
         const scale = scaleLinear().domain(domain).range([0, colWidth]);
         scale.clamp(true);
         this.attributeScales[col] = scale;
       } else {
-        const values: string[] = this.network.nodes.map(
+        const values: string[] = this.visNetwork.nodes.map(
           (node: Node) => node[col],
         );
         const domain = [...new Set(values)];
@@ -281,7 +287,7 @@ export class View {
   private isQuantitative(varName: string): boolean {
     const uniqueValues = [
       ...new Set(
-        this.network.nodes.map((node: Node) => parseFloat(node[varName])),
+        this.visNetwork.nodes.map((node: Node) => parseFloat(node[varName])),
       ),
     ];
     return uniqueValues.length > 5;
@@ -315,7 +321,7 @@ export class View {
     // creates column groupings
     this.edgeColumns = this.edges
       .selectAll('.column')
-      .data(this.network.nodes)
+      .data(this.visNetwork.nodes)
       .enter()
       .append('g')
       .attr('class', 'column')
@@ -326,7 +332,7 @@ export class View {
     // Draw each row
     this.edgeRows = this.edges
       .selectAll('.rowContainer')
-      .data(this.network.nodes)
+      .data(this.visNetwork.nodes)
       .enter()
       .append('g')
       .attr('class', 'rowContainer')
@@ -826,7 +832,7 @@ export class View {
    * @return [description]
    */
   private sort(order: string): void {
-    const nodeIDs = this.network.nodes.map((node: Node) => node.id);
+    const nodeIDs = this.visNetwork.nodes.map((node: Node) => node.id);
 
     this.order = this.changeOrder(order, nodeIDs.includes(order));
     this.orderingScale.domain(this.order);
@@ -894,7 +900,7 @@ export class View {
     // add zebras and highlight rows
     this.attributes
       .selectAll('.highlightRow')
-      .data(this.network.nodes)
+      .data(this.visNetwork.nodes)
       .enter()
       .append('rect')
       .classed('highlightRow', true)
@@ -907,7 +913,7 @@ export class View {
     // Draw each row (translating the y coordinate)
     this.attributeRows = this.attributes
       .selectAll('.attrRowContainer')
-      .data(this.network.nodes)
+      .data(this.visNetwork.nodes)
       .enter()
       .append('g')
       .attr('class', 'attrRowContainer')
@@ -1050,14 +1056,14 @@ export class View {
       type === 'clusterBary' ||
       type === 'clusterLeaf'
     ) {
-      const links: any[] = Array(this.network.links.length);
+      const links: any[] = Array(this.visNetwork.links.length);
 
-      this.network.links.forEach((link: Link, index: number) => {
+      this.visNetwork.links.forEach((link: Link, index: number) => {
         links[index] = {
-          source: this.network.nodes.find(
+          source: this.visNetwork.nodes.find(
             (node: Node) => node.id === link.source,
           ),
-          target: this.network.nodes.find(
+          target: this.visNetwork.nodes.find(
             (node: Node) => node.id === link.target,
           ),
         };
@@ -1065,7 +1071,7 @@ export class View {
 
       const sortableNetwork = reorder
         .graph()
-        .nodes(this.network.nodes)
+        .nodes(this.visNetwork.nodes)
         .links(links)
         .init();
 
@@ -1083,25 +1089,25 @@ export class View {
         order = reorder.optimal_leaf_order()(mat);
       }
     } else if (this.sortKey === 'edges') {
-      order = range(this.network.nodes.length).sort(
-        (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
+      order = range(this.visNetwork.nodes.length).sort(
+        (a, b) => this.visNetwork.nodes[b][type] - this.visNetwork.nodes[a][type],
       );
     } else if (isNode === true) {
-      order = range(this.network.nodes.length).sort((a, b) =>
-        this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
+      order = range(this.visNetwork.nodes.length).sort((a, b) =>
+        this.visNetwork.nodes[a].id.localeCompare(this.visNetwork.nodes[b].id),
       );
-      order = range(this.network.nodes.length).sort(
+      order = range(this.visNetwork.nodes.length).sort(
         (a, b) =>
-          Number(this.network.nodes[b].neighbors.includes(type)) -
-          Number(this.network.nodes[a].neighbors.includes(type)),
+          Number(this.visNetwork.nodes[b].neighbors.includes(type)) -
+          Number(this.visNetwork.nodes[a].neighbors.includes(type)),
       );
     } else if (this.sortKey === 'shortName') {
-      order = range(this.network.nodes.length).sort((a, b) =>
-        this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
+      order = range(this.visNetwork.nodes.length).sort((a, b) =>
+        this.visNetwork.nodes[a].id.localeCompare(this.visNetwork.nodes[b].id),
       );
     } else {
-      order = range(this.network.nodes.length).sort(
-        (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
+      order = range(this.visNetwork.nodes.length).sort(
+        (a, b) => this.visNetwork.nodes[b][type] - this.visNetwork.nodes[a][type],
       );
     }
     this.order = order;
@@ -1145,8 +1151,8 @@ export class View {
    * @return [description]
    */
   private processData(): void {
-    this.network.nodes.forEach((rowNode: Node, i: number) => {
-      this.matrix[i] = this.network.nodes.map((colNode: Node) => {
+    this.visNetwork.nodes.forEach((rowNode: Node, i: number) => {
+      this.matrix[i] = this.visNetwork.nodes.map((colNode: Node) => {
         return {
           cellName: `${rowNode.id}_${colNode.id}`,
           correspondingCell: `${colNode.id}_${rowNode.id}`,
@@ -1160,7 +1166,7 @@ export class View {
     });
 
     // Count occurrences of links and store it in the matrix
-    this.network.links.forEach((link: Link) => {
+    this.visNetwork.links.forEach((link: Link) => {
       this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
       this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
     });
