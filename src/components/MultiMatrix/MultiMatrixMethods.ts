@@ -10,7 +10,11 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
-import { superGraph, MapNetworkNodes, getSuperChildren} from '@/lib/aggregation';
+import {
+  superGraph,
+  MapNetworkNodes,
+  ExpandSuperData
+} from '@/lib/aggregation';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
@@ -586,17 +590,11 @@ export class View {
       .classed('fa', true)
       .classed('fa-angle-right', true);
 
-    rowDropWidget.on('click', (d: Node) => {
+    rowDropWidget.on('click', (superNode: Node) => {
       if (this.enableGraffinity) {
         if (this.visBool == 0) {
           console.log('expand supernodes');
-          console.log('super node name: ', d.id);
-          console.log('the node dictionary');
-          console.log(View.nodeMap);
-          console.log('the supernodes');
-          console.log(this.visNetwork.nodes);
-          console.log("call the get super node children function");
-          getSuperChildren(d.id, this.visNetwork.nodes);
+          ExpandSuperData(superNode.id, this.visNetwork.nodes, View.nodeMap);
           this.visBool += 1;
         } else {
           console.log('retract supernodes');

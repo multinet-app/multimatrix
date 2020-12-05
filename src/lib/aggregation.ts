@@ -123,15 +123,58 @@ export function MapNetworkNodes(nodes: Node[]) {
   return nodeMap;
 }
 
-// function that takes a list of supernodes and returns their children
-export function getSuperChildren(superNodeName: string, nodes: Node[]) {
+// function that takes a superNode name and list of supernodes
+// and returns the children of the supernode with a name that matches
+// the superNode name argument
+export function GetSuperChildren(superNodeName: string, nodes: Node[]) {
   const superNodeMap = new Map<string, Node>();
-  console.log("the selected node: ", superNodeName);
+  console.log('the selected node: ', superNodeName);
   nodes.forEach((node: Node) => {
     superNodeMap.set(node.id, node);
   });
   const getSuperNode = superNodeMap.get(superNodeName);
-  if (getSuperNode) { 
-    console.log(getSuperNode.CHILDREN);
+  if (getSuperNode) {
+    return getSuperNode.CHILDREN;
   }
+}
+
+// function that that takes a list of the current supernodes being visualized
+// a super node that was selected and modifies the data set to include the children
+// of supernodes to be visualized
+export function ExpandSuperData(
+  superNodeName: string,
+  superNodes: Node[],
+  nodeMap: Map<string, Node>,
+) {
+  // get the children of the supernode
+  const superChildrenIDs = GetSuperChildren(superNodeName, superNodes);
+  const childNodes: Node[] = [];
+
+  // loop through the node map and get the children nodes
+  superChildrenIDs.forEach((id: string) => {
+    const childNode = nodeMap.get(id);
+    if (childNode) {  
+      childNodes.push(childNode);
+    }
+  });
+
+  console.log("the children nodes");
+  console.log(childNodes);
+  // find the index of the supernode name
+  const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
+  const superIndexStart = superNodes.findIndex(superIndexFunc);
+  console.log(superNodes.findIndex(superIndexFunc));
+  console.log("the super node network before");
+  console.log(superNodes);
+  let count = 1;
+  childNodes.forEach(node => {
+    superNodes.splice(superIndexStart + count, 0, node);
+    count += 1;
+  });
+  console.log("the network after");
+  console.log(superNodes);
+
+
+
+
 }
