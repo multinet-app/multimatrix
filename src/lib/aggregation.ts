@@ -122,3 +122,16 @@ export function MapNetworkNodes(nodes: Node[]) {
 
   return nodeMap;
 }
+
+// function that takes a list of supernodes and returns their children
+export function getSuperChildren(superNodeName: string, nodes: Node[]) {
+  const superNodeMap = new Map<string, Node>();
+  console.log("the selected node: ", superNodeName);
+  nodes.forEach((node: Node) => {
+    superNodeMap.set(node.id, node);
+  });
+  const getSuperNode = superNodeMap.get(superNodeName);
+  if (getSuperNode) { 
+    console.log(getSuperNode.CHILDREN);
+  }
+}
