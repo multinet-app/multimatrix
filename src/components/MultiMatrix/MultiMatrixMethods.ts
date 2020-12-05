@@ -31,7 +31,6 @@ dom.watch();
 export class View {
   public visualizedAttributes: string[] = [];
   public enableGraffinity: boolean;
-
   private network: Network;
   private visNetwork: Network;
   private icons: { [key: string]: { [d: string]: string } };
@@ -70,6 +69,7 @@ export class View {
   private maxNumConnections = -Infinity;
   private matrixNodeLength: number;
   private cellSize: number;
+  private visBool: number;
 
   constructor(
     network: Network,
@@ -93,6 +93,7 @@ export class View {
     this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
     this.enableGraffinity = enableGraffinity;
+    this.visBool = 0;
 
     this.icons = {
       quant: {
@@ -154,11 +155,11 @@ export class View {
       .attr('width', colWidth)
       .on('click', (d: string) => {
         if (this.enableGraffinity) {
-          this.visNetwork = superGraph(this.visNetwork.nodes, this.visNetwork.links, d);
-          console.log("vis network nodes");
-          console.log(this.visNetwork.nodes);
-          console.log("original network nodes");
-          console.log(this.network.nodes);
+          this.visNetwork = superGraph(
+            this.visNetwork.nodes,
+            this.visNetwork.links,
+            d,
+          );
           eventBus.$emit('updateNetwork', this.visNetwork);
         } else {
           this.sort(d);
@@ -586,9 +587,19 @@ export class View {
       .classed('fa', true)
       .classed('fa-angle-right', true);
 
-    rowDropWidget.on('click', (d: Node) => {
-      console.log(d._key);
-      console.log(d);
+    rowDropWidget.on('click', () => {
+      if (this.enableGraffinity) {
+        if (this.visBool == 0) {
+          console.log("expand supernodes");
+          this.visBool += 1;
+        }
+        else { 
+          console.log("retract supernodes");
+          this.visBool -= 1;
+        }
+      } else { 
+        console.log("aggregation vis not activated");
+      }
     });
 
     let verticalOffset = 187.5;
@@ -1090,7 +1101,8 @@ export class View {
       }
     } else if (this.sortKey === 'edges') {
       order = range(this.visNetwork.nodes.length).sort(
-        (a, b) => this.visNetwork.nodes[b][type] - this.visNetwork.nodes[a][type],
+        (a, b) =>
+          this.visNetwork.nodes[b][type] - this.visNetwork.nodes[a][type],
       );
     } else if (isNode === true) {
       order = range(this.visNetwork.nodes.length).sort((a, b) =>
@@ -1107,7 +1119,8 @@ export class View {
       );
     } else {
       order = range(this.visNetwork.nodes.length).sort(
-        (a, b) => this.visNetwork.nodes[b][type] - this.visNetwork.nodes[a][type],
+        (a, b) =>
+          this.visNetwork.nodes[b][type] - this.visNetwork.nodes[a][type],
       );
     }
     this.order = order;
