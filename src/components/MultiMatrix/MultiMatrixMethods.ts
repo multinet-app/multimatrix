@@ -15,11 +15,18 @@ import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/
 import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
+import { library, dom } from '@fortawesome/fontawesome-svg-core';
+import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
 
 // This is to be removed (stop-gap solution to superGraph network update)
 import { eventBus } from '@/components/Controls.vue';
 
 declare const reorder: any;
+
+// these two lines of code are needed to add fontawesome icons
+// and have them render to the screen with vue
+library.add(faAngleRight);
+dom.watch();
 
 export class View {
   public visualizedAttributes: string[] = [];
@@ -535,6 +542,8 @@ export class View {
     const labelContainerHeight = 25;
     const rowLabelContainerStart = 75;
     const labelContainerWidth = rowLabelContainerStart;
+    const chevronWidth = 25;
+    const chevronHeight = 25;
 
     // add foreign objects for label
     const edgeRowForeignObject = this.edgeRows
@@ -556,6 +565,19 @@ export class View {
         this.selectElement(d);
         this.selectNeighborNodes(d.id, d.neighbors);
       });
+
+    // add row chevron widgets
+    const rowDropWidget = this.edgeRows
+      .append('foreignObject')
+      .attr('x', -(rowLabelContainerStart + 10))
+      .attr('y', -5)
+      .attr('width', chevronWidth)
+      .attr('height', chevronHeight);
+
+    rowDropWidget
+      .append('svg')
+      .classed('fa', true)
+      .classed('fa-angle-right', true);
 
     let verticalOffset = 187.5;
     const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
