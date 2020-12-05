@@ -10,7 +10,7 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
-import { superGraph } from '@/lib/aggregation';
+import { superGraph, MapNetworkNodes} from '@/lib/aggregation';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
@@ -31,7 +31,6 @@ dom.watch();
 export class View {
   public visualizedAttributes: string[] = [];
   public enableGraffinity: boolean;
-  private network: Network;
   private visNetwork: Network;
   private icons: { [key: string]: { [d: string]: string } };
   private sortKey: string;
@@ -70,6 +69,7 @@ export class View {
   private matrixNodeLength: number;
   private cellSize: number;
   private visBool: number;
+  static nodeMap: Map<string, Node>;
 
   constructor(
     network: Network,
@@ -79,7 +79,6 @@ export class View {
     visMargins: { left: number; top: number; right: number; bottom: number },
     enableGraffinity: boolean,
   ) {
-    this.network = network;
     this.visNetwork = network;
     this.visMargins = visMargins;
     this.provenance = this.setUpProvenance();
@@ -138,7 +137,6 @@ export class View {
       .data(this.visualizedAttributes);
 
     columnHeaderGroups.exit().remove();
-
     columnHeaderGroups
       .enter()
       .append('text')
@@ -155,6 +153,7 @@ export class View {
       .attr('width', colWidth)
       .on('click', (d: string) => {
         if (this.enableGraffinity) {
+          View.nodeMap = MapNetworkNodes(this.visNetwork.nodes);
           this.visNetwork = superGraph(
             this.visNetwork.nodes,
             this.visNetwork.links,
@@ -590,15 +589,15 @@ export class View {
     rowDropWidget.on('click', () => {
       if (this.enableGraffinity) {
         if (this.visBool == 0) {
-          console.log("expand supernodes");
+          console.log('expand supernodes');
+          console.log(View.nodeMap);
           this.visBool += 1;
-        }
-        else { 
-          console.log("retract supernodes");
+        } else {
+          console.log('retract supernodes');
           this.visBool -= 1;
         }
-      } else { 
-        console.log("aggregation vis not activated");
+      } else {
+        console.log('aggregation vis not activated');
       }
     });
 
