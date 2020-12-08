@@ -3,7 +3,7 @@ import Vue from 'vue';
 
 import TreeList from '@/components/TreeList.vue';
 import QueryBuilder from '@/components/QueryBuilder.vue';
-import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
+// import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
 import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -19,7 +19,6 @@ export default Vue.extend({
   components: {
     TreeList,
     QueryBuilder,
-    MultiMatrix,
   },
 
   data(): {
@@ -245,26 +244,6 @@ export default Vue.extend({
           />
         </v-row>
       </v-col>
-
-      <!-- MultiMatrix component -->
-      <v-col class="ma-0 pl-0 pr-0">
-        <v-row row wrap class="ma-0 pa-0">
-          <multi-matrix
-            ref="multimatrix"
-            v-if="workspace"
-            v-bind="{
-              network,
-              selectNeighbors,
-              showGridLines,
-              enableGraffinity,
-              visualizedAttributes,
-            }"
-            @restart-simulation="hello()"
-            @updateMatrixLegendScale="createLegend"
-          />
-        </v-row>
-      </v-col>
-      -->
     </v-row>
   </v-container>
 </template>
