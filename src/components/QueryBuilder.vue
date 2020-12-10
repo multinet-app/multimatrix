@@ -159,6 +159,7 @@ export default Vue.extend({
         schemaDict,
         'Label',
       );
+      this.$emit('updateSchemaNetwork', newNetwork);
       this.createSchema(newNetwork);
     },
     createSchema(this: any, schema: any) {

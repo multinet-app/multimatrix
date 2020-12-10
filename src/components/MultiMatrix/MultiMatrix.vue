@@ -7,7 +7,7 @@ import { Dimensions, Network } from '@/types';
 
 export default Vue.extend({
   props: {
-    network: {
+    schemaNetwork: {
       type: Object as PropType<Network>,
       required: true,
     },
@@ -48,16 +48,16 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { network, visualizedAttributes, enableGraffinity } = this;
+      const { schemaNetwork, visualizedAttributes, enableGraffinity } = this;
       return {
-        network,
+        schemaNetwork,
         visualizedAttributes,
         enableGraffinity,
       };
     },
 
     matrixNodeLength(): number {
-      return this.network.nodes.length;
+      return this.schemaNetwork.nodes.length;
     },
 
     matrixWidth(): number {
@@ -89,7 +89,7 @@ export default Vue.extend({
     properties() {
       this.updateVis();
     },
-    network() {
+    schemaNetwork() {
       this.changeMatrix();
     },
   },
@@ -120,7 +120,7 @@ export default Vue.extend({
 
     // Define the View
     this.view = new View(
-      this.network,
+      this.schemaNetwork,
       this.visualizedAttributes,
       this.matrixNodeLength,
       this.cellSize,
@@ -169,7 +169,7 @@ export default Vue.extend({
         );
 
       this.view = new View(
-        this.network,
+        this.schemaNetwork,
         this.visualizedAttributes,
         this.matrixNodeLength,
         this.cellSize,

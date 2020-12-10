@@ -3,7 +3,7 @@ import Vue from 'vue';
 
 import TreeList from '@/components/TreeList.vue';
 import QueryBuilder from '@/components/QueryBuilder.vue';
-// import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
+import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
 import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -19,6 +19,7 @@ export default Vue.extend({
   components: {
     TreeList,
     QueryBuilder,
+    MultiMatrix,
   },
 
   data(): {
@@ -32,6 +33,7 @@ export default Vue.extend({
     treeListHover: string;
     currentSchema: any;
     treeRelationships: any[];
+    schemaNetwork: Network;
   } {
     return {
       network: {
@@ -47,6 +49,10 @@ export default Vue.extend({
       treeListHover: '',
       currentSchema: {},
       treeRelationships: [],
+      schemaNetwork: {
+        nodes: [],
+        links: [],
+      },
     };
   },
 
@@ -113,6 +119,9 @@ export default Vue.extend({
     },
     relationships(this: any, allSchema: any[]) {
       return (this.treeRelationships = allSchema);
+    },
+    updateSchemaNetwork(this: any, newNetwork: Network) {
+      return (this.schemaNetwork = newNetwork);
     },
   },
   watch: {
@@ -241,6 +250,26 @@ export default Vue.extend({
               treeRelationships,
             }"
             @restart-simulation="hello()"
+            @updateSchemaNetwork="updateSchemaNetwork"
+          />
+        </v-row>
+      </v-col>
+
+      <!-- MultiMatrix component -->
+      <v-col class="ma-0 pl-0 pr-0">
+        <v-row row wrap class="ma-0 pa-0">
+          <multi-matrix
+            ref="multimatrix"
+            v-if="workspace"
+            v-bind="{
+              schemaNetwork,
+              selectNeighbors,
+              showGridLines,
+              enableGraffinity,
+              visualizedAttributes,
+            }"
+            @restart-simulation="hello()"
+            @updateMatrixLegendScale="createLegend"
           />
         </v-row>
       </v-col>
