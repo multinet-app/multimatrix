@@ -109,10 +109,40 @@ export default Vue.extend({
 </script>
 
 <template>
-  <v-container fluid class="pt-0 pb-0">
-    <v-row class="flex-nowrap">
-      <!-- control panel content -->
-      <v-col cols="3">
+  <div>
+    <v-navigation-drawer
+      app
+      class="app-sidebar"
+      fixed
+      permanent
+      stateless
+      value="true"
+    >
+      <v-toolbar color="grey lighten-2">
+        <v-toolbar-title class="d-flex align-center">
+          <div>
+            <v-row class="mx-0 align-center">
+              <v-col class="pb-0 pt-2 px-0">
+                <img
+                  class="app-logo"
+                  src="../assets/logo/app_logo.svg"
+                  alt="Multinet"
+                  width="100%"
+                />
+              </v-col>
+              <v-col class="text-left">MultiMatrix</v-col>
+            </v-row>
+          </div>
+        </v-toolbar-title>
+        <v-spacer />
+        <!-- login-menu / -->
+      </v-toolbar>
+
+      <v-list class="pa-0">
+        <v-subheader class="grey darken-3 py-0 white--text">
+          Controls
+        </v-subheader>
+
         <v-card>
           <v-card-title class="pb-6">MultiMatrix Controls</v-card-title>
           <v-card-text>
@@ -183,38 +213,38 @@ export default Vue.extend({
               <svg id="matrix-legend"></svg>
             </v-card-subtitle>
           </v-card-text>
-
-          <v-card-actions>
-            <v-btn small @click="exportNetwork">Export Network</v-btn>
-          </v-card-actions>
         </v-card>
-      </v-col>
 
-      <!-- MultiMatrix component -->
-      <v-col class="ma-0 pl-0 pr-0">
-        <v-row row wrap class="ma-0 pa-0">
-          <multi-matrix
-            ref="multimatrix"
-            v-if="workspace"
-            v-bind="{
-              network,
-              selectNeighbors,
-              showGridLines,
-              enableGraffinity,
-              visualizedAttributes,
-            }"
-            @restart-simulation="hello()"
-            @updateMatrixLegendScale="createLegend"
-          />
-        </v-row>
-      </v-col>
-    </v-row>
-  </v-container>
+        <v-subheader class="grey darken-3 py-0 white--text">
+          Widgets
+        </v-subheader>
+      </v-list>
+    </v-navigation-drawer>
+
+    <!-- MultiMatrix component -->
+    <v-col class="ma-0 pl-0 pr-0">
+      <v-row row wrap class="ma-0 pa-0">
+        <multi-matrix
+          ref="multimatrix"
+          v-if="workspace"
+          v-bind="{
+            network,
+            selectNeighbors,
+            showGridLines,
+            enableGraffinity,
+            visualizedAttributes,
+          }"
+          @restart-simulation="hello()"
+          @updateMatrixLegendScale="createLegend"
+        />
+      </v-row>
+    </v-col>
+  </div>
 </template>
 
 <style scoped>
 .app-logo {
-  width: 48px;
+  width: 36px;
 }
 
 .row-number {
