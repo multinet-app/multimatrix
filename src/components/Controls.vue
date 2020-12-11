@@ -144,7 +144,6 @@ export default Vue.extend({
         </v-subheader>
 
         <v-card>
-          <v-card-title class="pb-6">MultiMatrix Controls</v-card-title>
           <v-card-text>
             <v-select
               v-model="visualizedAttributes"
@@ -167,7 +166,7 @@ export default Vue.extend({
               "
             >
               Autoselect neighbors
-              <v-checkbox class="ma-0" v-model="selectNeighbors" hide-details />
+              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
             </v-card-subtitle>
 
             <!-- Gridline Toggle Card -->
@@ -180,7 +179,7 @@ export default Vue.extend({
               "
             >
               Show GridLines
-              <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
+              <v-switch class="ma-0" v-model="showGridLines" hide-details />
             </v-card-subtitle>
 
             <!-- Graffinity Toggle -->
@@ -193,12 +192,12 @@ export default Vue.extend({
               "
             >
               Enable Graffinity Features
-              <v-checkbox
-                class="ma-0"
-                v-model="enableGraffinity"
-                hide-details
-              />
+              <v-switch class="ma-0" v-model="enableGraffinity" hide-details />
             </v-card-subtitle>
+
+            <v-btn class="ml-0 mt-2" small @click="exportNetwork">
+              Export Network
+            </v-btn>
 
             <!-- Matrix Legend -->
             <v-card-subtitle
