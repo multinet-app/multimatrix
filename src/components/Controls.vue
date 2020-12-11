@@ -25,9 +25,6 @@ export default Vue.extend({
     showGridLines: boolean;
     enableGraffinity: boolean;
     visualizedAttributes: string[];
-    nodeEditor: boolean;
-    // connectivity is left with type any since it is a temp object in our AQL example
-    connectivity: any;
   } {
     return {
       network: {
@@ -40,22 +37,6 @@ export default Vue.extend({
       showGridLines: true,
       enableGraffinity: false,
       visualizedAttributes: [],
-      nodeEditor: false,
-      connectivity: {
-        node1: {
-          type: '',
-          value: '',
-        },
-        hop: {
-          type: '',
-          operator: '',
-          value: '',
-        },
-        node2: {
-          type: '',
-          value: '',
-        },
-      },
     };
   },
 
