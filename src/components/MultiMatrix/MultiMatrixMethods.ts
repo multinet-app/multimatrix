@@ -10,7 +10,7 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
-import { superGraph, MapNetworkNodes } from '@/lib/aggregation';
+import { superGraph, expandSuperNetwork } from '@/lib/aggregation';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
@@ -68,10 +68,9 @@ export class View {
   private maxNumConnections = -Infinity;
   private matrixNodeLength: number;
   private cellSize: number;
-  private visBool: number;
-  static nodeMap: Map<string, Node>;
   static nonAggrNetwork: Network; // variable for keeping track of the non-aggregated network
   static aggrNetwork: Network; // variable for keeping track of the aggregated network
+  static clickMap: Map<string, boolean>; // map for keeping track of whether a supernode has been clicked
 
   constructor(
     network: Network,
@@ -94,7 +93,6 @@ export class View {
     this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
     this.enableGraffinity = enableGraffinity;
-    this.visBool = 0;
 
     this.icons = {
       quant: {
@@ -155,13 +153,16 @@ export class View {
       .attr('width', colWidth)
       .on('click', (d: string) => {
         if (this.enableGraffinity) {
-          View.nodeMap = MapNetworkNodes(this.visNetwork.nodes);
           View.nonAggrNetwork = this.visNetwork;
-          console.log("Non-Aggregated Network");
-          console.log(View.nonAggrNetwork);
-          View.aggrNetwork = superGraph(this.visNetwork.nodes, this.visNetwork.links, d);
-          console.log("Aggregated Network");
-          console.log(View.aggrNetwork);
+          // console.log("Non-Aggregated Network");
+          // console.log(View.nonAggrNetwork);
+          View.aggrNetwork = superGraph(
+            this.visNetwork.nodes,
+            this.visNetwork.links,
+            d,
+          );
+          // console.log("Aggregated Network");
+          // console.log(View.aggrNetwork);
           // this.visNetwork = superGraph(
           //   this.visNetwork.nodes,
           //   this.visNetwork.links,
@@ -594,15 +595,32 @@ export class View {
       .classed('fa', true)
       .classed('fa-angle-right', true);
 
+    View.clickMap = new Map<string, boolean>();
     rowDropWidget.on('click', (superNode: Node) => {
       if (this.enableGraffinity) {
-        if (this.visBool == 0) {
-          console.log('expand supernodes');
-          console.log(superNode.id);
-          this.visBool += 1;
+        const viewStatus = View.clickMap.get(superNode.id);
+        if (viewStatus != undefined) {
+          if (viewStatus === false) {
+            console.log('expand super visualization');
+            View.clickMap.set(superNode.id, true);
+            console.log('call the expand super network function');
+            expandSuperNetwork(
+              View.nonAggrNetwork,
+              View.aggrNetwork,
+              superNode,
+            );
+            console.log(View.clickMap);
+          } else {
+            console.log('retract super visualization');
+            View.clickMap.set(superNode.id, false);
+            // console.log(View.clickMap);
+          }
         } else {
-          console.log('retract supernodes');
-          this.visBool -= 1;
+          View.clickMap.set(superNode.id, true);
+          // console.log('expand super visualization');
+          // console.log('call the expand super network function');
+          expandSuperNetwork(View.nonAggrNetwork, View.aggrNetwork, superNode);
+          // console.log(View.clickMap);
         }
       } else {
         console.log('aggregation vis not activated');
