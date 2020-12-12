@@ -10,11 +10,7 @@ import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
-import {
-  superGraph,
-  MapNetworkNodes,
-  ExpandSuperData
-} from '@/lib/aggregation';
+import { superGraph, MapNetworkNodes } from '@/lib/aggregation';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
@@ -74,6 +70,8 @@ export class View {
   private cellSize: number;
   private visBool: number;
   static nodeMap: Map<string, Node>;
+  static nonAggrNetwork: Network; // variable for keeping track of the non-aggregated network
+  static aggrNetwork: Network; // variable for keeping track of the aggregated network
 
   constructor(
     network: Network,
@@ -158,12 +156,18 @@ export class View {
       .on('click', (d: string) => {
         if (this.enableGraffinity) {
           View.nodeMap = MapNetworkNodes(this.visNetwork.nodes);
-          this.visNetwork = superGraph(
-            this.visNetwork.nodes,
-            this.visNetwork.links,
-            d,
-          );
-          eventBus.$emit('updateNetwork', this.visNetwork);
+          View.nonAggrNetwork = this.visNetwork;
+          console.log("Non-Aggregated Network");
+          console.log(View.nonAggrNetwork);
+          View.aggrNetwork = superGraph(this.visNetwork.nodes, this.visNetwork.links, d);
+          console.log("Aggregated Network");
+          console.log(View.aggrNetwork);
+          // this.visNetwork = superGraph(
+          //   this.visNetwork.nodes,
+          //   this.visNetwork.links,
+          //   d,
+          // );
+          eventBus.$emit('updateNetwork', View.aggrNetwork);
         } else {
           this.sort(d);
         }
@@ -594,7 +598,7 @@ export class View {
       if (this.enableGraffinity) {
         if (this.visBool == 0) {
           console.log('expand supernodes');
-          ExpandSuperData(superNode.id, this.visNetwork.nodes, View.nodeMap);
+          console.log(superNode.id);
           this.visBool += 1;
         } else {
           console.log('retract supernodes');
