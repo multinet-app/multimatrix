@@ -126,22 +126,24 @@ function MapNetworkNodes(nodes: Node[]) {
 
 // function that maps all supernode children to their parent supernode
 function mapSuperChildren(superNodes: Node[]) {
-  console.log(' the supernodes');
-  console.log(superNodes);
-  // const superChildrenMap = new Map<string, string>();
+  // console.log(' the supernodes');
+  // console.log(superNodes);
+  const superChildrenMap = new Map<string, string>();
   superNodes.forEach((parentNode: Node) => {
     // console.log('parent node');
     // console.log(parentNode);
     const superChildren = parentNode.CHILDREN;
-    console.log(superChildren);
-    // superChildren.forEach((childNode: string) => {
-    //   superChildrenMap.set(childNode, parentNode.id);
-    // });
+    // console.log(superChildren);
+    superChildren.forEach((childNode: string) => {
+      // console.log("the parent id");
+      // console.log(parentNode.id);
+      superChildrenMap.set(childNode, parentNode.id);
+    });
     // console.log(superChildrenMap);
   });
   // // console.log("super children map");
   // // console.log(superChildrenMap);
-  // return superChildrenMap;
+  return superChildrenMap;
 }
 
 // function that takes a list of the current aggregated supernode network
@@ -198,7 +200,6 @@ function expandSuperDataLinks(
   superNodeName: string,
   currentNetworkLinks: Link[],
   originalNetworkLinks: Link[],
-  superChildrenIDMap: Map<string, Node>,
   superNodeIDMap: Map<string, Node>,
   superNodes: Node[],
 ) {
@@ -211,13 +212,15 @@ function expandSuperDataLinks(
     };
     originalLinkCopy.push(newLink);
   });
-  currentNetworkLinks.forEach(link => {
+  currentNetworkLinks.forEach((link) => {
     const newLink = {
       ...link,
-    }
-    currentLinkCopy.push(newLink)
+    };
+    currentLinkCopy.push(newLink);
   });
 
+  // create a list of links whose _from is one of the superchildren selected
+  const superChildrenLinks: Link[] = [];
   // get the node information about the supernode
   const superNode = superNodeIDMap.get(superNodeName);
   let superChildren: string[] = [];
@@ -227,19 +230,47 @@ function expandSuperDataLinks(
   console.log('the children of the supernode selected');
   console.log(superChildren);
 
-  // c
-  console.log('super parent children map');
-  mapSuperChildren(superNodes);
+  // console.log('super parent children map');
+  const superParentChildMap = mapSuperChildren(superNodes);
   // console.log(superParentChildMap);
 
-  console.log('super children id map');
-  console.log(superChildrenIDMap);
+  // get the subset of the links whose from id matches the chidlren nodes
+  originalLinkCopy.forEach((link: Link) => {
+    superChildren.forEach((childNodeName: string) => {
+      if (link._from === childNodeName) {
+        superChildrenLinks.push(link);
+      }
+    });
+  });
 
-  console.log('the original network links');
-  console.log(originalLinkCopy);
+  // modify the link subset so they map from node to supernodes
+  superChildrenLinks.forEach((link) => {
+    const linkTo = link._to;
+    const parent = superParentChildMap.get(linkTo);
+    if (parent != undefined) {
+      link._to = parent;
+      link.target = link._to;
+    }
+  });
 
-  console.log('the super network links');
-  console.log(currentLinkCopy);
+  console.log('the link subset after modification');
+  console.log(superChildrenLinks);
+
+  // merge the super network link copy with the superChildrenLinks
+  superChildrenLinks.concat(currentLinkCopy);
+  console.log("hello there");
+  console.log(superChildrenLinks);
+
+  // console.log("the current copy of links before modification");
+  // console.log(currentNetworkLinks);
+  // console.log("the current network links modified with the super children links");
+  // console.log(currentLinkCopy);
+
+  // console.log('the original network links');
+  // console.log(originalLinkCopy);
+
+  // console.log('the super network links');
+  // console.log(currentLinkCopy);
 }
 
 // function that constructs a new network based on the supernode selected by the user
@@ -278,7 +309,6 @@ export function expandSuperNetwork(
     superNodeName,
     superNetwork.links,
     originalNetwork.links,
-    originalNetworkNodeMap,
     superNetworkNodeMap,
     superNetwork.nodes,
   );
