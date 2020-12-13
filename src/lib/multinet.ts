@@ -65,18 +65,6 @@ function _defineNeighbors(nodes: any[], links: any[]) {
   return nodes;
 }
 
-// Function that constructs the neighbors for a node in a super network
-export function defineSuperNeighbors(nodes: any[], links: any[]) {
-  nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
-  links.forEach((link) => {
-    const findNodeFrom = nodes.find((node) => node.id === link._from);
-    const findNodeTo = nodes.find((node) => node.id === link._to);
-    findNodeFrom.neighbors.push(link._to);
-    findNodeTo.neighbors.push(link._from);
-  });
-  return nodes;
-}
-
 export async function loadData(
   workspace: string,
   networkName: string,
