@@ -2,8 +2,21 @@
 // and creates a new list of supernodes and a new list of edges
 // to reflect the connections between a supernode and the original nodes
 // in the network
-import { defineSuperNeighbors } from '@/lib/multinet';
 import { Link, Network, Node } from '@/types';
+
+// Function that constructs the neighbors for a node in a super network
+function defineNeighborNodes(nodes: Node[], links: Link[]) {
+  nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
+  links.forEach((link) => {
+    const findNodeFrom = nodes.find((node) => node.id === link._from);
+    const findNodeTo = nodes.find((node) => node.id === link._to);
+    if (findNodeFrom && findNodeTo != undefined) {
+      findNodeFrom.neighbors.push(link._to);
+      findNodeTo.neighbors.push(link._from);
+    }
+  });
+  return nodes;
+}
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
@@ -90,7 +103,8 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   const combinedNodes = superNodes.concat(newNodes);
 
   // construct the neighbors for the nodes
-  const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
+  // const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
+  const neighborNodes = defineNeighborNodes(combinedNodes, newLinks);
 
   // remove all the nodes who do not have any neighbors
   let finalNodes = neighborNodes;
@@ -316,8 +330,23 @@ export function expandSuperNetwork(
     superNetwork.nodes,
   );
 
-  console.log('the expanded nodes');
-  console.log(expandNodes);
-  console.log('expand links');
-  console.log(expandLinks);
+  let neighborNodes: Node[] = [];
+  if (expandNodes && expandLinks != undefined) {
+    neighborNodes = defineNeighborNodes(expandNodes, expandLinks);
+    // console.log("neighbor nodes");
+    // console.log(neighborNodes);
+  }
+
+  // construct the new network
+  const network = {
+    nodes: neighborNodes,
+    links: expandLinks,
+  };
+  console.log('final network');
+  console.log(network);
+  return network;
+  // console.log('the expanded nodes');
+  // console.log(expandNodes);
+  // console.log('expand links');
+  // console.log(expandLinks);
 }
