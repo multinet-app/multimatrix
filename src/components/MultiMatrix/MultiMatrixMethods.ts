@@ -619,7 +619,8 @@ export class View {
           View.clickMap.set(superNode.id, true);
           // console.log('expand super visualization');
           // console.log('call the expand super network function');
-          expandSuperNetwork(View.nonAggrNetwork, View.aggrNetwork, superNode);
+          View.aggrNetwork = expandSuperNetwork(View.nonAggrNetwork, View.aggrNetwork, superNode);
+          eventBus.$emit('updateNetwork', View.aggrNetwork);
           // console.log(View.clickMap);
         }
       } else {
