@@ -191,8 +191,14 @@ function expandSuperDataNodes(
       superNodeCopy.splice(superIndexStart + count, 0, node);
       count += 1;
     });
-    console.log('network nodes after');
-    console.log(superNodeCopy);
+
+    // update the index of the new supernodes
+    superNodeCopy.forEach((node: Node, index: number) => {
+      node.index = index;
+    });
+    // console.log('network nodes after');
+    // console.log(superNodeCopy);
+    return superNodeCopy;
   }
 }
 
@@ -253,19 +259,16 @@ function expandSuperDataLinks(
     }
   });
 
-  console.log('the link subset after modification');
-  console.log(superChildrenLinks);
-
-  // merge the super network link copy with the superChildrenLinks
-  superChildrenLinks.concat(currentLinkCopy);
-  console.log("hello there");
-  console.log(superChildrenLinks);
-
-  // console.log("the current copy of links before modification");
-  // console.log(currentNetworkLinks);
-  // console.log("the current network links modified with the super children links");
+  // console.log('subset links');
+  // console.log(superChildrenLinks);
+  // console.log("copy links");
   // console.log(currentLinkCopy);
+  // console.log("attempt to concat");
+  const combinedLinks = currentLinkCopy.concat(superChildrenLinks);
+  return combinedLinks;
 
+  // console.log("the combined links");
+  // console.log(combinedLinks);
   // console.log('the original network links');
   // console.log(originalLinkCopy);
 
@@ -297,7 +300,7 @@ export function expandSuperNetwork(
   const superNetworkNodeMap = MapNetworkNodes(superNetwork.nodes);
 
   // calculate a new list of supernodes
-  expandSuperDataNodes(
+  const expandNodes = expandSuperDataNodes(
     superNodeName,
     superNetwork.nodes,
     originalNetworkNodeMap,
@@ -305,7 +308,7 @@ export function expandSuperNetwork(
   );
 
   // calculate a new set of links
-  expandSuperDataLinks(
+  const expandLinks = expandSuperDataLinks(
     superNodeName,
     superNetwork.links,
     originalNetwork.links,
@@ -313,5 +316,8 @@ export function expandSuperNetwork(
     superNetwork.nodes,
   );
 
-  // console.log(mapSuperChildren(superNetwork.nodes));
+  console.log('the expanded nodes');
+  console.log(expandNodes);
+  console.log('expand links');
+  console.log(expandLinks);
 }
