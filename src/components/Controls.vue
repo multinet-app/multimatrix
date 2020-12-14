@@ -150,52 +150,65 @@ export default Vue.extend({
               :items="attributeList"
               label="Node Attributes"
               multiple
+              outlined
               chips
+              dense
               deletable-chips
               hint="Choose the node attributes you'd like to visualize"
               persistent-hint
             />
 
-            <!-- Auto-Select Neighbors Card -->
-            <v-card-subtitle
-              class="pb-0 px-0"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              Autoselect neighbors
-              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
-            </v-card-subtitle>
+            <v-list class="pa-0">
+              <!-- Auto-Select Neighbors List Item -->
+              <v-list-item class="px-0">
+                <v-list-item-action class="mr-3">
+                  <v-switch
+                    class="ma-0"
+                    v-model="selectNeighbors"
+                    hide-details
+                  />
+                </v-list-item-action>
+                <v-list-item-content>
+                  Autoselect neighbors
+                </v-list-item-content>
+              </v-list-item>
 
-            <!-- Gridline Toggle Card -->
-            <v-card-subtitle
-              class="pb-0 px-0"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              Show GridLines
-              <v-switch class="ma-0" v-model="showGridLines" hide-details />
-            </v-card-subtitle>
+              <!-- Gridline Toggle List Item -->
+              <v-list-item class="px-0">
+                <v-list-item-action class="mr-3">
+                  <v-switch
+                    class="ma-0"
+                    v-model="showGridLines"
+                    hide-details
+                  />
+                </v-list-item-action>
+                <v-list-item-content>
+                  Show GridLines
+                </v-list-item-content>
+              </v-list-item>
 
-            <!-- Graffinity Toggle -->
-            <v-card-subtitle
-              class="pb-0 px-0"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              Enable Graffinity Features
-              <v-switch class="ma-0" v-model="enableGraffinity" hide-details />
-            </v-card-subtitle>
+              <!-- Graffinity Toggle List Item -->
+              <v-list-item class="px-0">
+                <v-list-item-action class="mr-3">
+                  <v-switch
+                    class="ma-0"
+                    v-model="enableGraffinity"
+                    hide-details
+                  />
+                </v-list-item-action>
+                <v-list-item-content>
+                  Enable Graffinity Features
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
 
-            <v-btn class="ml-0 mt-2" small @click="exportNetwork">
+            <v-btn
+              block
+              class="ml-0 mt-4"
+              color="primary"
+              depressed
+              @click="exportNetwork"
+            >
               Export Network
             </v-btn>
 
