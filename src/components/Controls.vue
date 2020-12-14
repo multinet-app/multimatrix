@@ -176,15 +176,9 @@ export default Vue.extend({
               <!-- Gridline Toggle List Item -->
               <v-list-item class="px-0">
                 <v-list-item-action class="mr-3">
-                  <v-switch
-                    class="ma-0"
-                    v-model="showGridLines"
-                    hide-details
-                  />
+                  <v-switch class="ma-0" v-model="showGridLines" hide-details />
                 </v-list-item-action>
-                <v-list-item-content>
-                  Show GridLines
-                </v-list-item-content>
+                <v-list-item-content> Show GridLines </v-list-item-content>
               </v-list-item>
 
               <!-- Graffinity Toggle List Item -->
