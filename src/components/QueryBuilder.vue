@@ -231,6 +231,11 @@ export default Vue.extend({
       console.log(initialGroupsSet);
       console.log(this.colorDomain);
 
+      nodes.on('mouseover', (this: any, node: Node) => {
+        console.log(this);
+        d3.select(`#${node.Label}`).classed('treehover', true);
+      });
+
       // Simple tooltip
       nodes.append('title').text((d: any) => d.Label);
 
@@ -340,11 +345,11 @@ export default Vue.extend({
 svg >>> circle {
   cursor: pointer;
 }
-
+/* 
 svg >>> circle:hover {
   stroke: black;
   stroke-width: 2px;
-}
+} */
 
 svg >>> circle.treehover {
   stroke: black;
