@@ -601,9 +601,7 @@ export class View {
         const viewStatus = View.clickMap.get(superNode.id);
         if (viewStatus != undefined) {
           if (viewStatus === false) {
-            console.log('expand super visualization');
             View.clickMap.set(superNode.id, true);
-            console.log('call the expand super network function');
             expandSuperNetwork(
               View.nonAggrNetwork,
               View.aggrNetwork,
@@ -617,11 +615,15 @@ export class View {
           }
         } else {
           View.clickMap.set(superNode.id, true);
-          // console.log('expand super visualization');
-          // console.log('call the expand super network function');
-          View.aggrNetwork = expandSuperNetwork(View.nonAggrNetwork, View.aggrNetwork, superNode);
-          eventBus.$emit('updateNetwork', View.aggrNetwork);
-          // console.log(View.clickMap);
+          expandSuperNetwork(View.nonAggrNetwork, View.aggrNetwork, superNode);
+
+          const expandVisNetwork = expandSuperNetwork(
+            View.nonAggrNetwork,
+            View.aggrNetwork,
+            superNode,
+          );
+          eventBus.$emit('updateNetwork', expandVisNetwork);
+          console.log(View.clickMap);
         }
       } else {
         console.log('aggregation vis not activated');
