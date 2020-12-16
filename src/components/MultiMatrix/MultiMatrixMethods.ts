@@ -76,13 +76,11 @@ export class View {
   private selectedElements: { [key: string]: string[] } = {};
   private mouseOverEvents: any;
   private maxNumConnections = -Infinity;
-  private matrixNodeLength: number;
   private cellSize: number;
 
   constructor(
     network: Network,
     visualizedAttributes: string[],
-    matrixNodeLength: number,
     cellSize: number,
     visMargins: { left: number; top: number; right: number; bottom: number },
     enableGraffinity: boolean,
@@ -93,7 +91,6 @@ export class View {
     this.visMargins = visMargins;
     this.provenance = this.setUpProvenance();
     this.visualizedAttributes = visualizedAttributes;
-    this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
     this.enableGraffinity = enableGraffinity;
     this.matrix = matrix;
@@ -278,7 +275,7 @@ export class View {
     const cellRadius = 3;
 
     // set the matrix highlight
-    const matrixHighlightLength = this.matrixNodeLength * this.cellSize;
+    const matrixHighlightLength = this.matrix.length * this.cellSize;
 
     // Creates scalable SVG
     this.edges = select('#matrix')
@@ -290,7 +287,7 @@ export class View {
 
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
-      .domain(range(0, this.matrixNodeLength, 1))
+      .domain(range(0, this.matrix.length, 1))
       .range([0, matrixHighlightLength]);
 
     // creates column groupings

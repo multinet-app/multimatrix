@@ -137,7 +137,6 @@ export default Vue.extend({
     this.view = new View(
       this.network,
       this.visualizedAttributes,
-      this.matrixNodeLength,
       this.cellSize,
       this.visMargins,
       this.enableGraffinity,
@@ -188,7 +187,6 @@ export default Vue.extend({
       this.view = new View(
         this.network,
         this.visualizedAttributes,
-        this.matrixNodeLength,
         this.cellSize,
         this.visMargins,
         this.enableGraffinity,
