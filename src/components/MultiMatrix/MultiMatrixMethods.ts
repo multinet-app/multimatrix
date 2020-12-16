@@ -26,10 +26,27 @@ export class View {
   public enableGraffinity: boolean;
 
   private network: Network;
-  private icons: { [key: string]: { [d: string]: string } };
-  private sortKey: string;
+  private icons: { [key: string]: { [d: string]: string } } = {
+    quant: {
+      d:
+        'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
+    },
+    alphabetical: {
+      d:
+        'M401.1,331.2h-189c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.8C407.7,334.2,404.8,331.2,401.1,331.2z M223.7,344.3H266c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-42.3V344.3z M223.7,373H300c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-76.3V373.7z M263.6,447.8c0,2-1.6,3.6-3.6,3.6h-36.4v-18.8H260c2,0,3.6,1.6,3.6,3.6V447.8z M321.5,418.4c0,2-1.6,3.6-3.6,3.6h-94.2v-18.8h94.2c2,0,3.6,1.6,3.6,3.6V418.4z M392.6,449.5h-34.3V442l22.6-27h-21.7v-8.8h33.2v7.5l-21.5,27h21.7V449.5z M381,394.7l-3.7,6.4l-3.7-6.4h2.7v-14.6h2v14.6H381z M387,380l-3.4-9.7h-13.5l-3.3,9.7h-10.2l15.8-43.3h9l15.8,43.3H387z M371.8,363.4H382l-5.1-15.3L371.8,363.4z',
+    },
+    categorical: {
+      d:
+        'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.4C407.7,333.7,404.7,330.7,401,330.7z M272.9,374.3h-52.4v-17.1h52.4V374.3z M272.9,354h-52.4v-17h52.4V354z M332.1,414.9h-52.4v-17h52.4V414.9z M332.1,394.6h-52.4v-17h52.4V394.6z M394.8,456.5h-52.4v-17h52.4V456.5z M394.8,434.9h-52.4v-17h52.4V434.9z',
+    },
+    cellSort: {
+      d:
+        'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
+    },
+  };
+  private sortKey = 'name';
   private edges: any;
-  private matrix: Cell[][];
+  private matrix: Cell[][] = [];
   private attributeRows: any;
   private tooltip: any;
   private order: any;
@@ -53,63 +70,31 @@ export class View {
   private attributeScales: { [key: string]: any } = {};
   private colMargin = 5;
   private provenance: any;
-  private idMap: { [key: string]: number };
-  private isMultiEdge: boolean;
+  private isMultiEdge = false;
   private orderType: any;
-  private selectedNodesAndNeighbors: { [key: string]: string[] };
-  private selectedElements: { [key: string]: string[] };
+  private selectedNodesAndNeighbors: { [key: string]: string[] } = {};
+  private selectedElements: { [key: string]: string[] } = {};
   private mouseOverEvents: any;
   private maxNumConnections = -Infinity;
-  private matrixNodeLength: number;
   private cellSize: number;
 
   constructor(
     network: Network,
     visualizedAttributes: string[],
-    matrixNodeLength: number,
     cellSize: number,
     visMargins: { left: number; top: number; right: number; bottom: number },
     enableGraffinity: boolean,
+    matrix: Cell[][],
+    maxNumConnections: number,
   ) {
     this.network = network;
     this.visMargins = visMargins;
     this.provenance = this.setUpProvenance();
-    this.sortKey = 'name';
-    this.matrix = [];
-    this.idMap = {};
-    this.isMultiEdge = false;
-    this.selectedNodesAndNeighbors = {};
-    this.selectedElements = {};
     this.visualizedAttributes = visualizedAttributes;
-    this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
     this.enableGraffinity = enableGraffinity;
-
-    this.icons = {
-      quant: {
-        d:
-          'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
-      },
-      alphabetical: {
-        d:
-          'M401.1,331.2h-189c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.8C407.7,334.2,404.8,331.2,401.1,331.2z M223.7,344.3H266c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-42.3V344.3z M223.7,373H300c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-76.3V373.7z M263.6,447.8c0,2-1.6,3.6-3.6,3.6h-36.4v-18.8H260c2,0,3.6,1.6,3.6,3.6V447.8z M321.5,418.4c0,2-1.6,3.6-3.6,3.6h-94.2v-18.8h94.2c2,0,3.6,1.6,3.6,3.6V418.4z M392.6,449.5h-34.3V442l22.6-27h-21.7v-8.8h33.2v7.5l-21.5,27h21.7V449.5z M381,394.7l-3.7,6.4l-3.7-6.4h2.7v-14.6h2v14.6H381z M387,380l-3.4-9.7h-13.5l-3.3,9.7h-10.2l15.8-43.3h9l15.8,43.3H387z M371.8,363.4H382l-5.1-15.3L371.8,363.4z',
-      },
-      categorical: {
-        d:
-          'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.4C407.7,333.7,404.7,330.7,401,330.7z M272.9,374.3h-52.4v-17.1h52.4V374.3z M272.9,354h-52.4v-17h52.4V354z M332.1,414.9h-52.4v-17h52.4V414.9z M332.1,394.6h-52.4v-17h52.4V394.6z M394.8,456.5h-52.4v-17h52.4V456.5z M394.8,434.9h-52.4v-17h52.4V434.9z',
-      },
-      cellSort: {
-        d:
-          'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
-      },
-    };
-
-    this.network.nodes.forEach((node: Node, index: number) => {
-      node.index = index;
-      this.idMap[node.id] = index;
-    });
-
-    this.processData();
+    this.matrix = matrix;
+    this.maxNumConnections = maxNumConnections;
 
     // Kick off the rendering
     this.initializeEdges();
@@ -290,7 +275,7 @@ export class View {
     const cellRadius = 3;
 
     // set the matrix highlight
-    const matrixHighlightLength = this.matrixNodeLength * this.cellSize;
+    const matrixHighlightLength = this.matrix.length * this.cellSize;
 
     // Creates scalable SVG
     this.edges = select('#matrix')
@@ -302,7 +287,7 @@ export class View {
 
     // sets the vertical scale
     this.orderingScale = scaleBand<number>()
-      .domain(range(0, this.matrixNodeLength, 1))
+      .domain(range(0, this.matrix.length, 1))
       .range([0, matrixHighlightLength]);
 
     // creates column groupings
@@ -1110,41 +1095,6 @@ export class View {
     this.provenance = provenance;
 
     return provenance;
-  }
-
-  /**
-   * Initializes the matrix and fills it with link occurrences.
-   * @return [description]
-   */
-  private processData(): void {
-    this.network.nodes.forEach((rowNode: Node, i: number) => {
-      this.matrix[i] = this.network.nodes.map((colNode: Node) => {
-        return {
-          cellName: `${rowNode.id}_${colNode.id}`,
-          correspondingCell: `${colNode.id}_${rowNode.id}`,
-          rowID: rowNode.id,
-          colID: colNode.id,
-          x: colNode.index,
-          y: rowNode.index,
-          z: 0,
-        };
-      });
-    });
-
-    // Count occurrences of links and store it in the matrix
-    this.network.links.forEach((link: Link) => {
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
-    });
-
-    // Find max value of z
-    this.matrix.forEach((row: Cell[]) => {
-      row.forEach((cell: Cell) => {
-        if (cell.z > this.maxNumConnections) {
-          this.maxNumConnections = cell.z;
-        }
-      });
-    });
   }
 
   /**
