@@ -96,6 +96,8 @@ export default Vue.extend({
       this.updateVis();
     },
     network() {
+      this.generateIdMap();
+      this.processData();
       this.changeMatrix();
     },
   },
