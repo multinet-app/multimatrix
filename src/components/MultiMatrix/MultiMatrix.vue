@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
-import { Dimensions, Network } from '@/types';
+import { Cell, Dimensions, Link, Network, Node } from '@/types';
 
 export default Vue.extend({
   props: {
@@ -28,10 +28,13 @@ export default Vue.extend({
   data(): {
     browser: Dimensions;
     visMargins: any;
-    matrix: any;
+    matrixSVG: any;
     attributes: any;
     view: View | undefined;
     cellSize: number;
+    idMap: { [key: string]: number };
+    maxNumConnections: number;
+    matrix: Cell[][];
   } {
     return {
       browser: {
@@ -39,10 +42,13 @@ export default Vue.extend({
         width: 0,
       },
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
-      matrix: undefined,
+      matrixSVG: undefined,
       attributes: undefined,
       view: undefined,
       cellSize: 15,
+      idMap: {},
+      maxNumConnections: -Infinity,
+      matrix: [],
     };
   },
 
@@ -106,7 +112,7 @@ export default Vue.extend({
       document.body.clientHeight;
 
     // Size the svgs
-    this.matrix = d3
+    this.matrixSVG = d3
       .select(this.$refs.matrix)
       .attr('width', this.matrixWidth)
       .attr('height', this.matrixHeight)
@@ -118,6 +124,15 @@ export default Vue.extend({
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
 
+    // Build the idMap
+    this.network.nodes.forEach((node: Node, index: number) => {
+      node.index = index;
+      this.idMap[node.id] = index;
+    });
+
+    // Run process data to convert links to cells
+    this.processData();
+
     // Define the View
     this.view = new View(
       this.network,
@@ -126,6 +141,8 @@ export default Vue.extend({
       this.cellSize,
       this.visMargins,
       this.enableGraffinity,
+      this.matrix,
+      this.maxNumConnections,
     );
     this.$emit('updateMatrixLegendScale', this.view.colorScale);
   },
@@ -153,7 +170,7 @@ export default Vue.extend({
         document.body.clientHeight;
 
       // Size the svgs
-      this.matrix = d3
+      this.matrixSVG = d3
         .select(this.$refs.matrix)
         .attr('width', this.matrixWidth)
         .attr('height', this.matrixHeight)
@@ -175,7 +192,40 @@ export default Vue.extend({
         this.cellSize,
         this.visMargins,
         this.enableGraffinity,
+        this.matrix,
+        this.maxNumConnections,
       );
+    },
+
+    processData(): void {
+      this.network.nodes.forEach((rowNode: Node, i: number) => {
+        this.matrix[i] = this.network.nodes.map((colNode: Node) => {
+          return {
+            cellName: `${rowNode.id}_${colNode.id}`,
+            correspondingCell: `${colNode.id}_${rowNode.id}`,
+            rowID: rowNode.id,
+            colID: colNode.id,
+            x: colNode.index,
+            y: rowNode.index,
+            z: 0,
+          };
+        });
+      });
+
+      // Count occurrences of links and store it in the matrix
+      this.network.links.forEach((link: Link) => {
+        this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
+        this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+      });
+
+      // Find max value of z
+      this.matrix.forEach((row: Cell[]) => {
+        row.forEach((cell: Cell) => {
+          if (cell.z > this.maxNumConnections) {
+            this.maxNumConnections = cell.z;
+          }
+        });
+      });
     },
   },
 });

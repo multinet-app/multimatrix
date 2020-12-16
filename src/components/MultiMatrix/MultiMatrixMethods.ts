@@ -70,7 +70,6 @@ export class View {
   private attributeScales: { [key: string]: any } = {};
   private colMargin = 5;
   private provenance: any;
-  private idMap: { [key: string]: number } = {};
   private isMultiEdge = false;
   private orderType: any;
   private selectedNodesAndNeighbors: { [key: string]: string[] } = {};
@@ -87,6 +86,8 @@ export class View {
     cellSize: number,
     visMargins: { left: number; top: number; right: number; bottom: number },
     enableGraffinity: boolean,
+    matrix: Cell[][],
+    maxNumConnections: number,
   ) {
     this.network = network;
     this.visMargins = visMargins;
@@ -95,13 +96,8 @@ export class View {
     this.matrixNodeLength = matrixNodeLength;
     this.cellSize = cellSize;
     this.enableGraffinity = enableGraffinity;
-
-    this.network.nodes.forEach((node: Node, index: number) => {
-      node.index = index;
-      this.idMap[node.id] = index;
-    });
-
-    this.processData();
+    this.matrix = matrix;
+    this.maxNumConnections = maxNumConnections;
 
     // Kick off the rendering
     this.initializeEdges();
@@ -1102,41 +1098,6 @@ export class View {
     this.provenance = provenance;
 
     return provenance;
-  }
-
-  /**
-   * Initializes the matrix and fills it with link occurrences.
-   * @return [description]
-   */
-  private processData(): void {
-    this.network.nodes.forEach((rowNode: Node, i: number) => {
-      this.matrix[i] = this.network.nodes.map((colNode: Node) => {
-        return {
-          cellName: `${rowNode.id}_${colNode.id}`,
-          correspondingCell: `${colNode.id}_${rowNode.id}`,
-          rowID: rowNode.id,
-          colID: colNode.id,
-          x: colNode.index,
-          y: rowNode.index,
-          z: 0,
-        };
-      });
-    });
-
-    // Count occurrences of links and store it in the matrix
-    this.network.links.forEach((link: Link) => {
-      this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-      this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
-    });
-
-    // Find max value of z
-    this.matrix.forEach((row: Cell[]) => {
-      row.forEach((cell: Cell) => {
-        if (cell.z > this.maxNumConnections) {
-          this.maxNumConnections = cell.z;
-        }
-      });
-    });
   }
 
   /**
