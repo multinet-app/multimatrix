@@ -124,11 +124,7 @@ export default Vue.extend({
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
 
-    // Build the idMap
-    this.network.nodes.forEach((node: Node, index: number) => {
-      node.index = index;
-      this.idMap[node.id] = index;
-    });
+    this.generateIdMap();
 
     // Run process data to convert links to cells
     this.processData();
@@ -193,6 +189,14 @@ export default Vue.extend({
         this.matrix,
         this.maxNumConnections,
       );
+    },
+
+    generateIdMap() {
+      this.idMap = {};
+      this.network.nodes.forEach((node: Node, index: number) => {
+        node.index = index;
+        this.idMap[node.id] = index;
+      });
     },
 
     processData(): void {
