@@ -153,6 +153,7 @@ export default Vue.extend({
         this.view.enableGraffinity = this.enableGraffinity;
       }
     },
+
     changeMatrix(this: any) {
       d3.select('#matrix').selectAll('*').remove();
 
