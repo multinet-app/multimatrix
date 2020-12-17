@@ -45,6 +45,8 @@ export default Vue.extend({
     attributeRows: any;
     columnHeaders: any;
     edges: any;
+    selectedNodesAndNeighbors: { [key: string]: string[] };
+    selectedElements: { [key: string]: string[] };
     order: any;
     orderType: any;
     provenance: any;
@@ -67,6 +69,8 @@ export default Vue.extend({
       attributeRows: undefined,
       columnHeaders: undefined,
       edges: undefined,
+      selectedNodesAndNeighbors: {},
+      selectedElements: {},
       order: undefined,
       orderType: undefined,
       provenance: undefined,
@@ -653,6 +657,102 @@ export default Vue.extend({
       this.columnHeaders = this.attributes
         .append('g')
         .classed('column-headers', true);
+    },
+
+    selectElement(element: Cell | Node): void {
+      let elementsToSelect: string[] = [];
+      let newElement: { [key: string]: string[] };
+
+      if (this.isCell(element)) {
+        // Remove or add cell from selected cells
+        if (element.cellName in this.selectedElements) {
+          delete this.selectedElements[element.cellName];
+        } else {
+          // Get all the elements to be selected
+          elementsToSelect = [
+            `[id="attrRow${element.colID}"]`,
+            `[id="topoRow${element.colID}"]`,
+            `[id="topoCol${element.colID}"]`,
+            `[id="colLabel${element.colID}"]`,
+            `[id="rowLabel${element.colID}"]`,
+
+            `[id="attrRow${element.rowID}"]`,
+            `[id="topoRow${element.rowID}"]`,
+            `[id="topoCol${element.rowID}"]`,
+            `[id="colLabel${element.rowID}"]`,
+            `[id="rowLabel${element.rowID}"]`,
+
+            `[id="${element.cellName}"]`,
+          ];
+          newElement = { [element.cellName]: elementsToSelect };
+          this.selectedElements = Object.assign(
+            this.selectedElements,
+            newElement,
+          );
+        }
+      } else {
+        if (element.id in this.selectedElements) {
+          delete this.selectedElements[element.id];
+        } else {
+          elementsToSelect = [
+            `[id="attrRow${element.id}"]`,
+            `[id="topoRow${element.id}"]`,
+            `[id="topoCol${element.id}"]`,
+            `[id="colLabel${element.id}"]`,
+            `[id="rowLabel${element.id}"]`,
+          ];
+          newElement = { [element.id]: elementsToSelect };
+          this.selectedElements = Object.assign(
+            this.selectedElements,
+            newElement,
+          );
+        }
+      }
+
+      // Reset all nodes to not neighbor highlighted
+      selectAll('.clicked').classed('clicked', false);
+
+      // Loop through the neighbor nodes to be highlighted and highlight them
+      const selections: string[] = [];
+      for (const elementID of Object.keys(this.selectedElements)) {
+        for (const elementToSelect of this.selectedElements[elementID]) {
+          selections.push(elementToSelect);
+        }
+      }
+
+      if (selections.length > 0) {
+        selectAll(selections.join(',')).classed('clicked', true);
+      }
+    },
+
+    selectNeighborNodes(nodeID: string, neighbors: string[]): void {
+      // Remove or add node from column selected nodes
+      if (nodeID in this.selectedNodesAndNeighbors) {
+        delete this.selectedNodesAndNeighbors[nodeID];
+      } else {
+        const newElement = { [nodeID]: neighbors };
+        this.selectedNodesAndNeighbors = Object.assign(
+          this.selectedNodesAndNeighbors,
+          newElement,
+        );
+      }
+
+      // Reset all nodes to not neighbor highlighted
+      selectAll('.neighbor').classed('neighbor', false);
+
+      // Loop through the neighbor nodes to be highlighted and highlight them
+      const selections: string[] = [];
+      for (const node of Object.keys(this.selectedNodesAndNeighbors)) {
+        for (const neighborNode of this.selectedNodesAndNeighbors[node]) {
+          selections.push(`[id="attrRow${neighborNode}"]`);
+          selections.push(`[id="topoRow${neighborNode}"]`);
+          selections.push(`[id="nodeLabelRow${neighborNode}"]`);
+        }
+      }
+
+      if (selections.length > 0) {
+        selectAll(selections.join(',')).classed('neighbor', true);
+      }
     },
 
     showToolTip(d: Cell | Node, i: number, nodes: any): void {
