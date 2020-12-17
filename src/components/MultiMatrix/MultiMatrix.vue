@@ -1,9 +1,9 @@
 <script lang="ts">
-import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
 import { Cell, Dimensions, Link, Network, Node } from '@/types';
+import { range, ScaleBand, scaleBand, select, selectAll } from 'd3';
 
 export default Vue.extend({
   props: {
@@ -29,12 +29,16 @@ export default Vue.extend({
     browser: Dimensions;
     visMargins: any;
     matrixSVG: any;
-    attributes: any;
+    attributesSVG: any;
     view: View | undefined;
     cellSize: number;
     idMap: { [key: string]: number };
     maxNumConnections: number;
     matrix: Cell[][];
+    attributes: any;
+    attributeRows: any;
+    columnHeaders: any;
+    edges: any;
   } {
     return {
       browser: {
@@ -43,12 +47,16 @@ export default Vue.extend({
       },
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrixSVG: undefined,
-      attributes: undefined,
+      attributesSVG: undefined,
       view: undefined,
       cellSize: 15,
       idMap: {},
       maxNumConnections: -Infinity,
       matrix: [],
+      attributes: undefined,
+      attributeRows: undefined,
+      columnHeaders: undefined,
+      edges: undefined,
     };
   },
 
@@ -89,6 +97,16 @@ export default Vue.extend({
     attributesHeight(): number {
       return this.matrixHeight;
     },
+
+    orderingScale(): ScaleBand<number> {
+      return scaleBand<number>()
+        .domain(range(0, this.matrix.length, 1))
+        .range([0, this.matrixHighlightLength]);
+    },
+
+    matrixHighlightLength(): number {
+      return this.matrix.length * this.cellSize;
+    },
   },
 
   watch: {
@@ -114,14 +132,12 @@ export default Vue.extend({
       document.body.clientHeight;
 
     // Size the svgs
-    this.matrixSVG = d3
-      .select(this.$refs.matrix)
+    this.matrixSVG = select(this.$refs.matrix)
       .attr('width', this.matrixWidth)
       .attr('height', this.matrixHeight)
       .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
-    this.attributes = d3
-      .select(this.$refs.attributes)
+    this.attributesSVG = select(this.$refs.attributes)
       .attr('width', this.attributesWidth)
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
@@ -130,6 +146,15 @@ export default Vue.extend({
 
     // Run process data to convert links to cells
     this.processData();
+
+    this.edges = select('#matrix')
+      .append('g')
+      .attr(
+        'transform',
+        `translate(${this.visMargins.left},${this.visMargins.top})`,
+      );
+
+    this.initializeAttributes();
 
     // Define the View
     this.view = new View(
@@ -140,7 +165,13 @@ export default Vue.extend({
       this.enableGraffinity,
       this.matrix,
       this.maxNumConnections,
+      this.orderingScale,
+      this.columnHeaders,
+      this.edges,
+      this.attributes,
+      this.attributeRows,
     );
+
     this.$emit('updateMatrixLegendScale', this.view.colorScale);
   },
 
@@ -155,7 +186,7 @@ export default Vue.extend({
     },
 
     changeMatrix(this: any) {
-      d3.select('#matrix').selectAll('*').remove();
+      select('#matrix').selectAll('*').remove();
 
       this.browser.width =
         window.innerWidth ||
@@ -168,20 +199,27 @@ export default Vue.extend({
         document.body.clientHeight;
 
       // Size the svgs
-      this.matrixSVG = d3
-        .select(this.$refs.matrix)
+      this.matrixSVG = select(this.$refs.matrix)
         .attr('width', this.matrixWidth)
         .attr('height', this.matrixHeight)
         .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
-      this.attributes = d3
-        .select(this.$refs.attributes)
+      this.attributesSVG = select(this.$refs.attributes)
         .attr('width', this.attributesWidth)
         .attr('height', this.attributesHeight)
         .attr(
           'viewBox',
           `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
         );
+
+      this.edges = select('#matrix')
+        .append('g')
+        .attr(
+          'transform',
+          `translate(${this.visMargins.left},${this.visMargins.top})`,
+        );
+
+      this.initializeAttributes();
 
       this.view = new View(
         this.network,
@@ -191,6 +229,11 @@ export default Vue.extend({
         this.enableGraffinity,
         this.matrix,
         this.maxNumConnections,
+        this.orderingScale,
+        this.columnHeaders,
+        this.edges,
+        this.attributes,
+        this.attributeRows,
       );
     },
 
@@ -231,6 +274,147 @@ export default Vue.extend({
           }
         });
       });
+    },
+
+    initializeAttributes(): void {
+      // Just has to be larger than the attributes panel (so that we render to the edge)
+      const attributeWidth = 1000;
+
+      this.attributes = select('#attributes')
+        .append('g')
+        .attr('transform', `translate(0,${this.visMargins.top})`);
+
+      // add zebras and highlight rows
+      this.attributes
+        .selectAll('.highlightRow')
+        .data(this.network.nodes)
+        .enter()
+        .append('rect')
+        .classed('highlightRow', true)
+        .attr('x', 0)
+        .attr('y', (d: Node, i: number) => this.orderingScale(i))
+        .attr('width', attributeWidth)
+        .attr('height', this.orderingScale.bandwidth())
+        .attr('fill', (d: Node, i: number) => (i % 2 === 0 ? '#fff' : '#eee'));
+
+      // Draw each row (translating the y coordinate)
+      this.attributeRows = this.attributes
+        .selectAll('.attrRowContainer')
+        .data(this.network.nodes)
+        .enter()
+        .append('g')
+        .attr('class', 'attrRowContainer')
+        .attr(
+          'transform',
+          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+        );
+
+      this.attributeRows
+        .append('line')
+        .attr('x1', 0)
+        .attr('x2', attributeWidth)
+        .attr('stroke', '2px')
+        .attr('stroke-opacity', 0.3);
+
+      this.attributeRows
+        .append('rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .classed('attrRow', true)
+        .attr('id', (d: Node) => `attrRow${d.id}`)
+        .attr('width', attributeWidth)
+        .attr('height', this.orderingScale.bandwidth()) // end addition
+        .attr('fill-opacity', 0)
+        .attr('cursor', 'pointer')
+        .on('mouseover', (d: Node, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverNode(d.id);
+        })
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        });
+      // .on('click', (d: Node) => {
+      //   this.selectElement(d);
+      //   this.selectNeighborNodes(d.id, d.neighbors);
+      // });
+
+      this.columnHeaders = this.attributes
+        .append('g')
+        .classed('column-headers', true);
+    },
+
+    showToolTip(d: Cell | Node, i: number, nodes: any): void {
+      const matrix = nodes[i]
+        .getScreenCTM()
+        .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
+
+      let message = '';
+
+      if (this.isCell(d)) {
+        // Get link source and target
+        message = `
+      Row ID: ${d.rowID} <br/>
+      Col ID: ${d.colID} <br/>
+      Number of edges: ${d.z}`;
+      } else {
+        // Get node id
+        message = `ID: ${d.id}`;
+
+        // Loop through other props to add to tooltip
+        for (const key of Object.keys(d)) {
+          if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
+            message += `<br/> ${this.capitalizeFirstLetter(key)}: ${d[key]}`;
+          }
+        }
+      }
+
+      select(this.$refs.tooltip as any).html(message);
+
+      select(this.$refs.tooltip as any)
+        .style('left', `${window.pageXOffset + matrix.e}px`)
+        .style(
+          'top',
+          `${
+            window.pageYOffset +
+            matrix.f -
+            select(this.$refs.tooltip as any)
+              .node()
+              .getBoundingClientRect().height
+          }px`,
+        );
+
+      select(this.$refs.tooltip as any)
+        .transition()
+        .delay(100)
+        .duration(200)
+        .style('opacity', 0.9);
+    },
+
+    hideToolTip(): void {
+      select(this.$refs.tooltip as any)
+        .transition()
+        .delay(100)
+        .duration(200)
+        .style('opacity', 0);
+    },
+
+    isCell(element: any): element is Cell {
+      return Object.prototype.hasOwnProperty.call(element, 'cellName');
+    },
+
+    capitalizeFirstLetter(word: string) {
+      return word[0].toUpperCase() + word.slice(1);
+    },
+
+    hoverNode(nodeID: string): void {
+      const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+      selectAll(cssSelector).classed('hovered', true);
+    },
+
+    unHoverNode(nodeID: string): void {
+      const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+      selectAll(cssSelector).classed('hovered', false);
     },
   },
 });
@@ -310,8 +494,8 @@ svg >>> .hovered {
 
 svg >>> .clicked {
   font-weight: 800;
-  fill: #f8cf91 !important;
-  fill-opacity: 1 !important;
+  fill: #f8cf91;
+  fill-opacity: 1;
 }
 
 svg >>> .cell.clicked {
