@@ -332,11 +332,11 @@ export default Vue.extend({
         .on('mouseout', (d: Node) => {
           this.hideToolTip();
           this.unHoverNode(d.id);
-        })
-        .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
         });
+      // .on('click', (d: Node) => {
+      //   this.selectElement(d);
+      //   this.selectNeighborNodes(d.id, d.neighbors);
+      // });
 
       this.columnHeaders = this.attributes
         .append('g')
