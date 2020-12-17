@@ -5,7 +5,6 @@ import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
 import { axisTop } from 'd3-axis';
 import { superGraph } from '@/lib/aggregation';
-import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import 'science';
 import 'reorder.js';
 import { Link, Network, Node, Cell, State } from '@/types';
@@ -85,10 +84,11 @@ export class View {
     edges: any,
     attributes: any,
     attributeRows: any,
+    provenance: any,
   ) {
     this.network = network;
     this.visMargins = visMargins;
-    this.provenance = this.setUpProvenance();
+    this.provenance = provenance;
     this.visualizedAttributes = visualizedAttributes;
     this.cellSize = cellSize;
     this.enableGraffinity = enableGraffinity;
@@ -976,38 +976,6 @@ export class View {
     }
     this.order = order;
     return order;
-  }
-
-  /**
-   * Initializes the provenance library and sets observers.
-   * @return [none]
-   */
-  private setUpProvenance(): any {
-    const initialState = {
-      workerID: 1, // workerID is a global variable
-      nodes: '', // array of nodes that keep track of their position, whether they were softSelect or hardSelected;
-      search: '', // field to store the id of a searched node;
-      startTime: Date.now(), // time this provenance graph was created and the task initialized;
-      endTime: '', // time the submit button was pressed and the task ended;
-      time: Date.now(), // timestamp for the current state of the graph;
-      count: 0,
-      clicked: [],
-      sortKey: this.sortKey,
-      selections: {
-        attrRow: {},
-        rowLabel: {},
-        colLabel: {},
-        neighborSelect: {},
-        cellCol: {},
-        cellRow: {},
-        search: {},
-      },
-    };
-
-    const provenance = ProvenanceLibrary.initProvenance(initialState);
-    this.provenance = provenance;
-
-    return provenance;
   }
 
   /**

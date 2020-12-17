@@ -4,6 +4,7 @@ import Vue, { PropType } from 'vue';
 import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
 import { Cell, Dimensions, Link, Network, Node } from '@/types';
 import { range, ScaleBand, scaleBand, select, selectAll } from 'd3';
+import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
 export default Vue.extend({
   props: {
@@ -39,6 +40,7 @@ export default Vue.extend({
     attributeRows: any;
     columnHeaders: any;
     edges: any;
+    provenance: any;
   } {
     return {
       browser: {
@@ -57,6 +59,7 @@ export default Vue.extend({
       attributeRows: undefined,
       columnHeaders: undefined,
       edges: undefined,
+      provenance: undefined,
     };
   },
 
@@ -154,6 +157,8 @@ export default Vue.extend({
         `translate(${this.visMargins.left},${this.visMargins.top})`,
       );
 
+    this.provenance = this.setUpProvenance();
+
     this.initializeAttributes();
 
     // Define the View
@@ -170,6 +175,7 @@ export default Vue.extend({
       this.edges,
       this.attributes,
       this.attributeRows,
+      this.provenance,
     );
 
     this.$emit('updateMatrixLegendScale', this.view.colorScale);
@@ -219,6 +225,8 @@ export default Vue.extend({
           `translate(${this.visMargins.left},${this.visMargins.top})`,
         );
 
+      this.provenance = this.setUpProvenance();
+
       this.initializeAttributes();
 
       this.view = new View(
@@ -234,6 +242,7 @@ export default Vue.extend({
         this.edges,
         this.attributes,
         this.attributeRows,
+        this.provenance,
       );
     },
 
@@ -274,6 +283,34 @@ export default Vue.extend({
           }
         });
       });
+    },
+
+    setUpProvenance(): any {
+      const initialState = {
+        workerID: 1, // workerID is a global variable
+        nodes: '', // array of nodes that keep track of their position, whether they were softSelect or hardSelected;
+        search: '', // field to store the id of a searched node;
+        startTime: Date.now(), // time this provenance graph was created and the task initialized;
+        endTime: '', // time the submit button was pressed and the task ended;
+        time: Date.now(), // timestamp for the current state of the graph;
+        count: 0,
+        clicked: [],
+        sortKey: this.sortKey,
+        selections: {
+          attrRow: {},
+          rowLabel: {},
+          colLabel: {},
+          neighborSelect: {},
+          cellCol: {},
+          cellRow: {},
+          search: {},
+        },
+      };
+
+      const provenance = ProvenanceLibrary.initProvenance(initialState);
+      this.provenance = provenance;
+
+      return provenance;
     },
 
     initializeAttributes(): void {
