@@ -377,6 +377,46 @@ export class View {
 
     this.appendEdgeLabels();
 
+    // Draw buttons for alternative sorts
+    let initialY = -this.visMargins.left + 10;
+    const buttonHeight = 15;
+    const text = ['name', 'cluster', 'interacts'];
+    const sortNames = ['shortName', 'clusterLeaf', 'edges'];
+    const iconNames = ['alphabetical', 'categorical', 'quant'];
+    for (let i = 0; i < 3; i++) {
+      const button = this.edges
+        .append('g')
+        .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
+      button.attr('cursor', 'pointer');
+      button
+        .append('rect')
+        .attr('width', this.visMargins.left - 5)
+        .attr('height', buttonHeight)
+        .attr('fill', 'none')
+        .attr('stroke', 'gray')
+        .attr('stroke-width', 1);
+      button
+        .append('text')
+        .attr('x', 27)
+        .attr('y', 10)
+        .attr('font-size', 11)
+        .text(text[i]);
+      const path = button.datum(sortNames[i]);
+      path
+        .append('path')
+        .attr('class', 'sortIcon')
+        .attr('d', (d: any, i: number) => {
+          return this.icons[iconNames[i]].d;
+        })
+        .style('fill', () =>
+          sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B',
+        )
+        .attr('transform', 'scale(0.1)translate(-195,-320)')
+        .attr('cursor', 'pointer');
+      button.on('click', () => this.sort(sortNames[i]));
+      initialY += buttonHeight + 5;
+    }
+
     // Get tooltip
     this.tooltip = select('#tooltip');
   }
@@ -856,92 +896,6 @@ export class View {
       .attr('width', attributeWidth)
       .attr('height', this.orderingScale.bandwidth())
       .attr('fill', (d: Node, i: number) => (i % 2 === 0 ? '#fff' : '#eee'));
-
-    // Draw each row (translating the y coordinate)
-    this.attributeRows = this.attributes
-      .selectAll('.attrRowContainer')
-      .data(this.network.nodes)
-      .enter()
-      .append('g')
-      .attr('class', 'attrRowContainer')
-      .attr(
-        'transform',
-        (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
-      );
-
-    this.attributeRows
-      .append('line')
-      .attr('x1', 0)
-      .attr('x2', attributeWidth)
-      .attr('stroke', '2px')
-      .attr('stroke-opacity', 0.3);
-
-    this.attributeRows
-      .append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .classed('attrRow', true)
-      .attr('id', (d: Node) => `attrRow${d.id}`)
-      .attr('width', attributeWidth)
-      .attr('height', this.orderingScale.bandwidth()) // end addition
-      .attr('fill-opacity', 0)
-      .attr('cursor', 'pointer')
-      .on('mouseover', (d: Node, i: number, nodes: any) => {
-        this.showToolTip(d, i, nodes);
-        this.hoverNode(d.id);
-      })
-      .on('mouseout', (d: Node) => {
-        this.hideToolTip();
-        this.unHoverNode(d.id);
-      })
-      .on('click', (d: Node) => {
-        this.selectElement(d);
-        this.selectNeighborNodes(d.id, d.neighbors);
-      });
-
-    this.columnHeaders = this.attributes
-      .append('g')
-      .classed('column-headers', true);
-
-    // Draw buttons for alternative sorts
-    let initialY = -this.visMargins.left + 10;
-    const buttonHeight = 15;
-    const text = ['name', 'cluster', 'interacts'];
-    const sortNames = ['shortName', 'clusterLeaf', 'edges'];
-    const iconNames = ['alphabetical', 'categorical', 'quant'];
-    for (let i = 0; i < 3; i++) {
-      const button = this.edges
-        .append('g')
-        .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
-      button.attr('cursor', 'pointer');
-      button
-        .append('rect')
-        .attr('width', this.visMargins.left - 5)
-        .attr('height', buttonHeight)
-        .attr('fill', 'none')
-        .attr('stroke', 'gray')
-        .attr('stroke-width', 1);
-      button
-        .append('text')
-        .attr('x', 27)
-        .attr('y', 10)
-        .attr('font-size', 11)
-        .text(text[i]);
-      const path = button.datum(sortNames[i]);
-      path
-        .append('path')
-        .attr('class', 'sortIcon')
-        .attr('d', (d: any, i: number) => {
-          return this.icons[iconNames[i]].d;
-        })
-        .style('fill', () =>
-          sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B',
-        )
-        .attr('transform', 'scale(0.1)translate(-195,-320)')
-        .attr('cursor', 'pointer');
-      button.on('click', () => this.sort(sortNames[i]));
-      initialY += buttonHeight + 5;
-    }
   }
 
   private isSelected(node: Node): boolean {
