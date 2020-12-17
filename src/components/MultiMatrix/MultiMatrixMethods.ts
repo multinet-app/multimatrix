@@ -86,7 +86,10 @@ export class View {
     matrix: Cell[][],
     maxNumConnections: number,
     orderingScale: ScaleBand<number>,
+    columnHeaders: any,
     edges: any,
+    attributes: any,
+    attributeRows: any,
   ) {
     this.network = network;
     this.visMargins = visMargins;
@@ -97,7 +100,10 @@ export class View {
     this.matrix = matrix;
     this.maxNumConnections = maxNumConnections;
     this.orderingScale = orderingScale;
+    this.columnHeaders = columnHeaders;
     this.edges = edges;
+    this.attributes = attributes;
+    this.attributeRows = attributeRows;
 
     // Kick off the rendering
     this.initializeEdges();

@@ -35,6 +35,9 @@ export default Vue.extend({
     idMap: { [key: string]: number };
     maxNumConnections: number;
     matrix: Cell[][];
+    attributes: any;
+    attributeRows: any;
+    columnHeaders: any;
     edges: any;
   } {
     return {
@@ -50,6 +53,9 @@ export default Vue.extend({
       idMap: {},
       maxNumConnections: -Infinity,
       matrix: [],
+      attributes: undefined,
+      attributeRows: undefined,
+      columnHeaders: undefined,
       edges: undefined,
     };
   },
@@ -158,7 +164,10 @@ export default Vue.extend({
       this.matrix,
       this.maxNumConnections,
       this.orderingScale,
+      this.columnHeaders,
       this.edges,
+      this.attributes,
+      this.attributeRows,
     );
     this.$emit('updateMatrixLegendScale', this.view.colorScale);
   },
@@ -216,7 +225,10 @@ export default Vue.extend({
         this.matrix,
         this.maxNumConnections,
         this.orderingScale,
+        this.columnHeaders,
         this.edges,
+        this.attributes,
+        this.attributeRows,
       );
     },
 
