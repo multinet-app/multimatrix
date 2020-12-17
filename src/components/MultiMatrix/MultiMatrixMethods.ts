@@ -86,6 +86,7 @@ export class View {
     matrix: Cell[][],
     maxNumConnections: number,
     orderingScale: ScaleBand<number>,
+    edges: any,
   ) {
     this.network = network;
     this.visMargins = visMargins;
@@ -96,6 +97,7 @@ export class View {
     this.matrix = matrix;
     this.maxNumConnections = maxNumConnections;
     this.orderingScale = orderingScale;
+    this.edges = edges;
 
     // Kick off the rendering
     this.initializeEdges();
@@ -278,13 +280,6 @@ export class View {
     // set the matrix highlight
     const matrixHighlightLength = this.matrix.length * this.cellSize;
 
-    // Creates scalable SVG
-    this.edges = select('#matrix')
-      .append('g')
-      .attr(
-        'transform',
-        `translate(${this.visMargins.left},${this.visMargins.top})`,
-      );
 
     // creates column groupings
     this.edgeColumns = this.edges

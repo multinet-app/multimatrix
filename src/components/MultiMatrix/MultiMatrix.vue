@@ -35,6 +35,7 @@ export default Vue.extend({
     idMap: { [key: string]: number };
     maxNumConnections: number;
     matrix: Cell[][];
+    edges: any;
   } {
     return {
       browser: {
@@ -49,6 +50,7 @@ export default Vue.extend({
       idMap: {},
       maxNumConnections: -Infinity,
       matrix: [],
+      edges: undefined,
     };
   },
 
@@ -139,6 +141,13 @@ export default Vue.extend({
     // Run process data to convert links to cells
     this.processData();
 
+    this.edges = select('#matrix')
+      .append('g')
+      .attr(
+        'transform',
+        `translate(${this.visMargins.left},${this.visMargins.top})`,
+      );
+
     // Define the View
     this.view = new View(
       this.network,
@@ -149,6 +158,7 @@ export default Vue.extend({
       this.matrix,
       this.maxNumConnections,
       this.orderingScale,
+      this.edges,
     );
     this.$emit('updateMatrixLegendScale', this.view.colorScale);
   },
@@ -190,6 +200,13 @@ export default Vue.extend({
           `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
         );
 
+      this.edges = select('#matrix')
+        .append('g')
+        .attr(
+          'transform',
+          `translate(${this.visMargins.left},${this.visMargins.top})`,
+        );
+
       this.view = new View(
         this.network,
         this.visualizedAttributes,
@@ -199,6 +216,7 @@ export default Vue.extend({
         this.matrix,
         this.maxNumConnections,
         this.orderingScale,
+        this.edges,
       );
     },
 
