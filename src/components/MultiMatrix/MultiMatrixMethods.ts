@@ -1,10 +1,5 @@
 /* The View displays the data given to it by the model. */
-import {
-  ScaleLinear,
-  scaleLinear,
-  scaleOrdinal,
-  ScaleBand,
-} from 'd3-scale';
+import { ScaleLinear, scaleLinear, scaleOrdinal, ScaleBand } from 'd3-scale';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 import { select, selectAll } from 'd3-selection';
 import { min, max, range } from 'd3-array';
@@ -285,7 +280,6 @@ export class View {
     // set the matrix highlight
     const matrixHighlightLength = this.matrix.length * this.cellSize;
 
-
     // creates column groupings
     this.edgeColumns = this.edges
       .selectAll('.column')
@@ -372,7 +366,7 @@ export class View {
         this.hideToolTip();
         this.unHoverEdge(d);
       })
-      .on('click', (d:Cell) => this.selectElement(d))
+      .on('click', (d: Cell) => this.selectElement(d))
       .attr('cursor', 'pointer');
 
     this.appendEdgeLabels();
