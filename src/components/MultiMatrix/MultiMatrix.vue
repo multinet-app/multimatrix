@@ -336,8 +336,8 @@ svg >>> .hovered {
 
 svg >>> .clicked {
   font-weight: 800;
-  fill: #f8cf91 !important;
-  fill-opacity: 1 !important;
+  fill: #f8cf91;
+  fill-opacity: 1;
 }
 
 svg >>> .cell.clicked {
