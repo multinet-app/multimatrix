@@ -324,6 +324,92 @@ export default Vue.extend({
       return provenance;
     },
 
+    changeInteractionWrapper(interactionType: string, cell?: Cell): any {
+      return {
+        label: interactionType,
+        action: (interactID: string) => {
+          const currentState = this.getApplicationState();
+          // add time stamp to the state graph
+          currentState.time = Date.now();
+          currentState.event = interactionType;
+          const interactionName = interactionType; // cell, search, etc
+          let interactedElement = interactionType;
+          if (interactionName === 'cell' && cell !== undefined) {
+            interactID = cell.colID;
+            interactedElement = cell.cellName; // + cellData.rowID;
+
+            this.changeInteraction(
+              currentState,
+              interactID,
+              'cellCol',
+              interactedElement,
+            );
+            this.changeInteraction(
+              currentState,
+              interactID,
+              'cellRow',
+              interactedElement,
+            );
+            if (cell.cellName !== cell.correspondingCell) {
+              interactedElement = cell.correspondingCell; // + cellData.rowID;
+              interactID = cell.rowID;
+
+              this.changeInteraction(
+                currentState,
+                interactID,
+                'cellCol',
+                interactedElement,
+              );
+              this.changeInteraction(
+                currentState,
+                interactID,
+                'cellRow',
+                interactedElement,
+              );
+            }
+            return currentState;
+
+            // interactID = cellData.rowID;
+            // interactionName = interactionName + 'row'
+          } else if (interactionName === 'attrRow') {
+            return interactionName;
+          } else if (interactionName === 'neighborSelect') {
+            this.changeInteraction(
+              currentState,
+              interactID,
+              interactionName,
+              interactedElement,
+            );
+            return currentState;
+          }
+        },
+      };
+    },
+
+    changeInteraction(
+      state: State,
+      nodeID: string,
+      interaction: keyof State['selections'],
+      interactionName: string = interaction,
+    ): void {
+      if (nodeID in state.selections[interaction]) {
+        // Remove element if in list, if list is empty, delete key
+        const currentIndex = state.selections[interaction][nodeID].indexOf(
+          interactionName,
+        );
+        if (currentIndex > -1) {
+          state.selections[interaction][nodeID].splice(currentIndex, 1);
+          if (state.selections[interaction][nodeID].length === 0) {
+            delete state.selections[interaction][nodeID];
+          }
+        } else {
+          state.selections[interaction][nodeID].push(interactionName);
+        }
+      } else {
+        state.selections[interaction][nodeID] = [interactionName];
+      }
+    },
+
     sort(order: string): void {
       const nodeIDs = this.network.nodes.map((node: Node) => node.id);
 
