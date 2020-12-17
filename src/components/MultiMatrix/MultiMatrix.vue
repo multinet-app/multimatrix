@@ -922,7 +922,14 @@ export default Vue.extend({
     },
 
     showToolTip(d: Cell | Node, i: number, nodes: any): void {
-      const matrix = nodes[i]
+      let node = nodes[i];
+
+      // If foreign object, get the foreign object, not the p
+      if (nodes[i].localName === 'p') {
+        node = node.parentElement;
+      }
+
+      const matrix = node
         .getScreenCTM()
         .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
 
