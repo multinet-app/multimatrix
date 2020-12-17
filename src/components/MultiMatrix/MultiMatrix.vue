@@ -410,6 +410,134 @@ export default Vue.extend({
       }
     },
 
+    appendEdgeLabels(): void {
+      const labelContainerHeight = 25;
+      const rowLabelContainerStart = 75;
+      const labelContainerWidth = rowLabelContainerStart;
+
+      // add foreign objects for label
+      const edgeRowForeignObject = this.edgeRows
+        .append('foreignObject')
+        .attr('x', -rowLabelContainerStart)
+        .attr('y', -5)
+        .attr('width', labelContainerWidth)
+        .attr('height', labelContainerHeight);
+
+      edgeRowForeignObject
+        .append('xhtml:p')
+        .text((d: Node) => d._key)
+        .classed('rowLabels', true)
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        })
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        });
+
+      let verticalOffset = 187.5;
+      const horizontalOffset =
+        (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
+      this.edgeColumns
+        .append('path')
+        .attr('id', (d: Node) => `sortIcon${d.id}`)
+        .attr('class', 'sortIcon')
+        .attr('d', this.icons.cellSort.d)
+        .style('fill', (d: Node) =>
+          d === this.orderType ? '#EBB769' : '#8B8B8B',
+        )
+        .attr(
+          'transform',
+          `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
+        )
+        .on('click', (d: Node) => {
+          this.sort(d.id);
+          const action = this.changeInteractionWrapper('neighborSelect');
+          this.provenance.applyAction(action);
+        })
+        .attr('cursor', 'pointer')
+        .on('mouseover', (d: Node, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverNode(d.id);
+        })
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        });
+
+      verticalOffset = verticalOffset * 0.075 + 5;
+
+      // constant for starting the column label container
+      const columnLabelContainerStart = 20;
+
+      const edgeColumnForeignObject = this.edgeColumns
+        .append('foreignObject')
+        .attr('y', -5)
+        .attr('x', columnLabelContainerStart)
+        .attr('width', labelContainerWidth)
+        .attr('height', labelContainerHeight);
+
+      edgeColumnForeignObject
+        .append('xhtml:p')
+        .text((d: Node) => d._key)
+        .classed('colLabels', true)
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        })
+        .on('mouseover', (d: Node, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverNode(d.id);
+        })
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        });
+    },
+
+    drawGridLines(): void {
+      const gridLines = this.edges.append('g').attr('class', 'gridLines');
+
+      const lines = gridLines.selectAll('line').data(this.matrix).enter();
+
+      // vertical grid lines
+      lines
+        .append('line')
+        .attr('transform', (d: any, i: number) => {
+          return `translate(${this.orderingScale(i)},0)rotate(-90)`;
+        })
+        .attr('x1', -this.orderingScale.range()[1]);
+
+      // horizontal grid lines
+      lines
+        .append('line')
+        .attr('transform', (d: any, i: number) => {
+          return `translate(0,${this.orderingScale(i)})`;
+        })
+        .attr('x2', this.orderingScale.range()[1]);
+
+      // vertical grid line edges
+      gridLines
+        .append('line')
+        .attr('x1', this.orderingScale.range()[1])
+        .attr('x2', this.orderingScale.range()[1])
+        .attr('y1', 0)
+        .attr('y2', this.orderingScale.range()[1])
+        .style('stroke', '#aaa')
+        .style('opacity', 0.3);
+
+      // horizontal grid line edges
+      gridLines
+        .append('line')
+        .attr('x1', 0)
+        .attr('x2', this.orderingScale.range()[1])
+        .attr('y1', this.orderingScale.range()[1])
+        .attr('y2', this.orderingScale.range()[1])
+        .style('stroke', '#aaa')
+        .style('opacity', 0.3);
+    },
+
     sort(order: string): void {
       const nodeIDs = this.network.nodes.map((node: Node) => node.id);
 
