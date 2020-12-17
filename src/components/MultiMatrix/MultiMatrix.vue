@@ -3,7 +3,7 @@ import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
 import { Cell, Dimensions, Link, Network, Node } from '@/types';
-import { range, ScaleBand, scaleBand, select } from 'd3';
+import { range, ScaleBand, scaleBand, select, selectAll } from 'd3';
 
 export default Vue.extend({
   props: {
@@ -269,6 +269,79 @@ export default Vue.extend({
           }
         });
       });
+    },
+
+    showToolTip(d: Cell | Node, i: number, nodes: any): void {
+      const matrix = nodes[i]
+        .getScreenCTM()
+        .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
+
+      let message = '';
+
+      if (this.isCell(d)) {
+        // Get link source and target
+        message = `
+      Row ID: ${d.rowID} <br/>
+      Col ID: ${d.colID} <br/>
+      Number of edges: ${d.z}`;
+      } else {
+        // Get node id
+        message = `ID: ${d.id}`;
+
+        // Loop through other props to add to tooltip
+        for (const key of Object.keys(d)) {
+          if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
+            message += `<br/> ${this.capitalizeFirstLetter(key)}: ${d[key]}`;
+          }
+        }
+      }
+
+      select(this.$refs.tooltip as any).html(message);
+
+      select(this.$refs.tooltip as any)
+        .style('left', `${window.pageXOffset + matrix.e}px`)
+        .style(
+          'top',
+          `${
+            window.pageYOffset +
+            matrix.f -
+            select(this.$refs.tooltip as any)
+              .node()
+              .getBoundingClientRect().height
+          }px`,
+        );
+
+      select(this.$refs.tooltip as any)
+        .transition()
+        .delay(100)
+        .duration(200)
+        .style('opacity', 0.9);
+    },
+
+    hideToolTip(): void {
+      select(this.$refs.tooltip as any)
+        .transition()
+        .delay(100)
+        .duration(200)
+        .style('opacity', 0);
+    },
+
+    isCell(element: any): element is Cell {
+      return Object.prototype.hasOwnProperty.call(element, 'cellName');
+    },
+
+    capitalizeFirstLetter(word: string) {
+      return word[0].toUpperCase() + word.slice(1);
+    },
+
+    hoverNode(nodeID: string): void {
+      const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+      selectAll(cssSelector).classed('hovered', true);
+    },
+
+    unHoverNode(nodeID: string): void {
+      const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+      selectAll(cssSelector).classed('hovered', false);
     },
   },
 });
