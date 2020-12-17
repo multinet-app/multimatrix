@@ -171,6 +171,7 @@ export default Vue.extend({
       this.attributes,
       this.attributeRows,
     );
+
     this.$emit('updateMatrixLegendScale', this.view.colorScale);
   },
 
