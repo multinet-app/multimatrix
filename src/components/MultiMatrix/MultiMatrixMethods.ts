@@ -107,7 +107,6 @@ export class View {
 
     // Kick off the rendering
     this.initializeEdges();
-    this.initializeAttributes();
   }
 
   public updateAttributes(): void {
@@ -866,37 +865,6 @@ export class View {
       .style('fill', '#8B8B8B')
       .filter((d: any) => d.id === order)
       .style('fill', '#EBB769');
-  }
-
-  /**
-   * [initializeAttributes description]
-   * @return [description]
-   */
-  private initializeAttributes(): void {
-    // let width = this.controller.visWidth * this.controller.attributeProportion;
-    // this.edgeWidth + this.margins.left + this.margins.right;
-    // let height = this.controller.visHeight;//this.edgeHeight + this.margins.top + this.margins.bottom;
-    // this.attributeWidth = width - (this.margins.left + this.margins.right) //* this.controller.attributeProportion;
-    // this.attributeHeight = height - (this.margins.top + this.margins.bottom)// * this.controller.attributeProportion;
-
-    const attributeWidth = 1000; // Just has to be larger than the attributes panel (so that we render to the edge)
-
-    this.attributes = select('#attributes')
-      .append('g')
-      .attr('transform', `translate(0,${this.visMargins.top})`);
-
-    // add zebras and highlight rows
-    this.attributes
-      .selectAll('.highlightRow')
-      .data(this.network.nodes)
-      .enter()
-      .append('rect')
-      .classed('highlightRow', true)
-      .attr('x', 0)
-      .attr('y', (d: Node, i: number) => this.orderingScale(i))
-      .attr('width', attributeWidth)
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('fill', (d: Node, i: number) => (i % 2 === 0 ? '#fff' : '#eee'));
   }
 
   private isSelected(node: Node): boolean {
