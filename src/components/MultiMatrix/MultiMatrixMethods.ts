@@ -1,6 +1,5 @@
 /* The View displays the data given to it by the model. */
 import {
-  scaleBand,
   ScaleLinear,
   scaleLinear,
   scaleOrdinal,
@@ -57,7 +56,7 @@ export class View {
     bottom: number;
   };
   private attributes: any;
-  private orderingScale: ScaleBand<number> = scaleBand<number>();
+  private orderingScale: ScaleBand<number>;
   public colorScale: ScaleLinear<string, number> = scaleLinear<
     string,
     number
@@ -86,6 +85,7 @@ export class View {
     enableGraffinity: boolean,
     matrix: Cell[][],
     maxNumConnections: number,
+    orderingScale: ScaleBand<number>,
   ) {
     this.network = network;
     this.visMargins = visMargins;
@@ -95,6 +95,7 @@ export class View {
     this.enableGraffinity = enableGraffinity;
     this.matrix = matrix;
     this.maxNumConnections = maxNumConnections;
+    this.orderingScale = orderingScale;
 
     // Kick off the rendering
     this.initializeEdges();
@@ -284,11 +285,6 @@ export class View {
         'transform',
         `translate(${this.visMargins.left},${this.visMargins.top})`,
       );
-
-    // sets the vertical scale
-    this.orderingScale = scaleBand<number>()
-      .domain(range(0, this.matrix.length, 1))
-      .range([0, matrixHighlightLength]);
 
     // creates column groupings
     this.edgeColumns = this.edges

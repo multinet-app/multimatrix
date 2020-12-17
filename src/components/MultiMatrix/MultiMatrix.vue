@@ -4,6 +4,7 @@ import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
 import { Cell, Dimensions, Link, Network, Node } from '@/types';
+import { range, ScaleBand, scaleBand } from 'd3';
 
 export default Vue.extend({
   props: {
@@ -89,6 +90,16 @@ export default Vue.extend({
     attributesHeight(): number {
       return this.matrixHeight;
     },
+
+    orderingScale(): ScaleBand<number> {
+      return scaleBand<number>()
+        .domain(range(0, this.matrix.length, 1))
+        .range([0, this.matrixHighlightLength]);
+    },
+
+    matrixHighlightLength(): number {
+      return this.matrix.length * this.cellSize;
+    },
   },
 
   watch: {
@@ -140,6 +151,7 @@ export default Vue.extend({
       this.enableGraffinity,
       this.matrix,
       this.maxNumConnections,
+      this.orderingScale,
     );
     this.$emit('updateMatrixLegendScale', this.view.colorScale);
   },
@@ -191,6 +203,7 @@ export default Vue.extend({
         this.enableGraffinity,
         this.matrix,
         this.maxNumConnections,
+        this.orderingScale,
       );
     },
 
