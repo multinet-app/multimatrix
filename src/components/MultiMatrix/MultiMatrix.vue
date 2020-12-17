@@ -1,10 +1,9 @@
 <script lang="ts">
-import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
 import { Cell, Dimensions, Link, Network, Node } from '@/types';
-import { range, ScaleBand, scaleBand } from 'd3';
+import { range, ScaleBand, scaleBand, select } from 'd3';
 
 export default Vue.extend({
   props: {
@@ -125,14 +124,12 @@ export default Vue.extend({
       document.body.clientHeight;
 
     // Size the svgs
-    this.matrixSVG = d3
-      .select(this.$refs.matrix)
+    this.matrixSVG = select(this.$refs.matrix)
       .attr('width', this.matrixWidth)
       .attr('height', this.matrixHeight)
       .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
-    this.attributes = d3
-      .select(this.$refs.attributes)
+    this.attributes = select(this.$refs.attributes)
       .attr('width', this.attributesWidth)
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
@@ -167,7 +164,7 @@ export default Vue.extend({
     },
 
     changeMatrix(this: any) {
-      d3.select('#matrix').selectAll('*').remove();
+      select('#matrix').selectAll('*').remove();
 
       this.browser.width =
         window.innerWidth ||
@@ -180,14 +177,12 @@ export default Vue.extend({
         document.body.clientHeight;
 
       // Size the svgs
-      this.matrixSVG = d3
-        .select(this.$refs.matrix)
+      this.matrixSVG = select(this.$refs.matrix)
         .attr('width', this.matrixWidth)
         .attr('height', this.matrixHeight)
         .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
-      this.attributes = d3
-        .select(this.$refs.attributes)
+      this.attributes = select(this.$refs.attributes)
         .attr('width', this.attributesWidth)
         .attr('height', this.attributesHeight)
         .attr(
