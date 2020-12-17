@@ -39,9 +39,7 @@ export class View {
   };
   private sortKey = 'name';
   private edges: any;
-  private matrix: Cell[][] = [];
   private attributeRows: any;
-  private tooltip: any;
   private order: any;
   private attributes: any;
   private orderingScale: ScaleBand<number>;
@@ -50,13 +48,11 @@ export class View {
     number
   >();
   private edgeScales!: { [key: string]: any };
-  private nodeFontSize = '10';
   private columnHeaders: any;
   private attributeScales: { [key: string]: any } = {};
   private colMargin = 5;
   private provenance: any;
   private isMultiEdge = false;
-  private orderType: any;
   private selectedNodesAndNeighbors: { [key: string]: string[] } = {};
   private selectedElements: { [key: string]: string[] } = {};
   private mouseOverEvents: any;
@@ -65,7 +61,6 @@ export class View {
     network: Network,
     visualizedAttributes: string[],
     enableGraffinity: boolean,
-    matrix: Cell[][],
     orderingScale: ScaleBand<number>,
     columnHeaders: any,
     edges: any,
@@ -77,7 +72,6 @@ export class View {
     this.provenance = provenance;
     this.visualizedAttributes = visualizedAttributes;
     this.enableGraffinity = enableGraffinity;
-    this.matrix = matrix;
     this.orderingScale = orderingScale;
     this.columnHeaders = columnHeaders;
     this.edges = edges;
@@ -363,242 +357,6 @@ export class View {
 
     if (selections.length > 0) {
       selectAll(selections.join(',')).classed('clicked', true);
-    }
-  }
-
-  /**
-   * Renders column labels and row labels to the matrix.
-   * @return none
-   */
-  private appendEdgeLabels(): void {
-    const labelContainerHeight = 25;
-    const rowLabelContainerStart = 75;
-    const labelContainerWidth = rowLabelContainerStart;
-
-    // add foreign objects for label
-    const edgeRowForeignObject = this.edgeRows
-      .append('foreignObject')
-      .attr('x', -rowLabelContainerStart)
-      .attr('y', -5)
-      .attr('width', labelContainerWidth)
-      .attr('height', labelContainerHeight);
-
-    edgeRowForeignObject
-      .append('xhtml:p')
-      .text((d: Node) => d._key)
-      .classed('rowLabels', true)
-      .on('mouseout', (d: Node) => {
-        this.hideToolTip();
-        this.unHoverNode(d.id);
-      })
-      .on('click', (d: Node) => {
-        this.selectElement(d);
-        this.selectNeighborNodes(d.id, d.neighbors);
-      });
-
-    let verticalOffset = 187.5;
-    const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
-    this.edgeColumns
-      .append('path')
-      .attr('id', (d: Node) => `sortIcon${d.id}`)
-      .attr('class', 'sortIcon')
-      .attr('d', this.icons.cellSort.d)
-      .style('fill', (d: Node) =>
-        d === this.orderType ? '#EBB769' : '#8B8B8B',
-      )
-      .attr(
-        'transform',
-        `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
-      )
-      .on('click', (d: Node) => {
-        this.sort(d.id);
-        const action = this.changeInteractionWrapper('neighborSelect');
-        this.provenance.applyAction(action);
-      })
-      .attr('cursor', 'pointer')
-      .on('mouseover', (d: Node, i: number, nodes: any) => {
-        this.showToolTip(d, i, nodes);
-        this.hoverNode(d.id);
-      })
-      .on('mouseout', (d: Node) => {
-        this.hideToolTip();
-        this.unHoverNode(d.id);
-      });
-
-    verticalOffset = verticalOffset * 0.075 + 5;
-
-    // constant for starting the column label container
-    const columnLabelContainerStart = 20;
-
-    const edgeColumnForeignObject = this.edgeColumns
-      .append('foreignObject')
-      .attr('y', -5)
-      .attr('x', columnLabelContainerStart)
-      .attr('width', labelContainerWidth)
-      .attr('height', labelContainerHeight);
-
-    edgeColumnForeignObject
-      .append('xhtml:p')
-      .text((d: Node) => d._key)
-      .classed('colLabels', true)
-      .on('click', (d: Node) => {
-        this.selectElement(d);
-        this.selectNeighborNodes(d.id, d.neighbors);
-      })
-      .on('mouseover', (d: Node, i: number, nodes: any) => {
-        this.showToolTip(d, i, nodes);
-        this.hoverNode(d.id);
-      })
-      .on('mouseout', (d: Node) => {
-        this.hideToolTip();
-        this.unHoverNode(d.id);
-      });
-  }
-
-  /**
-   * Draws the grid lines for the adjacency matrix.
-   * @return none
-   */
-  private drawGridLines(): void {
-    const gridLines = this.edges.append('g').attr('class', 'gridLines');
-
-    const lines = gridLines.selectAll('line').data(this.matrix).enter();
-
-    // vertical grid lines
-    lines
-      .append('line')
-      .attr('transform', (d: any, i: number) => {
-        return `translate(${this.orderingScale(i)},0)rotate(-90)`;
-      })
-      .attr('x1', -this.orderingScale.range()[1]);
-
-    // horizontal grid lines
-    lines
-      .append('line')
-      .attr('transform', (d: any, i: number) => {
-        return `translate(0,${this.orderingScale(i)})`;
-      })
-      .attr('x2', this.orderingScale.range()[1]);
-
-    // vertical grid line edges
-    gridLines
-      .append('line')
-      .attr('x1', this.orderingScale.range()[1])
-      .attr('x2', this.orderingScale.range()[1])
-      .attr('y1', 0)
-      .attr('y2', this.orderingScale.range()[1])
-      .style('stroke', '#aaa')
-      .style('opacity', 0.3);
-
-    // horizontal grid line edges
-    gridLines
-      .append('line')
-      .attr('x1', 0)
-      .attr('x2', this.orderingScale.range()[1])
-      .attr('y1', this.orderingScale.range()[1])
-      .attr('y2', this.orderingScale.range()[1])
-      .style('stroke', '#aaa')
-      .style('opacity', 0.3);
-  }
-
-  /**
-   * [changeInteractionWrapper description]
-   * @param  nodeID ID of the node being changed with
-   * @param  node   nodes corresponding to the element class interacted with (from d3 select nodes[i])
-   * @param  interactionType class name of element interacted with
-   * @return        [description]
-   */
-  private changeInteractionWrapper(interactionType: string, cell?: Cell): any {
-    return {
-      label: interactionType,
-      action: (interactID: string) => {
-        const currentState = this.getApplicationState();
-        // add time stamp to the state graph
-        currentState.time = Date.now();
-        currentState.event = interactionType;
-        const interactionName = interactionType; // cell, search, etc
-        let interactedElement = interactionType;
-        if (interactionName === 'cell' && cell !== undefined) {
-          interactID = cell.colID;
-          interactedElement = cell.cellName; // + cellData.rowID;
-
-          this.changeInteraction(
-            currentState,
-            interactID,
-            'cellCol',
-            interactedElement,
-          );
-          this.changeInteraction(
-            currentState,
-            interactID,
-            'cellRow',
-            interactedElement,
-          );
-          if (cell.cellName !== cell.correspondingCell) {
-            interactedElement = cell.correspondingCell; // + cellData.rowID;
-            interactID = cell.rowID;
-
-            this.changeInteraction(
-              currentState,
-              interactID,
-              'cellCol',
-              interactedElement,
-            );
-            this.changeInteraction(
-              currentState,
-              interactID,
-              'cellRow',
-              interactedElement,
-            );
-          }
-          return currentState;
-
-          // interactID = cellData.rowID;
-          // interactionName = interactionName + 'row'
-        } else if (interactionName === 'attrRow') {
-          return interactionName;
-        } else if (interactionName === 'neighborSelect') {
-          this.changeInteraction(
-            currentState,
-            interactID,
-            interactionName,
-            interactedElement,
-          );
-          return currentState;
-        }
-      },
-    };
-  }
-
-  /**
-   * Adds the interacted node to the state object.
-   * @param  state           [description]
-   * @param  nodeID          [description]
-   * @param  interaction     [description]
-   * @param  interactionName [description]
-   * @return                 [description]
-   */
-  private changeInteraction(
-    state: State,
-    nodeID: string,
-    interaction: keyof State['selections'],
-    interactionName: string = interaction,
-  ): void {
-    if (nodeID in state.selections[interaction]) {
-      // Remove element if in list, if list is empty, delete key
-      const currentIndex = state.selections[interaction][nodeID].indexOf(
-        interactionName,
-      );
-      if (currentIndex > -1) {
-        state.selections[interaction][nodeID].splice(currentIndex, 1);
-        if (state.selections[interaction][nodeID].length === 0) {
-          delete state.selections[interaction][nodeID];
-        }
-      } else {
-        state.selections[interaction][nodeID].push(interactionName);
-      }
-    } else {
-      state.selections[interaction][nodeID] = [interactionName];
     }
   }
 
