@@ -6,6 +6,11 @@ import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import { range, ScaleBand, scaleBand, select, selectAll } from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
+import 'science';
+import 'reorder.js';
+
+declare const reorder: any;
+
 export default Vue.extend({
   props: {
     network: {
@@ -40,7 +45,10 @@ export default Vue.extend({
     attributeRows: any;
     columnHeaders: any;
     edges: any;
+    order: any;
+    orderType: any;
     provenance: any;
+    sortKey: string;
   } {
     return {
       browser: {
@@ -59,7 +67,10 @@ export default Vue.extend({
       attributeRows: undefined,
       columnHeaders: undefined,
       edges: undefined,
+      order: undefined,
+      orderType: undefined,
       provenance: undefined,
+      sortKey: '',
     };
   },
 
@@ -313,6 +324,55 @@ export default Vue.extend({
       return provenance;
     },
 
+    sort(order: string): void {
+      const nodeIDs = this.network.nodes.map((node: Node) => node.id);
+
+      this.order = this.changeOrder(order, nodeIDs.includes(order));
+      this.orderingScale.domain(this.order);
+
+      const transitionTime = 500;
+
+      (selectAll('.rowContainer') as any)
+        .transition()
+        .duration(transitionTime)
+        .attr(
+          'transform',
+          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+        );
+
+      (selectAll('.attrRowContainer') as any)
+        .transition()
+        .duration(transitionTime)
+        .attr(
+          'transform',
+          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+        );
+
+      // if any other method other than neighbors sort, sort the columns too
+      if (!nodeIDs.includes(order)) {
+        this.edges
+          .selectAll('.column')
+          .transition()
+          .duration(transitionTime)
+          .attr(
+            'transform',
+            (d: any, i: number) =>
+              `translate(${this.orderingScale(i)},0)rotate(-90)`,
+          );
+
+        (selectAll('.rowContainer') as any)
+          .selectAll('.cell')
+          .transition()
+          .duration(transitionTime)
+          .attr('x', (d: Node, i: number) => this.orderingScale(i));
+      }
+
+      selectAll('.sortIcon')
+        .style('fill', '#8B8B8B')
+        .filter((d: any) => d.id === order)
+        .style('fill', '#EBB769');
+    },
+
     initializeAttributes(): void {
       // Just has to be larger than the attributes panel (so that we render to the edge)
       const attributeWidth = 1000;
@@ -434,6 +494,97 @@ export default Vue.extend({
         .delay(100)
         .duration(200)
         .style('opacity', 0);
+    },
+
+    changeOrder(type: string, node: boolean): number[] {
+      const action = this.generateSortAction(type);
+      this.provenance.applyAction(action);
+      return this.sortObserver(type, node);
+    },
+
+    generateSortAction(
+      sortKey: string,
+    ): { label: string; action: (key: string) => State; args: any[] } {
+      return {
+        label: 'sort',
+        action: (key: string) => {
+          const currentState = this.getApplicationState();
+          // add time stamp to the state graph
+          currentState.time = Date.now();
+          currentState.event = 'sort';
+
+          currentState.sortKey = key;
+
+          return currentState;
+        },
+        args: [sortKey],
+      };
+    },
+
+    sortObserver(type: string, isNode = false): number[] {
+      let order;
+      this.sortKey = type;
+      if (
+        type === 'clusterSpectral' ||
+        type === 'clusterBary' ||
+        type === 'clusterLeaf'
+      ) {
+        const links: any[] = Array(this.network.links.length);
+
+        this.network.links.forEach((link: Link, index: number) => {
+          links[index] = {
+            source: this.network.nodes.find(
+              (node: Node) => node.id === link.source,
+            ),
+            target: this.network.nodes.find(
+              (node: Node) => node.id === link.target,
+            ),
+          };
+        });
+
+        const sortableNetwork = reorder
+          .graph()
+          .nodes(this.network.nodes)
+          .links(links)
+          .init();
+
+        if (type === 'clusterBary') {
+          const barycenter = reorder.barycenter_order(sortableNetwork);
+          order = reorder.adjacent_exchange(
+            sortableNetwork,
+            barycenter[0],
+            barycenter[1],
+          )[1];
+        } else if (type === 'clusterSpectral') {
+          order = reorder.spectral_order(sortableNetwork);
+        } else if (type === 'clusterLeaf') {
+          const mat = reorder.graph2mat(sortableNetwork);
+          order = reorder.optimal_leaf_order()(mat);
+        }
+      } else if (this.sortKey === 'edges') {
+        order = range(this.network.nodes.length).sort(
+          (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
+        );
+      } else if (isNode === true) {
+        order = range(this.network.nodes.length).sort((a, b) =>
+          this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
+        );
+        order = range(this.network.nodes.length).sort(
+          (a, b) =>
+            Number(this.network.nodes[b].neighbors.includes(type)) -
+            Number(this.network.nodes[a].neighbors.includes(type)),
+        );
+      } else if (this.sortKey === 'shortName') {
+        order = range(this.network.nodes.length).sort((a, b) =>
+          this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
+        );
+      } else {
+        order = range(this.network.nodes.length).sort(
+          (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
+        );
+      }
+      this.order = order;
+      return order;
     },
 
     getApplicationState(): State {
