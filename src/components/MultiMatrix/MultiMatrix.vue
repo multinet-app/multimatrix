@@ -223,7 +223,7 @@ export default Vue.extend({
       this.provenance,
     );
 
-    this.$emit('updateMatrixLegendScale', this.view.colorScale);
+    this.$emit('updateMatrixLegendScale', this.colorScale);
   },
 
   methods: {
