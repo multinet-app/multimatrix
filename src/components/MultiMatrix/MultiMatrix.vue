@@ -2,7 +2,7 @@
 import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
-import { Cell, Dimensions, Link, Network, Node } from '@/types';
+import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import { range, ScaleBand, scaleBand, select, selectAll } from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
@@ -436,6 +436,10 @@ export default Vue.extend({
         .style('opacity', 0);
     },
 
+    getApplicationState(): State {
+      return this.provenance.graph().current.state;
+    },
+
     isCell(element: any): element is Cell {
       return Object.prototype.hasOwnProperty.call(element, 'cellName');
     },
@@ -452,6 +456,16 @@ export default Vue.extend({
     unHoverNode(nodeID: string): void {
       const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
       selectAll(cssSelector).classed('hovered', false);
+    },
+
+    hoverEdge(cell: Cell): void {
+      this.hoverNode(cell.rowID);
+      this.hoverNode(cell.colID);
+    },
+
+    unHoverEdge(cell: Cell): void {
+      this.unHoverNode(cell.rowID);
+      this.unHoverNode(cell.colID);
     },
   },
 });
