@@ -300,16 +300,6 @@ export class View {
     selectAll(cssSelector).classed('hovered', false);
   }
 
-  private hoverEdge(cell: Cell): void {
-    this.hoverNode(cell.rowID);
-    this.hoverNode(cell.colID);
-  }
-
-  private unHoverEdge(cell: Cell): void {
-    this.unHoverNode(cell.rowID);
-    this.unHoverNode(cell.colID);
-  }
-
   private selectElement(element: Cell | Node): void {
     let elementsToSelect: string[] = [];
     let newElement: { [key: string]: string[] };
@@ -695,57 +685,6 @@ export class View {
       .style('fill', '#EBB769');
   }
 
-  private isSelected(node: Node): boolean {
-    const currentState = this.getApplicationState();
-    const clicked: string[] = currentState.clicked;
-    return clicked.includes(node.id);
-  }
-
-  private showToolTip(d: Cell | Node, i: number, nodes: any): void {
-    const matrix = nodes[i]
-      .getScreenCTM()
-      .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
-
-    let message = '';
-
-    if (this.isCell(d)) {
-      // Get link source and target
-      message = `
-      Row ID: ${d.rowID} <br/>
-      Col ID: ${d.colID} <br/>
-      Number of edges: ${d.z}`;
-    } else {
-      // Get node id
-      message = `ID: ${d.id}`;
-
-      // Loop through other props to add to tooltip
-      for (const key of Object.keys(d)) {
-        if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
-          message += `<br/> ${this.capitalizeFirstLetter(key)}: ${d[key]}`;
-        }
-      }
-    }
-
-    this.tooltip.html(message);
-
-    this.tooltip
-      .style('left', `${window.pageXOffset + matrix.e}px`)
-      .style(
-        'top',
-        `${
-          window.pageYOffset +
-          matrix.f -
-          this.tooltip.node().getBoundingClientRect().height
-        }px`,
-      );
-
-    this.tooltip.transition().delay(100).duration(200).style('opacity', 0.9);
-  }
-
-  private hideToolTip(): void {
-    this.tooltip.transition(25).style('opacity', 0);
-  }
-
   private sortObserver(type: string, isNode = false): number[] {
     let order;
     this.sortKey = type;
@@ -850,9 +789,5 @@ export class View {
 
   private isCell(element: any): element is Cell {
     return Object.prototype.hasOwnProperty.call(element, 'cellName');
-  }
-
-  private capitalizeFirstLetter(word: string) {
-    return word[0].toUpperCase() + word.slice(1);
   }
 }
