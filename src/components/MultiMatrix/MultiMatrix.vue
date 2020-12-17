@@ -277,7 +277,8 @@ export default Vue.extend({
     },
 
     initializeAttributes(): void {
-      const attributeWidth = 1000; // Just has to be larger than the attributes panel (so that we render to the edge)
+      // Just has to be larger than the attributes panel (so that we render to the edge)
+      const attributeWidth = 1000;
 
       this.attributes = select('#attributes')
         .append('g')
