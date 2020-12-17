@@ -29,7 +29,7 @@ export default Vue.extend({
     browser: Dimensions;
     visMargins: any;
     matrixSVG: any;
-    attributes: any;
+    attributesSVG: any;
     view: View | undefined;
     cellSize: number;
     idMap: { [key: string]: number };
@@ -43,7 +43,7 @@ export default Vue.extend({
       },
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrixSVG: undefined,
-      attributes: undefined,
+      attributesSVG: undefined,
       view: undefined,
       cellSize: 15,
       idMap: {},
@@ -129,7 +129,7 @@ export default Vue.extend({
       .attr('height', this.matrixHeight)
       .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
-    this.attributes = select(this.$refs.attributes)
+    this.attributesSVG = select(this.$refs.attributes)
       .attr('width', this.attributesWidth)
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
@@ -182,7 +182,7 @@ export default Vue.extend({
         .attr('height', this.matrixHeight)
         .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
 
-      this.attributes = select(this.$refs.attributes)
+      this.attributesSVG = select(this.$refs.attributes)
         .attr('width', this.attributesWidth)
         .attr('height', this.attributesHeight)
         .attr(
