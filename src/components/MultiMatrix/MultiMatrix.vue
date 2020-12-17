@@ -3,7 +3,15 @@ import Vue, { PropType } from 'vue';
 
 import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
-import { range, ScaleBand, scaleBand, select, selectAll } from 'd3';
+import {
+  range,
+  ScaleBand,
+  scaleBand,
+  ScaleLinear,
+  scaleLinear,
+  select,
+  selectAll,
+} from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
 import 'science';
@@ -45,6 +53,10 @@ export default Vue.extend({
     attributeRows: any;
     columnHeaders: any;
     edges: any;
+    edgeColumns: any;
+    edgeRows: any;
+    colorScale: ScaleLinear<string, number>;
+    icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
     order: any;
@@ -69,6 +81,27 @@ export default Vue.extend({
       attributeRows: undefined,
       columnHeaders: undefined,
       edges: undefined,
+      edgeColumns: undefined,
+      edgeRows: undefined,
+      colorScale: scaleLinear<string, number>(),
+      icons: {
+        quant: {
+          d:
+            'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
+        },
+        alphabetical: {
+          d:
+            'M401.1,331.2h-189c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.8C407.7,334.2,404.8,331.2,401.1,331.2z M223.7,344.3H266c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-42.3V344.3z M223.7,373H300c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-76.3V373.7z M263.6,447.8c0,2-1.6,3.6-3.6,3.6h-36.4v-18.8H260c2,0,3.6,1.6,3.6,3.6V447.8z M321.5,418.4c0,2-1.6,3.6-3.6,3.6h-94.2v-18.8h94.2c2,0,3.6,1.6,3.6,3.6V418.4z M392.6,449.5h-34.3V442l22.6-27h-21.7v-8.8h33.2v7.5l-21.5,27h21.7V449.5z M381,394.7l-3.7,6.4l-3.7-6.4h2.7v-14.6h2v14.6H381z M387,380l-3.4-9.7h-13.5l-3.3,9.7h-10.2l15.8-43.3h9l15.8,43.3H387z M371.8,363.4H382l-5.1-15.3L371.8,363.4z',
+        },
+        categorical: {
+          d:
+            'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.4C407.7,333.7,404.7,330.7,401,330.7z M272.9,374.3h-52.4v-17.1h52.4V374.3z M272.9,354h-52.4v-17h52.4V354z M332.1,414.9h-52.4v-17h52.4V414.9z M332.1,394.6h-52.4v-17h52.4V394.6z M394.8,456.5h-52.4v-17h52.4V456.5z M394.8,434.9h-52.4v-17h52.4V434.9z',
+        },
+        cellSort: {
+          d:
+            'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
+        },
+      },
       selectedNodesAndNeighbors: {},
       selectedElements: {},
       order: undefined,
@@ -175,16 +208,14 @@ export default Vue.extend({
     this.provenance = this.setUpProvenance();
 
     this.initializeAttributes();
+    this.initializeEdges();
 
     // Define the View
     this.view = new View(
       this.network,
       this.visualizedAttributes,
-      this.cellSize,
-      this.visMargins,
       this.enableGraffinity,
       this.matrix,
-      this.maxNumConnections,
       this.orderingScale,
       this.columnHeaders,
       this.edges,
@@ -243,15 +274,13 @@ export default Vue.extend({
       this.provenance = this.setUpProvenance();
 
       this.initializeAttributes();
+      this.initializeEdges();
 
       this.view = new View(
         this.network,
         this.visualizedAttributes,
-        this.cellSize,
-        this.visMargins,
         this.enableGraffinity,
         this.matrix,
-        this.maxNumConnections,
         this.orderingScale,
         this.columnHeaders,
         this.edges,
@@ -326,6 +355,145 @@ export default Vue.extend({
       this.provenance = provenance;
 
       return provenance;
+    },
+
+    initializeEdges(): void {
+      // set the radius for cells
+      const cellRadius = 3;
+
+      // set the matrix highlight
+      const matrixHighlightLength = this.matrix.length * this.cellSize;
+
+      // creates column groupings
+      this.edgeColumns = this.edges
+        .selectAll('.column')
+        .data(this.network.nodes)
+        .enter()
+        .append('g')
+        .attr('class', 'column')
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(${this.orderingScale(i)})rotate(-90)`;
+        });
+
+      // Draw each row
+      this.edgeRows = this.edges
+        .selectAll('.rowContainer')
+        .data(this.network.nodes)
+        .enter()
+        .append('g')
+        .attr('class', 'rowContainer')
+        .attr('transform', `translate(0, 0)`);
+
+      this.edgeRows
+        .transition()
+        .duration(1100)
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(0,${this.orderingScale(i)})`;
+        });
+
+      this.drawGridLines();
+
+      // add the highlight columns
+      this.edgeColumns
+        .append('rect')
+        .classed('topoCol', true)
+        .attr('id', (d: Node) => `topoCol${d.id}`)
+        .attr('x', -matrixHighlightLength - this.visMargins.bottom)
+        .attr('y', 0)
+        .attr(
+          'width',
+          matrixHighlightLength + this.visMargins.top + this.visMargins.bottom,
+        )
+        .attr('height', this.orderingScale.bandwidth())
+        .attr('fill-opacity', 0);
+
+      // added highlight rows
+      this.edgeRows
+        .append('rect')
+        .classed('topoRow', true)
+        .attr('id', (d: Node) => `topoRow${d.id}`)
+        .attr('x', -this.visMargins.left)
+        .attr('y', 0)
+        .attr(
+          'width',
+          matrixHighlightLength + this.visMargins.left + this.visMargins.right,
+        )
+        .attr('height', this.orderingScale.bandwidth())
+        .attr('fill-opacity', 0);
+
+      this.colorScale
+        .domain([0, this.maxNumConnections])
+        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+
+      this.edgeRows
+        .selectAll('.cell')
+        .data((d: Node, i: number) => this.matrix[i])
+        .enter()
+        .append('rect')
+        .attr('class', 'cell')
+        .attr('id', (d: Cell) => d.cellName)
+        .attr('x', (d: Cell) => {
+          const xLocation = this.orderingScale(d.x);
+          return xLocation !== undefined ? xLocation + 1 : undefined;
+        })
+        .attr('y', 1)
+        .attr('width', this.cellSize - 2)
+        .attr('height', this.cellSize - 2)
+        .attr('rx', cellRadius)
+        .style('fill', (d: Cell) => this.colorScale(d.z))
+        .style('fill-opacity', (d: Cell) => d.z)
+        .on('mouseover', (d: Cell, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverEdge(d);
+        })
+        .on('mouseout', (d: Cell) => {
+          this.hideToolTip();
+          this.unHoverEdge(d);
+        })
+        .on('click', (d: Cell) => this.selectElement(d))
+        .attr('cursor', 'pointer');
+
+      this.appendEdgeLabels();
+
+      // Draw buttons for alternative sorts
+      let initialY = -this.visMargins.left + 10;
+      const buttonHeight = 15;
+      const text = ['name', 'cluster', 'interacts'];
+      const sortNames = ['shortName', 'clusterLeaf', 'edges'];
+      const iconNames = ['alphabetical', 'categorical', 'quant'];
+      for (let i = 0; i < 3; i++) {
+        const button = this.edges
+          .append('g')
+          .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
+        button.attr('cursor', 'pointer');
+        button
+          .append('rect')
+          .attr('width', this.visMargins.left - 5)
+          .attr('height', buttonHeight)
+          .attr('fill', 'none')
+          .attr('stroke', 'gray')
+          .attr('stroke-width', 1);
+        button
+          .append('text')
+          .attr('x', 27)
+          .attr('y', 10)
+          .attr('font-size', 11)
+          .text(text[i]);
+        const path = button.datum(sortNames[i]);
+        path
+          .append('path')
+          .attr('class', 'sortIcon')
+          .attr('d', (d: any, i: number) => {
+            return this.icons[iconNames[i]].d;
+          })
+          .style('fill', () =>
+            sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B',
+          )
+          .attr('transform', 'scale(0.1)translate(-195,-320)')
+          .attr('cursor', 'pointer');
+        button.on('click', () => this.sort(sortNames[i]));
+        initialY += buttonHeight + 5;
+      }
     },
 
     changeInteractionWrapper(interactionType: string, cell?: Cell): any {

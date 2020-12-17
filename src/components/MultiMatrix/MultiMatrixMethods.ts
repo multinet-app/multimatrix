@@ -43,20 +43,12 @@ export class View {
   private attributeRows: any;
   private tooltip: any;
   private order: any;
-  private visMargins: {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-  };
   private attributes: any;
   private orderingScale: ScaleBand<number>;
   public colorScale: ScaleLinear<string, number> = scaleLinear<
     string,
     number
   >();
-  private edgeRows: any;
-  private edgeColumns: any;
   private edgeScales!: { [key: string]: any };
   private nodeFontSize = '10';
   private columnHeaders: any;
@@ -68,17 +60,12 @@ export class View {
   private selectedNodesAndNeighbors: { [key: string]: string[] } = {};
   private selectedElements: { [key: string]: string[] } = {};
   private mouseOverEvents: any;
-  private maxNumConnections = -Infinity;
-  private cellSize: number;
 
   constructor(
     network: Network,
     visualizedAttributes: string[],
-    cellSize: number,
-    visMargins: { left: number; top: number; right: number; bottom: number },
     enableGraffinity: boolean,
     matrix: Cell[][],
-    maxNumConnections: number,
     orderingScale: ScaleBand<number>,
     columnHeaders: any,
     edges: any,
@@ -87,21 +74,15 @@ export class View {
     provenance: any,
   ) {
     this.network = network;
-    this.visMargins = visMargins;
     this.provenance = provenance;
     this.visualizedAttributes = visualizedAttributes;
-    this.cellSize = cellSize;
     this.enableGraffinity = enableGraffinity;
     this.matrix = matrix;
-    this.maxNumConnections = maxNumConnections;
     this.orderingScale = orderingScale;
     this.columnHeaders = columnHeaders;
     this.edges = edges;
     this.attributes = attributes;
     this.attributeRows = attributeRows;
-
-    // Kick off the rendering
-    this.initializeEdges();
   }
 
   public updateAttributes(): void {
@@ -266,153 +247,6 @@ export class View {
       ),
     ];
     return uniqueValues.length > 5;
-  }
-
-  /**
-   * initializes the edges view, renders all SVG elements and attaches listeners
-   * to elements.
-   * @return None
-   */
-  private initializeEdges(): void {
-    // set the radius for cells
-    const cellRadius = 3;
-
-    // set the matrix highlight
-    const matrixHighlightLength = this.matrix.length * this.cellSize;
-
-    // creates column groupings
-    this.edgeColumns = this.edges
-      .selectAll('.column')
-      .data(this.network.nodes)
-      .enter()
-      .append('g')
-      .attr('class', 'column')
-      .attr('transform', (d: Node, i: number) => {
-        return `translate(${this.orderingScale(i)})rotate(-90)`;
-      });
-
-    // Draw each row
-    this.edgeRows = this.edges
-      .selectAll('.rowContainer')
-      .data(this.network.nodes)
-      .enter()
-      .append('g')
-      .attr('class', 'rowContainer')
-      .attr('transform', `translate(0, 0)`);
-
-    this.edgeRows
-      .transition()
-      .duration(1100)
-      .attr('transform', (d: Node, i: number) => {
-        return `translate(0,${this.orderingScale(i)})`;
-      });
-
-    this.drawGridLines();
-
-    // add the highlight columns
-    this.edgeColumns
-      .append('rect')
-      .classed('topoCol', true)
-      .attr('id', (d: Node) => `topoCol${d.id}`)
-      .attr('x', -matrixHighlightLength - this.visMargins.bottom)
-      .attr('y', 0)
-      .attr(
-        'width',
-        matrixHighlightLength + this.visMargins.top + this.visMargins.bottom,
-      )
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('fill-opacity', 0);
-
-    // added highlight rows
-    this.edgeRows
-      .append('rect')
-      .classed('topoRow', true)
-      .attr('id', (d: Node) => `topoRow${d.id}`)
-      .attr('x', -this.visMargins.left)
-      .attr('y', 0)
-      .attr(
-        'width',
-        matrixHighlightLength + this.visMargins.left + this.visMargins.right,
-      )
-      .attr('height', this.orderingScale.bandwidth())
-      .attr('fill-opacity', 0);
-
-    this.colorScale
-      .domain([0, this.maxNumConnections])
-      .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
-
-    this.edgeRows
-      .selectAll('.cell')
-      .data((d: Node, i: number) => this.matrix[i])
-      .enter()
-      .append('rect')
-      .attr('class', 'cell')
-      .attr('id', (d: Cell) => d.cellName)
-      .attr('x', (d: Cell) => {
-        const xLocation = this.orderingScale(d.x);
-        return xLocation !== undefined ? xLocation + 1 : undefined;
-      })
-      .attr('y', 1)
-      .attr('width', this.cellSize - 2)
-      .attr('height', this.cellSize - 2)
-      .attr('rx', cellRadius)
-      .style('fill', (d: Cell) => this.colorScale(d.z))
-      .style('fill-opacity', (d: Cell) => d.z)
-      .on('mouseover', (d: Cell, i: number, nodes: any) => {
-        this.showToolTip(d, i, nodes);
-        this.hoverEdge(d);
-      })
-      .on('mouseout', (d: Cell) => {
-        this.hideToolTip();
-        this.unHoverEdge(d);
-      })
-      .on('click', (d: Cell) => this.selectElement(d))
-      .attr('cursor', 'pointer');
-
-    this.appendEdgeLabels();
-
-    // Draw buttons for alternative sorts
-    let initialY = -this.visMargins.left + 10;
-    const buttonHeight = 15;
-    const text = ['name', 'cluster', 'interacts'];
-    const sortNames = ['shortName', 'clusterLeaf', 'edges'];
-    const iconNames = ['alphabetical', 'categorical', 'quant'];
-    for (let i = 0; i < 3; i++) {
-      const button = this.edges
-        .append('g')
-        .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
-      button.attr('cursor', 'pointer');
-      button
-        .append('rect')
-        .attr('width', this.visMargins.left - 5)
-        .attr('height', buttonHeight)
-        .attr('fill', 'none')
-        .attr('stroke', 'gray')
-        .attr('stroke-width', 1);
-      button
-        .append('text')
-        .attr('x', 27)
-        .attr('y', 10)
-        .attr('font-size', 11)
-        .text(text[i]);
-      const path = button.datum(sortNames[i]);
-      path
-        .append('path')
-        .attr('class', 'sortIcon')
-        .attr('d', (d: any, i: number) => {
-          return this.icons[iconNames[i]].d;
-        })
-        .style('fill', () =>
-          sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B',
-        )
-        .attr('transform', 'scale(0.1)translate(-195,-320)')
-        .attr('cursor', 'pointer');
-      button.on('click', () => this.sort(sortNames[i]));
-      initialY += buttonHeight + 5;
-    }
-
-    // Get tooltip
-    this.tooltip = select('#tooltip');
   }
 
   /**
