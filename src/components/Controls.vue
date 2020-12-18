@@ -147,8 +147,8 @@ export default Vue.extend({
           Controls
         </v-subheader>
 
-        <v-card>
-          <v-card-text>
+        <div class="pa-4">
+          <v-list-item class="px-0">
             <v-select
               v-model="visualizedAttributes"
               :items="attributeList"
@@ -161,45 +161,35 @@ export default Vue.extend({
               hint="Choose the node attributes you'd like to visualize"
               persistent-hint
             />
+          </v-list-item>
 
-            <v-list class="pa-0">
-              <!-- Auto-Select Neighbors List Item -->
-              <v-list-item class="px-0">
-                <v-list-item-action class="mr-3">
-                  <v-switch
-                    class="ma-0"
-                    v-model="selectNeighbors"
-                    hide-details
-                  />
-                </v-list-item-action>
-                <v-list-item-content>
-                  Autoselect neighbors
-                </v-list-item-content>
-              </v-list-item>
+          <!-- Auto-Select Neighbors List Item -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
+            </v-list-item-action>
+            <v-list-item-content> Autoselect neighbors </v-list-item-content>
+          </v-list-item>
 
-              <!-- Gridline Toggle List Item -->
-              <v-list-item class="px-0">
-                <v-list-item-action class="mr-3">
-                  <v-switch class="ma-0" v-model="showGridLines" hide-details />
-                </v-list-item-action>
-                <v-list-item-content> Show GridLines </v-list-item-content>
-              </v-list-item>
+          <!-- Gridline Toggle List Item -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch class="ma-0" v-model="showGridLines" hide-details />
+            </v-list-item-action>
+            <v-list-item-content> Show GridLines </v-list-item-content>
+          </v-list-item>
 
-              <!-- Graffinity Toggle List Item -->
-              <v-list-item class="px-0">
-                <v-list-item-action class="mr-3">
-                  <v-switch
-                    class="ma-0"
-                    v-model="enableGraffinity"
-                    hide-details
-                  />
-                </v-list-item-action>
-                <v-list-item-content>
-                  Enable Graffinity Features
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
+          <!-- Graffinity Toggle List Item -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch class="ma-0" v-model="enableGraffinity" hide-details />
+            </v-list-item-action>
+            <v-list-item-content>
+              Enable Graffinity Features
+            </v-list-item-content>
+          </v-list-item>
 
+          <v-list-item class="px-0">
             <v-btn
               block
               class="ml-0 mt-4"
@@ -209,31 +199,29 @@ export default Vue.extend({
             >
               Export Network
             </v-btn>
+          </v-list-item>
+        </div>
 
-            <!-- Matrix Legend -->
-            <v-card-subtitle
-              class="pb-0 px-0"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              Matrix Legend
-              <svg id="matrix-legend"></svg>
-            </v-card-subtitle>
-          </v-card-text>
-        </v-card>
-
-        <v-subheader class="grey darken-3 py-0 white--text">
-          Widgets
+        <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+          Color Scale Legend
         </v-subheader>
+
+        <div class="pa-4">
+          <!-- Matrix Legend -->
+          <v-list-item
+            class="pb-0 px-0"
+            style="display: flex; max-height: 50px"
+          >
+            Matrix Legend
+            <svg id="matrix-legend"></svg>
+          </v-list-item>
+        </div>
       </v-list>
     </v-navigation-drawer>
 
     <!-- MultiMatrix component -->
-    <v-col class="ma-0 pl-0 pr-0">
-      <v-row row wrap class="ma-0 pa-0">
+    <v-col>
+      <v-row class="ma-0">
         <multi-matrix
           ref="multimatrix"
           v-if="workspace"
