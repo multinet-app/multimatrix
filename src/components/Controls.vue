@@ -169,7 +169,7 @@ export default Vue.extend({
             <v-list-item-action class="mr-3">
               <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
             </v-list-item-action>
-            <v-list-item-content> Autoselect neighbors </v-list-item-content>
+            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
           </v-list-item>
 
           <!-- Gridline Toggle List Item -->
