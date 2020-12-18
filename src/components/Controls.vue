@@ -158,7 +158,8 @@ export default Vue.extend({
               chips
               dense
               deletable-chips
-              hint="Choose the node attributes you'd like to visualize"
+              small-chips
+              hint="Choose the node attributes to visualize"
               persistent-hint
             />
           </v-list-item>
