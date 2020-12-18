@@ -95,6 +95,10 @@ export default Vue.extend({
 
       legendSVG.select('.legendLinear').call(legendLinear);
     },
+
+    updateNetwork(network: Network) {
+      this.network = network;
+    },
   },
   watch: {
     showGridLines: function () {
@@ -242,6 +246,7 @@ export default Vue.extend({
           }"
           @restart-simulation="hello()"
           @updateMatrixLegendScale="createLegend"
+          @updateNetwork="updateNetwork"
         />
       </v-row>
     </v-col>
