@@ -84,11 +84,11 @@ export default Vue.extend({
       legendSVG
         .append('g')
         .classed('legendLinear', true)
-        .attr('transform', 'translate(-10, 100)');
+        .attr('transform', 'translate(10, 60)');
 
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
-        .shapeWidth(40)
+        .shapeWidth(30)
         .orient('horizontal')
         .scale(colorScale)
         .labelFormat(format('.0f'));
