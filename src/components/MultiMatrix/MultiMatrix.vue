@@ -2,7 +2,6 @@
 import Vue, { PropType } from 'vue';
 
 import { superGraph } from '@/lib/aggregation';
-import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
   axisTop,
@@ -50,7 +49,6 @@ export default Vue.extend({
     visMargins: any;
     matrixSVG: any;
     attributesSVG: any;
-    view: View | undefined;
     cellSize: number;
     idMap: { [key: string]: number };
     maxNumConnections: number;
@@ -80,7 +78,6 @@ export default Vue.extend({
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrixSVG: undefined,
       attributesSVG: undefined,
-      view: undefined,
       cellSize: 15,
       idMap: {},
       maxNumConnections: -Infinity,
@@ -220,19 +217,6 @@ export default Vue.extend({
     this.initializeAttributes();
     this.initializeEdges();
 
-    // Define the View
-    this.view = new View(
-      this.network,
-      this.visualizedAttributes,
-      this.enableGraffinity,
-      this.orderingScale,
-      this.columnHeaders,
-      this.edges,
-      this.attributes,
-      this.attributeRows,
-      this.provenance,
-    );
-
     this.$emit('updateMatrixLegendScale', this.colorScale);
   },
 
@@ -279,18 +263,6 @@ export default Vue.extend({
 
       this.initializeAttributes();
       this.initializeEdges();
-
-      this.view = new View(
-        this.network,
-        this.visualizedAttributes,
-        this.enableGraffinity,
-        this.orderingScale,
-        this.columnHeaders,
-        this.edges,
-        this.attributes,
-        this.attributeRows,
-        this.provenance,
-      );
     },
 
     generateIdMap() {
