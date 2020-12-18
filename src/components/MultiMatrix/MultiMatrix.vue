@@ -1,14 +1,19 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 
-import { View } from '@/components/MultiMatrix/MultiMatrixMethods';
+import { superGraph } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
+  axisTop,
+  max,
+  min,
   range,
   ScaleBand,
   scaleBand,
   ScaleLinear,
   scaleLinear,
+  scaleOrdinal,
+  schemeCategory10,
   select,
   selectAll,
 } from 'd3';
@@ -34,7 +39,7 @@ export default Vue.extend({
       required: true,
     },
     visualizedAttributes: {
-      type: Array,
+      type: Array as PropType<string[]>,
       default: () => [],
     },
   },
@@ -44,7 +49,6 @@ export default Vue.extend({
     visMargins: any;
     matrixSVG: any;
     attributesSVG: any;
-    view: View | undefined;
     cellSize: number;
     idMap: { [key: string]: number };
     maxNumConnections: number;
@@ -63,6 +67,8 @@ export default Vue.extend({
     orderType: any;
     provenance: any;
     sortKey: string;
+    colMargin: number;
+    attributeScales: { [key: string]: any };
   } {
     return {
       browser: {
@@ -72,7 +78,6 @@ export default Vue.extend({
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       matrixSVG: undefined,
       attributesSVG: undefined,
-      view: undefined,
       cellSize: 15,
       idMap: {},
       maxNumConnections: -Infinity,
@@ -108,6 +113,8 @@ export default Vue.extend({
       orderType: undefined,
       provenance: undefined,
       sortKey: '',
+      colMargin: 5,
+      attributeScales: {},
     };
   },
 
@@ -210,30 +217,12 @@ export default Vue.extend({
     this.initializeAttributes();
     this.initializeEdges();
 
-    // Define the View
-    this.view = new View(
-      this.network,
-      this.visualizedAttributes,
-      this.enableGraffinity,
-      this.orderingScale,
-      this.columnHeaders,
-      this.edges,
-      this.attributes,
-      this.attributeRows,
-      this.provenance,
-    );
-
     this.$emit('updateMatrixLegendScale', this.colorScale);
   },
 
   methods: {
     updateVis() {
-      if (this.view) {
-        this.view.visualizedAttributes = this.visualizedAttributes as string[];
-        this.view.updateAttributes();
-
-        this.view.enableGraffinity = this.enableGraffinity;
-      }
+      this.updateAttributes();
     },
 
     changeMatrix(this: any) {
@@ -274,18 +263,6 @@ export default Vue.extend({
 
       this.initializeAttributes();
       this.initializeEdges();
-
-      this.view = new View(
-        this.network,
-        this.visualizedAttributes,
-        this.enableGraffinity,
-        this.orderingScale,
-        this.columnHeaders,
-        this.edges,
-        this.attributes,
-        this.attributeRows,
-        this.provenance,
-      );
     },
 
     generateIdMap() {
@@ -823,6 +800,172 @@ export default Vue.extend({
       this.columnHeaders = this.attributes
         .append('g')
         .classed('column-headers', true);
+    },
+
+    updateAttributes(): void {
+      // Set the column widths and margin
+      const attrWidth = parseFloat(select('#attributes').attr('width'));
+      const colWidth =
+        attrWidth / this.visualizedAttributes.length - this.colMargin;
+
+      // Update the column headers
+      const columnHeaderGroups = this.columnHeaders
+        .selectAll('text')
+        .data(this.visualizedAttributes);
+
+      columnHeaderGroups.exit().remove();
+
+      columnHeaderGroups
+        .enter()
+        .append('text')
+        .merge(columnHeaderGroups)
+        .style('font-size', '14px')
+        .style('text-transform', 'capitalize')
+        .style('word-wrap', 'break-word')
+        .attr('text-anchor', 'left')
+        .attr('transform', 'translate(0,-65)')
+        .attr('cursor', 'pointer')
+        .text((d: string) => d)
+        .attr('y', 16)
+        .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
+        .attr('width', colWidth)
+        .on('click', (d: string) => {
+          if (this.enableGraffinity) {
+            this.$emit(
+              'updateNetwork',
+              superGraph(this.network.nodes, this.network.links, d),
+            );
+          } else {
+            this.sort(d);
+          }
+        });
+
+      // Calculate the attribute scales
+      this.visualizedAttributes.forEach((col: string) => {
+        if (this.isQuantitative(col)) {
+          const minimum =
+            min(this.network.nodes.map((node: Node) => node[col])) || '0';
+          const maximum =
+            max(this.network.nodes.map((node: Node) => node[col])) || '0';
+          const domain = [parseFloat(minimum), parseFloat(maximum)];
+
+          const scale = scaleLinear().domain(domain).range([0, colWidth]);
+          scale.clamp(true);
+          this.attributeScales[col] = scale;
+        } else {
+          const values: string[] = this.network.nodes.map(
+            (node: Node) => node[col],
+          );
+          const domain = [...new Set(values)];
+          const scale = scaleOrdinal(schemeCategory10).domain(domain);
+
+          this.attributeScales[col] = scale;
+        }
+      });
+
+      selectAll('.attr-axis').remove();
+
+      // Add the scale bar at the top of the attr column
+      this.visualizedAttributes.forEach((col: string, index: number) => {
+        if (this.isQuantitative(col)) {
+          this.attributes
+            .append('g')
+            .attr('class', 'attr-axis')
+            .attr(
+              'transform',
+              `translate(${(colWidth + this.colMargin) * index},-15)`,
+            )
+            .call(
+              axisTop(this.attributeScales[col])
+                .tickValues(this.attributeScales[col].domain())
+                .tickFormat((d: any) => {
+                  if (d / 1000 >= 1) {
+                    d = Math.round(d / 1000) + 'K';
+                  }
+                  return parseFloat(d).toFixed(4);
+                }),
+            )
+            .selectAll('text')
+            .style('text-anchor', (d: any, i: number) =>
+              i % 2 ? 'end' : 'start',
+            );
+        }
+      });
+
+      selectAll('.glyph').remove();
+      /* Create data columns data */
+      this.visualizedAttributes.forEach((col: string, index: number) => {
+        if (this.isQuantitative(col)) {
+          this.attributeRows
+            .append('rect')
+            .attr('class', 'glyph ' + col)
+            .attr('height', this.orderingScale.bandwidth())
+            .attr('width', (d: Node) => this.attributeScales[col](d[col]))
+            .attr('x', (colWidth + this.colMargin) * index)
+            .attr('y', 0) // y is set by translate on the group
+            .attr('fill', '#82b1ff')
+            .attr('cursor', 'pointer')
+            .on('mouseover', (d: Node) => this.hoverNode(d.id))
+            .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+            .on('click', (d: Node) => {
+              this.selectElement(d);
+              this.selectNeighborNodes(d.id, d.neighbors);
+            });
+        } else {
+          this.attributeRows
+            .append('rect')
+            .attr('class', 'glyph ' + col)
+            .attr('x', (colWidth + this.colMargin) * index)
+            .attr('y', 0)
+            .attr('fill', '#dddddd')
+            .attr('width', colWidth)
+            .attr('height', this.orderingScale.bandwidth())
+            .attr('fill', (d: Node) => this.attributeScales[col](d[col]))
+            .attr('cursor', 'pointer')
+            .on('mouseover', (d: Node) => this.hoverNode(d.id))
+            .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+            .on('click', (d: Node) => {
+              this.selectElement(d);
+              this.selectNeighborNodes(d.id, d.neighbors);
+            });
+        }
+      });
+
+      selectAll('.attrSortIcon').remove();
+
+      // Add sort icons to the top of the header
+      const path = this.columnHeaders
+        .selectAll('path')
+        .data(this.visualizedAttributes);
+
+      path
+        .enter()
+        .append('path')
+        .merge(path)
+        .attr('class', `sortIcon attr attrSortIcon`)
+        .attr('cursor', 'pointer')
+        .attr('d', (d: string) => {
+          const type = this.isQuantitative(d) ? 'quant' : 'categorical';
+          return this.icons[type].d;
+        })
+        .attr(
+          'transform',
+          (d: string, i: number) =>
+            `scale(0.1)translate(${
+              (colWidth + this.colMargin) * i * 10 - 200
+            }, -1100)`,
+        )
+        .style('fill', '#8B8B8B')
+        .on('click', (d: string) => this.sort(d));
+    },
+
+    isQuantitative(varName: string): boolean {
+      const uniqueValues = [
+        ...new Set(
+          this.network.nodes.map((node: Node) => parseFloat(node[varName])),
+        ),
+      ];
+      return uniqueValues.length > 5;
     },
 
     selectElement(element: Cell | Node): void {
