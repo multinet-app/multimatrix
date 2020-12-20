@@ -69,6 +69,8 @@ export default Vue.extend({
     sortKey: string;
     colMargin: number;
     attributeScales: { [key: string]: any };
+    nonAggrNodes: any;
+    nonAggrLinks: any;
     clickMap: any; // variable for keeping track of whether a label has been clicked or not
   } {
     return {
@@ -91,6 +93,8 @@ export default Vue.extend({
       edgeRows: undefined,
       colorScale: scaleLinear<string, number>(),
       clickMap: undefined,
+      nonAggrNodes: undefined,
+      nonAggrLinks: undefined,
       icons: {
         quant: {
           d:
@@ -580,10 +584,12 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverNode(d.id);
         })
-        .on('click', (d: Node) => {
+        .on('click', (d: Node, i: number) => {
           if (this.enableGraffinity) {
             // create a new dictionary that checks whether a node has been clicked for
             // expanding or retracting the matrix vis
+            console.log('id and number selected: ', d.id, i);
+            console.log('node value: ', d);
 
             if (this.clickMap.has(d.id)) {
               // console.log("selection is in the map");
@@ -859,6 +865,10 @@ export default Vue.extend({
         .attr('width', colWidth)
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
+            this.nonAggrNodes = this.processChildNodes(this.network.nodes);
+            this.nonAggrLinks = this.processChildLinks(this.network.links);
+            console.log('nodes before aggregation', this.nonAggrNodes);
+            console.log('links before aggregation', this.nonAggrLinks);
             this.$emit(
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
@@ -1252,6 +1262,35 @@ export default Vue.extend({
 
     isCell(element: any): element is Cell {
       return Object.prototype.hasOwnProperty.call(element, 'cellName');
+    },
+
+    // function for processing nodes
+    processChildNodes(nodes: Node[]) {
+      const nodeCopy: Node[] = [];
+      // original network components
+      nodes.map((node: Node) => {
+        const newNode = {
+          ...node,
+        };
+        newNode.type = 'node';
+        nodeCopy.push(newNode);
+      });
+
+      return nodeCopy;
+    },
+
+    // function for processing links
+    processChildLinks(links: Link[]) {
+      const linkCopy: Link[] = [];
+      // original network components
+      links.map((link: Link) => {
+        const newLink = {
+          ...link,
+        };
+        newLink.type = 'link';
+        linkCopy.push(newLink);
+      });
+      return linkCopy;
     },
 
     capitalizeFirstLetter(word: string) {
