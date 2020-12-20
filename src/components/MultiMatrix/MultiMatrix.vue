@@ -69,6 +69,7 @@ export default Vue.extend({
     sortKey: string;
     colMargin: number;
     attributeScales: { [key: string]: any };
+    clickMap: any; // variable for keeping track of whether a label has been clicked or not
   } {
     return {
       browser: {
@@ -89,6 +90,7 @@ export default Vue.extend({
       edgeColumns: undefined,
       edgeRows: undefined,
       colorScale: scaleLinear<string, number>(),
+      clickMap: undefined,
       icons: {
         quant: {
           d:
@@ -579,8 +581,34 @@ export default Vue.extend({
           this.unHoverNode(d.id);
         })
         .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          if (this.enableGraffinity) {
+            // create a new dictionary that checks whether a node has been clicked for
+            // expanding or retracting the matrix vis
+
+            if (this.clickMap.has(d.id)) {
+              // console.log("selection is in the map");
+              if (this.clickMap.get(d.id) === true) {
+                console.log('retract visualization');
+                this.clickMap.set(d.id, false);
+                console.log('click map state: ', this.clickMap);
+              } else {
+                console.log('expand visualization');
+                this.clickMap.set(d.id, true);
+                console.log('click map state: ', this.clickMap);
+              }
+            }
+            // if the selected node is not in the map
+            // add it to the map and visualize the expansion
+            else {
+              // console.log("new selection");
+              this.clickMap.set(d.id, true);
+              console.log('expand the visualization');
+              console.log('click map state: ', this.clickMap);
+            }
+          } else {
+            this.selectElement(d);
+            this.selectNeighborNodes(d.id, d.neighbors);
+          }
         });
 
       let verticalOffset = 187.5;
@@ -835,6 +863,7 @@ export default Vue.extend({
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
             );
+            this.clickMap = new Map<string, boolean>();
           } else {
             this.sort(d);
           }
