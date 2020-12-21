@@ -54,7 +54,6 @@ export default Vue.extend({
     matrixSVG: any;
     attributesSVG: any;
     cellSize: number;
-    idMap: { [key: string]: number };
     maxNumConnections: number;
     matrix: Cell[][];
     attributes: any;
@@ -83,7 +82,6 @@ export default Vue.extend({
       matrixSVG: undefined,
       attributesSVG: undefined,
       cellSize: 15,
-      idMap: {},
       maxNumConnections: -Infinity,
       matrix: [],
       attributes: undefined,
@@ -169,6 +167,16 @@ export default Vue.extend({
     matrixHighlightLength(): number {
       return this.matrix.length * this.cellSize;
     },
+
+    idMap() {
+      const computedIdMap: { [key: string]: number } = {};
+      this.network.nodes.forEach((node: Node, index: number) => {
+        node.index = index;
+        computedIdMap[node.id] = index;
+      });
+
+      return computedIdMap;
+    },
   },
 
   watch: {
@@ -177,13 +185,11 @@ export default Vue.extend({
     },
 
     network() {
-      this.generateIdMap();
       this.processData();
       this.changeMatrix();
     },
 
     directional() {
-      this.generateIdMap();
       this.processData();
       this.changeMatrix();
     },
@@ -210,8 +216,6 @@ export default Vue.extend({
       .attr('width', this.attributesWidth)
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
-
-    this.generateIdMap();
 
     // Run process data to convert links to cells
     this.processData();
@@ -274,14 +278,6 @@ export default Vue.extend({
 
       this.initializeAttributes();
       this.initializeEdges();
-    },
-
-    generateIdMap() {
-      this.idMap = {};
-      this.network.nodes.forEach((node: Node, index: number) => {
-        node.index = index;
-        this.idMap[node.id] = index;
-      });
     },
 
     processData(): void {
