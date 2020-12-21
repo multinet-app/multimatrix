@@ -4,6 +4,9 @@
 // in the network
 import { defineSuperNeighbors } from '@/lib/multinet';
 import { Link, Node } from '@/types';
+
+// function that creates a deep copy of nodes
+// function that creates a deep copy of links
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
@@ -16,6 +19,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     // remove the properties that will not be used
     // and properties that will be recalculated for visualization
     newNode.neighbors = [];
+    newNode.type = 'node';
 
     // add new node to node list
     newNodes.push(newNode);
@@ -39,6 +43,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
       _key: attr,
       id: 'supernodes/' + attr,
       neighbors: [],
+      type: 'supernode',
     };
     superMap.set(attr, superNode);
     superNodes.push(superNode);
@@ -58,7 +63,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     const newLink = {
       ...link,
     };
-
+    newLink.type = 'superLink';
     newLinks.push(newLink);
   });
 
@@ -109,6 +114,31 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     nodes: finalNodes,
     links: newLinks,
   };
-
   return network;
+}
+
+// this function is for expanding the super network for visualization
+export function expandSuperNetwork(
+  nonAggrNodes: Node[],
+  nonAggrLinks: Link[],
+  aggrNodes: Node[],
+  aggrLinks: Link[],
+) {
+  console.log('child nodes: ', nonAggrNodes);
+  console.log('child links: ', nonAggrLinks);
+  console.log('supernodes: ', aggrNodes);
+  console.log('superlinks: ', aggrLinks);
+}
+
+// this function is for retracting the super network visualization
+export function retractSuperNetwork(
+  nonAggrNodes: Node[],
+  nonAggrLinks: Link[],
+  aggrNodes: Node[],
+  aggrLinks: Link[],
+) {
+  console.log('child nodes: ', nonAggrNodes);
+  console.log('child links: ', nonAggrLinks);
+  console.log('supernodes: ', aggrNodes);
+  console.log('superlinks: ', aggrLinks);
 }
