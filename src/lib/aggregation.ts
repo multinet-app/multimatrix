@@ -117,6 +117,34 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   return network;
 }
 
+// functions for deep copying nodes and links
+function deepCopyNodes(nodes: Node[]) {
+  const nodeCopy: Node[] = [];
+  // original network components
+  nodes.map((node: Node) => {
+    const newNode = {
+      ...node,
+    };
+    newNode.neighbors = [];
+    nodeCopy.push(newNode);
+  });
+
+  return nodeCopy;
+}
+
+function deepCopyLinks(links: Link[]) {
+  const linkCopy: Link[] = [];
+  // original network components
+  links.map((link: Link) => {
+    const newLink = {
+      ...link,
+    };
+    linkCopy.push(newLink);
+  });
+  return linkCopy;
+}
+
+
 // this function is for expanding the super network for visualization
 export function expandSuperNetwork(
   nonAggrNodes: Node[],
@@ -124,10 +152,14 @@ export function expandSuperNetwork(
   aggrNodes: Node[],
   aggrLinks: Link[],
 ) {
-  console.log('child nodes: ', nonAggrNodes);
-  console.log('child links: ', nonAggrLinks);
-  console.log('supernodes: ', aggrNodes);
-  console.log('superlinks: ', aggrLinks);
+  const nonAggrNodesCopy = deepCopyNodes(nonAggrNodes);
+  const nonAggrLinksCopy = deepCopyLinks(nonAggrLinks);
+  const aggrNodesCopy = deepCopyNodes(aggrNodes);
+  const aggrLinksCopy = deepCopyLinks(aggrLinks);
+  console.log('child nodes: ', nonAggrNodesCopy);
+  console.log('child links: ', nonAggrLinksCopy);
+  console.log('supernodes: ', aggrNodesCopy);
+  console.log('superlinks: ', aggrLinksCopy);
 }
 
 // this function is for retracting the super network visualization
