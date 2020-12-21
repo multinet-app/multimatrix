@@ -1,7 +1,11 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 
-import { superGraph } from '@/lib/aggregation';
+import {
+  superGraph,
+  expandSuperNetwork,
+  retractSuperNetwork,
+} from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
   axisTop,
@@ -45,6 +49,7 @@ export default Vue.extend({
   },
 
   data(): {
+    // superNetwork: Network;
     browser: Dimensions;
     visMargins: any;
     matrixSVG: any;
@@ -74,6 +79,11 @@ export default Vue.extend({
     clickMap: any; // variable for keeping track of whether a label has been clicked or not
   } {
     return {
+      // superNetwork: {
+      //   nodes: [],
+      //   links: [],
+      // },
+
       browser: {
         height: 0,
         width: 0,
@@ -181,6 +191,9 @@ export default Vue.extend({
       this.generateIdMap();
       this.processData();
       this.changeMatrix();
+    },
+    superNetwork() {
+      console.log('do something with the network');
     },
   },
 
@@ -366,8 +379,8 @@ export default Vue.extend({
         .attr('transform', `translate(0, 0)`);
 
       this.edgeRows
-        .transition()
-        .duration(1100)
+        // .transition()
+        // .duration(1100)
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
@@ -589,16 +602,28 @@ export default Vue.extend({
             // create a new dictionary that checks whether a node has been clicked for
             // expanding or retracting the matrix vis
             console.log('id and number selected: ', d.id, i);
-            console.log('node value: ', d);
+            // console.log('node value: ', d);
 
             if (this.clickMap.has(d.id)) {
               // console.log("selection is in the map");
               if (this.clickMap.get(d.id) === true) {
                 console.log('retract visualization');
+                retractSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                );
                 this.clickMap.set(d.id, false);
                 console.log('click map state: ', this.clickMap);
               } else {
                 console.log('expand visualization');
+                expandSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                );
                 this.clickMap.set(d.id, true);
                 console.log('click map state: ', this.clickMap);
               }
@@ -609,6 +634,12 @@ export default Vue.extend({
               // console.log("new selection");
               this.clickMap.set(d.id, true);
               console.log('expand the visualization');
+              expandSuperNetwork(
+                this.nonAggrNodes,
+                this.nonAggrLinks,
+                this.network.nodes,
+                this.network.links,
+              );
               console.log('click map state: ', this.clickMap);
             }
           } else {
@@ -869,10 +900,12 @@ export default Vue.extend({
             this.nonAggrLinks = this.processChildLinks(this.network.links);
             console.log('nodes before aggregation', this.nonAggrNodes);
             console.log('links before aggregation', this.nonAggrLinks);
+            // this.network = superGraph(this.network.nodes, this.network.links, d);
             this.$emit(
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
             );
+            // create a new instant of click map for keeping track of the nodes that the user has selected
             this.clickMap = new Map<string, boolean>();
           } else {
             this.sort(d);
