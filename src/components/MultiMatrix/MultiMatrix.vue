@@ -301,10 +301,10 @@ export default Vue.extend({
 
       // Count occurrences of links and store it in the matrix
       this.network.links.forEach((link: Link) => {
-        this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
+        this.matrix[this.idMap[link._from]][this.idMap[link._to]].z += 1;
 
         if (!this.directional) {
-          this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+          this.matrix[this.idMap[link._to]][this.idMap[link._from]].z += 1;
         }
       });
 
@@ -1175,13 +1175,14 @@ export default Vue.extend({
       ) {
         const links: any[] = Array(this.network.links.length);
 
+        // Generate links that are compatible with reorder.js
         this.network.links.forEach((link: Link, index: number) => {
           links[index] = {
             source: this.network.nodes.find(
-              (node: Node) => node.id === link.source,
+              (node: Node) => node.id === link._from,
             ),
             target: this.network.nodes.find(
-              (node: Node) => node.id === link.target,
+              (node: Node) => node.id === link._to,
             ),
           };
         });

@@ -6,8 +6,8 @@ export interface Dimensions {
 export interface Link {
   _key: string;
   id: string;
-  source: string;
-  target: string;
+  _from: string;
+  _to: string;
   [propName: string]: any;
 }
 
