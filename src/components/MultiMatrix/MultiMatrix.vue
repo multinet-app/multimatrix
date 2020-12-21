@@ -171,7 +171,6 @@ export default Vue.extend({
     idMap() {
       const computedIdMap: { [key: string]: number } = {};
       this.network.nodes.forEach((node: Node, index: number) => {
-        node.index = index;
         computedIdMap[node.id] = index;
       });
 
@@ -282,14 +281,14 @@ export default Vue.extend({
 
     processData(): void {
       this.network.nodes.forEach((rowNode: Node, i: number) => {
-        this.matrix[i] = this.network.nodes.map((colNode: Node) => {
+        this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
           return {
             cellName: `${rowNode.id}_${colNode.id}`,
             correspondingCell: `${colNode.id}_${rowNode.id}`,
             rowID: rowNode.id,
             colID: colNode.id,
-            x: colNode.index,
-            y: rowNode.index,
+            x: j,
+            y: i,
             z: 0,
           };
         });
