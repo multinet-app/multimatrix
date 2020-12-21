@@ -144,6 +144,27 @@ function deepCopyLinks(links: Link[]) {
   return linkCopy;
 }
 
+// function that maps node names to node objects
+// <name, Node>
+function MapNetworkNodes(nodes: Node[]) {
+  const nodeMap = new Map<string, Node>();
+  nodes.forEach((node: Node) => {
+    nodeMap.set(node.id, node);
+  });
+  return nodeMap;
+}
+
+// function that maps all supernode children to their parent supernode
+function mapSuperChildren(superNodes: Node[]) {
+  const superChildrenMap = new Map<string, string>();
+  superNodes.forEach((parentNode: Node) => {
+    const superChildren = parentNode.CHILDREN;
+    superChildren.forEach((childNode: string) => {
+      superChildrenMap.set(childNode, parentNode.id);
+    });
+  });
+  return superChildrenMap;
+}
 
 // this function is for expanding the super network for visualization
 export function expandSuperNetwork(
@@ -151,6 +172,7 @@ export function expandSuperNetwork(
   nonAggrLinks: Link[],
   aggrNodes: Node[],
   aggrLinks: Link[],
+  superNode: Node,
 ) {
   const nonAggrNodesCopy = deepCopyNodes(nonAggrNodes);
   const nonAggrLinksCopy = deepCopyLinks(nonAggrLinks);
@@ -160,6 +182,21 @@ export function expandSuperNetwork(
   console.log('child links: ', nonAggrLinksCopy);
   console.log('supernodes: ', aggrNodesCopy);
   console.log('superlinks: ', aggrLinksCopy);
+  console.log('superNode', superNode);
+
+  const childrenNodeNameDict = MapNetworkNodes(nonAggrNodesCopy);
+  const superChildrenDict = mapSuperChildren(aggrNodesCopy);
+
+  console.log('children map', childrenNodeNameDict);
+  console.log('superchildren map', superChildrenDict);
+
+  //   // calculate a new list of supernodes
+  // const expandNodes = expandSuperDataNodes(
+  //   superNode.id,
+  //   superNetwork,
+  //   childrenNodeNameDict,
+  //   superNodeNameDict,
+  // );
 }
 
 // this function is for retracting the super network visualization
