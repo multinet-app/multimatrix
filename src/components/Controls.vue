@@ -62,7 +62,7 @@ export default Vue.extend({
   },
 
   async mounted() {
-    const { workspace, networkName, host } = getUrlVars();
+    const { workspace, graph: networkName, host } = getUrlVars();
     if (!workspace || !networkName) {
       throw new Error(
         `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
