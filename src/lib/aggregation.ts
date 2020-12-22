@@ -158,7 +158,7 @@ function mapNetworkNodes(nodes: Node[]) {
 function mapSuperChildren(superNodes: Node[]) {
   const superChildrenMap = new Map<string, string>();
   superNodes.forEach((networkNode: Node) => {
-    if (networkNode.type === "node") { 
+    if (networkNode.type === 'node') {
       return;
     }
     const superChildren = networkNode.CHILDREN;
@@ -220,8 +220,8 @@ function expandSuperLinksData(
   if (superNode != undefined) {
     superChildren = superNode.CHILDREN;
   }
-  console.log('the children of the supernode selected');
-  console.log(superChildren);
+  // console.log('the children of the supernode selected');
+  // console.log(superChildren);
 
   // create a list of links whose _from is one of the superchildren selected
   const superChildrenLinks: Link[] = [];
@@ -275,16 +275,16 @@ export function expandSuperNetwork(
   const nonAggrLinksCopy = deepCopyLinks(nonAggrLinks);
   const aggrNodesCopy = deepCopyNodes(aggrNodes);
   const aggrLinksCopy = deepCopyLinks(aggrLinks);
-  console.log('child nodes: ', nonAggrNodesCopy);
-  console.log('child links: ', nonAggrLinksCopy);
+  // console.log('child nodes: ', nonAggrNodesCopy);
+  // console.log('child links: ', nonAggrLinksCopy);
   // console.log('supernodes: ', aggrNodesCopy);
-  console.log('superlinks: ', aggrLinksCopy);
+  // console.log('superlinks: ', aggrLinksCopy);
   // console.log('superNode', superNode);
 
+  // data for expanding the vis
   const childrenNodeNameDict = mapNetworkNodes(nonAggrNodesCopy);
   const superNodeNameDict = mapNetworkNodes(aggrNodesCopy);
   const superChildrenDict = mapSuperChildren(aggrNodesCopy);
-  console.log('superchildren dict', superChildrenDict);
 
   // calculate a new list of supernodes
   const expandNodes = expandSuperNodeData(
@@ -293,7 +293,7 @@ export function expandSuperNetwork(
     childrenNodeNameDict,
     superNodeNameDict,
   );
-  console.log('the expanded nodes', expandNodes);
+  // console.log('the expanded nodes', expandNodes);
 
   // calculate a new set of links
   const expandLinks = expandSuperLinksData(
@@ -303,7 +303,7 @@ export function expandSuperNetwork(
     superNodeNameDict,
     superChildrenDict,
   );
-  console.log('the expanded links', expandLinks);
+  // console.log('the expanded links', expandLinks);
 
   let neighborNodes: Node[] = [];
   if (expandNodes && expandLinks != undefined) {
@@ -327,9 +327,24 @@ export function retractSuperNetwork(
   nonAggrLinks: Link[],
   aggrNodes: Node[],
   aggrLinks: Link[],
+  superNode: Node,
 ) {
-  console.log('child nodes: ', nonAggrNodes);
-  console.log('child links: ', nonAggrLinks);
-  console.log('supernodes: ', aggrNodes);
-  console.log('superlinks: ', aggrLinks);
+  const nonAggrNodesCopy = deepCopyNodes(nonAggrNodes);
+  const nonAggrLinksCopy = deepCopyLinks(nonAggrLinks);
+  const aggrNodesCopy = deepCopyNodes(aggrNodes);
+  const aggrLinksCopy = deepCopyLinks(aggrLinks);
+  // console.log('child nodes: ', nonAggrNodesCopy);
+  console.log('child links: ', nonAggrLinksCopy);
+  // console.log('supernodes: ', aggrNodesCopy);
+  console.log('superlinks: ', aggrLinksCopy);
+  console.log('superNode', superNode);
+
+  // data for retracting the vis
+  const childrenNodeNameDict = mapNetworkNodes(nonAggrNodesCopy);
+  const superNodeNameDict = mapNetworkNodes(aggrNodesCopy);
+  const superChildrenDict = mapSuperChildren(aggrNodesCopy);
+
+  console.log('children node dict: ', childrenNodeNameDict);
+  console.log('supernode name dict: ', superNodeNameDict);
+  console.log('super children dict: ', superChildrenDict);
 }
