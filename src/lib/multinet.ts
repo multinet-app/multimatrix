@@ -1,3 +1,10 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-return-assign */
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* Multinet data importer */
 import { multinetApi } from 'multinet';
 import { Node, Network, Link } from '@/types';
@@ -12,8 +19,8 @@ async function _downloadAllRows(
 
   // If the table is large, don't download the data
   if (
-    (table.count > 100 && tableType === 'node') ||
-    (table.count > 2000 && tableType === 'link')
+    (table.count > 100 && tableType === 'node')
+    || (table.count > 2000 && tableType === 'link')
   ) {
     throw new Error(
       `The table called ${tableName} is too large, not downloading.`,
