@@ -4,19 +4,16 @@ import Vue, { PropType } from 'vue';
 import { superGraph } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
-  axisTop,
-  max,
-  min,
-  range,
   ScaleBand,
   scaleBand,
   ScaleLinear,
   scaleLinear,
   scaleOrdinal,
-  schemeCategory10,
-  select,
-  selectAll,
-} from 'd3';
+} from 'd3-scale';
+import { axisTop } from 'd3-axis';
+import { max, min, range } from 'd3-array';
+import { select, selectAll } from 'd3-selection';
+import { schemeCategory10 } from 'd3-scale-chromatic';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
 import 'science';

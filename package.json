@@ -15,7 +15,12 @@
   "dependencies": {
     "@types/d3": "^5.7.2",
     "core-js": "^3.4.3",
-    "d3": "^5.14.2",
+    "d3-array": "^2.9.1",
+    "d3-axis": "^2.0.0",
+    "d3-format": "^2.0.0",
+    "d3-scale": "^3.2.3",
+    "d3-scale-chromatic": "^2.0.0",
+    "d3-selection": "^2.0.0",
     "d3-svg-legend": "^2.25.6",
     "multinet": "^0.18.0",
     "provenance-lib-core": "^6.0.0",
