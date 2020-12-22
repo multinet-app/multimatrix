@@ -2,7 +2,7 @@
 import Controls from './components/Controls.vue';
 
 export default {
-  name: 'app',
+  name: 'App',
 
   components: {
     Controls,
