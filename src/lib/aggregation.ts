@@ -321,6 +321,35 @@ export function expandSuperNetwork(
   return network;
 }
 
+// this function retracts the supernodes if they are double clicked twice
+function retractSuperNodeData(
+  superNodeName: string,
+  aggrNodesCopy: Node[],
+  childrenNodeNameDict: Map<string, Node>,
+  superNodeNameDict: Map<string, Node>,
+) {
+  const expandNodesCopy = deepCopyNodes(aggrNodesCopy);
+  const superNode = superNodeNameDict.get(superNodeName);
+
+  if (superNode != undefined) {
+    const superChildrenIDs = superNode.CHILDREN;
+    const childNodes: Node[] = [];
+    superChildrenIDs.forEach((id: string) => {
+      const childNode = childrenNodeNameDict.get(id);
+      if (childNode != undefined) {
+        childNodes.push(childNode);
+      }
+    });
+    console.log('expanded nodes', expandNodesCopy);
+    // let count = 0;
+    const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
+    const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
+    console.log('supernode start index', superIndexStart);
+    expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
+    console.log('nodes after removal', expandNodesCopy);
+  }
+}
+
 // this function is for retracting the super network visualization
 export function retractSuperNetwork(
   nonAggrNodes: Node[],
@@ -347,4 +376,12 @@ export function retractSuperNetwork(
   console.log('children node dict: ', childrenNodeNameDict);
   console.log('supernode name dict: ', superNodeNameDict);
   console.log('super children dict: ', superChildrenDict);
+
+  // calculate a list of new nodes
+  retractSuperNodeData(
+    superNode.id,
+    aggrNodesCopy,
+    childrenNodeNameDict,
+    superNodeNameDict,
+  );
 }
