@@ -157,10 +157,13 @@ function mapNetworkNodes(nodes: Node[]) {
 // function that maps all supernode children to their parent supernode
 function mapSuperChildren(superNodes: Node[]) {
   const superChildrenMap = new Map<string, string>();
-  superNodes.forEach((parentNode: Node) => {
-    const superChildren = parentNode.CHILDREN;
+  superNodes.forEach((networkNode: Node) => {
+    if (networkNode.type === "node") { 
+      return;
+    }
+    const superChildren = networkNode.CHILDREN;
     superChildren.forEach((childNode: string) => {
-      superChildrenMap.set(childNode, parentNode.id);
+      superChildrenMap.set(childNode, networkNode.id);
     });
   });
   return superChildrenMap;
@@ -243,10 +246,23 @@ function expandSuperLinksData(
   });
   const combinedLinks = superLinksCopy.concat(superChildrenLinks);
 
-  console.log('the final combined links: ', combinedLinks);
+  // console.log('the final combined links: ', combinedLinks);
   return combinedLinks;
 }
 
+// this function that constructs the neighbors for a node in a super network
+function defineNeighborNodes(nodes: Node[], links: Link[]) {
+  nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
+  links.forEach((link) => {
+    const findNodeFrom = nodes.find((node) => node.id === link._from);
+    const findNodeTo = nodes.find((node) => node.id === link._to);
+    if (findNodeFrom && findNodeTo != undefined) {
+      findNodeFrom.neighbors.push(link._to);
+      findNodeTo.neighbors.push(link._from);
+    }
+  });
+  return nodes;
+}
 // this function is for expanding the super network for visualization
 export function expandSuperNetwork(
   nonAggrNodes: Node[],
@@ -287,8 +303,22 @@ export function expandSuperNetwork(
     superNodeNameDict,
     superChildrenDict,
   );
-
   console.log('the expanded links', expandLinks);
+
+  let neighborNodes: Node[] = [];
+  if (expandNodes && expandLinks != undefined) {
+    neighborNodes = defineNeighborNodes(expandNodes, expandLinks);
+  }
+
+  // construct the new network
+  const network = {
+    nodes: neighborNodes,
+    links: expandLinks,
+  };
+
+  // console.log("the final network");
+  // console.log(network);
+  return network;
 }
 
 // this function is for retracting the super network visualization
