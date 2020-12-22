@@ -30,6 +30,10 @@ export default Vue.extend({
       type: Object as PropType<Network>,
       required: true,
     },
+    network: {
+      type: Object as PropType<Network>,
+      required: true,
+    },
     selectNeighbors: {
       type: Boolean,
       default: true,
@@ -120,9 +124,15 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { schemaNetwork, visualizedAttributes, enableGraffinity } = this;
+      const {
+        schemaNetwork,
+        network,
+        visualizedAttributes,
+        enableGraffinity,
+      } = this;
       return {
         schemaNetwork,
+        network,
         visualizedAttributes,
         enableGraffinity,
       };
@@ -425,7 +435,10 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverEdge(d);
         })
-        .on('click', (d: Cell) => this.selectElement(d))
+        .on('click', (d: Cell) => {
+          this.displayValue(d);
+          this.selectElement(d);
+        })
         .attr('cursor', 'pointer');
 
       this.appendEdgeLabels();
@@ -968,6 +981,73 @@ export default Vue.extend({
         ),
       ];
       return uniqueValues.length > 5;
+    },
+
+    // function for displaying selected cell value(s) to table
+    displayValue(element: Cell): void {
+      // Filter nodes based on cell selection
+      const schemaNodesFilter: any[] = this.schemaNetwork.nodes.filter(
+        (n: Node) => {
+          if (n.id === element.rowID || n.id === element.colID) {
+            return n;
+          }
+        },
+      );
+
+      // TODO Come back and combine with above
+      let childrenNodesFilter: string[] = [];
+      schemaNodesFilter.forEach((c: any) => {
+        childrenNodesFilter = childrenNodesFilter.concat(c.children);
+      });
+
+      // Filter children nodes based on schema aggregate nodes
+      const nodeDataToDisplay: any[] = this.network.nodes.filter(
+        (childNode: Node) => {
+          if (childrenNodesFilter.includes(childNode.id)) {
+            return childNode;
+          }
+        },
+      );
+
+      // Filter links based on cell selection
+      const linkDataToDisplay: any[] = this.schemaNetwork.links.filter(
+        (l: Link) => {
+          if (l._from === element.rowID && l._to === element.colID) {
+            return l;
+          }
+        },
+      );
+
+      // console.log('NODE', nodeDataToDisplay);
+      console.log('LINK', linkDataToDisplay);
+
+      // Create a new table to display this information...can I use lineup? Yes?
+      // Draw nodes in one table? links in another?
+      // Set the column widths and margin
+      const attrWidth = parseFloat(select('#attributes').attr('width'));
+      const colWidth = attrWidth / nodeDataToDisplay.length - this.colMargin;
+
+      // Update the column headers
+      const columnHeaderGroups = this.columnHeaders
+        .selectAll('text')
+        .data(nodeDataToDisplay);
+
+      columnHeaderGroups.exit().remove();
+
+      columnHeaderGroups
+        .enter()
+        .append('text')
+        .merge(columnHeaderGroups)
+        .style('font-size', '14px')
+        .style('text-transform', 'capitalize')
+        .style('word-wrap', 'break-word')
+        .attr('text-anchor', 'left')
+        .attr('transform', (d: any, i: number) => `translate(0,${i * 16})`)
+        .attr('cursor', 'pointer')
+        .text((d: string) => d.id)
+        .attr('y', 16)
+        // .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
+        .attr('width', colWidth);
     },
 
     selectElement(element: Cell | Node): void {

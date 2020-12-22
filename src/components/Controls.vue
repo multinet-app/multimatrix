@@ -263,6 +263,7 @@ export default Vue.extend({
             v-if="workspace"
             v-bind="{
               schemaNetwork,
+              network,
               selectNeighbors,
               showGridLines,
               enableGraffinity,
