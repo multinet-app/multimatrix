@@ -876,7 +876,7 @@ export default Vue.extend({
       selectAll('.attr-axis').remove();
 
       // Add the scale bar at the top of the attr column
-      this.visualizedAttributes.forEach((col: string, index: number) => {
+      this.visualizedAttributes.forEach((col, index) => {
         if (this.isQuantitative(col)) {
           this.attributes
             .append('g')
@@ -966,10 +966,20 @@ export default Vue.extend({
     isQuantitative(varName: string): boolean {
       const uniqueValues = [
         ...new Set(
-          this.network.nodes.map((node: Node) => parseFloat(node[varName])),
+          this.network.nodes.map((node: Node) => {
+            const value = node[varName];
+            if (this.isString(value)) {
+              return parseFloat(value);
+            }
+            return 0;
+          }),
         ),
       ];
       return uniqueValues.length > 5;
+    },
+
+    isString(element: unknown): element is string {
+      return element instanceof String;
     },
 
     selectElement(element: Cell | Node): void {
@@ -1193,9 +1203,12 @@ export default Vue.extend({
           order = reorder.optimal_leaf_order()(mat);
         }
       } else if (this.sortKey === 'edges') {
-        order = range(this.network.nodes.length).sort(
-          (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
-        );
+        order = range(this.network.nodes.length).sort((a, b) => {
+          const firstValue = this.network.nodes[b][type] as number;
+          const secondValue = this.network.nodes[a][type] as number;
+
+          return firstValue - secondValue;
+        });
       } else if (isNode === true) {
         order = range(this.network.nodes.length).sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
         order = range(this.network.nodes.length).sort(
@@ -1205,9 +1218,12 @@ export default Vue.extend({
       } else if (this.sortKey === 'shortName') {
         order = range(this.network.nodes.length).sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
       } else {
-        order = range(this.network.nodes.length).sort(
-          (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
-        );
+        order = range(this.network.nodes.length).sort((a, b) => {
+          const firstValue = this.network.nodes[b][type] as number;
+          const secondValue = this.network.nodes[a][type] as number;
+
+          return firstValue - secondValue;
+        });
       }
       this.order = order;
       return order;
