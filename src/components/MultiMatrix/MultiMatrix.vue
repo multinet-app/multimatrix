@@ -49,7 +49,7 @@ export default Vue.extend({
   },
 
   data(): {
-    // superNetwork: Network;
+    superNetwork: Network;
     browser: Dimensions;
     visMargins: any;
     matrixSVG: any;
@@ -79,10 +79,10 @@ export default Vue.extend({
     clickMap: any; // variable for keeping track of whether a label has been clicked or not
   } {
     return {
-      // superNetwork: {
-      //   nodes: [],
-      //   links: [],
-      // },
+      superNetwork: {
+        nodes: [],
+        links: [],
+      },
 
       browser: {
         height: 0,
@@ -602,6 +602,7 @@ export default Vue.extend({
             // create a new dictionary that checks whether a node has been clicked for
             // expanding or retracting the matrix vis
             console.log('id and number selected: ', d.id, i);
+            const superNode = d;
             // console.log('node value: ', d);
 
             if (this.clickMap.has(d.id)) {
@@ -618,28 +619,50 @@ export default Vue.extend({
                 console.log('click map state: ', this.clickMap);
               } else {
                 console.log('expand visualization');
-                expandSuperNetwork(
+                this.superNetwork = expandSuperNetwork(
                   this.nonAggrNodes,
                   this.nonAggrLinks,
-                  this.network.nodes,
-                  this.network.links,
+                  this.superNetwork.nodes,
+                  this.superNetwork.links,
+                  superNode,
                 );
                 this.clickMap.set(d.id, true);
                 console.log('click map state: ', this.clickMap);
               }
+            } else if (this.clickMap.size != 0) {
+              console.log("the click map has at least one node expanded");
+              console.log('expand visualization');
+              this.superNetwork = expandSuperNetwork(
+                this.nonAggrNodes,
+                this.nonAggrLinks,
+                this.superNetwork.nodes,
+                this.superNetwork.links,
+                superNode,
+              );
+              this.clickMap.set(d.id, true);
+              console.log('click map state: ', this.clickMap);
+              // print the new supernetwork
+              console.log('print the super network');
+              console.log(this.superNetwork);
             }
             // if the selected node is not in the map
             // add it to the map and visualize the expansion
             else {
               // console.log("new selection");
+              console.log("the click map has no nodes expanded");
               this.clickMap.set(d.id, true);
               console.log('expand the visualization');
-              expandSuperNetwork(
+              this.superNetwork = expandSuperNetwork(
                 this.nonAggrNodes,
                 this.nonAggrLinks,
                 this.network.nodes,
                 this.network.links,
+                superNode,
               );
+
+              // print the new supernetwork
+              console.log('print the super network');
+              console.log(this.superNetwork);
               console.log('click map state: ', this.clickMap);
             }
           } else {
