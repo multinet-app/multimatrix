@@ -346,7 +346,13 @@ function retractSuperNodeData(
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     console.log('supernode start index', superIndexStart);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
+
+    // update the index of the new supernodes
+    expandNodesCopy.forEach((node: Node, index: number) => {
+      node.index = index;
+    });
     console.log('nodes after removal', expandNodesCopy);
+    return expandNodesCopy;
   }
 }
 
