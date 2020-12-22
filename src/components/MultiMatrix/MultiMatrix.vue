@@ -433,9 +433,9 @@ export default Vue.extend({
         .append('xhtml:p')
         .text((d: Node) => d._key)
         .classed('colLabels', true)
-        .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          this.selectElement(matrixElement);
+          this.selectNeighborNodes(matrixElement._id, matrixElement.neighbors);
         })
         .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
           this.showToolTip(event, matrixElement);
@@ -456,8 +456,8 @@ export default Vue.extend({
           'transform',
           `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
         )
-        .on('click', (d: Node) => {
-          this.sort(d.id);
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          this.sort(matrixElement.id);
           const action = this.changeInteractionWrapper('neighborSelect');
           this.provenance.applyAction(action);
         })
@@ -517,9 +517,9 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverNode(d.id);
         })
-        .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          this.selectElement(matrixElement);
+          this.selectNeighborNodes(matrixElement._id, matrixElement.neighbors);
         });
 
       rowEnter.append('g').attr('class', 'cellsGroup');
@@ -554,7 +554,7 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverEdge(matrixElement);
         })
-        .on('click', (d: Cell) => this.selectElement(d))
+        .on('click', (event: MouseEvent, matrixElement: Cell) => this.selectElement(matrixElement))
         .attr('cursor', 'pointer');
 
       this.cells.exit().remove();
@@ -583,7 +583,7 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverEdge(matrixElement);
         })
-        .on('click', (d: Cell) => this.selectElement(d))
+        .on('click', (event: MouseEvent, matrixElement: Cell) => this.selectElement(matrixElement))
         .attr('cursor', 'pointer');
 
       this.cells.merge(cellsEnter);
@@ -805,9 +805,9 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverNode(matrixElement.id);
         })
-        .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          this.selectElement(matrixElement);
+          this.selectNeighborNodes(matrixElement.id, matrixElement.neighbors);
         });
 
       this.attributeZebras.merge(attributeZebrasEnter);
@@ -845,14 +845,14 @@ export default Vue.extend({
         .attr('y', 16)
         .text((d: string) => d)
         .attr('width', this.colWidth)
-        .on('click', (d: string) => {
+        .on('click', (event: MouseEvent, header: string) => {
           if (this.enableGraffinity) {
             this.$emit(
               'updateNetwork',
-              superGraph(this.network.nodes, this.network.links, d),
+              superGraph(this.network.nodes, this.network.links, header),
             );
           } else {
-            this.sort(d);
+            this.sort(header);
           }
         });
 
@@ -957,9 +957,9 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .on('mouseover', (d: Node) => this.hoverNode(d.id))
         .on('mouseout', (d: Node) => this.unHoverNode(d.id))
-        .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          this.selectElement(matrixElement);
+          this.selectNeighborNodes(matrixElement._id, matrixElement.neighbors);
         });
     },
 
