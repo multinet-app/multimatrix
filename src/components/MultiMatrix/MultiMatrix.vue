@@ -18,9 +18,12 @@ import {
   selectAll,
 } from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
+import * as LineUp from 'vue-lineup';
 
 import 'science';
 import 'reorder.js';
+
+Vue.use(LineUp);
 
 declare const reorder: any;
 
@@ -73,6 +76,7 @@ export default Vue.extend({
     sortKey: string;
     colMargin: number;
     attributeScales: { [key: string]: any };
+    lineupdata: any[];
   } {
     return {
       browser: {
@@ -119,6 +123,7 @@ export default Vue.extend({
       sortKey: '',
       colMargin: 5,
       attributeScales: {},
+      lineupdata: [],
     };
   },
 
@@ -1018,8 +1023,10 @@ export default Vue.extend({
         },
       );
 
+      this.lineupdata = nodeDataToDisplay.concat(linkDataToDisplay);
+      console.log(this.lineupdata);
       // console.log('NODE', nodeDataToDisplay);
-      console.log('LINK', linkDataToDisplay);
+      // console.log('LINK', linkDataToDisplay);
 
       // Create a new table to display this information...can I use lineup? Yes?
       // Draw nodes in one table? links in another?
@@ -1346,6 +1353,9 @@ export default Vue.extend({
   <div>
     <svg id="matrix" ref="matrix" width="800" height="900" />
     <svg id="attributes" ref="attributes" width="300" height="900" />
+
+    <!-- Lineup component -->
+    <LineUp v-bind:data="lineupdata" />
     <div id="tooltip" ref="tooltip" />
   </div>
 </template>

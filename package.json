@@ -24,6 +24,7 @@
     "reorder.js": "^1.0.6",
     "science": "^1.9.3",
     "vue": "^2.6.10",
+    "vue-lineup": "^4.0.0",
     "vuetify": "^2.1.0"
   },
   "devDependencies": {
