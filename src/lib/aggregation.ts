@@ -1,14 +1,18 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-shadow */
+
 // This function takes the original nodes and edges from the network
 // and creates a new list of supernodes and a new list of edges
 // to reflect the connections between a supernode and the original nodes
 // in the network
 import { defineSuperNeighbors } from '@/lib/multinet';
 import { Link, Node } from '@/types';
+
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
   const newNodes: Node[] = [];
-  nodes.map((node) => {
+  nodes.forEach((node) => {
     const newNode = {
       ...node,
     };
@@ -37,7 +41,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
       CHILDREN: [],
       GROUP: attr,
       _key: attr,
-      id: 'supernodes/' + attr,
+      id: `supernodes/${attr}`,
       neighbors: [],
     };
     superMap.set(attr, superNode);
@@ -47,7 +51,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
-      if (superNode != undefined) superNode.CHILDREN.push(node.id);
+      if (superNode !== undefined) superNode.CHILDREN.push(node.id);
     }
   });
 
@@ -97,7 +101,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     finalNodes.forEach((node) => {
       if (children.includes(node.id)) {
         const nodeIDValue = node.id;
-        finalNodes = finalNodes.filter((node) => node.id != nodeIDValue);
+        finalNodes = finalNodes.filter((node) => node.id !== nodeIDValue);
       }
     });
   });
