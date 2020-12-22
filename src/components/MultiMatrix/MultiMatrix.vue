@@ -437,13 +437,13 @@ export default Vue.extend({
           this.selectElement(d);
           this.selectNeighborNodes(d.id, d.neighbors);
         })
-        .on('mouseover', (d: Node, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
+        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
+          this.showToolTip(event, matrixElement);
+          this.hoverEdge(matrixElement);
         })
-        .on('mouseout', (d: Node) => {
+        .on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
           this.hideToolTip();
-          this.unHoverNode(d.id);
+          this.unHoverEdge(matrixElement);
         });
 
       columnEnter
@@ -462,13 +462,13 @@ export default Vue.extend({
           this.provenance.applyAction(action);
         })
         .attr('cursor', 'pointer')
-        .on('mouseover', (d: Node, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
+        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
+          this.showToolTip(event, matrixElement);
+          this.hoverEdge(matrixElement);
         })
-        .on('mouseout', (d: Node) => {
+        .on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
           this.hideToolTip();
-          this.unHoverNode(d.id);
+          this.unHoverEdge(matrixElement);
         });
 
       this.edgeColumns.merge(columnEnter);
@@ -546,13 +546,13 @@ export default Vue.extend({
         .attr('rx', cellRadius)
         .style('fill', (d: Cell) => this.colorScale(d.z))
         .style('fill-opacity', (d: Cell) => d.z)
-        .on('mouseover', (d: Cell, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverEdge(d);
+        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
+          this.showToolTip(event, matrixElement);
+          this.hoverEdge(matrixElement);
         })
-        .on('mouseout', (d: Cell) => {
+        .on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
           this.hideToolTip();
-          this.unHoverEdge(d);
+          this.unHoverEdge(matrixElement);
         })
         .on('click', (d: Cell) => this.selectElement(d))
         .attr('cursor', 'pointer');
@@ -575,13 +575,13 @@ export default Vue.extend({
         .attr('rx', cellRadius)
         .style('fill', (d: Cell) => this.colorScale(d.z))
         .style('fill-opacity', (d: Cell) => d.z)
-        .on('mouseover', (d: Cell, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverEdge(d);
+        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
+          this.showToolTip(event, matrixElement);
+          this.hoverEdge(matrixElement);
         })
-        .on('mouseout', (d: Cell) => {
+        .on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
           this.hideToolTip();
-          this.unHoverEdge(d);
+          this.unHoverEdge(matrixElement);
         })
         .on('click', (d: Cell) => this.selectElement(d))
         .attr('cursor', 'pointer');
@@ -797,13 +797,13 @@ export default Vue.extend({
         .attr('height', this.orderingScale.bandwidth())
         .attr('fill-opacity', 0)
         .attr('cursor', 'pointer')
-        .on('mouseover', (d: Node, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
+        .on('mouseover', (event: MouseEvent, matrixElement: Node) => {
+          this.showToolTip(event, matrixElement);
+          this.hoverNode(matrixElement.id);
         })
-        .on('mouseout', (d: Node) => {
+        .on('mouseout', (event: MouseEvent, matrixElement: Node) => {
           this.hideToolTip();
-          this.unHoverNode(d.id);
+          this.unHoverNode(matrixElement.id);
         })
         .on('click', (d: Node) => {
           this.selectElement(d);
@@ -1068,34 +1068,42 @@ export default Vue.extend({
       }
     },
 
-    showToolTip(d: Cell | Node, i: number, nodes: any): void {
-      let node = nodes[i];
+    showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
+      let svgElement: SVGGraphicsElement;
+
+      if (event.target === null || (event.target as SVGElement).className.baseVal === 'sortIcon') { return; }
 
       // If foreign object, get the foreign object, not the p
-      if (nodes[i].localName === 'p') {
-        node = node.parentElement;
+      if ((event.target as SVGElement).localName === 'p') {
+        svgElement = (event.target as SVGElement).parentElement as unknown as SVGGraphicsElement;
+      } else {
+        svgElement = event.target as SVGGraphicsElement;
       }
 
-      const matrix = node
-        .getScreenCTM()
-        .translate(nodes[i].getAttribute('x'), nodes[i].getAttribute('y'));
+      const CTM = svgElement
+        .getCTM();
+
+      if (CTM === null) { return; }
+
+      const matrix = CTM
+        .translate(parseFloat(svgElement.getAttribute('x') || ''), parseFloat(svgElement.getAttribute('y') || ''));
 
       let message = '';
 
-      if (this.isCell(d)) {
+      if (this.isCell(networkElement)) {
         // Get link source and target
         message = `
-      Row ID: ${d.rowID} <br/>
-      Col ID: ${d.colID} <br/>
-      Number of edges: ${d.z}`;
+          Row ID: ${networkElement.rowID} <br/>
+          Col ID: ${networkElement.colID} <br/>
+          Number of edges: ${networkElement.z}`;
       } else {
         // Get node id
-        message = `ID: ${d.id}`;
+        message = `ID: ${networkElement.id}`;
 
         // Loop through other props to add to tooltip
-        Object.keys(d).forEach((key) => {
+        Object.keys(networkElement).forEach((key) => {
           if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
-            message += `<br/> ${this.capitalizeFirstLetter(key)}: ${d[key]}`;
+            message += `<br/> ${this.capitalizeFirstLetter(key)}: ${networkElement[key]}`;
           }
         });
       }
@@ -1103,17 +1111,8 @@ export default Vue.extend({
       select(this.$refs.tooltip as any).html(message);
 
       select(this.$refs.tooltip as any)
-        .style('left', `${window.pageXOffset + matrix.e}px`)
-        .style(
-          'top',
-          `${
-            window.pageYOffset
-            + matrix.f
-            - select(this.$refs.tooltip as any)
-              .node()
-              .getBoundingClientRect().height
-          }px`,
-        );
+        .style('left', `${matrix.e}px`)
+        .style('top', `${matrix.f - select(this.$refs.tooltip as any).node().getBoundingClientRect().height}px`);
 
       select(this.$refs.tooltip as any)
         .transition(transition().delay(100).duration(200) as any)
