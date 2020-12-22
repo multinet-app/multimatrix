@@ -21,6 +21,7 @@ import {
 import { axisTop } from 'd3-axis';
 import { max, min, range } from 'd3-array';
 import { select, selectAll } from 'd3-selection';
+import { transition } from 'd3-transition';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
@@ -486,8 +487,7 @@ export default Vue.extend({
         .attr('transform', 'translate(0, 0)');
 
       rowEnter
-        .transition()
-        .duration(1100)
+        .transition(transition().duration(1100))
         .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
       rowEnter
@@ -728,16 +728,14 @@ export default Vue.extend({
       const transitionTime = 500;
 
       (selectAll('.rowContainer') as any)
-        .transition()
-        .duration(transitionTime)
+        .transition(transition().duration(transitionTime))
         .attr(
           'transform',
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
       (selectAll('.attrRowContainer') as any)
-        .transition()
-        .duration(transitionTime)
+        .transition(transition().duration(transitionTime))
         .attr(
           'transform',
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
@@ -747,8 +745,7 @@ export default Vue.extend({
       if (!nodeIDs.includes(order)) {
         this.edges
           .selectAll('.column')
-          .transition()
-          .duration(transitionTime)
+          .transition(transition().duration(transitionTime))
           .attr(
             'transform',
             (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`,
@@ -756,8 +753,7 @@ export default Vue.extend({
 
         (selectAll('.rowContainer') as any)
           .selectAll('.cell')
-          .transition()
-          .duration(transitionTime)
+          .transition(transition().duration(transitionTime))
           .attr('x', (d: Node, i: number) => this.orderingScale(i));
       }
 
@@ -1120,17 +1116,13 @@ export default Vue.extend({
         );
 
       select(this.$refs.tooltip as any)
-        .transition()
-        .delay(100)
-        .duration(200)
+        .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0.9);
     },
 
     hideToolTip(): void {
       select(this.$refs.tooltip as any)
-        .transition()
-        .delay(100)
-        .duration(200)
+        .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0);
     },
 

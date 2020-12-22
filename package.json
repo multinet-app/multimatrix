@@ -22,6 +22,7 @@
     "d3-scale-chromatic": "^2.0.0",
     "d3-selection": "^2.0.0",
     "d3-svg-legend": "^2.25.6",
+    "d3-transition": "^2.0.0",
     "multinet": "^0.18.0",
     "provenance-lib-core": "^6.0.0",
     "reorder.js": "^1.0.6",
