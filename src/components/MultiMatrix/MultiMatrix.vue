@@ -612,8 +612,9 @@ export default Vue.extend({
                 retractSuperNetwork(
                   this.nonAggrNodes,
                   this.nonAggrLinks,
-                  this.network.nodes,
-                  this.network.links,
+                  this.superNetwork.nodes,
+                  this.superNetwork.links,
+                  superNode,
                 );
                 this.clickMap.set(d.id, false);
                 console.log('click map state: ', this.clickMap);
@@ -629,8 +630,10 @@ export default Vue.extend({
                 this.clickMap.set(d.id, true);
                 console.log('click map state: ', this.clickMap);
               }
-            } else if (this.clickMap.size != 0) {
-              console.log("the click map has at least one node expanded");
+            }
+            // case when there is at least one expand supernode in the click map
+            else if (this.clickMap.size != 0) {
+              console.log('the click map has at least one node expanded');
               console.log('expand visualization');
               this.superNetwork = expandSuperNetwork(
                 this.nonAggrNodes,
@@ -649,7 +652,7 @@ export default Vue.extend({
             // add it to the map and visualize the expansion
             else {
               // console.log("new selection");
-              console.log("the click map has no nodes expanded");
+              console.log('the click map has no nodes expanded');
               this.clickMap.set(d.id, true);
               console.log('expand the visualization');
               this.superNetwork = expandSuperNetwork(
@@ -659,7 +662,6 @@ export default Vue.extend({
                 this.network.links,
                 superNode,
               );
-
               // print the new supernetwork
               console.log('print the super network');
               console.log(this.superNetwork);
