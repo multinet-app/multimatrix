@@ -26,7 +26,7 @@ export default Vue.extend({
     enableGraffinity: boolean;
     directional: boolean;
     visualizedAttributes: string[];
-  } {
+    } {
     return {
       network: {
         nodes: [],
@@ -43,17 +43,16 @@ export default Vue.extend({
   },
 
   computed: {
-    attributeList(this: any) {
+    attributeList(): string[] {
       if (typeof this.network.nodes[0] !== 'undefined') {
         return Object.keys(this.network.nodes[0]);
-      } else {
-        return [];
       }
+      return [];
     },
   },
 
   watch: {
-    showGridLines: function () {
+    showGridLines() {
       if (this.showGridLines) {
         selectAll('.gridLines').attr('opacity', 1);
       } else {
@@ -85,7 +84,7 @@ export default Vue.extend({
       const a = document.createElement('a');
       a.href = URL.createObjectURL(
         new Blob([JSON.stringify(this.network)], {
-          type: `text/json`,
+          type: 'text/json',
         }),
       );
       a.download = `${this.networkName}.json`;
@@ -99,6 +98,7 @@ export default Vue.extend({
         .attr('transform', 'translate(10, 60)');
 
       // construct the legend and format the labels to have 0 decimal places
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const legendLinear = (legendColor() as any)
         .shapeWidth(30)
         .orient('horizontal')
@@ -135,9 +135,11 @@ export default Vue.extend({
                   src="../assets/logo/app_logo.svg"
                   alt="Multinet"
                   width="100%"
-                />
+                >
               </v-col>
-              <v-col class="text-left">MultiMatrix</v-col>
+              <v-col class="text-left">
+                MultiMatrix
+              </v-col>
             </v-row>
           </div>
         </v-toolbar-title>
@@ -170,7 +172,11 @@ export default Vue.extend({
           <!-- Auto-Select Neighbors List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
-              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
+              <v-switch
+                v-model="selectNeighbors"
+                class="ma-0"
+                hide-details
+              />
             </v-list-item-action>
             <v-list-item-content> Autoselect Neighbors </v-list-item-content>
           </v-list-item>
@@ -178,7 +184,11 @@ export default Vue.extend({
           <!-- Gridline Toggle List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
-              <v-switch class="ma-0" v-model="showGridLines" hide-details />
+              <v-switch
+                v-model="showGridLines"
+                class="ma-0"
+                hide-details
+              />
             </v-list-item-action>
             <v-list-item-content> Show GridLines </v-list-item-content>
           </v-list-item>
@@ -194,7 +204,11 @@ export default Vue.extend({
           <!-- Graffinity Toggle List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
-              <v-switch class="ma-0" v-model="enableGraffinity" hide-details />
+              <v-switch
+                v-model="enableGraffinity"
+                class="ma-0"
+                hide-details
+              />
             </v-list-item-action>
             <v-list-item-content>
               Enable Graffinity Features
@@ -225,7 +239,7 @@ export default Vue.extend({
             style="display: flex; max-height: 50px"
           >
             Matrix Legend
-            <svg id="matrix-legend"></svg>
+            <svg id="matrix-legend" />
           </v-list-item>
         </div>
       </v-list>
@@ -235,8 +249,8 @@ export default Vue.extend({
     <v-col>
       <v-row class="ma-0">
         <multi-matrix
-          ref="multimatrix"
           v-if="workspace"
+          ref="multimatrix"
           v-bind="{
             network,
             selectNeighbors,
