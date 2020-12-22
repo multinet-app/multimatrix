@@ -1,8 +1,16 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Vue, { PropType } from 'vue';
 
 import { superGraph } from '@/lib/aggregation';
-import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
+import {
+  Cell,
+  Dimensions,
+  Link,
+  Network,
+  Node,
+  State,
+} from '@/types';
 import {
   ScaleBand,
   scaleBand,
@@ -69,13 +77,15 @@ export default Vue.extend({
     provenance: any;
     sortKey: string;
     colMargin: number;
-  } {
+    } {
     return {
       browser: {
         height: 0,
         width: 0,
       },
-      visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
+      visMargins: {
+        left: 75, top: 75, right: 0, bottom: 0,
+      },
       matrixSVG: undefined,
       attributesSVG: undefined,
       cellSize: 15,
@@ -133,17 +143,17 @@ export default Vue.extend({
 
     matrixWidth(): number {
       return (
-        this.matrixNodeLength * this.cellSize +
-        this.visMargins.left +
-        this.visMargins.right
+        this.matrixNodeLength * this.cellSize
+        + this.visMargins.left
+        + this.visMargins.right
       );
     },
 
     matrixHeight(): number {
       return (
-        this.matrixNodeLength * this.cellSize +
-        this.visMargins.top +
-        this.visMargins.bottom
+        this.matrixNodeLength * this.cellSize
+        + this.visMargins.top
+        + this.visMargins.bottom
       );
     },
 
@@ -180,10 +190,8 @@ export default Vue.extend({
       // Calculate the attribute scales
       this.visualizedAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
-          const minimum =
-            min(this.network.nodes.map((node: Node) => node[col])) || '0';
-          const maximum =
-            max(this.network.nodes.map((node: Node) => node[col])) || '0';
+          const minimum = min(this.network.nodes.map((node: Node) => node[col])) || '0';
+          const maximum = max(this.network.nodes.map((node: Node) => node[col])) || '0';
           const domain = [parseFloat(minimum), parseFloat(maximum)];
 
           const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
@@ -236,15 +244,13 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    this.browser.width =
-      window.innerWidth ||
-      document.documentElement.clientWidth ||
-      document.body.clientWidth;
+    this.browser.width = window.innerWidth
+      || document.documentElement.clientWidth
+      || document.body.clientWidth;
 
-    this.browser.height =
-      window.innerHeight ||
-      document.documentElement.clientHeight ||
-      document.body.clientHeight;
+    this.browser.height = window.innerHeight
+      || document.documentElement.clientHeight
+      || document.body.clientHeight;
 
     // Run process data to convert links to cells
     this.processData();
@@ -290,12 +296,8 @@ export default Vue.extend({
       path
         .append('path')
         .attr('class', 'sortIcon')
-        .attr('d', (d: any, i: number) => {
-          return this.icons[iconNames[i]].d;
-        })
-        .style('fill', () =>
-          sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B',
-        )
+        .attr('d', (d: any, i: number) => this.icons[iconNames[i]].d)
+        .style('fill', () => (sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B'))
         .attr('transform', 'scale(0.1)translate(-195,-320)')
         .attr('cursor', 'pointer');
       button.on('click', () => this.sort(sortNames[i]));
@@ -320,17 +322,15 @@ export default Vue.extend({
       this.matrix = [];
 
       this.network.nodes.forEach((rowNode: Node, i: number) => {
-        this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
-          return {
-            cellName: `${rowNode.id}_${colNode.id}`,
-            correspondingCell: `${colNode.id}_${rowNode.id}`,
-            rowID: rowNode.id,
-            colID: colNode.id,
-            x: j,
-            y: i,
-            z: 0,
-          };
-        });
+        this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => ({
+          cellName: `${rowNode.id}_${colNode.id}`,
+          correspondingCell: `${colNode.id}_${rowNode.id}`,
+          rowID: rowNode.id,
+          colID: colNode.id,
+          x: j,
+          y: i,
+          z: 0,
+        }));
       });
 
       // Count occurrences of links and store it in the matrix
@@ -394,8 +394,7 @@ export default Vue.extend({
       const labelContainerWidth = rowLabelContainerStart;
 
       const verticalOffset = 187.5;
-      const horizontalOffset =
-        (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
+      const horizontalOffset = (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
 
       // creates column groupings
       this.edgeColumns = this.edges
@@ -408,9 +407,7 @@ export default Vue.extend({
         .enter()
         .append('g')
         .attr('class', 'column')
-        .attr('transform', (d: Node, i: number) => {
-          return `translate(${this.orderingScale(i)})rotate(-90)`;
-        });
+        .attr('transform', (d: Node, i: number) => `translate(${this.orderingScale(i)})rotate(-90)`);
 
       // add the highlight columns
       columnEnter
@@ -453,9 +450,7 @@ export default Vue.extend({
         .attr('id', (d: Node) => `sortIcon${d.id}`)
         .attr('class', 'sortIcon')
         .attr('d', this.icons.cellSort.d)
-        .style('fill', (d: Node) =>
-          d === this.orderType ? '#EBB769' : '#8B8B8B',
-        )
+        .style('fill', (d: Node) => (d === this.orderType ? '#EBB769' : '#8B8B8B'))
         .attr(
           'transform',
           `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
@@ -488,14 +483,12 @@ export default Vue.extend({
         .enter()
         .append('g')
         .attr('class', 'rowContainer')
-        .attr('transform', `translate(0, 0)`);
+        .attr('transform', 'translate(0, 0)');
 
       rowEnter
         .transition()
         .duration(1100)
-        .attr('transform', (d: Node, i: number) => {
-          return `translate(0,${this.orderingScale(i)})`;
-        });
+        .attr('transform', (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`);
 
       rowEnter
         .append('rect')
@@ -599,6 +592,7 @@ export default Vue.extend({
     changeInteractionWrapper(interactionType: string, cell?: Cell): any {
       return {
         label: interactionType,
+        // eslint-disable-next-line consistent-return
         action: (interactID: string) => {
           const currentState = this.getApplicationState();
           // add time stamp to the state graph
@@ -607,6 +601,7 @@ export default Vue.extend({
           const interactionName = interactionType; // cell, search, etc
           let interactedElement = interactionType;
           if (interactionName === 'cell' && cell !== undefined) {
+            // eslint-disable-next-line no-param-reassign
             interactID = cell.colID;
             interactedElement = cell.cellName; // + cellData.rowID;
 
@@ -624,6 +619,7 @@ export default Vue.extend({
             );
             if (cell.cellName !== cell.correspondingCell) {
               interactedElement = cell.correspondingCell; // + cellData.rowID;
+              // eslint-disable-next-line no-param-reassign
               interactID = cell.rowID;
 
               this.changeInteraction(
@@ -643,9 +639,11 @@ export default Vue.extend({
 
             // interactID = cellData.rowID;
             // interactionName = interactionName + 'row'
-          } else if (interactionName === 'highlightRow') {
+          } if (interactionName === 'highlightRow') {
             return interactionName;
-          } else if (interactionName === 'neighborSelect') {
+          }
+
+          if (interactionName === 'neighborSelect') {
             this.changeInteraction(
               currentState,
               interactID,
@@ -691,17 +689,13 @@ export default Vue.extend({
       // vertical grid lines
       lines
         .append('line')
-        .attr('transform', (d: any, i: number) => {
-          return `translate(${this.orderingScale(i)},0)rotate(-90)`;
-        })
+        .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`)
         .attr('x1', -this.orderingScale.range()[1]);
 
       // horizontal grid lines
       lines
         .append('line')
-        .attr('transform', (d: any, i: number) => {
-          return `translate(0,${this.orderingScale(i)})`;
-        })
+        .attr('transform', (d: any, i: number) => `translate(0,${this.orderingScale(i)})`)
         .attr('x2', this.orderingScale.range()[1]);
 
       // vertical grid line edges
@@ -757,8 +751,7 @@ export default Vue.extend({
           .duration(transitionTime)
           .attr(
             'transform',
-            (d: any, i: number) =>
-              `translate(${this.orderingScale(i)},0)rotate(-90)`,
+            (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`,
           );
 
         (selectAll('.rowContainer') as any)
@@ -833,8 +826,7 @@ export default Vue.extend({
       // Update locations of existing elements
       this.attributeRows.attr(
         'transform',
-        (d: string, i: number) =>
-          `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
+        (d: string, i: number) => `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
       );
 
       const attributeRowsEnter = this.attributeRows
@@ -843,8 +835,7 @@ export default Vue.extend({
         .attr('class', 'attrColumn')
         .attr(
           'transform',
-          (d: string, i: number) =>
-            `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
+          (d: string, i: number) => `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
         );
 
       attributeRowsEnter
@@ -871,7 +862,7 @@ export default Vue.extend({
 
       attributeRowsEnter
         .append('path')
-        .attr('class', `sortIcon attr attrSortIcon`)
+        .attr('class', 'sortIcon attr attrSortIcon')
         .attr('cursor', 'pointer')
         .attr('d', (d: string) => {
           const type = this.isQuantitative(d) ? 'quant' : 'categorical';
@@ -879,10 +870,9 @@ export default Vue.extend({
         })
         .attr(
           'transform',
-          (d: string, i: number) =>
-            `scale(0.1)translate(${
-              (this.colWidth + this.colMargin) * i * 10 - 200
-            }, -1100)`,
+          (d: string, i: number) => `scale(0.1)translate(${
+            (this.colWidth + this.colMargin) * i * 10 - 200
+          }, -1100)`,
         )
         .style('fill', '#8B8B8B')
         .on('click', (d: string) => this.sort(d));
@@ -904,15 +894,14 @@ export default Vue.extend({
                 .tickValues(this.attributeScales[col].domain())
                 .tickFormat((d: any) => {
                   if (d / 1000 >= 1) {
-                    d = Math.round(d / 1000) + 'K';
+                    // eslint-disable-next-line no-param-reassign
+                    d = `${Math.round(d / 1000)}K`;
                   }
                   return parseFloat(d).toFixed(4);
                 }),
             )
             .selectAll('text')
-            .style('text-anchor', (d: any, i: number) =>
-              i % 2 ? 'end' : 'start',
-            );
+            .style('text-anchor', (d: any, i: number) => (i % 2 ? 'end' : 'start'));
         }
       });
 
@@ -934,9 +923,8 @@ export default Vue.extend({
 
           if (this.isQuantitative(varName)) {
             return this.attributeScales[varName](d[varName]);
-          } else {
-            return this.colWidth;
           }
+          return this.colWidth;
         });
 
       attributeVis.exit().remove();
@@ -959,18 +947,16 @@ export default Vue.extend({
 
           if (this.isQuantitative(varName)) {
             return this.attributeScales[varName](d[varName]);
-          } else {
-            return this.colWidth;
           }
+          return this.colWidth;
         })
         .attr('fill', (d: Node, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
           if (this.isQuantitative(varName)) {
             return '#82b1ff';
-          } else {
-            return this.attributeScales[varName](d[varName]);
           }
+          return this.attributeScales[varName](d[varName]);
         })
         .attr('cursor', 'pointer')
         .on('mouseover', (d: Node) => this.hoverNode(d.id))
@@ -1021,23 +1007,23 @@ export default Vue.extend({
             newElement,
           );
         }
+      } else if (element.id in this.selectedElements) {
+        delete this.selectedElements[element.id];
+      } else if (element.id in this.selectedElements) {
+        delete this.selectedElements[element.id];
       } else {
-        if (element.id in this.selectedElements) {
-          delete this.selectedElements[element.id];
-        } else {
-          elementsToSelect = [
-            `[id="highlightRow${element.id}"]`,
-            `[id="topoRow${element.id}"]`,
-            `[id="topoCol${element.id}"]`,
-            `[id="colLabel${element.id}"]`,
-            `[id="rowLabel${element.id}"]`,
-          ];
-          newElement = { [element.id]: elementsToSelect };
-          this.selectedElements = Object.assign(
-            this.selectedElements,
-            newElement,
-          );
-        }
+        elementsToSelect = [
+          `[id="highlightRow${element.id}"]`,
+          `[id="topoRow${element.id}"]`,
+          `[id="topoCol${element.id}"]`,
+          `[id="colLabel${element.id}"]`,
+          `[id="rowLabel${element.id}"]`,
+        ];
+        newElement = { [element.id]: elementsToSelect };
+        this.selectedElements = Object.assign(
+          this.selectedElements,
+          newElement,
+        );
       }
 
       // Reset all nodes to not neighbor highlighted
@@ -1045,11 +1031,11 @@ export default Vue.extend({
 
       // Loop through the neighbor nodes to be highlighted and highlight them
       const selections: string[] = [];
-      for (const elementID of Object.keys(this.selectedElements)) {
-        for (const elementToSelect of this.selectedElements[elementID]) {
+      Object.keys(this.selectedElements).forEach((elementID) => {
+        this.selectedElements[elementID].forEach((elementToSelect) => {
           selections.push(elementToSelect);
-        }
-      }
+        });
+      });
 
       if (selections.length > 0) {
         selectAll(selections.join(',')).classed('clicked', true);
@@ -1073,13 +1059,13 @@ export default Vue.extend({
 
       // Loop through the neighbor nodes to be highlighted and highlight them
       const selections: string[] = [];
-      for (const node of Object.keys(this.selectedNodesAndNeighbors)) {
-        for (const neighborNode of this.selectedNodesAndNeighbors[node]) {
+      Object.keys(this.selectedNodesAndNeighbors).forEach((node) => {
+        this.selectedNodesAndNeighbors[node].forEach((neighborNode) => {
           selections.push(`[id="highlightRow${neighborNode}"]`);
           selections.push(`[id="topoRow${neighborNode}"]`);
           selections.push(`[id="nodeLabelRow${neighborNode}"]`);
-        }
-      }
+        });
+      });
 
       if (selections.length > 0) {
         selectAll(selections.join(',')).classed('neighbor', true);
@@ -1111,11 +1097,11 @@ export default Vue.extend({
         message = `ID: ${d.id}`;
 
         // Loop through other props to add to tooltip
-        for (const key of Object.keys(d)) {
+        Object.keys(d).forEach((key) => {
           if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
             message += `<br/> ${this.capitalizeFirstLetter(key)}: ${d[key]}`;
           }
-        }
+        });
       }
 
       select(this.$refs.tooltip as any).html(message);
@@ -1125,9 +1111,9 @@ export default Vue.extend({
         .style(
           'top',
           `${
-            window.pageYOffset +
-            matrix.f -
-            select(this.$refs.tooltip as any)
+            window.pageYOffset
+            + matrix.f
+            - select(this.$refs.tooltip as any)
               .node()
               .getBoundingClientRect().height
           }px`,
@@ -1177,11 +1163,11 @@ export default Vue.extend({
       let order;
       this.sortKey = type;
       if (
-        type === 'clusterSpectral' ||
-        type === 'clusterBary' ||
-        type === 'clusterLeaf'
+        type === 'clusterSpectral'
+        || type === 'clusterBary'
+        || type === 'clusterLeaf'
       ) {
-        const links: any[] = Array(this.network.links.length);
+        const links: unknown[] = Array(this.network.links.length);
 
         // Generate links that are compatible with reorder.js
         this.network.links.forEach((link: Link, index: number) => {
@@ -1203,7 +1189,8 @@ export default Vue.extend({
 
         if (type === 'clusterBary') {
           const barycenter = reorder.barycenter_order(sortableNetwork);
-          order = reorder.adjacent_exchange(
+          // eslint-disable-next-line prefer-destructuring
+          [order] = reorder.adjacent_exchange(
             sortableNetwork,
             barycenter[0],
             barycenter[1],
@@ -1219,18 +1206,13 @@ export default Vue.extend({
           (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
         );
       } else if (isNode === true) {
-        order = range(this.network.nodes.length).sort((a, b) =>
-          this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
-        );
+        order = range(this.network.nodes.length).sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
         order = range(this.network.nodes.length).sort(
-          (a, b) =>
-            Number(this.network.nodes[b].neighbors.includes(type)) -
-            Number(this.network.nodes[a].neighbors.includes(type)),
+          (a, b) => Number(this.network.nodes[b].neighbors.includes(type))
+            - Number(this.network.nodes[a].neighbors.includes(type)),
         );
       } else if (this.sortKey === 'shortName') {
-        order = range(this.network.nodes.length).sort((a, b) =>
-          this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
-        );
+        order = range(this.network.nodes.length).sort((a, b) => this.network.nodes[a].id.localeCompare(this.network.nodes[b].id));
       } else {
         order = range(this.network.nodes.length).sort(
           (a, b) => this.network.nodes[b][type] - this.network.nodes[a][type],
@@ -1244,7 +1226,7 @@ export default Vue.extend({
       return this.provenance.graph().current.state;
     },
 
-    isCell(element: any): element is Cell {
+    isCell(element: unknown): element is Cell {
       return Object.prototype.hasOwnProperty.call(element, 'cellName');
     },
 
@@ -1280,18 +1262,21 @@ export default Vue.extend({
     <svg
       id="matrix"
       ref="matrix"
-      :width="this.matrixWidth"
-      :height="this.matrixHeight"
-      :viewbox="`0 0 ${this.matrixWidth} ${this.matrixHeight}`"
+      :width="matrixWidth"
+      :height="matrixHeight"
+      :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
     />
     <svg
       id="attributes"
       ref="attributes"
-      :width="this.attributesWidth"
-      :height="this.attributesHeight"
-      :viewbox="`0 0 ${this.attributesWidth} ${this.attributesHeight}`"
+      :width="attributesWidth"
+      :height="attributesHeight"
+      :viewbox="`0 0 ${attributesWidth} ${attributesHeight}`"
     />
-    <div id="tooltip" ref="tooltip" />
+    <div
+      id="tooltip"
+      ref="tooltip"
+    />
   </div>
 </template>
 
