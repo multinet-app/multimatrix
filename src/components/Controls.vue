@@ -52,6 +52,16 @@ export default Vue.extend({
     },
   },
 
+  watch: {
+    showGridLines: function () {
+      if (this.showGridLines) {
+        selectAll('.gridLines').attr('opacity', 1);
+      } else {
+        selectAll('.gridLines').attr('opacity', 0);
+      }
+    },
+  },
+
   async mounted() {
     const { workspace, networkName, host } = getUrlVars();
     if (!workspace || !networkName) {
@@ -100,15 +110,6 @@ export default Vue.extend({
 
     updateNetwork(network: Network) {
       this.network = network;
-    },
-  },
-  watch: {
-    showGridLines: function () {
-      if (this.showGridLines) {
-        selectAll('.gridLines').attr('opacity', 1);
-      } else {
-        selectAll('.gridLines').attr('opacity', 0);
-      }
     },
   },
 });
