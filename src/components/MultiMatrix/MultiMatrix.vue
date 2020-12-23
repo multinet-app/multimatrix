@@ -612,6 +612,7 @@ export default Vue.extend({
               // console.log("selection is in the map");
               if (this.clickMap.get(d.id) === true) {
                 console.log('retract visualization');
+                console.log("network before retraction", this.network);
                 retractSuperNetwork(
                   this.nonAggrNodes,
                   this.nonAggrLinks,
@@ -620,6 +621,7 @@ export default Vue.extend({
                   superNode,
                 );
                 this.clickMap.set(d.id, false);
+                console.log("retracted network", this.network);
                 console.log('click map state: ', this.clickMap);
               } else {
                 console.log('expand visualization');
@@ -641,6 +643,7 @@ export default Vue.extend({
             else if (this.clickMap.size != 0) {
               console.log('the click map has at least one node expanded');
               console.log('expand visualization');
+              console.log('agg network before expansion', this.network);
               this.$emit(
                 'updateNetwork',
                 expandSuperNetwork(
@@ -654,7 +657,7 @@ export default Vue.extend({
               this.clickMap.set(d.id, true);
               console.log('click map state: ', this.clickMap);
               // print the new supernetwork
-              console.log('print the super network');
+              console.log('print the new network after expansion');
               console.log(this.network);
             }
             // if the selected node is not in the map
@@ -664,6 +667,7 @@ export default Vue.extend({
               console.log('the click map has no nodes expanded');
               this.clickMap.set(d.id, true);
               console.log('expand the visualization');
+              console.log('agg network before expansion', this.network);
               this.$emit(
                 'updateNetwork',
                 expandSuperNetwork(
@@ -675,7 +679,7 @@ export default Vue.extend({
                 ),
               );
               // print the new supernetwork
-              console.log('print the super network');
+              console.log('new network');
               console.log(this.network);
               console.log('click map state: ', this.clickMap);
             }
