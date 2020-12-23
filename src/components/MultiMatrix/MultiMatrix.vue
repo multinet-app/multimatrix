@@ -77,6 +77,7 @@ export default Vue.extend({
     colMargin: number;
     attributeScales: { [key: string]: any };
     lineupdata: any[];
+    typeDict: { [key: string]: string };
   } {
     return {
       browser: {
@@ -124,6 +125,59 @@ export default Vue.extend({
       colMargin: 5,
       attributeScales: {},
       lineupdata: [],
+      typeDict: {
+        '1': 'Cell',
+        '3': 'Vessel',
+        '28': 'Gap Junction',
+        '31': 'Bipolar',
+        '34': 'Conventional',
+        '35': 'Postsynapse',
+        '73': 'Ribbon Synapse',
+        '80': 'Test',
+        '81': 'Organized SER',
+        '85': 'Adherens',
+        '181': 'Cistern Pre',
+        '182': 'Cistern Post',
+        '183': 'Cilium',
+        '189': 'BC Conventional Synapse',
+        '219': 'Multi Plaque-like',
+        '220': 'Endocytosis',
+        '224': 'INL-IPL Boundary',
+        '225': 'multivesicular body',
+        '226': 'Ribosome patch',
+        '227': 'Ribbon cluster',
+        '229': 'Touch',
+        '230': 'Loop',
+        '232': 'Polysomes',
+        '233': 'Depth',
+        '234': 'Marker',
+        '235': 'IPL-GCL Boundary',
+        '236': 'Plaque',
+        '237': 'axon',
+        '240': 'Plaque-like Pre',
+        '241': 'Plaque-like Post',
+        '243': 'Neuroglial adherens',
+        '244': 'Unknown',
+        '245': 'Nucleolus',
+        '246': 'Mitochondria',
+        '247': 'Caveola',
+        '248': 'Nuclear filament',
+        '249': 'Golgi Plaque',
+        '250': 'Golgi Normal',
+        '252': 'Lysosome',
+        '253': 'Annular Gap Junction',
+        '254': 'Vessel Adjacency',
+        '255': 'Rootlet',
+        '256': 'CH Boundary',
+        '257': 'Distal Junction',
+        '258': 'Flat Contact',
+        '259': 'Bubbles/Swirls',
+        '260': 'Peri GJ Adherens',
+        '261': 'Caveola String',
+        '262': 'Coated Pits',
+        '263': 'GJ Endo',
+        '264': 'Dense Core Vesicle',
+      },
     };
   },
 
@@ -229,16 +283,16 @@ export default Vue.extend({
 
     this.provenance = this.setUpProvenance();
 
-    this.initializeAttributes();
+    // this.initializeAttributes();
     this.initializeEdges();
 
     this.$emit('updateMatrixLegendScale', this.colorScale);
   },
 
   methods: {
-    updateVis() {
-      this.updateAttributes();
-    },
+    // updateVis() {
+    //   this.updateAttributes();
+    // },
 
     changeMatrix(this: any) {
       select('#matrix').selectAll('*').remove();
@@ -988,7 +1042,8 @@ export default Vue.extend({
       return uniqueValues.length > 5;
     },
 
-    // function for displaying selected cell value(s) to table
+    // function for displaying selected cell value to table
+    // highly custom for marclab data
     displayValue(element: Cell): void {
       // Filter nodes based on cell selection
       const schemaNodesFilter: any[] = this.schemaNetwork.nodes.filter(
@@ -999,20 +1054,20 @@ export default Vue.extend({
         },
       );
 
-      // TODO Come back and combine with above
       let childrenNodesFilter: string[] = [];
+
       schemaNodesFilter.forEach((c: any) => {
         childrenNodesFilter = childrenNodesFilter.concat(c.children);
       });
 
       // Filter children nodes based on schema aggregate nodes
-      const nodeDataToDisplay: any[] = this.network.nodes.filter(
-        (childNode: Node) => {
-          if (childrenNodesFilter.includes(childNode.id)) {
-            return childNode;
-          }
-        },
-      );
+      // TODO investigate why some nodes.id are undefined in this.network.nodes
+      const nodeDataToDisplay: any[] = [];
+      this.network.nodes.forEach((childNode: Node) => {
+        if (childrenNodesFilter.includes(childNode.id)) {
+          nodeDataToDisplay.push(childNode);
+        }
+      });
 
       // Filter links based on cell selection
       const linkDataToDisplay: any[] = this.schemaNetwork.links.filter(
@@ -1023,38 +1078,51 @@ export default Vue.extend({
         },
       );
 
-      this.lineupdata = nodeDataToDisplay.concat(linkDataToDisplay);
-      console.log(this.lineupdata);
-      // console.log('NODE', nodeDataToDisplay);
-      // console.log('LINK', linkDataToDisplay);
+      // Reset lineup data if something is already being displayed
+      const newlineupdata = [];
+      // Combine node + link data
+      linkDataToDisplay.forEach((l: Link) => {
+        // console.log('In link data:', l.sourceID, l.targetID);
+        let rowObject: any = {};
+        const lclone = {};
+        nodeDataToDisplay.forEach((n: Node) => {
+          // console.log('In node data:', n.id);
+          const nclone = {};
+          if (n.id === l.sourceID) {
+            // console.log('in source with', n.id);
+            for (const key in n) {
+              const newkey: string = 'S:' + key;
+              if (key === 'TypeID') {
+                nclone[newkey] = this.typeDict[n[key]];
+              } else {
+                nclone[newkey] = n[key];
+              }
+            }
+            rowObject = Object.assign({}, rowObject, nclone);
+          } else if (n.id === l.targetID) {
+            // console.log('in target with', n.id);
+            for (const key in n) {
+              const newkey: string = 'T:' + key;
+              if (key === 'TypeID') {
+                nclone[newkey] = this.typeDict[n[key]];
+              } else {
+                nclone[newkey] = n[key];
+              }
+            }
+            rowObject = Object.assign({}, rowObject, nclone);
+          }
+        });
+        for (const key in l) {
+          const newkey: string = 'L:' + key;
+          lclone[newkey] = l[key];
+        }
+        rowObject = Object.assign({}, rowObject, lclone);
+        newlineupdata.push(rowObject);
+      });
 
-      // Create a new table to display this information...can I use lineup? Yes?
-      // Draw nodes in one table? links in another?
-      // Set the column widths and margin
-      const attrWidth = parseFloat(select('#attributes').attr('width'));
-      const colWidth = attrWidth / nodeDataToDisplay.length - this.colMargin;
-
-      // Update the column headers
-      const columnHeaderGroups = this.columnHeaders
-        .selectAll('text')
-        .data(nodeDataToDisplay);
-
-      columnHeaderGroups.exit().remove();
-
-      columnHeaderGroups
-        .enter()
-        .append('text')
-        .merge(columnHeaderGroups)
-        .style('font-size', '14px')
-        .style('text-transform', 'capitalize')
-        .style('word-wrap', 'break-word')
-        .attr('text-anchor', 'left')
-        .attr('transform', (d: any, i: number) => `translate(0,${i * 16})`)
-        .attr('cursor', 'pointer')
-        .text((d: string) => d.id)
-        .attr('y', 16)
-        // .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
-        .attr('width', colWidth);
+      this.lineupdata = [];
+      this.lineupdata = newlineupdata;
+      console.log('LINEUP', this.lineupdata);
     },
 
     selectElement(element: Cell | Node): void {

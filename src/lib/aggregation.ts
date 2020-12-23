@@ -226,11 +226,13 @@ export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[]
           const newLinkFrom = schemaNode.id;
           link._from = newLinkFrom;
           link.source = link._from;
+          link.sourceID = linkFrom
         }
         if (linkTo === child) {
           const newLinkTo = schemaNode.id;
           link._to = newLinkTo;
           link.target = link._to;
+          link.targetID = linkTo
         }
       });
     });
