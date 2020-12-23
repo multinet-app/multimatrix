@@ -371,7 +371,7 @@ function retractSuperLinksData(
   if (superNode != undefined) {
     superChildren = superNode.CHILDREN;
   }
-  console.log('the children of the supernode selected', superChildren);
+  // console.log('the children of the supernode selected', superChildren);
   // create a list of links whose _from is one of the superchildren selected
   const superChildrenLinks: Link[] = [];
 
@@ -384,10 +384,10 @@ function retractSuperLinksData(
     });
   });
 
-  console.log('subset of the original links', superChildrenLinks);
+  // console.log('subset of the original links', superChildrenLinks);
   let newLinks = expandedLinksCopy;
   superChildren.forEach((childNode) => {
-    console.log('child node', childNode);
+    // console.log('child node', childNode);
     newLinks = newLinks.filter(
       (link: Link) => link.source !== childNode && link._from !== childNode,
     );
@@ -442,8 +442,8 @@ export function retractSuperNetwork(
     superNodeNameDict,
   );
 
-  console.log('nodes after removal', retractNodes);
-  console.log('links after removal', retractLinks);
+  // console.log('nodes after removal', retractNodes);
+  // console.log('links after removal', retractLinks);
 
   let neighborNodes: Node[] = [];
   if (retractNodes && retractLinks != undefined) {
