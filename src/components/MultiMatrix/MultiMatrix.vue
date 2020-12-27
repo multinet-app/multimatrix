@@ -49,6 +49,10 @@ export default Vue.extend({
       type: Array as PropType<string[]>,
       default: () => [],
     },
+    directional: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data(): {
@@ -57,7 +61,6 @@ export default Vue.extend({
     matrixSVG: any;
     attributesSVG: any;
     cellSize: number;
-    idMap: { [key: string]: number };
     maxNumConnections: number;
     matrix: Cell[][];
     attributes: any;
@@ -88,7 +91,6 @@ export default Vue.extend({
       matrixSVG: undefined,
       attributesSVG: undefined,
       cellSize: 15,
-      idMap: {},
       maxNumConnections: -Infinity,
       matrix: [],
       attributes: undefined,
@@ -234,14 +236,28 @@ export default Vue.extend({
     matrixHighlightLength(): number {
       return this.matrix.length * this.cellSize;
     },
+
+    idMap() {
+      const computedIdMap: { [key: string]: number } = {};
+      this.schemaNetwork.nodes.forEach((node: Node, index: number) => {
+        computedIdMap[node.id] = index;
+      });
+
+      return computedIdMap;
+    },
   },
 
   watch: {
     properties() {
       this.updateVis();
     },
+
     schemaNetwork() {
-      this.generateIdMap();
+      this.processData();
+      this.changeMatrix();
+    },
+
+    directional() {
       this.processData();
       this.changeMatrix();
     },
@@ -268,8 +284,6 @@ export default Vue.extend({
       .attr('width', this.attributesWidth)
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
-
-    this.generateIdMap();
 
     // Run process data to convert links to cells
     this.processData();
@@ -334,33 +348,30 @@ export default Vue.extend({
       this.initializeEdges();
     },
 
-    generateIdMap() {
-      this.idMap = {};
-      this.schemaNetwork.nodes.forEach((node: Node, index: number) => {
-        node.index = index;
-        this.idMap[node.id] = index;
-      });
-    },
-
     processData(): void {
       this.schemaNetwork.nodes.forEach((rowNode: Node, i: number) => {
-        this.matrix[i] = this.schemaNetwork.nodes.map((colNode: Node) => {
-          return {
-            cellName: `${rowNode.id}_${colNode.id}`,
-            correspondingCell: `${colNode.id}_${rowNode.id}`,
-            rowID: rowNode.id,
-            colID: colNode.id,
-            x: colNode.index,
-            y: rowNode.index,
-            z: 0,
-          };
-        });
+        this.matrix[i] = this.schemaNetwork.nodes.map(
+          (colNode: Node, j: number) => {
+            return {
+              cellName: `${rowNode.id}_${colNode.id}`,
+              correspondingCell: `${colNode.id}_${rowNode.id}`,
+              rowID: rowNode.id,
+              colID: colNode.id,
+              x: j,
+              y: i,
+              z: 0,
+            };
+          },
+        );
       });
 
       // Count occurrences of links and store it in the matrix
       this.schemaNetwork.links.forEach((link: Link) => {
-        this.matrix[this.idMap[link._to]][this.idMap[link._from]].z += 1;
         this.matrix[this.idMap[link._from]][this.idMap[link._to]].z += 1;
+
+        if (!this.directional) {
+          this.matrix[this.idMap[link._to]][this.idMap[link._from]].z += 1;
+        }
       });
 
       // Find max value of z
@@ -1318,13 +1329,14 @@ export default Vue.extend({
       ) {
         const links: any[] = Array(this.schemaNetwork.links.length);
 
+        // Generate links that are compatible with reorder.js
         this.schemaNetwork.links.forEach((link: Link, index: number) => {
           links[index] = {
             source: this.schemaNetwork.nodes.find(
-              (node: Node) => node.id === link.source,
+              (node: Node) => node.id === link._from,
             ),
             target: this.schemaNetwork.nodes.find(
-              (node: Node) => node.id === link.target,
+              (node: Node) => node.id === link._to,
             ),
           };
         });

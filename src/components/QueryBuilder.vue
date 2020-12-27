@@ -150,6 +150,7 @@ export default Vue.extend({
       });
 
       // Deep copy of network edges necessary to avoid mutations in object structure during simulation
+      console.log('NETWORK', this.network);
       const edges = JSON.parse(JSON.stringify(this.network.links));
 
       const newNetwork = schemaGraph(
@@ -160,6 +161,7 @@ export default Vue.extend({
         'Label',
       );
       this.$emit('updateSchemaNetwork', newNetwork);
+      console.log('NEW NETWORK', newNetwork);
       this.createSchema(newNetwork);
     },
     createSchema(this: any, schema: any) {
@@ -228,11 +230,11 @@ export default Vue.extend({
         })
         .attr('stroke', 'white')
         .attr('stroke-width', 1);
-      console.log(initialGroupsSet);
-      console.log(this.colorDomain);
+      // console.log(initialGroupsSet);
+      // console.log(this.colorDomain);
 
       nodes.on('mouseover', (this: any, node: Node) => {
-        console.log(this);
+        // console.log(this);
         d3.select(`#${node.Label}`).classed('treehover', true);
       });
 

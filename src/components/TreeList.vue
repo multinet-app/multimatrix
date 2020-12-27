@@ -1,17 +1,10 @@
 <script lang="ts">
 import * as d3 from 'd3';
-import Vue, { PropType } from 'vue';
+import Vue from 'vue';
 
-import { Dimensions, Network } from '@/types';
+import { Dimensions } from '@/types';
 
 export default Vue.extend({
-  props: {
-    network: {
-      type: Object as PropType<Network>,
-      required: true,
-    },
-  },
-
   data(): {
     browser: Dimensions;
     visMargins: { left: number; top: number; right: number; bottom: number };

@@ -29,6 +29,7 @@ export default Vue.extend({
     selectNeighbors: boolean;
     showGridLines: boolean;
     enableGraffinity: boolean;
+    directional: boolean;
     visualizedAttributes: string[];
     treeListHover: string;
     currentSchema: any;
@@ -45,9 +46,10 @@ export default Vue.extend({
       selectNeighbors: true,
       showGridLines: true,
       enableGraffinity: false,
+      directional: false,
       visualizedAttributes: [],
       treeListHover: '',
-      currentSchema: {},
+      currentSchema: undefined,
       treeRelationships: [],
       schemaNetwork: {
         nodes: [],
@@ -100,11 +102,11 @@ export default Vue.extend({
       legendSVG
         .append('g')
         .classed('legendLinear', true)
-        .attr('transform', 'translate(-10, 100)');
+        .attr('transform', 'translate(10, 60)');
 
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
-        .shapeWidth(40)
+        .shapeWidth(30)
         .orient('horizontal')
         .scale(colorScale)
         .labelFormat(format('.0f'));
@@ -137,97 +139,129 @@ export default Vue.extend({
 </script>
 
 <template>
-  <v-container fluid class="pt-0 pb-0">
-    <v-row class="flex-nowrap">
-      <!-- control panel content -->
-      <v-col cols="3">
-        <v-card>
-          <v-card-title class="pb-6">MultiMatrix Controls</v-card-title>
-          <v-card-text>
+  <div>
+    <v-navigation-drawer
+      app
+      class="app-sidebar"
+      fixed
+      permanent
+      stateless
+      value="true"
+    >
+      <v-toolbar color="grey lighten-2">
+        <v-toolbar-title class="d-flex align-center">
+          <div>
+            <v-row class="mx-0 align-center">
+              <v-col class="pb-0 pt-2 px-0">
+                <img
+                  class="app-logo"
+                  src="../assets/logo/app_logo.svg"
+                  alt="Multinet"
+                  width="100%"
+                />
+              </v-col>
+              <v-col class="text-left">MultiMatrix</v-col>
+            </v-row>
+          </div>
+        </v-toolbar-title>
+        <v-spacer />
+        <!-- login-menu / -->
+      </v-toolbar>
+
+      <v-list class="pa-0">
+        <v-subheader class="grey darken-3 py-0 white--text">
+          Controls
+        </v-subheader>
+
+        <div class="pa-4">
+          <v-list-item class="px-0">
             <v-select
               v-model="visualizedAttributes"
               :items="attributeList"
               label="Node Attributes"
               multiple
+              outlined
               chips
+              dense
               deletable-chips
-              hint="Choose the node attributes you'd like to visualize"
+              small-chips
+              hint="Choose the node attributes to visualize"
               persistent-hint
             />
+          </v-list-item>
 
-            <!-- Auto-Select Neighbors Card -->
-            <v-card-subtitle
-              class="pb-0 px-0"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              Autoselect neighbors
-              <v-checkbox class="ma-0" v-model="selectNeighbors" hide-details />
-            </v-card-subtitle>
+          <!-- Auto-Select Neighbors List Item -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
+            </v-list-item-action>
+            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
+          </v-list-item>
 
-            <!-- Gridline Toggle Card -->
-            <v-card-subtitle
-              class="pb-0 px-0"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              Show GridLines
-              <v-checkbox class="ma-0" v-model="showGridLines" hide-details />
-            </v-card-subtitle>
+          <!-- Gridline Toggle List Item -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch class="ma-0" v-model="showGridLines" hide-details />
+            </v-list-item-action>
+            <v-list-item-content> Show GridLines </v-list-item-content>
+          </v-list-item>
 
-            <!-- Graffinity Toggle -->
-            <v-card-subtitle
-              class="pb-0 px-0"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
+          <!-- Directional Edges Toggle Card -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch class="ma-0" v-model="directional" hide-details />
+            </v-list-item-action>
+            <v-list-item-content> Directional Edges </v-list-item-content>
+          </v-list-item>
+
+          <!-- Graffinity Toggle List Item -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch class="ma-0" v-model="enableGraffinity" hide-details />
+            </v-list-item-action>
+            <v-list-item-content>
               Enable Graffinity Features
-              <v-checkbox
-                class="ma-0"
-                v-model="enableGraffinity"
-                hide-details
-              />
-            </v-card-subtitle>
+            </v-list-item-content>
+          </v-list-item>
 
-            <!-- Matrix Legend -->
-            <v-card-subtitle
-              class="pb-0 px-0"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
+          <v-list-item class="px-0">
+            <v-btn
+              block
+              class="ml-0 mt-4"
+              color="primary"
+              depressed
+              @click="exportNetwork"
             >
-              Matrix Legend
-              <svg id="matrix-legend"></svg>
-            </v-card-subtitle>
-          </v-card-text>
+              Export Network
+            </v-btn>
+          </v-list-item>
+        </div>
 
-          <v-card-actions>
-            <v-btn small @click="exportNetwork">Export Network</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
+        <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+          Color Scale Legend
+        </v-subheader>
 
-      <!-- TreeList component -->
+        <div class="pa-4">
+          <!-- Matrix Legend -->
+          <v-list-item
+            class="pb-0 px-0"
+            style="display: flex; max-height: 50px"
+          >
+            Matrix Legend
+            <svg id="matrix-legend"></svg>
+          </v-list-item>
+        </div>
+      </v-list>
+    </v-navigation-drawer>
+
+    <!-- TreeList component -->
+    <v-row>
       <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
           <!-- Bind schema classification here -->
           <tree-list
             ref="treelist"
             v-if="workspace"
-            v-bind="{
-              network,
-            }"
             @restart-simulation="hello()"
             @changeSchema="changeSchema"
             @hoverSchema="hoverNodes"
@@ -242,7 +276,7 @@ export default Vue.extend({
           <!-- Bind schema classification here -->
           <query-builder
             ref="querybuilder"
-            v-if="workspace"
+            v-if="currentSchema"
             v-bind="{
               network,
               treeListHover,
@@ -268,6 +302,7 @@ export default Vue.extend({
               showGridLines,
               enableGraffinity,
               visualizedAttributes,
+              directional,
             }"
             @restart-simulation="hello()"
             @updateMatrixLegendScale="createLegend"
@@ -275,68 +310,11 @@ export default Vue.extend({
         </v-row>
       </v-col>
     </v-row>
-  </v-container>
+  </div>
 </template>
 
 <style scoped>
 .app-logo {
-  width: 48px;
-}
-
-.row-number {
-  align-items: center;
-  border-radius: 100px;
-  display: flex;
-  font-size: 12px;
-  height: 24px;
-  justify-content: center;
-  width: 24px;
-}
-
-.workspaces {
-  /* 171px = height of app-bar + workspace button + list subheader */
-  height: calc(100vh - 171px);
-  overflow-y: scroll;
-}
-
-.workspace-icon {
-  opacity: 0.4;
-}
-
-sm {
-  font-size: 10px;
-  font-weight: 300;
-  font-style: italic;
-}
-
-.v-card {
-  max-height: calc(100vh - 24px);
-}
-
-.manage-panels {
-  max-height: 450px;
-  overflow-y: auto;
-}
-
-.manage-panels .v-expansion-panel:nth-child(odd) {
-  background: #f7f7f7;
-}
-
-.panel-icons {
-  width: 24px !important;
-}
-
-.multinet-title {
-  line-height: 0.7em;
-  padding-top: 16px;
-}
-</style>
-
-<style>
-.app-sidebar .v-navigation-drawer__content {
-  overflow: hidden;
-}
-.add-hops {
-  border-right: 1px solid #ccc !important;
+  width: 36px;
 }
 </style>

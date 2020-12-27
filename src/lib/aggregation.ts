@@ -74,12 +74,10 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
         if (linkFrom === origin) {
           const newLinkFrom = superNode.id;
           link._from = newLinkFrom;
-          link.source = link._from;
         }
         if (linkTo === origin) {
           const newLinkTo = superNode.id;
           link._to = newLinkTo;
-          link.target = link._to;
         }
       });
     });
@@ -121,7 +119,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
 export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[], schema: any[], label: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
-  // console.log("N", nodes, "E", edges, "SS", selectedSchema, "S", schema, "L", label)
+  console.log("N", nodes, "E", edges, "SS", selectedSchema, "S", schema, "L", label)
 
   const newNodes: any[] = [];
   nodes.forEach((node) => {
@@ -216,8 +214,8 @@ export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[]
   const schemaLinks: any = [];
 
   edges.forEach((link: any) => {
-    const linkFrom = link.source
-    const linkTo = link.target
+    const linkFrom = link._from
+    const linkTo = link._to
 
     finalNodes.forEach((schemaNode) => {
       // check if the _from and _to are in the origin list
@@ -228,11 +226,17 @@ export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[]
           link.source = link._from;
           link.sourceID = linkFrom
         }
-        if (linkTo === child) {
+        else if (linkTo === child) {
           const newLinkTo = schemaNode.id;
           link._to = newLinkTo;
           link.target = link._to;
           link.targetID = linkTo
+        }
+        else {
+          link.target = link._to;
+          link.targetID = linkTo
+          link.sourceID = linkFrom
+          link.source = link._from;
         }
       });
     });
