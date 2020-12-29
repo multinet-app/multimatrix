@@ -3,7 +3,7 @@ import Vue, { PropType } from 'vue';
 
 import {
   superGraph,
-  // expandSuperNetwork,
+  expandSuperNetwork,
   // retractSuperNetwork,
 } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
@@ -616,6 +616,36 @@ export default Vue.extend({
             // variable for keeping track of the supernode selected
             const supernode = d;
             console.log('supernode selected: ', supernode.id);
+
+            // different cases for expanding and retracting the visualization
+            if (this.clickMap.has(supernode.id)) {
+              // if the dictionary contains the supernode two cases
+              // CASE 1: TRUE -> RETRACT THE NETWORK
+              if (this.clickMap.get(supernode.id) === true) {
+                console.log('retract supernode children');
+                this.clickMap.set(supernode.id, false);
+                console.log('vis state', this.clickMap);
+              } else {
+                console.log('expand the supernode and its children');
+                this.clickMap.set(supernode.id, true);
+                console.log('vis state', this.clickMap);
+              }
+            } else {
+              console.log(' the click map has no entries');
+              this.clickMap.set(supernode.id, true);
+              console.log('vis state', this.clickMap);
+              this.$emit(
+                'updateNetwork',
+                expandSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                  supernode,
+                ),
+              );
+              // console.log('click map state: ', this.clickMap);
+            }
           } else {
             this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
