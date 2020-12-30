@@ -249,7 +249,7 @@ export default Vue.extend({
     },
 
     changeMatrix(this: any) {
-      select('#matrix').selectAll('*').remove();
+      // select('#matrix').selectAll('*').remove();
 
       this.browser.width =
         window.innerWidth ||
@@ -630,10 +630,11 @@ export default Vue.extend({
                 this.clickMap.set(supernode.id, true);
                 console.log('vis state', this.clickMap);
               }
-            } else {
+            }
+            else {
               console.log(' the click map has no entries');
               this.clickMap.set(supernode.id, true);
-              console.log('vis state', this.clickMap);
+              console.log("vis state", this.clickMap);
               this.$emit(
                 'updateNetwork',
                 expandSuperNetwork(
@@ -646,6 +647,8 @@ export default Vue.extend({
               );
               // console.log('click map state: ', this.clickMap);
             }
+
+        
           } else {
             this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
