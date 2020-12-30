@@ -105,30 +105,9 @@ export default Vue.extend({
     this.networkGroup = this.svg.append('g').attr('id', 'networkGroup');
 
     this.schemaDict = {};
-    this.colorDomain = [];
   },
 
   methods: {
-    createColorDomain(this: any) {
-      //  Create domain list for color scale
-      const initialGroupsList: string[] = this.currentSchema.map((n) => {
-        if (n.children == undefined) {
-          // return the parent ID if parent != root
-          if (n.parent.depth > 1) {
-            return n.parent.id;
-          } else {
-            return n.id;
-          }
-        }
-      });
-      //  Create set to remove dumplicates + undefined
-      const initialGroupsSet = new Set(
-        initialGroupsList.filter((i) => i != undefined),
-      );
-
-      this.colorDomain = [...initialGroupsSet];
-      return this.colorDomain;
-    },
     initializeSchema(this: any) {
       // move this to another function that watches for treeRelationships
       const childColumn = Object.keys(this.treeRelationships[0])[0];
@@ -162,7 +141,6 @@ export default Vue.extend({
       });
 
       // Deep copy of network edges necessary to avoid mutations in object structure during simulation
-      console.log('NETWORK', this.network);
       const edges = JSON.parse(JSON.stringify(this.network.links));
 
       const newNetwork = schemaGraph(
@@ -177,7 +155,6 @@ export default Vue.extend({
       this.createSchema(newNetwork);
     },
     createSchema(this: any, schema: any) {
-      console.log('COLORS', this.colorsDict);
       d3.select('#networkGroup').selectAll('*').remove();
       const linksData = schema.links;
       const nodesData = schema.nodes;
@@ -236,13 +213,11 @@ export default Vue.extend({
         .attr('id', (d: any) => d.Label.replace(' ', ''))
         .style('fill', (d: any) => {
           const label = d.Label.replace(' ', '');
-          console.log('LABEL', label);
           let colorKey = 'none';
           for (const key in this.colorsDict) {
-            console.log('KEY', key);
-            if (label == key) {
+            if (label === key) {
               colorKey = key;
-            } else if (this.colorsDict[key].includes(d.Label)) {
+            } else if (this.colorsDict[key].includes(label)) {
               colorKey = key;
             }
           }
