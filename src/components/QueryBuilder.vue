@@ -24,6 +24,7 @@ export default Vue.extend({
       type: Array,
       default: () => [],
     },
+    colorsDict: {},
   },
 
   data(): {
@@ -45,13 +46,24 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { treeListHover, currentSchema, network, treeRelationships } = this;
+      const {
+        treeListHover,
+        currentSchema,
+        network,
+        treeRelationships,
+        colorsDict,
+      } = this;
       return {
         treeListHover,
         currentSchema,
         network,
         treeRelationships,
+        colorsDict,
       };
+    },
+    colorScale(): any {
+      const colorDomain = Object.keys(this.colorsDict).sort();
+      return d3.scaleOrdinal().domain(colorDomain).range(d3.schemeCategory10);
     },
   },
 
@@ -165,6 +177,7 @@ export default Vue.extend({
       this.createSchema(newNetwork);
     },
     createSchema(this: any, schema: any) {
+      console.log('COLORS', this.colorsDict);
       d3.select('#networkGroup').selectAll('*').remove();
       const linksData = schema.links;
       const nodesData = schema.nodes;
@@ -184,27 +197,27 @@ export default Vue.extend({
             .y((this.height / 8) * 3),
         );
 
-      //  Create domain list for color scale
-      const initialGroupsList: string[] = this.currentSchema.map((n) => {
-        if (n.children == undefined) {
-          // return the parent ID if parent != root
-          if (n.parent.depth > 1) {
-            return n.parent.id;
-          } else {
-            return n.id;
-          }
-        }
-      });
-      //  Create set to remove dumplicates + undefined
-      const initialGroupsSet = new Set(
-        initialGroupsList.filter((i) => i != undefined),
-      );
+      // //  Create domain list for color scale
+      // const initialGroupsList: string[] = this.currentSchema.map((n) => {
+      //   if (n.children == undefined) {
+      //     // return the parent ID if parent != root
+      //     if (n.parent.depth > 1) {
+      //       return n.parent.id;
+      //     } else {
+      //       return n.id;
+      //     }
+      //   }
+      // });
+      // //  Create set to remove dumplicates + undefined
+      // const initialGroupsSet = new Set(
+      //   initialGroupsList.filter((i) => i != undefined),
+      // );
 
-      // Node colors
-      const colors = d3
-        .scaleOrdinal()
-        .domain(initialGroupsSet)
-        .range(d3.schemeCategory10);
+      // // Node colors
+      // const colors = d3
+      //   .scaleOrdinal()
+      //   .domain(initialGroupsSet)
+      //   .range(d3.schemeCategory10);
 
       const edges = this.networkGroup
         .append('g')
@@ -222,16 +235,21 @@ export default Vue.extend({
         .attr('r', 10)
         .attr('id', (d: any) => d.Label.replace(' ', ''))
         .style('fill', (d: any) => {
-          if (initialGroupsSet.has(d.Label)) {
-            return colors(d.Label);
-          } else {
-            return colors(this.schemaDict[d.Label.toUpperCase()]);
+          const label = d.Label.replace(' ', '');
+          console.log('LABEL', label);
+          let colorKey = 'none';
+          for (const key in this.colorsDict) {
+            console.log('KEY', key);
+            if (label == key) {
+              colorKey = key;
+            } else if (this.colorsDict[key].includes(d.Label)) {
+              colorKey = key;
+            }
           }
+          return this.colorScale(colorKey);
         })
         .attr('stroke', 'white')
         .attr('stroke-width', 1);
-      // console.log(initialGroupsSet);
-      // console.log(this.colorDomain);
 
       nodes.on('mouseover', (this: any, node: Node) => {
         // console.log(this);

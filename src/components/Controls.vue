@@ -35,6 +35,7 @@ export default Vue.extend({
     currentSchema: any;
     treeRelationships: any[];
     schemaNetwork: Network;
+    colorsDict: any;
   } {
     return {
       network: {
@@ -55,6 +56,7 @@ export default Vue.extend({
         nodes: [],
         links: [],
       },
+      colorsDict: {},
     };
   },
 
@@ -124,6 +126,9 @@ export default Vue.extend({
     },
     updateSchemaNetwork(this: any, newNetwork: Network) {
       return (this.schemaNetwork = newNetwork);
+    },
+    schemaColors(this: any, colors: any) {
+      return (this.colorsDict = colors);
     },
   },
   watch: {
@@ -266,6 +271,7 @@ export default Vue.extend({
             @changeSchema="changeSchema"
             @hoverSchema="hoverNodes"
             @relationships="relationships"
+            @schemaColors="schemaColors"
           />
         </v-row>
       </v-col>
@@ -282,6 +288,7 @@ export default Vue.extend({
               treeListHover,
               currentSchema,
               treeRelationships,
+              colorsDict,
             }"
             @restart-simulation="hello()"
             @updateSchemaNetwork="updateSchemaNetwork"
@@ -294,7 +301,7 @@ export default Vue.extend({
         <v-row row wrap class="ma-0 pa-0">
           <multi-matrix
             ref="multimatrix"
-            v-if="workspace"
+            v-if="currentSchema"
             v-bind="{
               schemaNetwork,
               network,

@@ -188,6 +188,30 @@ export default Vue.extend({
         return familyTree;
       }
     },
+    colorDomain(): number[] {
+      let colorDomain = [];
+      this.nodesLength.forEach((node: Node) => {
+        if (node.depth === 2) {
+          colorDomain.push(node.id.replace(' ', ''));
+        }
+      });
+      colorDomain = colorDomain.sort();
+      return colorDomain;
+    },
+    colorScale(): any {
+      return d3
+        .scaleOrdinal()
+        .domain(this.colorDomain)
+        .range(d3.schemeCategory10);
+    },
+    colorTracker(): any {
+      const colorDict = {};
+      this.colorDomain.forEach((n: number) => {
+        colorDict[n] = [];
+      });
+      colorDict['none'] = [];
+      return colorDict;
+    },
   },
   watch: {
     currentClassification() {
@@ -231,7 +255,7 @@ export default Vue.extend({
       .descendants()
       .map((c) => (c.children ? null : c.data.id));
 
-    this.colorScale = d3
+    this.colorScaleVal = d3
       .scaleOrdinal()
       .domain(colorDomainVals)
       .range(d3.schemeCategory10);
@@ -278,18 +302,25 @@ export default Vue.extend({
         .append('circle')
         .attr('cx', (d: any) => d.depth * this.nodeSize)
         .attr('r', 4)
-        .attr('fill', (d: any) => (d.children ? null : '#999'));
-      // .style('fill', (d: any) => {
-      //   if (d.parent == null || d.parent.id == 'Volume') {
-      //     console.log();
-      //     return '#999';
-      //   } else if (d.children) {
-      //     return this.colorScale(d.id);
-      //   } else {
-      //     return this.colorScale(d.parent.id);
-      //   }
-      // });
+        .style('fill', (d: any) => {
+          let ancestorID = '';
+          if (d.depth < 2) {
+            this.colorTracker['none'].push(d.id.replace(' ', ''));
+            return 'slategrey';
+          } else {
+            const ancestors = d.ancestors();
+            ancestors.forEach((node: Node) => {
+              const id = node.id.replace(' ', '');
+              if (this.colorDomain.includes(id)) {
+                ancestorID = id;
+              }
+            });
+          }
+          this.colorTracker[ancestorID].push(d.id.replace(' ', ''));
+          return this.colorScale(ancestorID);
+        });
 
+      this.$emit('schemaColors', this.colorTracker);
       nodeEnter
         .append('text')
         .attr('dy', '0.32em')

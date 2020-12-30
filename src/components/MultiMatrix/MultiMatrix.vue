@@ -248,10 +248,6 @@ export default Vue.extend({
   },
 
   watch: {
-    properties() {
-      this.updateVis();
-    },
-
     schemaNetwork() {
       this.processData();
       this.changeMatrix();
@@ -304,10 +300,6 @@ export default Vue.extend({
   },
 
   methods: {
-    // updateVis() {
-    //   this.updateAttributes();
-    // },
-
     changeMatrix(this: any) {
       select('#matrix').selectAll('*').remove();
 
@@ -344,7 +336,7 @@ export default Vue.extend({
 
       this.provenance = this.setUpProvenance();
 
-      this.initializeAttributes();
+      // this.initializeAttributes();
       this.initializeEdges();
     },
 
@@ -1432,7 +1424,7 @@ export default Vue.extend({
 <template>
   <div>
     <svg id="matrix" ref="matrix" width="800" height="900" />
-    <svg id="attributes" ref="attributes" width="300" height="900" />
+    <!-- <svg id="attributes" ref="attributes" width="300" height="900" /> -->
 
     <!-- Lineup component -->
     <LineUp v-bind:data="lineupdata" />
