@@ -353,6 +353,16 @@ export default Vue.extend({
       // set the matrix highlight
       const matrixHighlightLength = this.matrix.length * this.cellSize;
 
+      // constant for starting the column label container
+      const columnLabelContainerStart = 20;
+      const labelContainerHeight = 25;
+      const rowLabelContainerStart = 75;
+      const labelContainerWidth = rowLabelContainerStart;
+
+      const verticalOffset = 187.5;
+      const horizontalOffset =
+        (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
+
       // creates column groupings
       this.edgeColumns = this.edges
         .selectAll('.column')
