@@ -356,13 +356,82 @@ export default Vue.extend({
       // creates column groupings
       this.edgeColumns = this.edges
         .selectAll('.column')
-        .data(this.network.nodes)
+        .data(this.network.nodes);
+
+      this.edgeColumns.exit().remove();
+
+      const columnEnter = this.edgeColumns
         .enter()
         .append('g')
         .attr('class', 'column')
         .attr('transform', (d: Node, i: number) => {
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
+
+      // add the highlight columns
+      columnEnter
+        .append('rect')
+        .classed('topoCol', true)
+        .attr('id', (d: Node) => `topoCol${d.id}`)
+        .attr('x', -matrixHighlightLength - this.visMargins.bottom)
+        .attr('y', 0)
+        .attr(
+          'width',
+          matrixHighlightLength + this.visMargins.top + this.visMargins.bottom,
+        )
+        .attr('height', this.orderingScale.bandwidth())
+        .attr('fill-opacity', 0);
+
+      columnEnter
+        .append('foreignObject')
+        .attr('y', -5)
+        .attr('x', columnLabelContainerStart)
+        .attr('width', labelContainerWidth)
+        .attr('height', labelContainerHeight)
+        .append('xhtml:p')
+        .text((d: Node) => d._key)
+        .classed('colLabels', true)
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        })
+        .on('mouseover', (d: Node, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverNode(d.id);
+        })
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        });
+
+      columnEnter
+        .append('path')
+        .attr('id', (d: Node) => `sortIcon${d.id}`)
+        .attr('class', 'sortIcon')
+        .attr('d', this.icons.cellSort.d)
+        .style('fill', (d: Node) =>
+          d === this.orderType ? '#EBB769' : '#8B8B8B',
+        )
+        .attr(
+          'transform',
+          `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
+        )
+        .on('click', (d: Node) => {
+          this.sort(d.id);
+          const action = this.changeInteractionWrapper('neighborSelect');
+          this.provenance.applyAction(action);
+        })
+        .attr('cursor', 'pointer')
+        .on('mouseover', (d: Node, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverNode(d.id);
+        })
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        });
+
+      this.edgeColumns.merge(columnEnter);
 
       // Draw each row
       this.edgeRows = this.edges
@@ -557,64 +626,6 @@ export default Vue.extend({
           this.selectNeighborNodes(d.id, d.neighbors);
         });
 
-      let verticalOffset = 187.5;
-      const horizontalOffset =
-        (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
-      this.edgeColumns
-        .append('path')
-        .attr('id', (d: Node) => `sortIcon${d.id}`)
-        .attr('class', 'sortIcon')
-        .attr('d', this.icons.cellSort.d)
-        .style('fill', (d: Node) =>
-          d === this.orderType ? '#EBB769' : '#8B8B8B',
-        )
-        .attr(
-          'transform',
-          `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
-        )
-        .on('click', (d: Node) => {
-          this.sort(d.id);
-          const action = this.changeInteractionWrapper('neighborSelect');
-          this.provenance.applyAction(action);
-        })
-        .attr('cursor', 'pointer')
-        .on('mouseover', (d: Node, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
-        })
-        .on('mouseout', (d: Node) => {
-          this.hideToolTip();
-          this.unHoverNode(d.id);
-        });
-
-      verticalOffset = verticalOffset * 0.075 + 5;
-
-      // constant for starting the column label container
-      const columnLabelContainerStart = 20;
-
-      const edgeColumnForeignObject = this.edgeColumns
-        .append('foreignObject')
-        .attr('y', -5)
-        .attr('x', columnLabelContainerStart)
-        .attr('width', labelContainerWidth)
-        .attr('height', labelContainerHeight);
-
-      edgeColumnForeignObject
-        .append('xhtml:p')
-        .text((d: Node) => d._key)
-        .classed('colLabels', true)
-        .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
-        })
-        .on('mouseover', (d: Node, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
-        })
-        .on('mouseout', (d: Node) => {
-          this.hideToolTip();
-          this.unHoverNode(d.id);
-        });
     },
 
     drawGridLines(): void {
