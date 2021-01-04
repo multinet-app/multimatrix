@@ -240,41 +240,6 @@ export default Vue.extend({
     },
 
     changeMatrix(this: any) {
-      select('#matrix').selectAll('*').remove();
-
-      this.browser.width =
-        window.innerWidth ||
-        document.documentElement.clientWidth ||
-        document.body.clientWidth;
-
-      this.browser.height =
-        window.innerHeight ||
-        document.documentElement.clientHeight ||
-        document.body.clientHeight;
-
-      // Size the svgs
-      this.matrixSVG = select(this.$refs.matrix)
-        .attr('width', this.matrixWidth)
-        .attr('height', this.matrixHeight)
-        .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
-
-      this.attributesSVG = select(this.$refs.attributes)
-        .attr('width', this.attributesWidth)
-        .attr('height', this.attributesHeight)
-        .attr(
-          'viewBox',
-          `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
-        );
-
-      this.edges = select('#matrix')
-        .append('g')
-        .attr(
-          'transform',
-          `translate(${this.visMargins.left},${this.visMargins.top})`,
-        );
-
-      this.provenance = this.setUpProvenance();
-
       this.initializeAttributes();
       this.initializeEdges();
     },
