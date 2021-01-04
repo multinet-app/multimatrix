@@ -436,37 +436,24 @@ export default Vue.extend({
       // Draw each row
       this.edgeRows = this.edges
         .selectAll('.rowContainer')
-        .data(this.network.nodes)
+        .data(this.network.nodes, (d) => d.matrix);
+
+      this.edgeRows.exit().remove();
+
+      const rowEnter = this.edgeRows
         .enter()
         .append('g')
         .attr('class', 'rowContainer')
         .attr('transform', `translate(0, 0)`);
 
-      this.edgeRows
+      rowEnter
         .transition()
         .duration(1100)
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
 
-      this.drawGridLines();
-
-      // add the highlight columns
-      this.edgeColumns
-        .append('rect')
-        .classed('topoCol', true)
-        .attr('id', (d: Node) => `topoCol${d.id}`)
-        .attr('x', -matrixHighlightLength - this.visMargins.bottom)
-        .attr('y', 0)
-        .attr(
-          'width',
-          matrixHighlightLength + this.visMargins.top + this.visMargins.bottom,
-        )
-        .attr('height', this.orderingScale.bandwidth())
-        .attr('fill-opacity', 0);
-
-      // added highlight rows
-      this.edgeRows
+      rowEnter
         .append('rect')
         .classed('topoRow', true)
         .attr('id', (d: Node) => `topoRow${d.id}`)
@@ -478,6 +465,31 @@ export default Vue.extend({
         )
         .attr('height', this.orderingScale.bandwidth())
         .attr('fill-opacity', 0);
+
+      // add foreign objects for label
+      rowEnter
+        .append('foreignObject')
+        .attr('x', -rowLabelContainerStart)
+        .attr('y', -5)
+        .attr('width', labelContainerWidth)
+        .attr('height', labelContainerHeight)
+        .append('xhtml:p')
+        .text((d: Node) => d._key)
+        .classed('rowLabels', true)
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        })
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        });
+
+      rowEnter.append('g').attr('class', 'cellsGroup');
+
+      this.edgeRows.merge(rowEnter);
+
+      this.drawGridLines();
 
       this.colorScale
         .domain([0, this.maxNumConnections])
@@ -510,8 +522,6 @@ export default Vue.extend({
         })
         .on('click', (d: Cell) => this.selectElement(d))
         .attr('cursor', 'pointer');
-
-      this.appendEdgeLabels();
     },
 
     changeInteractionWrapper(interactionType: string, cell?: Cell): any {
@@ -598,34 +608,6 @@ export default Vue.extend({
       } else {
         state.selections[interaction][nodeID] = [interactionName];
       }
-    },
-
-    appendEdgeLabels(): void {
-      const labelContainerHeight = 25;
-      const rowLabelContainerStart = 75;
-      const labelContainerWidth = rowLabelContainerStart;
-
-      // add foreign objects for label
-      const edgeRowForeignObject = this.edgeRows
-        .append('foreignObject')
-        .attr('x', -rowLabelContainerStart)
-        .attr('y', -5)
-        .attr('width', labelContainerWidth)
-        .attr('height', labelContainerHeight);
-
-      edgeRowForeignObject
-        .append('xhtml:p')
-        .text((d: Node) => d._key)
-        .classed('rowLabels', true)
-        .on('mouseout', (d: Node) => {
-          this.hideToolTip();
-          this.unHoverNode(d.id);
-        })
-        .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
-        });
-
     },
 
     drawGridLines(): void {
