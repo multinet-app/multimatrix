@@ -62,7 +62,6 @@ export default Vue.extend({
     edges: any;
     edgeColumns: any;
     edgeRows: any;
-    colorScale: ScaleLinear<string, number>;
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
@@ -90,7 +89,6 @@ export default Vue.extend({
       edges: undefined,
       edgeColumns: undefined,
       edgeRows: undefined,
-      colorScale: scaleLinear<string, number>(),
       icons: {
         quant: {
           d:
@@ -175,6 +173,12 @@ export default Vue.extend({
       });
 
       return computedIdMap;
+    },
+
+    colorScale(): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, this.maxNumConnections])
+        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
     },
   },
 
@@ -501,10 +505,6 @@ export default Vue.extend({
       this.edgeRows.merge(rowEnter);
 
       this.drawGridLines();
-
-      this.colorScale
-        .domain([0, this.maxNumConnections])
-        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
       // Draw cells
       selectAll('.cellsGroup')
