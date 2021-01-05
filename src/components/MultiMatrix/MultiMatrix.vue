@@ -623,6 +623,7 @@ export default Vue.extend({
     },
 
     drawGridLines(): void {
+      selectAll('.gridLines').remove();
       const gridLines = this.edges.append('g').attr('class', 'gridLines');
 
       const lines = gridLines.selectAll('line').data(this.matrix).enter();
