@@ -291,7 +291,10 @@ export default Vue.extend({
     },
 
     processData(): void {
+      // Reset some values that will be re-calcuated
+      this.maxNumConnections = 0;
       this.matrix = [];
+
       this.network.nodes.forEach((rowNode: Node, i: number) => {
         this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
           return {
