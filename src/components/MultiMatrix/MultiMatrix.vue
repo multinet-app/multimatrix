@@ -285,6 +285,7 @@ export default Vue.extend({
     },
 
     processData(): void {
+      this.matrix = [];
       this.network.nodes.forEach((rowNode: Node, i: number) => {
         this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
           return {
