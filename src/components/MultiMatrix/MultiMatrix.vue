@@ -366,7 +366,7 @@ export default Vue.extend({
       // creates column groupings
       this.edgeColumns = this.edges
         .selectAll('.column')
-        .data(this.network.nodes);
+        .data(this.network.nodes, (d: Node) => d._id || d.id);
 
       this.edgeColumns.exit().remove();
 
@@ -446,7 +446,7 @@ export default Vue.extend({
       // Draw each row
       this.edgeRows = this.edges
         .selectAll('.rowContainer')
-        .data(this.network.nodes, (d) => d.matrix);
+        .data(this.network.nodes, (d: Node) => d._id || d.id);
 
       this.edgeRows.exit().remove();
 
