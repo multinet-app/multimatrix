@@ -4,7 +4,7 @@ import Vue, { PropType } from 'vue';
 import {
   superGraph,
   expandSuperNetwork,
-  // retractSuperNetwork,
+  retractSuperNetwork,
 } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
@@ -620,6 +620,16 @@ export default Vue.extend({
               // CASE 1: TRUE -> RETRACT THE NETWORK
               if (this.clickMap.get(supernode.id) === true) {
                 console.log('retract supernode children');
+                this.$emit(
+                  'updateNetwork',
+                  retractSuperNetwork(
+                    this.nonAggrNodes,
+                    this.nonAggrLinks,
+                    this.network.nodes,
+                    this.network.links,
+                    supernode,
+                  ),
+                );
                 this.clickMap.set(supernode.id, false);
                 console.log('vis state', this.clickMap);
               } else {
@@ -627,11 +637,13 @@ export default Vue.extend({
                 this.clickMap.set(supernode.id, true);
                 console.log('vis state', this.clickMap);
               }
-            }
-            else {
-              console.log(' the click map has no entries');
+            } else {
+              console.log(
+                'click map does not contain supernode: ',
+                supernode.id,
+              );
               this.clickMap.set(supernode.id, true);
-              console.log("vis state", this.clickMap);
+              console.log('vis state', this.clickMap);
               this.$emit(
                 'updateNetwork',
                 expandSuperNetwork(
@@ -642,10 +654,8 @@ export default Vue.extend({
                   supernode,
                 ),
               );
-              // console.log('click map state: ', this.clickMap);
+              console.log('click map state: ', this.clickMap);
             }
-
-        
           } else {
             this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
