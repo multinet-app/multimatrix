@@ -220,9 +220,7 @@ function expandSuperLinksData(
   if (superNode != undefined) {
     superChildren = superNode.CHILDREN;
   }
-  // console.log('the children of the supernode selected');
-  // console.log(superChildren);
-
+  
   // create a list of links whose _from is one of the superchildren selected
   const superChildrenLinks: Link[] = [];
 
@@ -245,8 +243,6 @@ function expandSuperLinksData(
     }
   });
   const combinedLinks = superLinksCopy.concat(superChildrenLinks);
-
-  // console.log('the final combined links: ', combinedLinks);
   return combinedLinks;
 }
 
@@ -275,11 +271,6 @@ export function expandSuperNetwork(
   const nonAggrLinksCopy = deepCopyLinks(nonAggrLinks);
   const aggrNodesCopy = deepCopyNodes(aggrNodes);
   const aggrLinksCopy = deepCopyLinks(aggrLinks);
-  // console.log('child nodes: ', nonAggrNodesCopy);
-  // console.log('child links: ', nonAggrLinksCopy);
-  // console.log('supernodes: ', aggrNodesCopy);
-  // console.log('superlinks: ', aggrLinksCopy);
-  // console.log('superNode', superNode);
 
   // data for expanding the vis
   const childrenNodeNameDict = mapNetworkNodes(nonAggrNodesCopy);
@@ -293,7 +284,6 @@ export function expandSuperNetwork(
     childrenNodeNameDict,
     superNodeNameDict,
   );
-  // console.log('the expanded nodes', expandNodes);
 
   // calculate a new set of links
   const expandLinks = expandSuperLinksData(
@@ -303,8 +293,6 @@ export function expandSuperNetwork(
     superNodeNameDict,
     superChildrenDict,
   );
-  // console.log('the expanded links', expandLinks);
-
   let neighborNodes: Node[] = [];
   if (expandNodes && expandLinks != undefined) {
     neighborNodes = defineNeighborNodes(expandNodes, expandLinks);
@@ -315,9 +303,6 @@ export function expandSuperNetwork(
     nodes: neighborNodes,
     links: expandLinks,
   };
-
-  // console.log('the final expanded network');
-  // console.log(network);
   return network;
 }
 
@@ -340,7 +325,6 @@ function retractSuperNodeData(
         childNodes.push(childNode);
       }
     });
-    // console.log('expanded nodes', expandNodesCopy);
     const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
@@ -371,11 +355,11 @@ function retractSuperLinksData(
   if (superNode != undefined) {
     superChildren = superNode.CHILDREN;
   }
-  // console.log('the children of the supernode selected', superChildren);
+
   // create a list of links whose _from is one of the superchildren selected
   const superChildrenLinks: Link[] = [];
 
-  // get the subset of the links whose from id matches the chidlren nodes
+  // get the subset of the links whose from id matches the children nodes
   childLinksCopy.forEach((link: Link) => {
     superChildren.forEach((childNodeName: string) => {
       if (link._from === childNodeName) {
@@ -384,20 +368,13 @@ function retractSuperLinksData(
     });
   });
 
-  // console.log('subset of the original links', superChildrenLinks);
   let newLinks = expandedLinksCopy;
   superChildren.forEach((childNode) => {
-    // console.log('child node', childNode);
     newLinks = newLinks.filter(
       (link: Link) => link.source !== childNode && link._from !== childNode,
     );
   });
-
-  // console.log('final links: ', newLinks);
   return newLinks;
-
-  // const superIndexFunc = (superNode: ) => superNode.id == superNodeName;
-  // const superIndexStart = superChildrenLinks.findIndex(superIndexFunc);
 }
 
 // this function is for retracting the super network visualization
@@ -412,19 +389,10 @@ export function retractSuperNetwork(
   const nonAggrLinksCopy = deepCopyLinks(nonAggrLinks);
   const aggrNodesCopy = deepCopyNodes(aggrNodes);
   const aggrLinksCopy = deepCopyLinks(aggrLinks);
-  // console.log('child nodes: ', nonAggrNodesCopy);
-  // console.log('child links: ', nonAggrLinksCopy);
-  // console.log('supernodes: ', aggrNodesCopy);
-  // console.log('superlinks: ', aggrLinksCopy);
-  // console.log('superNode', superNode);
 
   // data for retracting the vis
   const childrenNodeNameDict = mapNetworkNodes(nonAggrNodesCopy);
   const superNodeNameDict = mapNetworkNodes(aggrNodesCopy);
-
-  // console.log('children node dict: ', childrenNodeNameDict);
-  // console.log('supernode name dict: ', superNodeNameDict);
-  // console.log('super children dict: ', superChildrenDict);
 
   // calculate a list of new nodes
   const retractNodes = retractSuperNodeData(
@@ -442,9 +410,6 @@ export function retractSuperNetwork(
     superNodeNameDict,
   );
 
-  // console.log('nodes after removal', retractNodes);
-  // console.log('links after removal', retractLinks);
-
   let neighborNodes: Node[] = [];
   if (retractNodes && retractLinks != undefined) {
     neighborNodes = defineNeighborNodes(retractNodes, retractLinks);
@@ -455,8 +420,5 @@ export function retractSuperNetwork(
     nodes: neighborNodes,
     links: retractLinks,
   };
-
-  // console.log('the final retracted network');
-  // console.log(network);
   return network;
 }
