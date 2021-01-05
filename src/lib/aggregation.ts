@@ -316,8 +316,8 @@ export function expandSuperNetwork(
     links: expandLinks,
   };
 
-  // console.log("the final network");
-  // console.log(network);
+  console.log("the final expanded network");
+  console.log(network);
   return network;
 }
 
