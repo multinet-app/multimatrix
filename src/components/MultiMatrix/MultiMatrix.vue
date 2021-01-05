@@ -196,9 +196,6 @@ export default Vue.extend({
       this.processData();
       this.changeMatrix();
     },
-    // superNetwork() {
-    //   console.log('do something with the network');
-    // },
   },
 
   async mounted(this: any) {
