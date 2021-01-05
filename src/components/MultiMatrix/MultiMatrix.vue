@@ -249,7 +249,7 @@ export default Vue.extend({
     },
 
     changeMatrix(this: any) {
-      // select('#matrix').selectAll('*').remove();
+      select('#matrix').selectAll('*').remove();
 
       this.browser.width =
         window.innerWidth ||
