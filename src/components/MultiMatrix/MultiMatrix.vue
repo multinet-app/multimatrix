@@ -196,6 +196,10 @@ export default Vue.extend({
       this.processData();
       this.changeMatrix();
     },
+
+    colorScale() {
+      this.$emit('updateMatrixLegendScale', this.colorScale);
+    },
   },
 
   async mounted(this: any) {
@@ -274,8 +278,6 @@ export default Vue.extend({
 
     this.initializeAttributes();
     this.initializeEdges();
-
-    this.$emit('updateMatrixLegendScale', this.colorScale);
   },
 
   methods: {
