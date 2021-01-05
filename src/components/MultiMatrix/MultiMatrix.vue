@@ -46,6 +46,10 @@ export default Vue.extend({
       type: Array as PropType<string[]>,
       default: () => [],
     },
+    directional: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data(): {
@@ -55,7 +59,6 @@ export default Vue.extend({
     matrixSVG: any;
     attributesSVG: any;
     cellSize: number;
-    idMap: { [key: string]: number };
     maxNumConnections: number;
     matrix: Cell[][];
     attributes: any;
@@ -94,7 +97,6 @@ export default Vue.extend({
       matrixSVG: undefined,
       attributesSVG: undefined,
       cellSize: 15,
-      idMap: {},
       maxNumConnections: -Infinity,
       matrix: [],
       attributes: undefined,
@@ -185,14 +187,28 @@ export default Vue.extend({
     matrixHighlightLength(): number {
       return this.matrix.length * this.cellSize;
     },
+
+    idMap() {
+      const computedIdMap: { [key: string]: number } = {};
+      this.network.nodes.forEach((node: Node, index: number) => {
+        computedIdMap[node.id] = index;
+      });
+
+      return computedIdMap;
+    },
   },
 
   watch: {
     properties() {
       this.updateVis();
     },
+
     network() {
-      this.generateIdMap();
+      this.processData();
+      this.changeMatrix();
+    },
+
+    directional() {
       this.processData();
       this.changeMatrix();
     },
@@ -220,8 +236,6 @@ export default Vue.extend({
       .attr('height', this.attributesHeight)
       .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
 
-    this.generateIdMap();
-
     // Run process data to convert links to cells
     this.processData();
 
@@ -231,6 +245,46 @@ export default Vue.extend({
         'transform',
         `translate(${this.visMargins.left},${this.visMargins.top})`,
       );
+
+    // Draw buttons for alternative sorts
+    let initialY = -this.visMargins.left + 10;
+    const buttonHeight = 15;
+    const text = ['name', 'cluster', 'interacts'];
+    const sortNames = ['shortName', 'clusterLeaf', 'edges'];
+    const iconNames = ['alphabetical', 'categorical', 'quant'];
+    for (let i = 0; i < 3; i++) {
+      const button = this.edges
+        .append('g')
+        .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
+      button.attr('cursor', 'pointer');
+      button
+        .append('rect')
+        .attr('width', this.visMargins.left - 5)
+        .attr('height', buttonHeight)
+        .attr('fill', 'none')
+        .attr('stroke', 'gray')
+        .attr('stroke-width', 1);
+      button
+        .append('text')
+        .attr('x', 27)
+        .attr('y', 10)
+        .attr('font-size', 11)
+        .text(text[i]);
+      const path = button.datum(sortNames[i]);
+      path
+        .append('path')
+        .attr('class', 'sortIcon')
+        .attr('d', (d: any, i: number) => {
+          return this.icons[iconNames[i]].d;
+        })
+        .style('fill', () =>
+          sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B',
+        )
+        .attr('transform', 'scale(0.1)translate(-195,-320)')
+        .attr('cursor', 'pointer');
+      button.on('click', () => this.sort(sortNames[i]));
+      initialY += buttonHeight + 5;
+    }
 
     this.provenance = this.setUpProvenance();
 
@@ -246,64 +300,21 @@ export default Vue.extend({
     },
 
     changeMatrix(this: any) {
-      select('#matrix').selectAll('*').remove();
-
-      this.browser.width =
-        window.innerWidth ||
-        document.documentElement.clientWidth ||
-        document.body.clientWidth;
-
-      this.browser.height =
-        window.innerHeight ||
-        document.documentElement.clientHeight ||
-        document.body.clientHeight;
-
-      // Size the svgs
-      this.matrixSVG = select(this.$refs.matrix)
-        .attr('width', this.matrixWidth)
-        .attr('height', this.matrixHeight)
-        .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
-
-      this.attributesSVG = select(this.$refs.attributes)
-        .attr('width', this.attributesWidth)
-        .attr('height', this.attributesHeight)
-        .attr(
-          'viewBox',
-          `0 0 ${this.attributesWidth} ${this.attributesHeight}`,
-        );
-
-      this.edges = select('#matrix')
-        .append('g')
-        .attr(
-          'transform',
-          `translate(${this.visMargins.left},${this.visMargins.top})`,
-        );
-
-      this.provenance = this.setUpProvenance();
-
       this.initializeAttributes();
       this.initializeEdges();
-    },
-
-    generateIdMap() {
-      this.idMap = {};
-      this.network.nodes.forEach((node: Node, index: number) => {
-        node.index = index;
-        this.idMap[node.id] = index;
-      });
     },
 
     processData(): void {
       this.matrix = [];
       this.network.nodes.forEach((rowNode: Node, i: number) => {
-        this.matrix[i] = this.network.nodes.map((colNode: Node) => {
+        this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
           return {
             cellName: `${rowNode.id}_${colNode.id}`,
             correspondingCell: `${colNode.id}_${rowNode.id}`,
             rowID: rowNode.id,
             colID: colNode.id,
-            x: colNode.index,
-            y: rowNode.index,
+            x: j,
+            y: i,
             z: 0,
           };
         });
@@ -311,8 +322,11 @@ export default Vue.extend({
 
       // Count occurrences of links and store it in the matrix
       this.network.links.forEach((link: Link) => {
-        this.matrix[this.idMap[link.source]][this.idMap[link.target]].z += 1;
-        this.matrix[this.idMap[link.target]][this.idMap[link.source]].z += 1;
+        this.matrix[this.idMap[link._from]][this.idMap[link._to]].z += 1;
+
+        if (!this.directional) {
+          this.matrix[this.idMap[link._to]][this.idMap[link._from]].z += 1;
+        }
       });
 
       // Find max value of z
@@ -360,10 +374,24 @@ export default Vue.extend({
       // set the matrix highlight
       const matrixHighlightLength = this.matrix.length * this.cellSize;
 
+      // constant for starting the column label container
+      const columnLabelContainerStart = 20;
+      const labelContainerHeight = 25;
+      const rowLabelContainerStart = 75;
+      const labelContainerWidth = rowLabelContainerStart;
+
+      const verticalOffset = 187.5;
+      const horizontalOffset =
+        (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
+
       // creates column groupings
       this.edgeColumns = this.edges
         .selectAll('.column')
-        .data(this.network.nodes)
+        .data(this.network.nodes, (d: Node) => d._id || d.id);
+
+      this.edgeColumns.exit().remove();
+
+      const columnEnter = this.edgeColumns
         .enter()
         .append('g')
         .attr('class', 'column')
@@ -371,26 +399,8 @@ export default Vue.extend({
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
 
-      // Draw each row
-      this.edgeRows = this.edges
-        .selectAll('.rowContainer')
-        .data(this.network.nodes)
-        .enter()
-        .append('g')
-        .attr('class', 'rowContainer')
-        .attr('transform', `translate(0, 0)`);
-
-      this.edgeRows
-        // .transition()
-        // .duration(1100)
-        .attr('transform', (d: Node, i: number) => {
-          return `translate(0,${this.orderingScale(i)})`;
-        });
-
-      this.drawGridLines();
-
       // add the highlight columns
-      this.edgeColumns
+      columnEnter
         .append('rect')
         .classed('topoCol', true)
         .attr('id', (d: Node) => `topoCol${d.id}`)
@@ -403,8 +413,78 @@ export default Vue.extend({
         .attr('height', this.orderingScale.bandwidth())
         .attr('fill-opacity', 0);
 
-      // added highlight rows
-      this.edgeRows
+      columnEnter
+        .append('foreignObject')
+        .attr('y', -5)
+        .attr('x', columnLabelContainerStart)
+        .attr('width', labelContainerWidth)
+        .attr('height', labelContainerHeight)
+        .append('xhtml:p')
+        .text((d: Node) => d._key)
+        .classed('colLabels', true)
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        })
+        .on('mouseover', (d: Node, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverNode(d.id);
+        })
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        });
+
+      columnEnter
+        .append('path')
+        .attr('id', (d: Node) => `sortIcon${d.id}`)
+        .attr('class', 'sortIcon')
+        .attr('d', this.icons.cellSort.d)
+        .style('fill', (d: Node) =>
+          d === this.orderType ? '#EBB769' : '#8B8B8B',
+        )
+        .attr(
+          'transform',
+          `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
+        )
+        .on('click', (d: Node) => {
+          this.sort(d.id);
+          const action = this.changeInteractionWrapper('neighborSelect');
+          this.provenance.applyAction(action);
+        })
+        .attr('cursor', 'pointer')
+        .on('mouseover', (d: Node, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverNode(d.id);
+        })
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        });
+
+      this.edgeColumns.merge(columnEnter);
+
+      // Draw each row
+      this.edgeRows = this.edges
+        .selectAll('.rowContainer')
+        .data(this.network.nodes, (d: Node) => d._id || d.id);
+
+      this.edgeRows.exit().remove();
+
+      const rowEnter = this.edgeRows
+        .enter()
+        .append('g')
+        .attr('class', 'rowContainer')
+        .attr('transform', `translate(0, 0)`);
+
+      rowEnter
+        .transition()
+        .duration(1100)
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(0,${this.orderingScale(i)})`;
+        });
+
+      rowEnter
         .append('rect')
         .classed('topoRow', true)
         .attr('id', (d: Node) => `topoRow${d.id}`)
@@ -417,20 +497,46 @@ export default Vue.extend({
         .attr('height', this.orderingScale.bandwidth())
         .attr('fill-opacity', 0);
 
+      // add foreign objects for label
+      rowEnter
+        .append('foreignObject')
+        .attr('x', -rowLabelContainerStart)
+        .attr('y', -5)
+        .attr('width', labelContainerWidth)
+        .attr('height', labelContainerHeight)
+        .append('xhtml:p')
+        .text((d: Node) => d._key)
+        .classed('rowLabels', true)
+        .on('mouseout', (d: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(d.id);
+        })
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        });
+
+      rowEnter.append('g').attr('class', 'cellsGroup');
+
+      this.edgeRows.merge(rowEnter);
+
+      this.drawGridLines();
+
       this.colorScale
         .domain([0, this.maxNumConnections])
         .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
-      this.edgeRows
+      // Draw cells
+      selectAll('.cellsGroup')
         .selectAll('.cell')
-        .data((d: Node, i: number) => this.matrix[i])
+        .data((d: unknown, i: number) => this.matrix[i])
         .enter()
         .append('rect')
         .attr('class', 'cell')
         .attr('id', (d: Cell) => d.cellName)
         .attr('x', (d: Cell) => {
           const xLocation = this.orderingScale(d.x);
-          return xLocation !== undefined ? xLocation + 1 : undefined;
+          return xLocation !== undefined ? xLocation + 1 : null;
         })
         .attr('y', 1)
         .attr('width', this.cellSize - 2)
@@ -448,48 +554,6 @@ export default Vue.extend({
         })
         .on('click', (d: Cell) => this.selectElement(d))
         .attr('cursor', 'pointer');
-
-      this.appendEdgeLabels();
-
-      // Draw buttons for alternative sorts
-      let initialY = -this.visMargins.left + 10;
-      const buttonHeight = 15;
-      const text = ['name', 'cluster', 'interacts'];
-      const sortNames = ['shortName', 'clusterLeaf', 'edges'];
-      const iconNames = ['alphabetical', 'categorical', 'quant'];
-      for (let i = 0; i < 3; i++) {
-        const button = this.edges
-          .append('g')
-          .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
-        button.attr('cursor', 'pointer');
-        button
-          .append('rect')
-          .attr('width', this.visMargins.left - 5)
-          .attr('height', buttonHeight)
-          .attr('fill', 'none')
-          .attr('stroke', 'gray')
-          .attr('stroke-width', 1);
-        button
-          .append('text')
-          .attr('x', 27)
-          .attr('y', 10)
-          .attr('font-size', 11)
-          .text(text[i]);
-        const path = button.datum(sortNames[i]);
-        path
-          .append('path')
-          .attr('class', 'sortIcon')
-          .attr('d', (d: any, i: number) => {
-            return this.icons[iconNames[i]].d;
-          })
-          .style('fill', () =>
-            sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B',
-          )
-          .attr('transform', 'scale(0.1)translate(-195,-320)')
-          .attr('cursor', 'pointer');
-        button.on('click', () => this.sort(sortNames[i]));
-        initialY += buttonHeight + 5;
-      }
     },
 
     changeInteractionWrapper(interactionType: string, cell?: Cell): any {
@@ -714,6 +778,7 @@ export default Vue.extend({
     },
 
     drawGridLines(): void {
+      selectAll('.gridLines').remove();
       const gridLines = this.edges.append('g').attr('class', 'gridLines');
 
       const lines = gridLines.selectAll('line').data(this.matrix).enter();
@@ -1235,13 +1300,14 @@ export default Vue.extend({
       ) {
         const links: any[] = Array(this.network.links.length);
 
+        // Generate links that are compatible with reorder.js
         this.network.links.forEach((link: Link, index: number) => {
           links[index] = {
             source: this.network.nodes.find(
-              (node: Node) => node.id === link.source,
+              (node: Node) => node.id === link._from,
             ),
             target: this.network.nodes.find(
-              (node: Node) => node.id === link.target,
+              (node: Node) => node.id === link._to,
             ),
           };
         });

@@ -39,8 +39,6 @@ async function _downloadAllRows(
 function _renameLinkVars(links: any[]): Link[] {
   links.forEach((link) => {
     link.id = link._id;
-    link.source = link._from;
-    link.target = link._to;
     delete link._id;
   });
   return links;

@@ -24,6 +24,7 @@ export default Vue.extend({
     selectNeighbors: boolean;
     showGridLines: boolean;
     enableGraffinity: boolean;
+    directional: boolean;
     visualizedAttributes: string[];
   } {
     return {
@@ -36,6 +37,7 @@ export default Vue.extend({
       selectNeighbors: true,
       showGridLines: true,
       enableGraffinity: false,
+      directional: false,
       visualizedAttributes: [],
     };
   },
@@ -158,7 +160,8 @@ export default Vue.extend({
               chips
               dense
               deletable-chips
-              hint="Choose the node attributes you'd like to visualize"
+              small-chips
+              hint="Choose the node attributes to visualize"
               persistent-hint
             />
           </v-list-item>
@@ -168,7 +171,7 @@ export default Vue.extend({
             <v-list-item-action class="mr-3">
               <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
             </v-list-item-action>
-            <v-list-item-content> Autoselect neighbors </v-list-item-content>
+            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
           </v-list-item>
 
           <!-- Gridline Toggle List Item -->
@@ -177,6 +180,14 @@ export default Vue.extend({
               <v-switch class="ma-0" v-model="showGridLines" hide-details />
             </v-list-item-action>
             <v-list-item-content> Show GridLines </v-list-item-content>
+          </v-list-item>
+
+          <!-- Directional Edges Toggle Card -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch class="ma-0" v-model="directional" hide-details />
+            </v-list-item-action>
+            <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
           <!-- Graffinity Toggle List Item -->
@@ -231,6 +242,7 @@ export default Vue.extend({
             showGridLines,
             enableGraffinity,
             visualizedAttributes,
+            directional,
           }"
           @restart-simulation="hello()"
           @updateMatrixLegendScale="createLegend"
