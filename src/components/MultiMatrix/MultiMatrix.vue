@@ -612,14 +612,14 @@ export default Vue.extend({
             }
             // variable for keeping track of the supernode selected
             const supernode = d;
-            console.log('supernode selected: ', supernode.id);
+            // console.log('supernode selected: ', supernode.id);
 
             // different cases for expanding and retracting the visualization
             if (this.clickMap.has(supernode.id)) {
               // if the dictionary contains the supernode two cases
               // CASE 1: TRUE -> RETRACT THE NETWORK
               if (this.clickMap.get(supernode.id) === true) {
-                console.log('retract supernode children');
+                // console.log('retract supernode children');
                 this.$emit(
                   'updateNetwork',
                   retractSuperNetwork(
@@ -631,9 +631,9 @@ export default Vue.extend({
                   ),
                 );
                 this.clickMap.set(supernode.id, false);
-                console.log('vis state', this.clickMap);
+                // console.log('vis state', this.clickMap);
               } else {
-                console.log('expand the supernode and its children');
+                // console.log('expand the supernode and its children');
                 this.$emit(
                   'updateNetwork',
                   expandSuperNetwork(
@@ -645,14 +645,14 @@ export default Vue.extend({
                   ),
                 );
                 this.clickMap.set(supernode.id, true);
-                console.log('vis state', this.clickMap);
+                // console.log('vis state', this.clickMap);
               }
             } else {
-              console.log(
-                'click map does not contain supernode: ',
-                supernode.id,
-              );
-              console.log('vis state', this.clickMap);
+              // console.log(
+              //   'click map does not contain supernode: ',
+              //   supernode.id,
+              // );
+              // console.log('vis state', this.clickMap);
               this.$emit(
                 'updateNetwork',
                 expandSuperNetwork(
@@ -664,7 +664,7 @@ export default Vue.extend({
                 ),
               );
               this.clickMap.set(supernode.id, true);
-              console.log('click map state: ', this.clickMap);
+              // console.log('click map state: ', this.clickMap);
             }
           } else {
             this.selectElement(d);
@@ -922,8 +922,8 @@ export default Vue.extend({
           if (this.enableGraffinity) {
             this.nonAggrNodes = this.processChildNodes(this.network.nodes);
             this.nonAggrLinks = this.processChildLinks(this.network.links);
-            console.log('nodes before aggregation', this.nonAggrNodes);
-            console.log('links before aggregation', this.nonAggrLinks);
+            // console.log('nodes before aggregation', this.nonAggrNodes);
+            // console.log('links before aggregation', this.nonAggrLinks);
             // this.network = superGraph(this.network.nodes, this.network.links, d);
             this.$emit(
               'updateNetwork',
