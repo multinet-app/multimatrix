@@ -505,9 +505,10 @@ export default Vue.extend({
         .domain([0, this.maxNumConnections])
         .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
-      this.edgeRows
+      // Draw cells
+      selectAll('.cellsGroup')
         .selectAll('.cell')
-        .data((d: Node, i: number) => this.matrix[i])
+        .data((d: unknown, i: number) => this.matrix[i])
         .enter()
         .append('rect')
         .attr('class', 'cell')
