@@ -316,8 +316,8 @@ export function expandSuperNetwork(
     links: expandLinks,
   };
 
-  console.log("the final expanded network");
-  console.log(network);
+  // console.log('the final expanded network');
+  // console.log(network);
   return network;
 }
 
@@ -340,7 +340,7 @@ function retractSuperNodeData(
         childNodes.push(childNode);
       }
     });
-    console.log('expanded nodes', expandNodesCopy);
+    // console.log('expanded nodes', expandNodesCopy);
     const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
@@ -393,7 +393,7 @@ function retractSuperLinksData(
     );
   });
 
-  console.log('final links: ', newLinks);
+  // console.log('final links: ', newLinks);
   return newLinks;
 
   // const superIndexFunc = (superNode: ) => superNode.id == superNodeName;
@@ -456,7 +456,7 @@ export function retractSuperNetwork(
     links: retractLinks,
   };
 
-  console.log('the final retracted network');
-  console.log(network);
+  // console.log('the final retracted network');
+  // console.log(network);
   return network;
 }
