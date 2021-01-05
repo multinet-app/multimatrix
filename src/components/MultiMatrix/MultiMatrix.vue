@@ -516,7 +516,7 @@ export default Vue.extend({
         .attr('id', (d: Cell) => d.cellName)
         .attr('x', (d: Cell) => {
           const xLocation = this.orderingScale(d.x);
-          return xLocation !== undefined ? xLocation + 1 : undefined;
+          return xLocation !== undefined ? xLocation + 1 : null;
         })
         .attr('y', 1)
         .attr('width', this.cellSize - 2)
