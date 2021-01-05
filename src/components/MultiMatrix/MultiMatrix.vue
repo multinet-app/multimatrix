@@ -634,6 +634,16 @@ export default Vue.extend({
                 console.log('vis state', this.clickMap);
               } else {
                 console.log('expand the supernode and its children');
+                this.$emit(
+                  'updateNetwork',
+                  expandSuperNetwork(
+                    this.nonAggrNodes,
+                    this.nonAggrLinks,
+                    this.network.nodes,
+                    this.network.links,
+                    supernode,
+                  ),
+                );
                 this.clickMap.set(supernode.id, true);
                 console.log('vis state', this.clickMap);
               }
@@ -642,7 +652,6 @@ export default Vue.extend({
                 'click map does not contain supernode: ',
                 supernode.id,
               );
-              this.clickMap.set(supernode.id, true);
               console.log('vis state', this.clickMap);
               this.$emit(
                 'updateNetwork',
@@ -654,6 +663,7 @@ export default Vue.extend({
                   supernode,
                 ),
               );
+              this.clickMap.set(supernode.id, true);
               console.log('click map state: ', this.clickMap);
             }
           } else {
