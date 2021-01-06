@@ -458,8 +458,8 @@ export default Vue.extend({
         .attr('transform', `translate(0, 0)`);
 
       rowEnter
-        .transition()
-        .duration(1100)
+        // .transition()
+        // .duration(1100)
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
