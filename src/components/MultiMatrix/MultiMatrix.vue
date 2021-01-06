@@ -512,8 +512,56 @@ export default Vue.extend({
           this.unHoverNode(d.id);
         })
         .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          // allow expanding the vis if graffinity features are turned on
+          if (this.enableGraffinity) {
+            if (d.type === 'node') {
+              return;
+            }
+            const supernode = d;
+            // expand and retract the supernode aggregation based on user selection
+            if (this.clickMap.has(supernode.id)) {
+              if (this.clickMap.get(supernode.id) === true) {
+                this.$emit(
+                  'updateNetwork',
+                  retractSuperNetwork(
+                    this.nonAggrNodes,
+                    this.nonAggrLinks,
+                    this.network.nodes,
+                    this.network.links,
+                    supernode,
+                  ),
+                );
+                this.clickMap.set(supernode.id, false);
+              } else {
+                this.$emit(
+                  'updateNetwork',
+                  expandSuperNetwork(
+                    this.nonAggrNodes,
+                    this.nonAggrLinks,
+                    this.network.nodes,
+                    this.network.links,
+                    supernode,
+                  ),
+                );
+                this.clickMap.set(supernode.id, true);
+              }
+            } else {
+              this.$emit(
+                'updateNetwork',
+                expandSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                  supernode,
+                ),
+              );
+              this.clickMap.set(supernode.id, true);
+            }
+          } else {
+            this.selectElement(d);
+            this.selectNeighborNodes(d.id, d.neighbors);
+          }
         });
 
       rowEnter.append('g').attr('class', 'cellsGroup');
@@ -671,7 +719,7 @@ export default Vue.extend({
               return;
             }
             const supernode = d;
-         // expand and retract the supernode aggregation based on user selection
+            // expand and retract the supernode aggregation based on user selection
             if (this.clickMap.has(supernode.id)) {
               if (this.clickMap.get(supernode.id) === true) {
                 this.$emit(
@@ -709,7 +757,7 @@ export default Vue.extend({
                   supernode,
                 ),
               );
-              this.clickMap.set(supernode.id, true);;
+              this.clickMap.set(supernode.id, true);
             }
           } else {
             this.selectElement(d);
@@ -1356,15 +1404,6 @@ export default Vue.extend({
       this.order = order;
       return order;
     },
-
-    getApplicationState(): State {
-      return this.provenance.graph().current.state;
-    },
-
-    isCell(element: any): element is Cell {
-      return Object.prototype.hasOwnProperty.call(element, 'cellName');
-    },
-
     // function for processing nodes
     processChildNodes(nodes: Node[]) {
       const nodeCopy: Node[] = [];
@@ -1376,10 +1415,8 @@ export default Vue.extend({
         newNode.type = 'node';
         nodeCopy.push(newNode);
       });
-
       return nodeCopy;
     },
-
     // function for processing links
     processChildLinks(links: Link[]) {
       const linkCopy: Link[] = [];
@@ -1392,6 +1429,14 @@ export default Vue.extend({
         linkCopy.push(newLink);
       });
       return linkCopy;
+    },
+
+    getApplicationState(): State {
+      return this.provenance.graph().current.state;
+    },
+
+    isCell(element: any): element is Cell {
+      return Object.prototype.hasOwnProperty.call(element, 'cellName');
     },
 
     capitalizeFirstLetter(word: string) {
