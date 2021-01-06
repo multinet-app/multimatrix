@@ -1,7 +1,11 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 
-import { superGraph } from '@/lib/aggregation';
+import {
+  superGraph,
+  expandSuperNetwork,
+  retractSuperNetwork,
+} from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
   axisTop,
@@ -72,6 +76,11 @@ export default Vue.extend({
     sortKey: string;
     colMargin: number;
     attributeScales: { [key: string]: any };
+    nonAggrNodes: any;
+    nonAggrLinks: any;
+    clickMap: any; // variable for keeping track of whether a label has been clicked or not
+    expandRetractAggrVisNodes: any; // variable for keeping track of the current nodes being visualized
+    expandRetractAggrVisLinks: any; // variable for keeping track of the current links being visualized
   } {
     return {
       browser: {
@@ -91,6 +100,11 @@ export default Vue.extend({
       edgeColumns: undefined,
       edgeRows: undefined,
       colorScale: scaleLinear<string, number>(),
+      clickMap: undefined,
+      nonAggrNodes: undefined,
+      nonAggrLinks: undefined,
+      expandRetractAggrVisNodes: undefined,
+      expandRetractAggrVisLinks: undefined,
       icons: {
         quant: {
           d:
@@ -458,8 +472,8 @@ export default Vue.extend({
         .attr('transform', `translate(0, 0)`);
 
       rowEnter
-        // .transition()
-        // .duration(1100)
+        .transition()
+        .duration(1100)
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
@@ -492,8 +506,56 @@ export default Vue.extend({
           this.unHoverNode(d.id);
         })
         .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          // allow expanding the vis if graffinity features are turned on
+          if (this.enableGraffinity) {
+            if (d.type === 'node') {
+              return;
+            }
+            const supernode = d;
+            // expand and retract the supernode aggregation based on user selection
+            if (this.clickMap.has(supernode.id)) {
+              if (this.clickMap.get(supernode.id) === true) {
+                this.$emit(
+                  'updateNetwork',
+                  retractSuperNetwork(
+                    this.nonAggrNodes,
+                    this.nonAggrLinks,
+                    this.network.nodes,
+                    this.network.links,
+                    supernode,
+                  ),
+                );
+                this.clickMap.set(supernode.id, false);
+              } else {
+                this.$emit(
+                  'updateNetwork',
+                  expandSuperNetwork(
+                    this.nonAggrNodes,
+                    this.nonAggrLinks,
+                    this.network.nodes,
+                    this.network.links,
+                    supernode,
+                  ),
+                );
+                this.clickMap.set(supernode.id, true);
+              }
+            } else {
+              this.$emit(
+                'updateNetwork',
+                expandSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                  supernode,
+                ),
+              );
+              this.clickMap.set(supernode.id, true);
+            }
+          } else {
+            this.selectElement(d);
+            this.selectNeighborNodes(d.id, d.neighbors);
+          }
         });
 
       rowEnter.append('g').attr('class', 'cellsGroup');
@@ -811,10 +873,14 @@ export default Vue.extend({
         .attr('width', colWidth)
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
+            this.nonAggrNodes = this.processChildNodes(this.network.nodes);
+            this.nonAggrLinks = this.processChildLinks(this.network.links);
             this.$emit(
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
             );
+            // create a new instant of click map for keeping track of the nodes that the user has selected
+            this.clickMap = new Map<string, boolean>();
           } else {
             this.sort(d);
           }
@@ -1196,6 +1262,32 @@ export default Vue.extend({
       }
       this.order = order;
       return order;
+    },
+    // function for processing nodes
+    processChildNodes(nodes: Node[]) {
+      const nodeCopy: Node[] = [];
+      // original network components
+      nodes.map((node: Node) => {
+        const newNode = {
+          ...node,
+        };
+        newNode.type = 'node';
+        nodeCopy.push(newNode);
+      });
+      return nodeCopy;
+    },
+    // function for processing links
+    processChildLinks(links: Link[]) {
+      const linkCopy: Link[] = [];
+      // original network components
+      links.map((link: Link) => {
+        const newLink = {
+          ...link,
+        };
+        newLink.type = 'link';
+        linkCopy.push(newLink);
+      });
+      return linkCopy;
     },
 
     getApplicationState(): State {
