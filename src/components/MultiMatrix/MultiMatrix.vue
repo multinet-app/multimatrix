@@ -4,7 +4,7 @@ import Vue, { PropType } from 'vue';
 import {
   superGraph,
   expandSuperNetwork,
-  retractSuperNetwork,
+  // retractSuperNetwork,
 } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
@@ -515,28 +515,30 @@ export default Vue.extend({
             // expand and retract the supernode aggregation based on user selection
             if (this.clickMap.has(supernode.id)) {
               if (this.clickMap.get(supernode.id) === true) {
-                this.$emit(
-                  'updateNetwork',
-                  retractSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.links,
-                    supernode,
-                  ),
-                );
+                console.log("retract the super network when the selection is in the click");
+                // this.$emit(
+                //   'updateNetwork',
+                //   retractSuperNetwork(
+                //     this.nonAggrNodes,
+                //     this.nonAggrLinks,
+                //     this.network.nodes,
+                //     this.network.links,
+                //     supernode,
+                //   ),
+                // );
                 this.clickMap.set(supernode.id, false);
               } else {
-                this.$emit(
-                  'updateNetwork',
-                  expandSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.links,
-                    supernode,
-                  ),
-                );
+                console.log("expand the super network when the selection is in the click map");
+                // this.$emit(
+                //   'updateNetwork',
+                //   expandSuperNetwork(
+                //     this.nonAggrNodes,
+                //     this.nonAggrLinks,
+                //     this.network.nodes,
+                //     this.network.links,
+                //     supernode,
+                //   ),
+                // );
                 this.clickMap.set(supernode.id, true);
               }
             } else {
