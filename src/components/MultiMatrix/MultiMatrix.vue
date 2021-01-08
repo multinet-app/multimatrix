@@ -302,10 +302,6 @@ export default Vue.extend({
   },
 
   methods: {
-    updateVis() {
-      this.updateAttributes();
-    },
-
     changeMatrix(this: any) {
       this.renderAttributes();
       this.initializeEdges();
@@ -789,9 +785,7 @@ export default Vue.extend({
       this.columnHeaders = this.attributes
         .append('g')
         .classed('column-headers', true);
-    },
 
-    updateAttributes(): void {
       // Set the column widths and margin
       const attrWidth = parseFloat(select('#attributes').attr('width'));
       const colWidth =
