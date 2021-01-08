@@ -863,16 +863,6 @@ export default Vue.extend({
       selectAll('.attr-axis').remove();
 
       // Add the scale bar at the top of the attr column
-      attributeRowsEnter
-        .append('g')
-        .attr('class', 'attr-axis')
-        .attr(
-          'transform',
-          (d: string, i: number) =>
-            `translate(${(this.colWidth + this.colMargin) * i},-15)`,
-        );
-
-      // Add the scale bar at the top of the attr column
       this.visualizedAttributes.forEach((col: string, index: number) => {
         if (this.isQuantitative(col)) {
           this.attributes
