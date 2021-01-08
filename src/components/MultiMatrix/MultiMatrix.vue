@@ -387,7 +387,10 @@ export default Vue.extend({
       // creates column groupings
       this.edgeColumns = this.edges
         .selectAll('.column')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(${this.orderingScale(i)})rotate(-90)`;
+        });
 
       this.edgeColumns.exit().remove();
 
@@ -467,7 +470,10 @@ export default Vue.extend({
       // Draw each row
       this.edgeRows = this.edges
         .selectAll('.rowContainer')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(0,${this.orderingScale(i)})`;
+        });
 
       this.edgeRows.exit().remove();
 
@@ -478,8 +484,8 @@ export default Vue.extend({
         .attr('transform', `translate(0, 0)`);
 
       rowEnter
-        .transition()
-        .duration(1100)
+        // .transition()
+        // .duration(1100)
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
@@ -521,6 +527,7 @@ export default Vue.extend({
             // expand and retract the supernode aggregation based on user selection
             if (this.clickMap.has(supernode.id)) {
               if (this.clickMap.get(supernode.id) === true) {
+                // console.log("retract the super network when the selection is in the click");
                 this.$emit(
                   'updateNetwork',
                   retractSuperNetwork(
@@ -533,6 +540,7 @@ export default Vue.extend({
                 );
                 this.clickMap.set(supernode.id, false);
               } else {
+                // console.log("expand the super network when the selection is in the click map");
                 this.$emit(
                   'updateNetwork',
                   expandSuperNetwork(
