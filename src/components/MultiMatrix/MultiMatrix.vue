@@ -207,7 +207,7 @@ export default Vue.extend({
 
   watch: {
     properties() {
-      this.updateVis();
+      this.renderAttributes();
     },
 
     network() {
@@ -295,7 +295,7 @@ export default Vue.extend({
 
     this.provenance = this.setUpProvenance();
 
-    this.initializeAttributes();
+    this.renderAttributes();
     this.initializeEdges();
 
     this.$emit('updateMatrixLegendScale', this.colorScale);
@@ -307,7 +307,7 @@ export default Vue.extend({
     },
 
     changeMatrix(this: any) {
-      this.initializeAttributes();
+      this.renderAttributes();
       this.initializeEdges();
     },
 
@@ -741,7 +741,7 @@ export default Vue.extend({
         .style('fill', '#EBB769');
     },
 
-    initializeAttributes(): void {
+    renderAttributes(): void {
       // Just has to be larger than the attributes panel (so that we render to the edge)
       const attributeWidth = 1000;
 
