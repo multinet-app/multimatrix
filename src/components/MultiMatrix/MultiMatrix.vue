@@ -213,17 +213,6 @@ export default Vue.extend({
       document.documentElement.clientHeight ||
       document.body.clientHeight;
 
-    // Size the svgs
-    this.matrixSVG = select(this.$refs.matrix)
-      .attr('width', this.matrixWidth)
-      .attr('height', this.matrixHeight)
-      .attr('viewBox', `0 0 ${this.matrixWidth} ${this.matrixHeight}`);
-
-    this.attributesSVG = select(this.$refs.attributes)
-      .attr('width', this.attributesWidth)
-      .attr('height', this.attributesHeight)
-      .attr('viewBox', `0 0 ${this.attributesWidth} ${this.attributesHeight}`);
-
     // Run process data to convert links to cells
     this.processData();
 
@@ -1240,8 +1229,20 @@ export default Vue.extend({
 
 <template>
   <div>
-    <svg id="matrix" ref="matrix" width="800" height="900" />
-    <svg id="attributes" ref="attributes" width="300" height="900" />
+    <svg
+      id="matrix"
+      ref="matrix"
+      :width="this.matrixWidth"
+      :height="this.matrixHeight"
+      :viewbox="`0 0 ${this.matrixWidth} ${this.matrixHeight}`"
+    />
+    <svg
+      id="attributes"
+      ref="attributes"
+      :width="this.attributesWidth"
+      :height="this.attributesHeight"
+      :viewbox="`0 0 ${this.attributesWidth} ${this.attributesHeight}`"
+    />
     <div id="tooltip" ref="tooltip" />
   </div>
 </template>
