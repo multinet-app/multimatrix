@@ -507,6 +507,32 @@ export default Vue.extend({
         .selectAll('.cell')
         .data((d: unknown, i: number) => this.matrix[i]);
 
+      // Update existing cells
+      this.cells
+        .attr('id', (d: Cell) => d.cellName)
+        .attr('x', (d: Cell) => {
+          const xLocation = this.orderingScale(d.x);
+          return xLocation !== undefined ? xLocation + 1 : null;
+        })
+        .attr('y', 1)
+        .attr('width', this.cellSize - 2)
+        .attr('height', this.cellSize - 2)
+        .attr('rx', cellRadius)
+        .style('fill', (d: Cell) => this.colorScale(d.z))
+        .style('fill-opacity', (d: Cell) => d.z)
+        .on('mouseover', (d: Cell, i: number, nodes: any) => {
+          this.showToolTip(d, i, nodes);
+          this.hoverEdge(d);
+        })
+        .on('mouseout', (d: Cell) => {
+          this.hideToolTip();
+          this.unHoverEdge(d);
+        })
+        .on('click', (d: Cell) => this.selectElement(d))
+        .attr('cursor', 'pointer');
+
+      this.cells.exit().remove();
+
       // Render new cells
       const cellsEnter = this.cells
         .enter()
