@@ -62,6 +62,7 @@ export default Vue.extend({
     edges: any;
     edgeColumns: any;
     edgeRows: any;
+    cells: any;
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
@@ -89,6 +90,7 @@ export default Vue.extend({
       edges: undefined,
       edgeColumns: undefined,
       edgeRows: undefined,
+      cells: undefined,
       icons: {
         quant: {
           d:
@@ -501,9 +503,12 @@ export default Vue.extend({
       this.drawGridLines();
 
       // Draw cells
-      selectAll('.cellsGroup')
+      this.cells = selectAll('.cellsGroup')
         .selectAll('.cell')
-        .data((d: unknown, i: number) => this.matrix[i])
+        .data((d: unknown, i: number) => this.matrix[i]);
+
+      // Render new cells
+      const cellsEnter = this.cells
         .enter()
         .append('rect')
         .attr('class', 'cell')
@@ -528,6 +533,8 @@ export default Vue.extend({
         })
         .on('click', (d: Cell) => this.selectElement(d))
         .attr('cursor', 'pointer');
+
+      this.cells.merge(cellsEnter);
     },
 
     changeInteractionWrapper(interactionType: string, cell?: Cell): any {
