@@ -253,6 +253,12 @@ export default Vue.extend({
         `translate(${this.visMargins.left},${this.visMargins.top})`,
       );
 
+    this.attributes = select('#attributes')
+      .append('g')
+      .attr('transform', `translate(0,${this.visMargins.top})`);
+
+    this.attributes.append('g').attr('class', 'zebras');
+
     // Draw buttons for alternative sorts
     let initialY = -this.visMargins.left + 10;
     const buttonHeight = 15;
