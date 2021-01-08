@@ -4,7 +4,7 @@ import Vue, { PropType } from 'vue';
 import {
   superGraph,
   expandSuperNetwork,
-  // retractSuperNetwork,
+  retractSuperNetwork,
 } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
@@ -381,7 +381,10 @@ export default Vue.extend({
       // creates column groupings
       this.edgeColumns = this.edges
         .selectAll('.column')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(${this.orderingScale(i)})rotate(-90)`;
+        });
 
       this.edgeColumns.exit().remove();
 
@@ -461,7 +464,10 @@ export default Vue.extend({
       // Draw each row
       this.edgeRows = this.edges
         .selectAll('.rowContainer')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(0,${this.orderingScale(i)})`;
+        });
 
       this.edgeRows.exit().remove();
 
@@ -515,30 +521,30 @@ export default Vue.extend({
             // expand and retract the supernode aggregation based on user selection
             if (this.clickMap.has(supernode.id)) {
               if (this.clickMap.get(supernode.id) === true) {
-                console.log("retract the super network when the selection is in the click");
-                // this.$emit(
-                //   'updateNetwork',
-                //   retractSuperNetwork(
-                //     this.nonAggrNodes,
-                //     this.nonAggrLinks,
-                //     this.network.nodes,
-                //     this.network.links,
-                //     supernode,
-                //   ),
-                // );
+                // console.log("retract the super network when the selection is in the click");
+                this.$emit(
+                  'updateNetwork',
+                  retractSuperNetwork(
+                    this.nonAggrNodes,
+                    this.nonAggrLinks,
+                    this.network.nodes,
+                    this.network.links,
+                    supernode,
+                  ),
+                );
                 this.clickMap.set(supernode.id, false);
               } else {
-                console.log("expand the super network when the selection is in the click map");
-                // this.$emit(
-                //   'updateNetwork',
-                //   expandSuperNetwork(
-                //     this.nonAggrNodes,
-                //     this.nonAggrLinks,
-                //     this.network.nodes,
-                //     this.network.links,
-                //     supernode,
-                //   ),
-                // );
+                // console.log("expand the super network when the selection is in the click map");
+                this.$emit(
+                  'updateNetwork',
+                  expandSuperNetwork(
+                    this.nonAggrNodes,
+                    this.nonAggrLinks,
+                    this.network.nodes,
+                    this.network.links,
+                    supernode,
+                  ),
+                );
                 this.clickMap.set(supernode.id, true);
               }
             } else {
