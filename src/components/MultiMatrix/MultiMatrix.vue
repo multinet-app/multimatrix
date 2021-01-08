@@ -71,7 +71,6 @@ export default Vue.extend({
     provenance: any;
     sortKey: string;
     colMargin: number;
-    attributeScales: { [key: string]: any };
   } {
     return {
       browser: {
@@ -116,7 +115,6 @@ export default Vue.extend({
       provenance: undefined,
       sortKey: '',
       colMargin: 5,
-      attributeScales: {},
     };
   },
 
@@ -176,6 +174,35 @@ export default Vue.extend({
 
       return computedIdMap;
     },
+
+    attributeScales() {
+      const scales: { [key: string]: any } = {};
+
+      // Calculate the attribute scales
+      this.visualizedAttributes.forEach((col: string) => {
+        if (this.isQuantitative(col)) {
+          const minimum =
+            min(this.network.nodes.map((node: Node) => node[col])) || '0';
+          const maximum =
+            max(this.network.nodes.map((node: Node) => node[col])) || '0';
+          const domain = [parseFloat(minimum), parseFloat(maximum)];
+
+          const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
+          scale.clamp(true);
+          scales[col] = scale;
+        } else {
+          const values: string[] = this.network.nodes.map(
+            (node: Node) => node[col],
+          );
+          const domain = [...new Set(values)];
+          const scale = scaleOrdinal(schemeCategory10).domain(domain);
+
+          scales[col] = scale;
+        }
+      });
+
+      return scales;
+  },
   },
 
   watch: {
@@ -820,28 +847,6 @@ export default Vue.extend({
           }
         });
 
-      // Calculate the attribute scales
-      this.visualizedAttributes.forEach((col: string) => {
-        if (this.isQuantitative(col)) {
-          const minimum =
-            min(this.network.nodes.map((node: Node) => node[col])) || '0';
-          const maximum =
-            max(this.network.nodes.map((node: Node) => node[col])) || '0';
-          const domain = [parseFloat(minimum), parseFloat(maximum)];
-
-          const scale = scaleLinear().domain(domain).range([0, colWidth]);
-          scale.clamp(true);
-          this.attributeScales[col] = scale;
-        } else {
-          const values: string[] = this.network.nodes.map(
-            (node: Node) => node[col],
-          );
-          const domain = [...new Set(values)];
-          const scale = scaleOrdinal(schemeCategory10).domain(domain);
-
-          this.attributeScales[col] = scale;
-        }
-      });
 
       selectAll('.attr-axis').remove();
 
