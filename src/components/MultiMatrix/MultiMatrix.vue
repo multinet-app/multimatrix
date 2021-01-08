@@ -204,11 +204,16 @@ export default Vue.extend({
       });
 
       return scales;
-  },
+    },
+
+    colWidth(): number {
+      const attrWidth = parseFloat(select('#attributes').attr('width'));
+      return attrWidth / this.visualizedAttributes.length - this.colMargin;
+    },
   },
 
   watch: {
-    properties() {
+    visualizedAttributes() {
       this.renderAttributes();
     },
 
@@ -790,36 +795,42 @@ export default Vue.extend({
         });
 
       this.attributeZebras.merge(attributeZebrasEnter);
-      this.columnHeaders = this.attributes
-        .append('g')
-        .classed('column-headers', true);
 
-      // Set the column widths and margin
-      const attrWidth = parseFloat(select('#attributes').attr('width'));
-      const colWidth =
-        attrWidth / this.visualizedAttributes.length - this.colMargin;
+      // Create a group for each column and add header info
+      this.attributeRows = this.attributes
+        .selectAll('.attrColumn')
+        .data(this.visualizedAttributes, (d: string) => d);
 
-      // Update the column headers
-      const columnHeaderGroups = this.columnHeaders
-        .selectAll('text')
-        .data(this.visualizedAttributes);
+      this.attributeRows.exit().remove();
 
-      columnHeaderGroups.exit().remove();
+      // Update locations of existing elements
+      this.attributeRows.attr(
+        'transform',
+        (d: string, i: number) =>
+          `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
+      );
 
-      columnHeaderGroups
+      const attributeRowsEnter = this.attributeRows
         .enter()
+        .append('g')
+        .attr('class', 'attrColumn')
+        .attr(
+          'transform',
+          (d: string, i: number) =>
+            `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
+        );
+
+      attributeRowsEnter
         .append('text')
-        .merge(columnHeaderGroups)
         .style('font-size', '14px')
         .style('text-transform', 'capitalize')
         .style('word-wrap', 'break-word')
         .attr('text-anchor', 'left')
         .attr('transform', 'translate(0,-65)')
         .attr('cursor', 'pointer')
-        .text((d: string) => d)
         .attr('y', 16)
-        .attr('x', (d: string, i: number) => (colWidth + this.colMargin) * i)
-        .attr('width', colWidth)
+        .text((d: string) => d)
+        .attr('width', this.colWidth)
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
             this.$emit(
@@ -831,8 +842,35 @@ export default Vue.extend({
           }
         });
 
+      attributeRowsEnter
+        .append('path')
+        .attr('class', `sortIcon attr attrSortIcon`)
+        .attr('cursor', 'pointer')
+        .attr('d', (d: string) => {
+          const type = this.isQuantitative(d) ? 'quant' : 'categorical';
+          return this.icons[type].d;
+        })
+        .attr(
+          'transform',
+          (d: string, i: number) =>
+            `scale(0.1)translate(${
+              (this.colWidth + this.colMargin) * i * 10 - 200
+            }, -1100)`,
+        )
+        .style('fill', '#8B8B8B')
+        .on('click', (d: string) => this.sort(d));
 
       selectAll('.attr-axis').remove();
+
+      // Add the scale bar at the top of the attr column
+      attributeRowsEnter
+        .append('g')
+        .attr('class', 'attr-axis')
+        .attr(
+          'transform',
+          (d: string, i: number) =>
+            `translate(${(this.colWidth + this.colMargin) * i},-15)`,
+        );
 
       // Add the scale bar at the top of the attr column
       this.visualizedAttributes.forEach((col: string, index: number) => {
@@ -842,7 +880,7 @@ export default Vue.extend({
             .attr('class', 'attr-axis')
             .attr(
               'transform',
-              `translate(${(colWidth + this.colMargin) * index},-15)`,
+              `translate(${(this.colWidth + this.colMargin) * index},-15)`,
             )
             .call(
               axisTop(this.attributeScales[col])
@@ -861,71 +899,69 @@ export default Vue.extend({
         }
       });
 
-      selectAll('.glyph').remove();
-      /* Create data columns data */
-      this.visualizedAttributes.forEach((col: string, index: number) => {
-        if (this.isQuantitative(col)) {
-          this.attributeRows
-            .append('rect')
-            .attr('class', 'glyph ' + col)
-            .attr('height', this.orderingScale.bandwidth())
-            .attr('width', (d: Node) => this.attributeScales[col](d[col]))
-            .attr('x', (colWidth + this.colMargin) * index)
-            .attr('y', 0) // y is set by translate on the group
-            .attr('fill', '#82b1ff')
-            .attr('cursor', 'pointer')
-            .on('mouseover', (d: Node) => this.hoverNode(d.id))
-            .on('mouseout', (d: Node) => this.unHoverNode(d.id))
-            .on('click', (d: Node) => {
-              this.selectElement(d);
-              this.selectNeighborNodes(d.id, d.neighbors);
-            });
-        } else {
-          this.attributeRows
-            .append('rect')
-            .attr('class', 'glyph ' + col)
-            .attr('x', (colWidth + this.colMargin) * index)
-            .attr('y', 0)
-            .attr('fill', '#dddddd')
-            .attr('width', colWidth)
-            .attr('height', this.orderingScale.bandwidth())
-            .attr('fill', (d: Node) => this.attributeScales[col](d[col]))
-            .attr('cursor', 'pointer')
-            .on('mouseover', (d: Node) => this.hoverNode(d.id))
-            .on('mouseout', (d: Node) => this.unHoverNode(d.id))
-            .on('click', (d: Node) => {
-              this.selectElement(d);
-              this.selectNeighborNodes(d.id, d.neighbors);
-            });
-        }
-      });
+      attributeRowsEnter
+        .append('g')
+        .attr('class', (d: string) => `attrRows ${d}`);
 
-      selectAll('.attrSortIcon').remove();
+      this.attributeRows.merge(attributeRowsEnter);
 
-      // Add sort icons to the top of the header
-      const path = this.columnHeaders
-        .selectAll('path')
-        .data(this.visualizedAttributes);
+      const attributeVis = (selectAll('.attrRows') as any)
+        .selectAll('.attrRow')
+        .data(this.network.nodes, (d: Node) => d._id || d.id);
 
-      path
+      // Update existing vis elements to resize width
+      attributeVis
+        .selectAll('rect')
+        .attr('width', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+
+          if (this.isQuantitative(varName)) {
+            return this.attributeScales[varName](d[varName]);
+          } else {
+            return this.colWidth;
+          }
+        });
+
+      attributeVis.exit().remove();
+
+      const attributeVisEnter = attributeVis
         .enter()
-        .append('path')
-        .merge(path)
-        .attr('class', `sortIcon attr attrSortIcon`)
-        .attr('cursor', 'pointer')
-        .attr('d', (d: string) => {
-          const type = this.isQuantitative(d) ? 'quant' : 'categorical';
-          return this.icons[type].d;
-        })
+        .append('g')
+        .attr('class', 'attrRow')
         .attr(
           'transform',
-          (d: string, i: number) =>
-            `scale(0.1)translate(${
-              (colWidth + this.colMargin) * i * 10 - 200
-            }, -1100)`,
-        )
-        .style('fill', '#8B8B8B')
-        .on('click', (d: string) => this.sort(d));
+          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+        );
+
+      // Draw new vis elements (bars/colors)
+      attributeVisEnter
+        .append('rect')
+        .attr('height', this.orderingScale.bandwidth())
+        .attr('width', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+
+          if (this.isQuantitative(varName)) {
+            return this.attributeScales[varName](d[varName]);
+          } else {
+            return this.colWidth;
+          }
+        })
+        .attr('fill', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+
+          if (this.isQuantitative(varName)) {
+            return '#82b1ff';
+          } else {
+            return this.attributeScales[varName](d[varName]);
+          }
+        })
+        .attr('cursor', 'pointer')
+        .on('mouseover', (d: Node) => this.hoverNode(d.id))
+        .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        });
     },
 
     isQuantitative(varName: string): boolean {
