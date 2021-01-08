@@ -527,7 +527,6 @@ export default Vue.extend({
             // expand and retract the supernode aggregation based on user selection
             if (this.clickMap.has(supernode.id)) {
               if (this.clickMap.get(supernode.id) === true) {
-                // console.log("retract the super network when the selection is in the click");
                 this.$emit(
                   'updateNetwork',
                   retractSuperNetwork(
@@ -540,7 +539,6 @@ export default Vue.extend({
                 );
                 this.clickMap.set(supernode.id, false);
               } else {
-                // console.log("expand the super network when the selection is in the click map");
                 this.$emit(
                   'updateNetwork',
                   expandSuperNetwork(
