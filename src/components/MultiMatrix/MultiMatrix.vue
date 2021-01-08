@@ -745,50 +745,31 @@ export default Vue.extend({
       // Just has to be larger than the attributes panel (so that we render to the edge)
       const attributeWidth = 1000;
 
-      this.attributes = select('#attributes')
-        .append('g')
-        .attr('transform', `translate(0,${this.visMargins.top})`);
+      // Add/Update zebras
+      this.attributeZebras = (select('.zebras') as any)
+        .selectAll('.attrRowBackground')
+        .data(this.network.nodes, (d: Node) => d._id || d.id);
 
-      // add zebras and highlight rows
-      this.attributes
-        .selectAll('.highlightRow')
-        .data(this.network.nodes)
-        .enter()
+      this.attributeZebras.exit().remove();
+
+      const attributeZebrasEnter = this.attributeZebras.enter().append('g').attr('class', 'attrRowBackground');
+
+      attributeZebrasEnter
         .append('rect')
-        .classed('highlightRow', true)
-        .attr('x', 0)
+        .classed('zebra', true)
         .attr('y', (d: Node, i: number) => this.orderingScale(i))
         .attr('width', attributeWidth)
         .attr('height', this.orderingScale.bandwidth())
         .attr('fill', (d: Node, i: number) => (i % 2 === 0 ? '#fff' : '#eee'));
 
-      // Draw each row (translating the y coordinate)
-      this.attributeRows = this.attributes
-        .selectAll('.attrRowContainer')
-        .data(this.network.nodes)
-        .enter()
-        .append('g')
-        .attr('class', 'attrRowContainer')
-        .attr(
-          'transform',
-          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
-        );
-
-      this.attributeRows
-        .append('line')
-        .attr('x1', 0)
-        .attr('x2', attributeWidth)
-        .attr('stroke', '2px')
-        .attr('stroke-opacity', 0.3);
-
-      this.attributeRows
+      // Highlightable backgrounds for the vis
+      attributeZebrasEnter
         .append('rect')
-        .attr('x', 0)
-        .attr('y', 0)
-        .classed('attrRow', true)
-        .attr('id', (d: Node) => `attrRow${d.id}`)
+        .classed('highlightRow', true)
+        .attr('y', (d: Node, i: number) => this.orderingScale(i))
+        .attr('id', (d: Node) => `highlightRow${d.id}`)
         .attr('width', attributeWidth)
-        .attr('height', this.orderingScale.bandwidth()) // end addition
+        .attr('height', this.orderingScale.bandwidth())
         .attr('fill-opacity', 0)
         .attr('cursor', 'pointer')
         .on('mouseover', (d: Node, i: number, nodes: any) => {
@@ -798,12 +779,13 @@ export default Vue.extend({
         .on('mouseout', (d: Node) => {
           this.hideToolTip();
           this.unHoverNode(d.id);
+        })
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
         });
-      // .on('click', (d: Node) => {
-      //   this.selectElement(d);
-      //   this.selectNeighborNodes(d.id, d.neighbors);
-      // });
 
+      this.attributeZebras.merge(attributeZebrasEnter);
       this.columnHeaders = this.attributes
         .append('g')
         .classed('column-headers', true);
