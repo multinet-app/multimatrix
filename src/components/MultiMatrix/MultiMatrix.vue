@@ -62,7 +62,6 @@ export default Vue.extend({
     edges: any;
     edgeColumns: any;
     edgeRows: any;
-    colorScale: ScaleLinear<string, number>;
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
@@ -90,7 +89,6 @@ export default Vue.extend({
       edges: undefined,
       edgeColumns: undefined,
       edgeRows: undefined,
-      colorScale: scaleLinear<string, number>(),
       icons: {
         quant: {
           d:
@@ -176,6 +174,12 @@ export default Vue.extend({
 
       return computedIdMap;
     },
+
+    colorScale(): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, this.maxNumConnections])
+        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+    },
   },
 
   watch: {
@@ -191,6 +195,10 @@ export default Vue.extend({
     directional() {
       this.processData();
       this.changeMatrix();
+    },
+
+    colorScale() {
+      this.$emit('updateMatrixLegendScale', this.colorScale);
     },
   },
 
@@ -270,8 +278,6 @@ export default Vue.extend({
 
     this.initializeAttributes();
     this.initializeEdges();
-
-    this.$emit('updateMatrixLegendScale', this.colorScale);
   },
 
   methods: {
@@ -285,7 +291,10 @@ export default Vue.extend({
     },
 
     processData(): void {
+      // Reset some values that will be re-calcuated
+      this.maxNumConnections = 0;
       this.matrix = [];
+
       this.network.nodes.forEach((rowNode: Node, i: number) => {
         this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
           return {
@@ -501,10 +510,6 @@ export default Vue.extend({
       this.edgeRows.merge(rowEnter);
 
       this.drawGridLines();
-
-      this.colorScale
-        .domain([0, this.maxNumConnections])
-        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
 
       // Draw cells
       selectAll('.cellsGroup')
