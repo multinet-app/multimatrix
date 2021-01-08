@@ -58,6 +58,7 @@ export default Vue.extend({
     matrix: Cell[][];
     attributes: any;
     attributeRows: any;
+    attributeZebras: any;
     columnHeaders: any;
     edges: any;
     edgeColumns: any;
@@ -85,6 +86,7 @@ export default Vue.extend({
       matrix: [],
       attributes: undefined,
       attributeRows: undefined,
+      attributeZebras: undefined,
       columnHeaders: undefined,
       edges: undefined,
       edgeColumns: undefined,
@@ -612,7 +614,7 @@ export default Vue.extend({
 
             // interactID = cellData.rowID;
             // interactionName = interactionName + 'row'
-          } else if (interactionName === 'attrRow') {
+          } else if (interactionName === 'highlightRow') {
             return interactionName;
           } else if (interactionName === 'neighborSelect') {
             this.changeInteraction(
@@ -946,13 +948,13 @@ export default Vue.extend({
         } else {
           // Get all the elements to be selected
           elementsToSelect = [
-            `[id="attrRow${element.colID}"]`,
+            `[id="highlightRow${element.colID}"]`,
             `[id="topoRow${element.colID}"]`,
             `[id="topoCol${element.colID}"]`,
             `[id="colLabel${element.colID}"]`,
             `[id="rowLabel${element.colID}"]`,
 
-            `[id="attrRow${element.rowID}"]`,
+            `[id="highlightRow${element.rowID}"]`,
             `[id="topoRow${element.rowID}"]`,
             `[id="topoCol${element.rowID}"]`,
             `[id="colLabel${element.rowID}"]`,
@@ -971,7 +973,7 @@ export default Vue.extend({
           delete this.selectedElements[element.id];
         } else {
           elementsToSelect = [
-            `[id="attrRow${element.id}"]`,
+            `[id="highlightRow${element.id}"]`,
             `[id="topoRow${element.id}"]`,
             `[id="topoCol${element.id}"]`,
             `[id="colLabel${element.id}"]`,
@@ -1020,7 +1022,7 @@ export default Vue.extend({
       const selections: string[] = [];
       for (const node of Object.keys(this.selectedNodesAndNeighbors)) {
         for (const neighborNode of this.selectedNodesAndNeighbors[node]) {
-          selections.push(`[id="attrRow${neighborNode}"]`);
+          selections.push(`[id="highlightRow${neighborNode}"]`);
           selections.push(`[id="topoRow${neighborNode}"]`);
           selections.push(`[id="nodeLabelRow${neighborNode}"]`);
         }
@@ -1198,12 +1200,12 @@ export default Vue.extend({
     },
 
     hoverNode(nodeID: string): void {
-      const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+      const cssSelector = `[id="highlightRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
       selectAll(cssSelector).classed('hovered', true);
     },
 
     unHoverNode(nodeID: string): void {
-      const cssSelector = `[id="attrRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
+      const cssSelector = `[id="highlightRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
       selectAll(cssSelector).classed('hovered', false);
     },
 
