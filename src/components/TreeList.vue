@@ -192,7 +192,7 @@ export default Vue.extend({
       let colorDomain = [];
       this.nodesLength.forEach((node: Node) => {
         if (node.depth === 2) {
-          colorDomain.push(node.id.replace(' ', ''));
+          colorDomain.push(node.id.replace(/\s/g, ''));
         }
       });
       colorDomain = colorDomain.sort();
@@ -305,18 +305,18 @@ export default Vue.extend({
         .style('fill', (d: any) => {
           let ancestorID = '';
           if (d.depth < 2) {
-            this.colorTracker['none'].push(d.id.replace(' ', ''));
+            this.colorTracker['none'].push(d.id.replace(/\s/g, ''));
             return 'slategrey';
           } else {
             const ancestors = d.ancestors();
             ancestors.forEach((node: Node) => {
-              const id = node.id.replace(' ', '');
+              const id = node.id.replace(/\s/g, '');
               if (this.colorDomain.includes(id)) {
                 ancestorID = id;
               }
             });
           }
-          this.colorTracker[ancestorID].push(d.id.replace(' ', ''));
+          this.colorTracker[ancestorID].push(d.id.replace(/\s/g, ''));
           return this.colorScale(ancestorID);
         });
 

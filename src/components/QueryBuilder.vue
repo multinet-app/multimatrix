@@ -185,9 +185,9 @@ export default Vue.extend({
         .data(nodesData)
         .join('circle')
         .attr('r', 10)
-        .attr('id', (d: any) => d.Label.replace(' ', ''))
+        .attr('id', (d: any) => d.Label.replace(/\s/g, ''))
         .style('fill', (d: any) => {
-          const label = d.Label.replace(' ', '');
+          const label = d.Label.replace(/\s/g, '');
           let colorKey = 'none';
           for (const key in this.colorsDict) {
             if (label === key) {
@@ -350,7 +350,7 @@ export default Vue.extend({
     // Hover schema nodes based on tree list hover
     hoverSchema() {
       const hoverClass =
-        '#' + this.treeListHover.toString().toUpperCase().replace(' ', '');
+        '#' + this.treeListHover.toString().toUpperCase().replace(/\s/g, '');
       d3.selectAll('.treehover').classed('treehover', false);
 
       d3.select(hoverClass).attr('class', 'treehover').raise();
