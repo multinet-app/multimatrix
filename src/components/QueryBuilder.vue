@@ -171,28 +171,6 @@ export default Vue.extend({
             .y((this.height / 8) * 3),
         );
 
-      // //  Create domain list for color scale
-      // const initialGroupsList: string[] = this.currentSchema.map((n) => {
-      //   if (n.children == undefined) {
-      //     // return the parent ID if parent != root
-      //     if (n.parent.depth > 1) {
-      //       return n.parent.id;
-      //     } else {
-      //       return n.id;
-      //     }
-      //   }
-      // });
-      // //  Create set to remove dumplicates + undefined
-      // const initialGroupsSet = new Set(
-      //   initialGroupsList.filter((i) => i != undefined),
-      // );
-
-      // // Node colors
-      // const colors = d3
-      //   .scaleOrdinal()
-      //   .domain(initialGroupsSet)
-      //   .range(d3.schemeCategory10);
-
       const edges = this.networkGroup
         .append('g')
         .attr('class', 'link')
@@ -303,7 +281,61 @@ export default Vue.extend({
           .on('drag', dragged)
           .on('end', dragended),
       );
+
+      // Create legend for toggling edges
+      const uniqueLinks = [...new Set(linksData.map((l: Link) => l.Type))];
+      const legendSVG = d3.select(this.$refs.schemaView).append('g');
+
+      legendSVG
+        .selectAll('rect')
+        .data(uniqueLinks)
+        .join('rect')
+        .attr('class', (l: string) => l.replace(/\s/g, ''))
+        .attr('width', 10)
+        .attr('height', 10)
+        .attr('fill', 'none')
+        .attr('stroke', 'black')
+        .attr('x', 10)
+        .attr('y', (l: string, i: number) => 10 + i * 15);
+
+      legendSVG
+        .selectAll('text')
+        .data(uniqueLinks)
+        .join('text')
+        .attr('class', (l: string) => l.replace(/\s/g, ''))
+        .attr('height', 10)
+        .attr('fill', '#000')
+        .attr('x', 30)
+        .attr('y', (l: string, i: number) => 20 + i * 15)
+        .html((l: string) => l);
+
+      const legendRect = legendSVG
+        .append('g')
+        .selectAll('rect')
+        .data(uniqueLinks)
+        .join('rect')
+        .attr('style', 'cursor: pointer;')
+        .attr('width', 200)
+        .attr('height', 12)
+        .attr('opacity', 0)
+        .attr('x', 10)
+        .attr('y', (d, i) => 10 + i * 15)
+        .attr('active', 'no');
+
+      legendRect.on('click', (l: string) => {
+        const click = d3.selectAll(`.${l.replace(/\s/g, '')}`).attr('click');
+        if (click === null) {
+          d3.selectAll(`.${l.replace(/\s/g, '')}`)
+            .classed('legendSelected', true)
+            .attr('click', 'clicked');
+        } else {
+          d3.selectAll(`.${l.replace(/\s/g, '')}`)
+            .classed('legendSelected', false)
+            .attr('click', 'null');
+        }
+      });
     },
+
     runMotifSearch(this: any) {
       if (this.start[0] + this.end[0] === 2) {
         console.log('QUERY:', this.start[1], this.end[1]);
@@ -346,5 +378,9 @@ svg >>> circle:hover {
 svg >>> circle.treehover {
   stroke: black;
   stroke-width: 2px;
+}
+
+svg >>> .legendSelected {
+  fill: grey;
 }
 </style>
