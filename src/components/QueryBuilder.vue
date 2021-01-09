@@ -74,9 +74,6 @@ export default Vue.extend({
     currentSchema() {
       this.initializeSchema();
     },
-    treeRelationships() {
-      this.createColorDomain();
-    },
   },
 
   async mounted(this: any) {

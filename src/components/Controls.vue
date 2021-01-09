@@ -101,6 +101,7 @@ export default Vue.extend({
     },
     createLegend(colorScale: ScaleLinear<string, number>) {
       const legendSVG = select('#matrix-legend');
+
       legendSVG
         .append('g')
         .classed('legendLinear', true)
@@ -263,7 +264,6 @@ export default Vue.extend({
     <v-row>
       <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
-          <!-- Bind schema classification here -->
           <tree-list
             ref="treelist"
             v-if="workspace"
@@ -279,10 +279,9 @@ export default Vue.extend({
       <!-- QueryBuilder component -->
       <v-col class="ma-0 pl-0 pr-0">
         <v-row row wrap class="ma-0 pa-0">
-          <!-- Bind schema classification here -->
           <query-builder
             ref="querybuilder"
-            v-if="currentSchema"
+            v-if="workspace"
             v-bind="{
               network,
               treeListHover,
@@ -301,7 +300,7 @@ export default Vue.extend({
         <v-row row wrap class="ma-0 pa-0">
           <multi-matrix
             ref="multimatrix"
-            v-if="currentSchema"
+            v-if="workspace"
             v-bind="{
               schemaNetwork,
               network,

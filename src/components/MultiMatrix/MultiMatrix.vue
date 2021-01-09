@@ -296,7 +296,7 @@ export default Vue.extend({
     // this.initializeAttributes();
     this.initializeEdges();
 
-    this.$emit('updateMatrixLegendScale', this.colorScale);
+    // this.$emit('updateMatrixLegendScale', this.colorScale);
   },
 
   methods: {
@@ -341,6 +341,8 @@ export default Vue.extend({
     },
 
     processData(): void {
+      this.matrix = [];
+
       this.schemaNetwork.nodes.forEach((rowNode: Node, i: number) => {
         this.matrix[i] = this.schemaNetwork.nodes.map(
           (colNode: Node, j: number) => {
@@ -471,6 +473,8 @@ export default Vue.extend({
       this.colorScale
         .domain([0, this.maxNumConnections])
         .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+
+      this.$emit('updateMatrixLegendScale', this.colorScale);
 
       this.edgeRows
         .selectAll('.cell')
@@ -809,6 +813,7 @@ export default Vue.extend({
         .style('fill', '#EBB769');
     },
 
+    // Decided to not call this because I am using lineup
     initializeAttributes(): void {
       // Just has to be larger than the attributes panel (so that we render to the edge)
       const attributeWidth = 1000;
@@ -1085,14 +1090,11 @@ export default Vue.extend({
       const newlineupdata = [];
       // Combine node + link data
       linkDataToDisplay.forEach((l: Link) => {
-        // console.log('In link data:', l.sourceID, l.targetID);
         let rowObject: any = {};
         const lclone = {};
         nodeDataToDisplay.forEach((n: Node) => {
-          // console.log('In node data:', n.id);
           const nclone = {};
           if (n.id === l.sourceID) {
-            // console.log('in source with', n.id);
             for (const key in n) {
               const newkey: string = 'S:' + key;
               if (key === 'TypeID') {
@@ -1103,7 +1105,6 @@ export default Vue.extend({
             }
             rowObject = Object.assign({}, rowObject, nclone);
           } else if (n.id === l.targetID) {
-            // console.log('in target with', n.id);
             for (const key in n) {
               const newkey: string = 'T:' + key;
               if (key === 'TypeID') {
@@ -1122,10 +1123,9 @@ export default Vue.extend({
         rowObject = Object.assign({}, rowObject, lclone);
         newlineupdata.push(rowObject);
       });
-
+      console.log('Hello');
       this.lineupdata = [];
       this.lineupdata = newlineupdata;
-      console.log('LINEUP', this.lineupdata);
     },
 
     selectElement(element: Cell | Node): void {
