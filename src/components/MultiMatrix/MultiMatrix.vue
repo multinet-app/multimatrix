@@ -755,7 +755,10 @@ export default Vue.extend({
 
       this.attributeZebras.exit().remove();
 
-      const attributeZebrasEnter = this.attributeZebras.enter().append('g').attr('class', 'attrRowBackground');
+      const attributeZebrasEnter = this.attributeZebras
+        .enter()
+        .append('g')
+        .attr('class', 'attrRowBackground');
 
       attributeZebrasEnter
         .append('rect')
