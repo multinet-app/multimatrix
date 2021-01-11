@@ -77,7 +77,6 @@ export default Vue.extend({
     provenance: any;
     sortKey: string;
     colMargin: number;
-    attributeScales: { [key: string]: any };
     nonAggrNodes: any;
     nonAggrLinks: any;
     clickMap: any; // variable for keeping track of whether a label has been clicked or not
@@ -108,6 +107,11 @@ export default Vue.extend({
       edgeColumns: undefined,
       edgeRows: undefined,
       cells: undefined,
+      clickMap: undefined,
+      nonAggrNodes: undefined,
+      nonAggrLinks: undefined,
+      expandRetractAggrVisNodes: undefined,
+      expandRetractAggrVisLinks: undefined,
       icons: {
         quant: {
           d:
