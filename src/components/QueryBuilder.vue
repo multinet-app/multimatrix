@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 import { schemaGraph } from '@/lib/aggregation';
 
-import { Dimensions, Network } from '@/types';
+import { Dimensions, Network, Link, Node } from '@/types';
 
 export default Vue.extend({
   props: {
@@ -32,6 +32,9 @@ export default Vue.extend({
     visMargins: { left: number; top: number; right: number; bottom: number };
     updatedSchema: any;
     currentParent: string;
+    schemaNetwork: Network;
+    uniqueLinks: string[];
+    unSelectedLinks: string[];
   } {
     return {
       browser: {
@@ -41,6 +44,12 @@ export default Vue.extend({
       visMargins: { left: 75, top: 75, right: 0, bottom: 0 },
       updatedSchema: {},
       currentParent: '',
+      schemaNetwork: {
+        nodes: [],
+        links: [],
+      },
+      uniqueLinks: [],
+      unSelectedLinks: [],
     };
   },
 
@@ -102,6 +111,49 @@ export default Vue.extend({
     this.networkGroup = this.svg.append('g').attr('id', 'networkGroup');
 
     this.schemaDict = {};
+
+    // Draw legend
+    this.uniqueLinks = [
+      ...new Set(this.network.links.map((l: Link) => l.Type)),
+    ];
+    const legendSVG = d3.select(this.$refs.schemaView).append('g');
+
+    legendSVG
+      .selectAll('rect')
+      .data(this.uniqueLinks)
+      .join('rect')
+      .attr('class', (l: string) => l.replace(/\s/g, ''))
+      .attr('width', 10)
+      .attr('height', 10)
+      .attr('fill', 'none')
+      .attr('stroke', 'black')
+      .attr('x', 10)
+      .attr('y', (l: string, i: number) => 10 + i * 15);
+
+    legendSVG
+      .selectAll('text')
+      .data(this.uniqueLinks)
+      .join('text')
+      .attr('class', (l: string) => l.replace(/\s/g, ''))
+      .attr('height', 10)
+      .attr('fill', '#000')
+      .attr('x', 30)
+      .attr('y', (l: string, i: number) => 20 + i * 15)
+      .html((l: string) => l);
+
+    legendSVG
+      .append('g')
+      .selectAll('rect')
+      .data(this.uniqueLinks)
+      .join('rect')
+      .attr('style', 'cursor: pointer;')
+      .attr('width', 200)
+      .attr('height', 12)
+      .attr('opacity', 0)
+      .attr('x', 10)
+      .attr('y', (d, i) => 10 + i * 15)
+      .attr('active', 'no')
+      .attr('class', 'legendRect');
   },
 
   methods: {
@@ -147,11 +199,12 @@ export default Vue.extend({
         schemaDict,
         'Label',
       );
-      this.$emit('updateSchemaNetwork', newNetwork);
-      console.log('NEW NETWORK', newNetwork);
-      this.createSchema(newNetwork);
+
+      this.schemaNetwork = newNetwork;
+      this.createSchema(this.schemaNetwork);
     },
-    createSchema(this: any, schema: any) {
+    createSchema(this: any, schema: Network) {
+      this.$emit('updateSchemaNetwork', schema);
       d3.select('#networkGroup').selectAll('*').remove();
       const linksData = schema.links;
       const nodesData = schema.nodes;
@@ -202,7 +255,6 @@ export default Vue.extend({
         .attr('stroke-width', 1);
 
       nodes.on('mouseover', (this: any, node: Node) => {
-        // console.log(this);
         d3.select(`#${node.Label}`).classed('treehover', true);
       });
 
@@ -282,57 +334,23 @@ export default Vue.extend({
           .on('end', dragended),
       );
 
-      // Create legend for toggling edges
-      const uniqueLinks = [...new Set(linksData.map((l: Link) => l.Type))];
-      const legendSVG = d3.select(this.$refs.schemaView).append('g');
-
-      legendSVG
-        .selectAll('rect')
-        .data(uniqueLinks)
-        .join('rect')
-        .attr('class', (l: string) => l.replace(/\s/g, ''))
-        .attr('width', 10)
-        .attr('height', 10)
-        .attr('fill', 'none')
-        .attr('stroke', 'black')
-        .attr('x', 10)
-        .attr('y', (l: string, i: number) => 10 + i * 15);
-
-      legendSVG
-        .selectAll('text')
-        .data(uniqueLinks)
-        .join('text')
-        .attr('class', (l: string) => l.replace(/\s/g, ''))
-        .attr('height', 10)
-        .attr('fill', '#000')
-        .attr('x', 30)
-        .attr('y', (l: string, i: number) => 20 + i * 15)
-        .html((l: string) => l);
-
-      const legendRect = legendSVG
-        .append('g')
-        .selectAll('rect')
-        .data(uniqueLinks)
-        .join('rect')
-        .attr('style', 'cursor: pointer;')
-        .attr('width', 200)
-        .attr('height', 12)
-        .attr('opacity', 0)
-        .attr('x', 10)
-        .attr('y', (d, i) => 10 + i * 15)
-        .attr('active', 'no');
-
-      legendRect.on('click', (l: string) => {
+      d3.selectAll('.legendRect').on('click', (l: string) => {
         const click = d3.selectAll(`.${l.replace(/\s/g, '')}`).attr('click');
+
         if (click === null) {
           d3.selectAll(`.${l.replace(/\s/g, '')}`)
             .classed('legendSelected', true)
             .attr('click', 'clicked');
+          this.unSelectedLinks.push(l);
         } else {
           d3.selectAll(`.${l.replace(/\s/g, '')}`)
             .classed('legendSelected', false)
-            .attr('click', 'null');
+            .attr('click', null);
+          this.unSelectedLinks = this.unSelectedLinks.filter((sl: string) => {
+            return sl != l;
+          });
         }
+        this.modifyLinks(this.unSelectedLinks, this.schemaNetwork);
       });
     },
 
@@ -354,6 +372,38 @@ export default Vue.extend({
       d3.selectAll('.treehover').classed('treehover', false);
 
       d3.select(hoverClass).attr('class', 'treehover').raise();
+    },
+
+    // Modify edges based on legend
+    modifyLinks(this: any, unSelectedLinksList: string[], network: Network) {
+      const removedNodes = [];
+      const newLinks = [];
+
+      network.links.forEach((l: Link) => {
+        if (!unSelectedLinksList.includes(l.Type)) {
+          newLinks.push(l);
+        } else {
+          removedNodes.push(l.sourceID);
+          removedNodes.push(l.targetID);
+        }
+      });
+
+      const newNodes = network.nodes.map((n: Node) => {
+        n.children.forEach((c: string) => {
+          if (!removedNodes.includes(n.children)) {
+            return c;
+          }
+        });
+        if (n.children.length > 0) {
+          return n;
+        }
+      });
+      const newNetwork = {
+        nodes: newNodes,
+        links: newLinks,
+      };
+
+      this.createSchema(newNetwork);
     },
   },
 });
