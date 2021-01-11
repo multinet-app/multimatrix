@@ -5,8 +5,6 @@
 import { defineSuperNeighbors } from '@/lib/multinet';
 import { Link, Node } from '@/types';
 
-// function that creates a deep copy of nodes
-// function that creates a deep copy of links
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
@@ -24,6 +22,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     // add new node to node list
     newNodes.push(newNode);
   });
+
   // create a list that results of the selected attribute from the nodes
   const selectedAttributes = new Set<string>();
 
@@ -246,7 +245,7 @@ function expandSuperLinksData(
   return combinedLinks;
 }
 
-// this function that constructs the neighbors for a node in a super network
+// function that constructs the neighbors for a node in a super network
 function defineNeighborNodes(nodes: Node[], links: Link[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   links.forEach((link) => {
@@ -259,7 +258,7 @@ function defineNeighborNodes(nodes: Node[], links: Link[]) {
   });
   return nodes;
 }
-// this function is for expanding the super network for visualization
+//function is for expanding the super network for visualization
 export function expandSuperNetwork(
   nonAggrNodes: Node[],
   nonAggrLinks: Link[],
@@ -306,7 +305,7 @@ export function expandSuperNetwork(
   return network;
 }
 
-// this function retracts the supernodes if they are double clicked twice
+// function retracts the supernodes if they are double clicked twice
 function retractSuperNodeData(
   superNodeName: string,
   aggrNodesCopy: Node[],
@@ -337,7 +336,7 @@ function retractSuperNodeData(
   }
 }
 
-// this function creates a new set of links by removing the
+// function creates a new set of links by removing the
 // links added from the expand superlinks function
 function retractSuperLinksData(
   superNodeName: string,
@@ -345,11 +344,9 @@ function retractSuperLinksData(
   nonAggrLinksCopy: Link[],
   superNodeNameDict: Map<string, Node>,
 ) {
-  // make deep copies of the links
   const childLinksCopy = deepCopyLinks(nonAggrLinksCopy);
   const expandedLinksCopy = deepCopyLinks(expandedLinks);
 
-  // get the node information about the supernode
   const superNode = superNodeNameDict.get(superNodeName);
   let superChildren: string[] = [];
   if (superNode != undefined) {
@@ -377,7 +374,7 @@ function retractSuperLinksData(
   return newLinks;
 }
 
-// this function is for retracting the super network visualization
+// function is for retracting the super network visualization
 export function retractSuperNetwork(
   nonAggrNodes: Node[],
   nonAggrLinks: Link[],
