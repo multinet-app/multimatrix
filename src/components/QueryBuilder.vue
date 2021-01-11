@@ -35,6 +35,7 @@ export default Vue.extend({
     schemaNetwork: Network;
     uniqueLinks: string[];
     unSelectedLinks: string[];
+    selectedHops: number;
   } {
     return {
       browser: {
@@ -50,6 +51,7 @@ export default Vue.extend({
       },
       uniqueLinks: [],
       unSelectedLinks: [],
+      selectedHops: 0,
     };
   },
 
@@ -99,14 +101,16 @@ export default Vue.extend({
       .attr('stroke', 'black')
       .attr('fill', 'none');
 
-    // Draw motif rect
+    // Draw query rect
+    // const queryBox =
     this.svg
       .append('rect')
       .attr('width', this.width)
       .attr('height', this.height / 4)
       .attr('stroke', 'black')
       .attr('transform', `translate(0, ${(this.height / 4) * 3})`)
-      .attr('fill', 'none');
+      .attr('fill', 'none')
+      .attr('id', 'queryBox');
 
     this.networkGroup = this.svg.append('g').attr('id', 'networkGroup');
 
@@ -205,7 +209,11 @@ export default Vue.extend({
     },
     createSchema(this: any, schema: Network) {
       this.$emit('updateSchemaNetwork', schema);
+
       d3.select('#networkGroup').selectAll('*').remove();
+      d3.select('#queryBox').attr('start', null);
+      d3.select('#queryBox').attr('end', null);
+
       const linksData = schema.links;
       const nodesData = schema.nodes;
 
@@ -301,6 +309,7 @@ export default Vue.extend({
         const mouseCoordinates = d3.mouse(this);
         const networkHeight: number = d3.select('#schemaView').attr('height');
         const networkWidth: number = d3.select('#schemaView').attr('width');
+        const nodeID = d3.select(this).attr('id');
 
         if (mouseCoordinates[1] > (networkHeight / 4) * 3) {
           if (mouseCoordinates[0] < networkWidth / 2) {
@@ -308,7 +317,7 @@ export default Vue.extend({
               .attr('cx', networkWidth / 4)
               .attr('cy', (networkHeight / 8) * 7)
               .attr('r', 20);
-            this.runMotifSearch();
+            d3.select('#queryBox').attr('start', nodeID);
           } else if (
             mouseCoordinates[0] >= networkWidth / 2 &&
             mouseCoordinates[0] < networkWidth
@@ -317,7 +326,7 @@ export default Vue.extend({
               .attr('cx', (networkWidth / 4) * 3)
               .attr('cy', (networkHeight / 8) * 7)
               .attr('r', 20);
-            this.runMotifSearch();
+            d3.select('#queryBox').attr('end', nodeID);
           } else {
             d3.select(this).remove();
           }
@@ -352,12 +361,6 @@ export default Vue.extend({
         }
         this.modifyLinks(this.unSelectedLinks, this.schemaNetwork);
       });
-    },
-
-    runMotifSearch(this: any) {
-      if (this.start[0] + this.end[0] === 2) {
-        console.log('QUERY:', this.start[1], this.end[1]);
-      }
     },
 
     updateSchema(this: any) {
@@ -405,6 +408,15 @@ export default Vue.extend({
 
       this.createSchema(newNetwork);
     },
+
+    // Generates AQL query
+    queryGenerator(this: any) {
+      const start = d3.select('#queryBox').attr('start');
+      const end = d3.select('#queryBox').attr('end');
+      if (start != null && end != null) {
+        this.$emit('aqlQueryParameters', start, end, this.selectedHops);
+      }
+    },
   },
 });
 </script>
@@ -412,6 +424,21 @@ export default Vue.extend({
 <template>
   <div>
     <svg id="schemaView" ref="schemaView" width="800" height="900" />
+    <v-col>
+      <v-row>
+        <v-slider
+          v-model="selectedHops"
+          label="Hops"
+          ticks="always"
+          thumb-label
+          :max="5"
+          :min="1"
+        ></v-slider>
+        <v-btn color="primary" depressed @click="queryGenerator">
+          Submit Query
+        </v-btn>
+      </v-row>
+    </v-col>
   </div>
 </template>
 
@@ -419,11 +446,6 @@ export default Vue.extend({
 svg >>> circle {
   cursor: pointer;
 }
-/* 
-svg >>> circle:hover {
-  stroke: black;
-  stroke-width: 2px;
-} */
 
 svg >>> circle.treehover {
   stroke: black;

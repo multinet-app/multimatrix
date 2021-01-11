@@ -36,6 +36,7 @@ export default Vue.extend({
     treeRelationships: any[];
     schemaNetwork: Network;
     colorsDict: any;
+    aqlQuery: string;
   } {
     return {
       network: {
@@ -57,6 +58,7 @@ export default Vue.extend({
         links: [],
       },
       colorsDict: {},
+      aqlQuery: '',
     };
   },
 
@@ -131,6 +133,15 @@ export default Vue.extend({
     schemaColors(this: any, colors: any) {
       return (this.colorsDict = colors);
     },
+    aqlQueryParameters(this: any, start: string, end: string, hops: number) {
+      // TODO add edges!
+      const query = `FOR n IN ${this.networkName}
+        FILTER n.Label =~ '${start}'
+        FOR v, e, p IN 1..${hops} ANY n._id GRAPH '${this.workspace}'
+          FILTER v.Label =~ '${end}'
+        RETURN {pRETURN {nodes: p.vertices, links: p.edges}`;
+      return (this.aqlQuery = query);
+    },
   },
   watch: {
     showGridLines: function () {
@@ -139,6 +150,9 @@ export default Vue.extend({
       } else {
         selectAll('.gridLines').attr('opacity', 0);
       }
+    },
+    aqlQuery(this: any) {
+      console.log(this.aqlQuery);
     },
   },
 });
@@ -291,6 +305,7 @@ export default Vue.extend({
             }"
             @restart-simulation="hello()"
             @updateSchemaNetwork="updateSchemaNetwork"
+            @aqlQueryParameters="aqlQueryParameters"
           />
         </v-row>
       </v-col>
