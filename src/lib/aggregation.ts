@@ -45,7 +45,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
-      if (superNode != undefined) superNode.CHILDREN.push(node.id);
+      if (superNode !== undefined) superNode.CHILDREN.push(node.id);
     }
   });
 
@@ -91,7 +91,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     finalNodes.forEach((node) => {
       if (children.includes(node.id)) {
         const nodeIDValue = node.id;
-        finalNodes = finalNodes.filter((node) => node.id != nodeIDValue);
+        finalNodes = finalNodes.filter((node) => node.id !== nodeIDValue);
       }
     });
   });
@@ -207,7 +207,7 @@ function expandSuperNodeData(
     const childNodes: Node[] = [];
     superChildrenIDs.forEach((id: string) => {
       const childNode = childrenNodeNameDict.get(id);
-      if (childNode != undefined) {
+      if (childNode !== undefined) {
         childNodes.push(childNode);
       }
     });
@@ -245,7 +245,7 @@ function expandSuperLinksData(
   // Construct a list of the children nodes that belong to the selected supernode
   const superNode = superNodeNameDict.get(superNodeName);
   let superChildren: string[] = [];
-  if (superNode != undefined) {
+  if (superNode !== undefined) {
     superChildren = superNode.CHILDREN;
   }
 
@@ -264,7 +264,7 @@ function expandSuperLinksData(
   superChildrenLinks.forEach((link) => {
     const linkTo = link._to;
     const parent = superChildrenDict.get(linkTo);
-    if (parent != undefined) {
+    if (parent !== undefined) {
       link._to = parent;
       link.target = link._to;
     }
@@ -283,7 +283,7 @@ function defineNeighborNodes(nodes: Node[], links: Link[]) {
   links.forEach((link) => {
     const findNodeFrom = nodes.find((node) => node.id === link._from);
     const findNodeTo = nodes.find((node) => node.id === link._to);
-    if (findNodeFrom && findNodeTo != undefined) {
+    if (findNodeFrom && findNodeTo !== undefined) {
       findNodeFrom.neighbors.push(link._to);
       findNodeTo.neighbors.push(link._from);
     }
@@ -356,12 +356,12 @@ function retractSuperNodeData(
 
   // If the supernode exists in the dictionary,
   // get the children of the supernode
-  if (superNode != undefined) {
+  if (superNode !== undefined) {
     const superChildrenIDs = superNode.CHILDREN;
     const childNodes: Node[] = [];
     superChildrenIDs.forEach((id: string) => {
       const childNode = childrenNodeNameDict.get(id);
-      if (childNode != undefined) {
+      if (childNode !== undefined) {
         childNodes.push(childNode);
       }
     });
@@ -395,7 +395,7 @@ function retractSuperLinksData(
   // Construct a list of the children nodes that belong to the selected supernode
   const superNode = superNodeNameDict.get(superNodeName);
   let superChildren: string[] = [];
-  if (superNode != undefined) {
+  if (superNode !== undefined) {
     superChildren = superNode.CHILDREN;
   }
 
@@ -462,7 +462,7 @@ export function retractSuperNetwork(
 
   // Create a new set of neighbors for the new network nodes
   let neighborNodes: Node[] = [];
-  if (retractNodes && retractLinks != undefined) {
+  if (retractNodes && retractLinks !== undefined) {
     neighborNodes = defineNeighborNodes(retractNodes, retractLinks);
   }
 
