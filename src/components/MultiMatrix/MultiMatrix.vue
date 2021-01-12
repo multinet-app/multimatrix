@@ -561,7 +561,6 @@ export default Vue.extend({
             }
             const supernode = d;
             // expand and retract the supernode aggregation based on user selection
-            if (this.clickMap.has(supernode.id)) {
               if (this.clickMap.get(supernode.id)) {
                 this.$emit(
                   'updateNetwork',
@@ -587,19 +586,6 @@ export default Vue.extend({
                 );
                 this.clickMap.set(supernode.id, true);
               }
-            } else {
-              this.$emit(
-                'updateNetwork',
-                expandSuperNetwork(
-                  this.nonAggrNodes,
-                  this.nonAggrLinks,
-                  this.network.nodes,
-                  this.network.links,
-                  supernode,
-                ),
-              );
-              this.clickMap.set(supernode.id, true);
-            }
           } else {
             this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
