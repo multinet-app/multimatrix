@@ -146,6 +146,36 @@ function mapNetworkNodes(nodes: Node[]) {
   return nodeMap;
 }
 
+// Function that processes the non-aggregated network nodes
+// and assigns a type to the node
+    export function processChildNodes(nodes: Node[]) {
+      const nodeCopy: Node[] = [];
+      // original network components
+      nodes.map((node: Node) => {
+        const newNode = {
+          ...node,
+        };
+        newNode.type = 'node';
+        nodeCopy.push(newNode);
+      });
+      return nodeCopy;
+    }
+
+// Function that processes the non-aggregated network links
+// and assigns a type to the link
+    export function processChildLinks(links: Link[]) {
+      const linkCopy: Link[] = [];
+      // original network components
+      links.map((link: Link) => {
+        const newLink = {
+          ...link,
+        };
+        newLink.type = 'link';
+        linkCopy.push(newLink);
+      });
+      return linkCopy;
+    }
+
 // Function that maps children nodes to supernode (parent) nodes
 function mapSuperChildren(superNodes: Node[]) {
   const superChildrenMap = new Map<string, string>();

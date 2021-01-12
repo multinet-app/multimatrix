@@ -3,6 +3,8 @@ import Vue, { PropType } from 'vue';
 
 import {
   superGraph,
+  processChildNodes,
+  processChildLinks,
   expandSuperNetwork,
   retractSuperNetwork,
 } from '@/lib/aggregation';
@@ -1058,8 +1060,8 @@ export default Vue.extend({
         .attr('width', this.colWidth)
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
-            this.nonAggrNodes = this.processChildNodes(this.network.nodes);
-            this.nonAggrLinks = this.processChildLinks(this.network.links);
+            this.nonAggrNodes = processChildNodes(this.network.nodes);
+            this.nonAggrLinks = processChildLinks(this.network.links);
             this.$emit(
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
@@ -1439,32 +1441,7 @@ export default Vue.extend({
       this.order = order;
       return order;
     },
-    // function for processing nodes
-    processChildNodes(nodes: Node[]) {
-      const nodeCopy: Node[] = [];
-      // original network components
-      nodes.map((node: Node) => {
-        const newNode = {
-          ...node,
-        };
-        newNode.type = 'node';
-        nodeCopy.push(newNode);
-      });
-      return nodeCopy;
-    },
-    // function for processing links
-    processChildLinks(links: Link[]) {
-      const linkCopy: Link[] = [];
-      // original network components
-      links.map((link: Link) => {
-        const newLink = {
-          ...link,
-        };
-        newLink.type = 'link';
-        linkCopy.push(newLink);
-      });
-      return linkCopy;
-    },
+
 
     getApplicationState(): State {
       return this.provenance.graph().current.state;
