@@ -73,7 +73,6 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
         if (linkTo === origin) {
           const newLinkTo = superNode.id;
           link._to = newLinkTo;
-          link.target = link._to;
         }
       });
     });
