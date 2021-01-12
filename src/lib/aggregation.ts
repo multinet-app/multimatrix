@@ -175,9 +175,9 @@ function mapNetworkNodes(nodes: Node[]) {
     }
 
 // Function that maps children nodes to supernode (parent) nodes
-function mapSuperChildren(superNodes: Node[]) {
+function mapSuperChildren(node: Node[]) {
   const superChildrenMap = new Map<string, string>();
-  superNodes.forEach((networkNode: Node) => {
+  node.forEach((networkNode: Node) => {
     if (networkNode.type === 'node') {
       return;
     }
