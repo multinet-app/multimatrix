@@ -1,39 +1,33 @@
-// This function takes the original nodes and edges from the network
-// and creates a new list of supernodes and a new list of edges
-// to reflect the connections between a supernode and the original nodes
-// in the network
+
 import { defineSuperNeighbors } from '@/lib/multinet';
 import { Link, Node } from '@/types';
 
+// Function that builds a supergraph network that contains 
+// supernodes, superlinks, nodes, and links
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
-  // de-construct nodes into their original components and
-  // make a new list of nodes
+  // Construct new node objects with type property for aggregation
+  // and an empty list of neighbors that will be recomputed
   const newNodes: Node[] = [];
   nodes.map((node) => {
     const newNode = {
       ...node,
     };
-
-    // remove the properties that will not be used
-    // and properties that will be recalculated for visualization
     newNode.neighbors = [];
     newNode.type = 'node';
-
-    // add new node to node list
     newNodes.push(newNode);
   });
 
-  // create a list that results of the selected attribute from the nodes
+  // Set for keeping track of attribute selected by user
   const selectedAttributes = new Set<string>();
-
   newNodes.forEach((node: Node) => {
     selectedAttributes.add(node[attribute]);
   });
 
-  // dictionary data structure for constant time lookup for supernodes
+  // Data structure for ensuring constant time lookup between 
+  // selected attribute and supernodes
   const superMap = new Map<string, Node>();
 
-  // create the list of super nodes
+  // Construct supernode objects
   const superNodes: Node[] = [];
   selectedAttributes.forEach((attr: string) => {
     const superNode = {
@@ -48,6 +42,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     superNodes.push(superNode);
   });
 
+  // Update the children property of each supernode object
   newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
@@ -55,8 +50,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     }
   });
 
-  // de-construct edges into their original components and
-  // make a new list of edges for the supergraph network
+  // Construct new link objects with type property for aggregation
   const newLinks: Link[] = [];
   edges.forEach((link) => {
     const newLink = {
@@ -66,14 +60,12 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     newLinks.push(newLink);
   });
 
-  // update the _from, _to values and in attribute values for target and source
-  // which are needed for using d3 to visualize the network
+  // Update _from, _to, target, and source properties for visualizing network
   newLinks.forEach((link: Link) => {
     const linkFrom = link._from;
     const linkTo = link._to;
 
     superNodes.forEach((superNode) => {
-      // check if the _from and _to are in the origin list
       superNode.CHILDREN.forEach((origin: string) => {
         if (linkFrom === origin) {
           const newLinkFrom = superNode.id;
@@ -89,14 +81,13 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     });
   });
 
-  // combine the superNodes with the new
-  //  nodes before updating all the neighbors
+  // Create a combined list of supernodes and nodes for recalculating neighbor nodes
   const combinedNodes = superNodes.concat(newNodes);
 
-  // construct the neighbors for the nodes
+  // Calculate a new set of neighbor nodes
   const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
 
-  // remove all the nodes who do not have any neighbors
+  // Remove nodes who do not have neighbors
   let finalNodes = neighborNodes;
   superNodes.forEach((superNode) => {
     const children = superNode.CHILDREN;
@@ -108,11 +99,12 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     });
   });
 
-  // construct the new network
+  // Construct new network object
   const network = {
     nodes: finalNodes,
     links: newLinks,
   };
+  
   return network;
 }
 
@@ -245,7 +237,7 @@ function expandSuperLinksData(
   return combinedLinks;
 }
 
-// function that constructs the neighbors for a node in a super network
+// this function that constructs the neighbors for a node in a super network
 function defineNeighborNodes(nodes: Node[], links: Link[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   links.forEach((link) => {
@@ -258,7 +250,7 @@ function defineNeighborNodes(nodes: Node[], links: Link[]) {
   });
   return nodes;
 }
-//function is for expanding the super network for visualization
+// this function is for expanding the super network for visualization
 export function expandSuperNetwork(
   nonAggrNodes: Node[],
   nonAggrLinks: Link[],
@@ -305,7 +297,7 @@ export function expandSuperNetwork(
   return network;
 }
 
-// function retracts the supernodes if they are double clicked twice
+// this function retracts the supernodes if they are double clicked twice
 function retractSuperNodeData(
   superNodeName: string,
   aggrNodesCopy: Node[],
@@ -336,7 +328,7 @@ function retractSuperNodeData(
   }
 }
 
-// function creates a new set of links by removing the
+// this function creates a new set of links by removing the
 // links added from the expand superlinks function
 function retractSuperLinksData(
   superNodeName: string,
@@ -344,9 +336,11 @@ function retractSuperLinksData(
   nonAggrLinksCopy: Link[],
   superNodeNameDict: Map<string, Node>,
 ) {
+  // make deep copies of the links
   const childLinksCopy = deepCopyLinks(nonAggrLinksCopy);
   const expandedLinksCopy = deepCopyLinks(expandedLinks);
 
+  // get the node information about the supernode
   const superNode = superNodeNameDict.get(superNodeName);
   let superChildren: string[] = [];
   if (superNode != undefined) {
@@ -374,7 +368,7 @@ function retractSuperLinksData(
   return newLinks;
 }
 
-// function is for retracting the super network visualization
+// this function is for retracting the super network visualization
 export function retractSuperNetwork(
   nonAggrNodes: Node[],
   nonAggrLinks: Link[],
