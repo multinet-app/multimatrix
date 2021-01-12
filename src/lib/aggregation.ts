@@ -331,7 +331,7 @@ export function expandSuperNetwork(
 
   // Create a new set of neighbors for the new network nodes
   let neighborNodes: Node[] = [];
-  if (expandNodes && expandLinks != undefined) {
+  if (expandNodes !== undefined && expandLinks !== undefined) {
     neighborNodes = defineNeighborNodes(expandNodes, expandLinks);
   }
 
