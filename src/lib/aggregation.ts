@@ -266,7 +266,6 @@ function expandSuperLinksData(
     const parent = superChildrenDict.get(linkTo);
     if (parent !== undefined) {
       link._to = parent;
-      link.target = link._to;
     }
   });
 
