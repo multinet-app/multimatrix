@@ -53,7 +53,6 @@ export default Vue.extend({
   },
 
   data(): {
-    superNetwork: Network;
     browser: Dimensions;
     visMargins: any;
     matrixSVG: any;
@@ -69,6 +68,11 @@ export default Vue.extend({
     edgeColumns: any;
     edgeRows: any;
     cells: any;
+    clickMap: any; // variable for keeping track of whether a label has been clicked or not
+    nonAggrNodes: any;
+    nonAggrLinks: any;
+    expandRetractAggrVisNodes: any; // variable for keeping track of the current nodes being visualized
+    expandRetractAggrVisLinks: any; // variable for keeping track of the current links being visualized
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
@@ -77,18 +81,8 @@ export default Vue.extend({
     provenance: any;
     sortKey: string;
     colMargin: number;
-    nonAggrNodes: any;
-    nonAggrLinks: any;
-    clickMap: any; // variable for keeping track of whether a label has been clicked or not
-    expandRetractAggrVisNodes: any; // variable for keeping track of the current nodes being visualized
-    expandRetractAggrVisLinks: any; // variable for keeping track of the current links being visualized
   } {
     return {
-      superNetwork: {
-        nodes: [],
-        links: [],
-      },
-
       browser: {
         height: 0,
         width: 0,
