@@ -563,31 +563,31 @@ export default Vue.extend({
             }
             const supernode = d;
             // expand and retract the supernode aggregation based on user selection
-              if (this.clickMap.get(supernode.id)) {
-                this.$emit(
-                  'updateNetwork',
-                  retractSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.links,
-                    supernode,
-                  ),
-                );
-                this.clickMap.set(supernode.id, false);
-              } else {
-                this.$emit(
-                  'updateNetwork',
-                  expandSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.links,
-                    supernode,
-                  ),
-                );
-                this.clickMap.set(supernode.id, true);
-              }
+            if (this.clickMap.get(supernode.id)) {
+              this.$emit(
+                'updateNetwork',
+                retractSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                  supernode,
+                ),
+              );
+              this.clickMap.set(supernode.id, false);
+            } else {
+              this.$emit(
+                'updateNetwork',
+                expandSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                  supernode,
+                ),
+              );
+              this.clickMap.set(supernode.id, true);
+            }
           } else {
             this.selectElement(d);
             this.selectNeighborNodes(d.id, d.neighbors);
@@ -745,141 +745,6 @@ export default Vue.extend({
       } else {
         state.selections[interaction][nodeID] = [interactionName];
       }
-    },
-
-    appendEdgeLabels(): void {
-      const labelContainerHeight = 25;
-      const rowLabelContainerStart = 75;
-      const labelContainerWidth = rowLabelContainerStart;
-
-      // add foreign objects for label
-      const edgeRowForeignObject = this.edgeRows
-        .append('foreignObject')
-        .attr('x', -rowLabelContainerStart)
-        .attr('y', -5)
-        .attr('width', labelContainerWidth)
-        .attr('height', labelContainerHeight);
-
-      edgeRowForeignObject
-        .append('xhtml:p')
-        .text((d: Node) => d._key)
-        .classed('rowLabels', true)
-        .on('mouseout', (d: Node) => {
-          this.hideToolTip();
-          this.unHoverNode(d.id);
-        })
-        .on('click', (d: Node) => {
-          // allow expanding the vis if graffinity features are on
-          if (this.enableGraffinity) {
-            // if user selects a child node don't do anything
-            if (d.type === 'node') {
-              return;
-            }
-            const supernode = d;
-            // expand and retract the supernode aggregation based on user selection
-            if (this.clickMap.has(supernode.id)) {
-              if (this.clickMap.get(supernode.id) === true) {
-                this.$emit(
-                  'updateNetwork',
-                  retractSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.links,
-                    supernode,
-                  ),
-                );
-                this.clickMap.set(supernode.id, false);
-              } else {
-                this.$emit(
-                  'updateNetwork',
-                  expandSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.links,
-                    supernode,
-                  ),
-                );
-                this.clickMap.set(supernode.id, true);
-              }
-            } else {
-              this.$emit(
-                'updateNetwork',
-                expandSuperNetwork(
-                  this.nonAggrNodes,
-                  this.nonAggrLinks,
-                  this.network.nodes,
-                  this.network.links,
-                  supernode,
-                ),
-              );
-              this.clickMap.set(supernode.id, true);
-            }
-          } else {
-            this.selectElement(d);
-            this.selectNeighborNodes(d.id, d.neighbors);
-          }
-        });
-
-      let verticalOffset = 187.5;
-      const horizontalOffset =
-        (this.orderingScale.bandwidth() / 2 - 4.5) / 0.075;
-      this.edgeColumns
-        .append('path')
-        .attr('id', (d: Node) => `sortIcon${d.id}`)
-        .attr('class', 'sortIcon')
-        .attr('d', this.icons.cellSort.d)
-        .style('fill', (d: Node) =>
-          d === this.orderType ? '#EBB769' : '#8B8B8B',
-        )
-        .attr(
-          'transform',
-          `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
-        )
-        .on('click', (d: Node) => {
-          this.sort(d.id);
-          const action = this.changeInteractionWrapper('neighborSelect');
-          this.provenance.applyAction(action);
-        })
-        .attr('cursor', 'pointer')
-        .on('mouseover', (d: Node, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
-        })
-        .on('mouseout', (d: Node) => {
-          this.hideToolTip();
-          this.unHoverNode(d.id);
-        });
-
-      verticalOffset = verticalOffset * 0.075 + 5;
-
-      // constant for starting the column label container
-      const columnLabelContainerStart = 20;
-
-      const edgeColumnForeignObject = this.edgeColumns
-        .append('foreignObject')
-        .attr('y', -5)
-        .attr('x', columnLabelContainerStart)
-        .attr('width', labelContainerWidth)
-        .attr('height', labelContainerHeight);
-
-      edgeColumnForeignObject
-        .append('xhtml:p')
-        .text((d: Node) => d._key)
-        .classed('colLabels', true)
-        .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
-        })
-        .on('mouseover', (d: Node, i: number, nodes: any) => {
-          this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
-        })
-        .on('mouseout', (d: Node) => {
-          this.hideToolTip();
-          this.unHoverNode(d.id);
-        });
     },
 
     drawGridLines(): void {
@@ -1441,7 +1306,6 @@ export default Vue.extend({
       this.order = order;
       return order;
     },
-
 
     getApplicationState(): State {
       return this.provenance.graph().current.state;
