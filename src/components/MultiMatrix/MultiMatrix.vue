@@ -68,11 +68,11 @@ export default Vue.extend({
     edgeColumns: any;
     edgeRows: any;
     cells: any;
-    clickMap: any; // variable for keeping track of whether a label has been clicked or not
-    nonAggrNodes: any;
-    nonAggrLinks: any;
-    expandRetractAggrVisNodes: any; // variable for keeping track of the current nodes being visualized
-    expandRetractAggrVisLinks: any; // variable for keeping track of the current links being visualized
+    clickMap: Map<string, boolean>; // variable for keeping track of whether a label has been clicked or not
+    nonAggrNodes: Node[];
+    nonAggrLinks: Link[];
+    expandRetractAggrVisNodes: Network; // variable for keeping track of the current nodes being visualized
+    expandRetractAggrVisLinks: Network; // variable for keeping track of the current links being visualized
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
@@ -101,11 +101,17 @@ export default Vue.extend({
       edgeColumns: undefined,
       edgeRows: undefined,
       cells: undefined,
-      clickMap: undefined,
-      nonAggrNodes: undefined,
-      nonAggrLinks: undefined,
-      expandRetractAggrVisNodes: undefined,
-      expandRetractAggrVisLinks: undefined,
+      clickMap: new Map<string, boolean>(),
+      nonAggrNodes: [],
+      nonAggrLinks: [],
+      expandRetractAggrVisNodes: {
+        nodes: [],
+        links: [],
+      },
+      expandRetractAggrVisLinks: {
+        nodes: [],
+        links: [],
+      },
       icons: {
         quant: {
           d:
@@ -1072,8 +1078,6 @@ export default Vue.extend({
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
             );
-            // create a new instant of click map for keeping track of the nodes that the user has selected
-            this.clickMap = new Map<string, boolean>();
           } else {
             this.sort(d);
           }
