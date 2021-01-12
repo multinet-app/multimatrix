@@ -126,3 +126,24 @@ export async function loadData(
 
   return multinet.network;
 }
+
+// Return AQL query as path list
+export async function filterData(
+  workspace: string,
+  query: string,
+): Promise<any[]> {
+  let multinetPaths = []
+
+  const apiRoot = 'http://localhost:5000/api';
+
+  const api = multinetApi(apiRoot);
+
+  multinetPaths = await api.aql(workspace, query);
+
+  if (multinetPaths.length === 0) {
+    console.log('No results for this query');
+  }
+
+
+  return multinetPaths;
+}

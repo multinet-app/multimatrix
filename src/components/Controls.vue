@@ -9,7 +9,7 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
-import { loadData } from '@/lib/multinet';
+import { loadData, filterData } from '@/lib/multinet';
 import { Network } from '@/types';
 
 // This is to be removed (stop-gap solution to superGraph network update)
@@ -36,7 +36,7 @@ export default Vue.extend({
     treeRelationships: any[];
     schemaNetwork: Network;
     colorsDict: any;
-    aqlQuery: string;
+    aqlPaths: any[];
   } {
     return {
       network: {
@@ -58,7 +58,7 @@ export default Vue.extend({
         links: [],
       },
       colorsDict: {},
-      aqlQuery: '',
+      aqlPaths: [],
     };
   },
 
@@ -133,14 +133,21 @@ export default Vue.extend({
     schemaColors(this: any, colors: any) {
       return (this.colorsDict = colors);
     },
-    aqlQueryParameters(this: any, start: string, end: string, hops: number) {
-      // TODO add edges!
-      const query = `FOR n IN ${this.networkName}
-        FILTER n.Label =~ '${start}'
-        FOR v, e, p IN 1..${hops} ANY n._id GRAPH '${this.workspace}'
-          FILTER v.Label =~ '${end}'
-        RETURN {pRETURN {nodes: p.vertices, links: p.edges}`;
-      return (this.aqlQuery = query);
+    async aqlQueryParameters(
+      this: any,
+      start: string,
+      end: string,
+      hops: number,
+    ) {
+      // TODO add edges toggling
+      // TODO how to get node table name...
+      const query = `FOR n IN marclab_nodes
+        FILTER UPPER(n.Label) =~ '${start}'
+        FOR v, e, p IN 1..${hops} ANY n._id GRAPH '${this.networkName}'
+          FILTER UPPER(v.Label) =~ '${end}'
+        RETURN p`;
+
+      this.aqlPaths = await filterData(this.workspace, query);
     },
   },
   watch: {
@@ -150,9 +157,6 @@ export default Vue.extend({
       } else {
         selectAll('.gridLines').attr('opacity', 0);
       }
-    },
-    aqlQuery(this: any) {
-      console.log(this.aqlQuery);
     },
   },
 });
@@ -302,6 +306,7 @@ export default Vue.extend({
               currentSchema,
               treeRelationships,
               colorsDict,
+              aqlPaths,
             }"
             @restart-simulation="hello()"
             @updateSchemaNetwork="updateSchemaNetwork"

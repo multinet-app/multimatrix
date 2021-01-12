@@ -1123,8 +1123,9 @@ export default Vue.extend({
         rowObject = Object.assign({}, rowObject, lclone);
         newlineupdata.push(rowObject);
       });
-      console.log('Hello');
+
       this.lineupdata = [];
+      console.log(newlineupdata);
       this.lineupdata = newlineupdata;
     },
 

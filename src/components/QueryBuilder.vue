@@ -25,6 +25,7 @@ export default Vue.extend({
       default: () => [],
     },
     colorsDict: {},
+    aqlPaths: {},
   },
 
   data(): {
@@ -63,6 +64,7 @@ export default Vue.extend({
         network,
         treeRelationships,
         colorsDict,
+        aqlPaths,
       } = this;
       return {
         treeListHover,
@@ -70,6 +72,7 @@ export default Vue.extend({
         network,
         treeRelationships,
         colorsDict,
+        aqlPaths,
       };
     },
     colorScale(): any {
@@ -84,6 +87,9 @@ export default Vue.extend({
     },
     currentSchema() {
       this.initializeSchema();
+    },
+    aqlPaths() {
+      console.log('Path here');
     },
   },
 
@@ -102,7 +108,6 @@ export default Vue.extend({
       .attr('fill', 'none');
 
     // Draw query rect
-    // const queryBox =
     this.svg
       .append('rect')
       .attr('width', this.width)
@@ -246,6 +251,7 @@ export default Vue.extend({
         .data(nodesData)
         .join('circle')
         .attr('r', 10)
+        .attr('label', (d: any) => d.Label)
         .attr('id', (d: any) => d.Label.replace(/\s/g, ''))
         .style('fill', (d: any) => {
           const label = d.Label.replace(/\s/g, '');
@@ -309,7 +315,7 @@ export default Vue.extend({
         const mouseCoordinates = d3.mouse(this);
         const networkHeight: number = d3.select('#schemaView').attr('height');
         const networkWidth: number = d3.select('#schemaView').attr('width');
-        const nodeID = d3.select(this).attr('id');
+        const nodeLabel = d3.select(this).attr('label');
 
         if (mouseCoordinates[1] > (networkHeight / 4) * 3) {
           if (mouseCoordinates[0] < networkWidth / 2) {
@@ -317,7 +323,7 @@ export default Vue.extend({
               .attr('cx', networkWidth / 4)
               .attr('cy', (networkHeight / 8) * 7)
               .attr('r', 20);
-            d3.select('#queryBox').attr('start', nodeID);
+            d3.select('#queryBox').attr('start', nodeLabel);
           } else if (
             mouseCoordinates[0] >= networkWidth / 2 &&
             mouseCoordinates[0] < networkWidth
@@ -326,7 +332,7 @@ export default Vue.extend({
               .attr('cx', (networkWidth / 4) * 3)
               .attr('cy', (networkHeight / 8) * 7)
               .attr('r', 20);
-            d3.select('#queryBox').attr('end', nodeID);
+            d3.select('#queryBox').attr('end', nodeLabel);
           } else {
             d3.select(this).remove();
           }
