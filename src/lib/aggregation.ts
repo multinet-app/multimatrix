@@ -417,7 +417,7 @@ function retractSuperLinksData(
   let newLinks = expandedLinksCopy;
   superChildren.forEach((childNode) => {
     newLinks = newLinks.filter(
-      (link: Link) => link.source !== childNode && link._from !== childNode,
+      (link: Link) => link._from !== childNode,
     );
   });
 
