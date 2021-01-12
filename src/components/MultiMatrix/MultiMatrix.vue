@@ -272,10 +272,13 @@ export default Vue.extend({
     // Draw buttons for alternative sorts
     let initialY = -this.visMargins.left + 10;
     const buttonHeight = 15;
-    const text = ['name', 'cluster', 'interacts'];
-    const sortNames = ['shortName', 'clusterLeaf', 'edges'];
-    const iconNames = ['alphabetical', 'categorical', 'quant'];
-    for (let i = 0; i < 3; i++) {
+
+    const icons = [
+      { text: 'name', sortName: 'shortName', iconName: 'alphabetical' },
+      { text: 'cluster', sortName: 'clusterLeaf', iconName: 'categorical' },
+      { text: 'interacts', sortName: 'edges', iconName: 'quant' },
+    ];
+    icons.forEach((icon) => {
       const button = this.edges
         .append('g')
         .attr('transform', `translate(${-this.visMargins.left},${initialY})`);
@@ -292,18 +295,18 @@ export default Vue.extend({
         .attr('x', 27)
         .attr('y', 10)
         .attr('font-size', 11)
-        .text(text[i]);
-      const path = button.datum(sortNames[i]);
+        .text(icon.text);
+      const path = button.datum(icon.sortName);
       path
         .append('path')
         .attr('class', 'sortIcon')
-        .attr('d', (d: any, i: number) => this.icons[iconNames[i]].d)
-        .style('fill', () => (sortNames[i] === this.orderType ? '#EBB769' : '#8B8B8B'))
+        .attr('d', this.icons[icon.iconName].d)
+        .style('fill', () => (icon.sortName === this.orderType ? '#EBB769' : '#8B8B8B'))
         .attr('transform', 'scale(0.1)translate(-195,-320)')
         .attr('cursor', 'pointer');
-      button.on('click', () => this.sort(sortNames[i]));
+      button.on('click', () => this.sort(icon.sortName));
       initialY += buttonHeight + 5;
-    }
+    });
 
     this.provenance = this.setUpProvenance();
 
