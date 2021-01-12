@@ -1,7 +1,7 @@
 import { defineSuperNeighbors } from '@/lib/multinet';
 import { Link, Node } from '@/types';
 
-// Function that builds a supergraph network that contains 
+// Function that builds a supergraph network that contains
 // supernodes, superlinks, nodes, and links
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // Construct new node objects with type property for aggregation
@@ -22,7 +22,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     selectedAttributes.add(node[attribute]);
   });
 
-  // Data structure for ensuring constant time lookup between 
+  // Data structure for ensuring constant time lookup between
   // selected attribute and supernodes
   const superMap = new Map<string, Node>();
 
@@ -146,33 +146,33 @@ function mapNetworkNodes(nodes: Node[]) {
 
 // Function that processes the non-aggregated network nodes
 // and assigns a type to the node
-    export function processChildNodes(nodes: Node[]) {
-      const nodeCopy: Node[] = [];
-      // original network components
-      nodes.map((node: Node) => {
-        const newNode = {
-          ...node,
-        };
-        newNode.type = 'node';
-        nodeCopy.push(newNode);
-      });
-      return nodeCopy;
-    }
+export function processChildNodes(nodes: Node[]) {
+  const nodeCopy: Node[] = [];
+  // original network components
+  nodes.map((node: Node) => {
+    const newNode = {
+      ...node,
+    };
+    newNode.type = 'node';
+    nodeCopy.push(newNode);
+  });
+  return nodeCopy;
+}
 
 // Function that processes the non-aggregated network links
 // and assigns a type to the link
-    export function processChildLinks(links: Link[]) {
-      const linkCopy: Link[] = [];
-      // original network components
-      links.map((link: Link) => {
-        const newLink = {
-          ...link,
-        };
-        newLink.type = 'link';
-        linkCopy.push(newLink);
-      });
-      return linkCopy;
-    }
+export function processChildLinks(links: Link[]) {
+  const linkCopy: Link[] = [];
+  // original network components
+  links.map((link: Link) => {
+    const newLink = {
+      ...link,
+    };
+    newLink.type = 'link';
+    linkCopy.push(newLink);
+  });
+  return linkCopy;
+}
 
 // Function that maps children nodes to supernode (parent) nodes
 function mapSuperChildren(node: Node[]) {
@@ -200,7 +200,7 @@ function expandSuperNodeData(
   const superNodeCopy = deepCopyNodes(aggrNodesCopy);
   const superNode = superNodeNameDict.get(superNodeName);
 
-  // If the supernode exists in the dictionary, 
+  // If the supernode exists in the dictionary,
   // get the children of the supernode
   if (superNode !== undefined) {
     const superChildrenIDs = superNode.CHILDREN;
@@ -259,7 +259,7 @@ function expandSuperLinksData(
     });
   });
 
-  // Update the superchildren link subset to map connections between nodes and supernodes 
+  // Update the superchildren link subset to map connections between nodes and supernodes
   // in the new expanded vis network
   superChildrenLinks.forEach((link) => {
     const linkTo = link._to;
@@ -415,9 +415,7 @@ function retractSuperLinksData(
   // links associated with the children of the supernode selected
   let newLinks = expandedLinksCopy;
   superChildren.forEach((childNode) => {
-    newLinks = newLinks.filter(
-      (link: Link) => link._from !== childNode,
-    );
+    newLinks = newLinks.filter((link: Link) => link._from !== childNode);
   });
 
   return newLinks;
