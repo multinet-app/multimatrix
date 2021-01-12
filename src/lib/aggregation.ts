@@ -202,7 +202,7 @@ function expandSuperNodeData(
 
   // If the supernode exists in the dictionary, 
   // get the children of the supernode
-  if (superNode != undefined) {
+  if (superNode !== undefined) {
     const superChildrenIDs = superNode.CHILDREN;
     const childNodes: Node[] = [];
     superChildrenIDs.forEach((id: string) => {
