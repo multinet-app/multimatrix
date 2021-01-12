@@ -196,7 +196,11 @@ export default Vue.extend({
           <!-- Directional Edges Toggle Card -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
-              <v-switch class="ma-0" v-model="directional" hide-details />
+              <v-switch
+                v-model="directional"
+                class="ma-0"
+                hide-details
+              />
             </v-list-item-action>
             <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
