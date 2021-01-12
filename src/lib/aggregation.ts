@@ -104,14 +104,15 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     nodes: finalNodes,
     links: newLinks,
   };
-  
+
   return network;
 }
 
-// functions for deep copying nodes and links
+// Function that creates a deep copy of nodes to prevent modifying
+// the network arguments that are passed into the expand and retract
+// supergraph functions
 function deepCopyNodes(nodes: Node[]) {
   const nodeCopy: Node[] = [];
-  // original network components
   nodes.map((node: Node) => {
     const newNode = {
       ...node,
@@ -123,9 +124,11 @@ function deepCopyNodes(nodes: Node[]) {
   return nodeCopy;
 }
 
+// Function that creates a deep copy of links to prevent modifying
+// the network arguments that are passed into the expand and retract
+// supergraph functions
 function deepCopyLinks(links: Link[]) {
   const linkCopy: Link[] = [];
-  // original network components
   links.map((link: Link) => {
     const newLink = {
       ...link,
@@ -135,8 +138,7 @@ function deepCopyLinks(links: Link[]) {
   return linkCopy;
 }
 
-// function that maps node names to node objects
-// <name, Node>
+// Function that maps node names to node objects
 function mapNetworkNodes(nodes: Node[]) {
   const nodeMap = new Map<string, Node>();
   nodes.forEach((node: Node) => {
@@ -145,7 +147,7 @@ function mapNetworkNodes(nodes: Node[]) {
   return nodeMap;
 }
 
-// function that maps all supernode children to their parent supernode
+// Function that maps children nodes to supernode (parent) nodes
 function mapSuperChildren(superNodes: Node[]) {
   const superChildrenMap = new Map<string, string>();
   superNodes.forEach((networkNode: Node) => {
@@ -160,6 +162,8 @@ function mapSuperChildren(superNodes: Node[]) {
   return superChildrenMap;
 }
 
+// Function that constructs a new set of supernodes and nodes
+// for the expanded matrix vis network
 function expandSuperNodeData(
   superNodeName: string,
   aggrNodesCopy: Node[],
@@ -167,8 +171,10 @@ function expandSuperNodeData(
   superNodeNameDict: Map<string, Node>,
 ) {
   const superNodeCopy = deepCopyNodes(aggrNodesCopy);
-  // get the node information about the supernode name
   const superNode = superNodeNameDict.get(superNodeName);
+
+  // If the supernode exists in the dictionary, 
+  // get the children of the supernode
   if (superNode != undefined) {
     const superChildrenIDs = superNode.CHILDREN;
     const childNodes: Node[] = [];
@@ -178,6 +184,8 @@ function expandSuperNodeData(
         childNodes.push(childNode);
       }
     });
+
+    // Find and insert the children of the selected supernode into the correct spot
     const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
     const superIndexStart = superNodeCopy.findIndex(superIndexFunc);
     let count = 1;
@@ -186,14 +194,16 @@ function expandSuperNodeData(
       count += 1;
     });
 
-    // update the index of the new supernodes
+    // Update the index of the new nodes the expanded vis network
     superNodeCopy.forEach((node: Node, index: number) => {
       node.index = index;
     });
+
     return superNodeCopy;
   }
 }
-
+// Function that constructs a new set of superlinks and links
+// for the expanded matrix vis network
 function expandSuperLinksData(
   superNodeName: string,
   aggrLinksCopy: Link[],
@@ -201,21 +211,18 @@ function expandSuperLinksData(
   superNodeNameDict: Map<string, Node>,
   superChildrenDict: Map<string, string>,
 ) {
-  // make deep copies of the links
   const childLinksCopy = deepCopyLinks(nonAggrLinksCopy);
   const superLinksCopy = deepCopyLinks(aggrLinksCopy);
 
-  // get the node information about the supernode
+  // Construct a list of the children nodes that belong to the selected supernode
   const superNode = superNodeNameDict.get(superNodeName);
   let superChildren: string[] = [];
   if (superNode != undefined) {
     superChildren = superNode.CHILDREN;
   }
 
-  // create a list of links whose _from is one of the superchildren selected
+  // Construct a list of links whose _from is one of the superchildren selected
   const superChildrenLinks: Link[] = [];
-
-  // get the subset of the links whose from id matches the chidlren nodes
   childLinksCopy.forEach((link: Link) => {
     superChildren.forEach((childNodeName: string) => {
       if (link._from === childNodeName) {
@@ -224,7 +231,8 @@ function expandSuperLinksData(
     });
   });
 
-  // modify the link subset so they map from node to supernodes
+  // Update the superchildren link subset to map connections between nodes and supernodes 
+  // in the new expanded vis network
   superChildrenLinks.forEach((link) => {
     const linkTo = link._to;
     const parent = superChildrenDict.get(linkTo);
@@ -233,11 +241,15 @@ function expandSuperLinksData(
       link.target = link._to;
     }
   });
+
+  // Combine the links from the network argument passed into expand vis function
+  // with the the new subset of expanded superlinks for the expanded vis network
   const combinedLinks = superLinksCopy.concat(superChildrenLinks);
+
   return combinedLinks;
 }
 
-// this function that constructs the neighbors for a node in a super network
+// Function that constructs new neighbors for the expanded and retracted networks
 function defineNeighborNodes(nodes: Node[], links: Link[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   links.forEach((link) => {
@@ -248,9 +260,12 @@ function defineNeighborNodes(nodes: Node[], links: Link[]) {
       findNodeTo.neighbors.push(link._from);
     }
   });
+
   return nodes;
 }
-// this function is for expanding the super network for visualization
+
+// Function that updates the matrix network data for visualizing supernodes, children nodes
+// and the connections between supernodes and children nodes
 export function expandSuperNetwork(
   nonAggrNodes: Node[],
   nonAggrLinks: Link[],
@@ -263,12 +278,13 @@ export function expandSuperNetwork(
   const aggrNodesCopy = deepCopyNodes(aggrNodes);
   const aggrLinksCopy = deepCopyLinks(aggrLinks);
 
-  // data for expanding the vis
+  // Create structures for storing the information for building
+  // a new set of supernodes and superlinks for visualizing the expanded network
   const childrenNodeNameDict = mapNetworkNodes(nonAggrNodesCopy);
   const superNodeNameDict = mapNetworkNodes(aggrNodesCopy);
   const superChildrenDict = mapSuperChildren(aggrNodesCopy);
 
-  // calculate a new list of supernodes
+  // Construct a new set of supernodes
   const expandNodes = expandSuperNodeData(
     superNode.id,
     aggrNodesCopy,
@@ -276,7 +292,7 @@ export function expandSuperNetwork(
     superNodeNameDict,
   );
 
-  // calculate a new set of links
+  // Construct a new set of superlinks
   const expandLinks = expandSuperLinksData(
     superNode.id,
     aggrLinksCopy,
@@ -284,16 +300,19 @@ export function expandSuperNetwork(
     superNodeNameDict,
     superChildrenDict,
   );
+
+  // Create a new set of neighbors for the new network nodes
   let neighborNodes: Node[] = [];
   if (expandNodes && expandLinks != undefined) {
     neighborNodes = defineNeighborNodes(expandNodes, expandLinks);
   }
 
-  // construct the new network
+  // Create a new network containing the data for visualizing an expanded supergraph matrix
   const network = {
     nodes: neighborNodes,
     links: expandLinks,
   };
+  
   return network;
 }
 
