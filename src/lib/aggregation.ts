@@ -358,8 +358,8 @@ function retractSuperNodeData(
       }
     });
 
-    // Find and insert => remove the children of the remaining supernodes and their children (if any)
-    // in the correct position for visualizing the supergraph network
+    // Find and remove the children of the selected supernode and insert remaining nodes
+    // into the correct position for visualizing the supergraph network
     const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
