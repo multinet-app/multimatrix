@@ -1,7 +1,13 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 
-import { superGraph } from '@/lib/aggregation';
+import {
+  superGraph,
+  processChildNodes,
+  processChildLinks,
+  expandSuperNetwork,
+  retractSuperNetwork,
+} from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
   axisTop,
@@ -64,6 +70,11 @@ export default Vue.extend({
     edgeColumns: any;
     edgeRows: any;
     cells: any;
+    clickMap: Map<string, boolean>; // variable for keeping track of whether a label has been clicked or not
+    nonAggrNodes: Node[];
+    nonAggrLinks: Link[];
+    expandRetractAggrVisNodes: Network; // variable for keeping track of the current nodes being visualized
+    expandRetractAggrVisLinks: Network; // variable for keeping track of the current links being visualized
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
@@ -92,6 +103,17 @@ export default Vue.extend({
       edgeColumns: undefined,
       edgeRows: undefined,
       cells: undefined,
+      clickMap: new Map<string, boolean>(),
+      nonAggrNodes: [],
+      nonAggrLinks: [],
+      expandRetractAggrVisNodes: {
+        nodes: [],
+        links: [],
+      },
+      expandRetractAggrVisLinks: {
+        nodes: [],
+        links: [],
+      },
       icons: {
         quant: {
           d:
@@ -403,7 +425,10 @@ export default Vue.extend({
       // creates column groupings
       this.edgeColumns = this.edges
         .selectAll('.column')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(${this.orderingScale(i)})rotate(-90)`;
+        });
 
       this.edgeColumns.exit().remove();
 
@@ -483,7 +508,10 @@ export default Vue.extend({
       // Draw each row
       this.edgeRows = this.edges
         .selectAll('.rowContainer')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr('transform', (d: Node, i: number) => {
+          return `translate(0,${this.orderingScale(i)})`;
+        });
 
       this.edgeRows.exit().remove();
 
@@ -528,8 +556,42 @@ export default Vue.extend({
           this.unHoverNode(d.id);
         })
         .on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          // allow expanding the vis if graffinity features are turned on
+          if (this.enableGraffinity) {
+            if (d.type === 'node') {
+              return;
+            }
+            const supernode = d;
+            // expand and retract the supernode aggregation based on user selection
+            if (this.clickMap.get(supernode.id)) {
+              this.$emit(
+                'updateNetwork',
+                retractSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                  supernode,
+                ),
+              );
+              this.clickMap.set(supernode.id, false);
+            } else {
+              this.$emit(
+                'updateNetwork',
+                expandSuperNetwork(
+                  this.nonAggrNodes,
+                  this.nonAggrLinks,
+                  this.network.nodes,
+                  this.network.links,
+                  supernode,
+                ),
+              );
+              this.clickMap.set(supernode.id, true);
+            }
+          } else {
+            this.selectElement(d);
+            this.selectNeighborNodes(d.id, d.neighbors);
+          }
         });
 
       rowEnter.append('g').attr('class', 'cellsGroup');
@@ -863,6 +925,8 @@ export default Vue.extend({
         .attr('width', this.colWidth)
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
+            this.nonAggrNodes = processChildNodes(this.network.nodes);
+            this.nonAggrLinks = processChildLinks(this.network.links);
             this.$emit(
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
