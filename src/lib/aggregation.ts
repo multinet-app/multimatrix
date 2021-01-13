@@ -459,7 +459,7 @@ export function retractSuperNetwork(
 
   // Create a new set of neighbors for the new network nodes
   let neighborNodes: Node[] = [];
-  if (retractNodes && retractLinks !== undefined) {
+  if (retractNodes !== undefined && retractLinks !== undefined) {
     neighborNodes = defineNeighborNodes(retractNodes, retractLinks);
   }
 
