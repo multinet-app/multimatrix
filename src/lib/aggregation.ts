@@ -6,8 +6,7 @@ import { Link, Node } from '@/types';
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // Construct new node objects with type property for aggregation
   // and an empty list of neighbors that will be recomputed
-  const newNodes: Node[] = 
-  nodes.map((node) => {
+  const newNodes: Node[] = nodes.map((node) => {
     const newNode = {
       ...node,
     };
@@ -50,13 +49,12 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   });
 
   // Construct new link objects with type property for aggregation
-  const newLinks: Link[] = [];
-  edges.forEach((link) => {
+  const newLinks: Link[] = edges.map((link) => {
     const newLink = {
       ...link,
     };
     newLink.type = 'superLink';
-    newLinks.push(newLink);
+    return newLink;
   });
 
   // Update _from, _to, target, and source properties for visualizing network
