@@ -282,7 +282,7 @@ function defineNeighborNodes(nodes: Node[], links: Link[]) {
   links.forEach((link) => {
     const findNodeFrom = nodes.find((node) => node.id === link._from);
     const findNodeTo = nodes.find((node) => node.id === link._to);
-    if (findNodeFrom && findNodeTo !== undefined) {
+    if (findNodeFrom !== undefined && findNodeTo !== undefined) {
       findNodeFrom.neighbors.push(link._to);
       findNodeTo.neighbors.push(link._from);
     }
