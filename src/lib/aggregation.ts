@@ -219,11 +219,6 @@ function expandSuperNodeData(
       count += 1;
     });
 
-    // Update the index of the new nodes the expanded vis network
-    superNodeCopy.forEach((node: Node, index: number) => {
-      node.index = index;
-    });
-
     return superNodeCopy;
   }
 }
