@@ -369,11 +369,6 @@ function retractSuperNodeData(
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
 
-    // Update the index of the new nodes in the retracted vis network
-    expandNodesCopy.forEach((node: Node, index: number) => {
-      node.index = index;
-    });
-
     return expandNodesCopy;
   }
 }
