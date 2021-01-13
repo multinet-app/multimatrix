@@ -6,14 +6,14 @@ import { Link, Node } from '@/types';
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // Construct new node objects with type property for aggregation
   // and an empty list of neighbors that will be recomputed
-  const newNodes: Node[] = [];
+  const newNodes: Node[] = 
   nodes.map((node) => {
     const newNode = {
       ...node,
     };
     newNode.neighbors = [];
     newNode.type = 'node';
-    newNodes.push(newNode);
+    return newNode;
   });
 
   // Set for keeping track of attribute selected by user
