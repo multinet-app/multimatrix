@@ -89,7 +89,7 @@ export default Vue.extend({
       this.initializeSchema();
     },
     aqlPaths() {
-      console.log('Path here');
+      this.renderQueryResults();
     },
   },
 
@@ -303,6 +303,7 @@ export default Vue.extend({
       function dragstarted() {
         d3.select(this).clone(true).classed('notclone', true); // look into this
         d3.select(this).raise().attr('stroke', 'black').classed('clone', true);
+        force.stop();
       }
 
       function dragged(d: any) {
@@ -423,6 +424,134 @@ export default Vue.extend({
         this.$emit('aqlQueryParameters', start, end, this.selectedHops);
       }
     },
+
+    renderQueryResults(this: any) {
+      const table = d3.select(this.$refs.queryResults).append('table');
+
+      // const cell = {
+      //   width: 70,
+      //   height: 20,
+      //   buffer: 15,
+      // };
+      // const bar = {
+      //   height: 20,
+      // };
+
+      const tableData = [];
+      console.log(this.aqlPaths);
+
+      let tableHeaders = [];
+      for (let i = 1; i < this.selectedHops + 1; i++) {
+        tableHeaders.push({ header: `Node ${i}`, sorted: false });
+        tableHeaders.push({ header: `Edge ${i}`, sorted: false });
+      }
+      tableHeaders.push({
+        header: `Node ${this.selectedHops + 1}`,
+        sorted: false,
+      });
+
+      // Format table data
+      this.aqlPaths.forEach((path: any) => {
+        const row = [];
+        for (let i = 0; i < this.selectedHops; i++) {
+          if (path.vertices[i]) {
+            row.push(path.vertices[i]);
+          } else {
+            row.push(null);
+          }
+          if (path.edges[i]) {
+            row.push(path.edges[i]);
+          } else {
+            row.push(null);
+          }
+        }
+        if (path.vertices[this.selectedHops]) {
+          row.push(path.vertices[this.selectedHops]);
+        } else {
+          row.push(null);
+        }
+        tableData.push(row);
+      });
+
+      let columnHeaders = table
+        .append('thead')
+        .append('tr')
+        .selectAll('th')
+        .data(tableHeaders)
+        .enter()
+        .append('th')
+        .text((d: any) => d.header);
+
+      let rows = table
+        .append('tbody')
+        .selectAll('tr')
+        .data(tableData)
+        .enter()
+        .append('tr');
+
+      rows
+        .selectAll('td')
+        .data((d: any) => {
+          return tableHeaders.map((k: any, i: number) => {
+            k['values'] = d[i];
+            return k;
+          });
+        })
+        .enter()
+        .append('td')
+        .text((d: any) => {
+          return d.values._id;
+        });
+
+      columnHeaders.on('click', (d: any) => {
+        console.log('clicked!', d);
+        //   if (d.sorted) {
+        //     rows.sort((a: any, b: any) => {
+        //       console.log(a, b);
+        //       return b[d] < a[d];
+        //     });
+        //     d.sorted = true;
+        //   } else {
+        //     rows.sort((a: any, b: any) => {
+        //       return b[d] > a[d];
+        //     });
+        //     d.sorted = true;
+        //   }
+      });
+
+      // svg
+      //   .append('g')
+      //   .selectAll('line')
+      //   .data(this.aqlPaths)
+      //   .join('line')
+      //   .style('stroke', '#ccc')
+      //   .style('stroke-width', 2)
+      //   .attr('x1', (d: any) => {
+      //     d.edges.forEach((e: any, i: number) => {
+      //       return i;
+      //     });
+      //   })
+      //   .attr('x2', (d: any) => {
+      //     d.edges.forEach((e: any, i: number) => {
+      //       return width/i;
+      //     });
+      //   })
+      //   .attr('y1', (d: any, i: number) => {
+      //     return i * (i + 10);
+      //   })
+      //   .attr('y2', (d: any, i: number) => {
+      //     return i * (i + 10);
+      //   });
+
+      // const nodes = svg
+      //   .selectAll('circle')
+      //   .data(this.aqlPaths)
+      //   .join('circle')
+      //   .attr('r', 5)
+      //   .style('fill', 'grey')
+      //   .attr('stroke', 'white')
+      //   .attr('stroke-width', 1);
+    },
   },
 });
 </script>
@@ -445,6 +574,7 @@ export default Vue.extend({
         </v-btn>
       </v-row>
     </v-col>
+    <div id="queryResults" ref="queryResults" width="800" height="900" />
   </div>
 </template>
 
@@ -460,5 +590,26 @@ svg >>> circle.treehover {
 
 svg >>> .legendSelected {
   fill: grey;
+}
+
+svg >>> table {
+  width: 100%;
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+svg >>> th {
+  background: #333;
+  color: white;
+  font-weight: bold;
+  cursor: s-resize;
+}
+
+svg >>> td,
+th {
+  padding: 6px;
+  border: 1px solid rgb(72, 72, 72);
+  text-align: left;
+  color: black;
 }
 </style>
