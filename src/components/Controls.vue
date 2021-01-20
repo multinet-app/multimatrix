@@ -26,6 +26,7 @@ export default Vue.extend({
     enableGraffinity: boolean;
     directional: boolean;
     visualizedAttributes: string[];
+    visualizedLinkAttributes: string[];
   } {
     return {
       network: {
@@ -39,6 +40,7 @@ export default Vue.extend({
       enableGraffinity: false,
       directional: false,
       visualizedAttributes: [],
+      visualizedLinkAttributes: [],
     };
   },
 
@@ -46,6 +48,13 @@ export default Vue.extend({
     attributeList(this: any) {
       if (typeof this.network.nodes[0] !== 'undefined') {
         return Object.keys(this.network.nodes[0]);
+      } else {
+        return [];
+      }
+    },
+    linkAttributeList(this: any) {
+      if (typeof this.network.links[0] !== 'undefined') {
+        return Object.keys(this.network.links[0]);
       } else {
         return [];
       }
@@ -166,6 +175,22 @@ export default Vue.extend({
             />
           </v-list-item>
 
+          <v-list-item class="px-0">
+            <v-select
+              v-model="visualizedLinkAttributes"
+              :items="linkAttributeList"
+              label="Link Attributes"
+              multiple
+              outlined
+              chips
+              dense
+              deletable-chips
+              small-chips
+              hint="Choose the edge attributes to visualize"
+              persistent-hint
+            />
+          </v-list-item>
+
           <!-- Auto-Select Neighbors List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
@@ -242,6 +267,7 @@ export default Vue.extend({
             showGridLines,
             enableGraffinity,
             visualizedAttributes,
+            visualizedLinkAttributes,
             directional,
           }"
           @restart-simulation="hello()"
