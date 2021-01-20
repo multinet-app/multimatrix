@@ -37,6 +37,7 @@ export default Vue.extend({
     uniqueLinks: string[];
     unSelectedLinks: string[];
     selectedHops: number;
+    neighborToggle: boolean;
   } {
     return {
       browser: {
@@ -53,6 +54,7 @@ export default Vue.extend({
       uniqueLinks: [],
       unSelectedLinks: [],
       selectedHops: 0,
+      neighborToggle: false,
     };
   },
 
@@ -78,6 +80,16 @@ export default Vue.extend({
     colorScale(): any {
       const colorDomain = Object.keys(this.colorsDict).sort();
       return d3.scaleOrdinal().domain(colorDomain).range(d3.schemeCategory10);
+    },
+    indexLinks(): any {
+      let indexLinks = {};
+      for (let i = 0; i < this.schemaNetwork.nodes.length; i++) {
+        indexLinks[i + ',' + i] = 1;
+        this.schemaNetwork.links.forEach(function (d) {
+          indexLinks[d.source.index + ',' + d.target.index] = 1;
+        });
+      }
+      return indexLinks;
     },
   },
 
@@ -299,6 +311,34 @@ export default Vue.extend({
           });
       });
 
+      // Check if neighbors
+      function neighbors(a, b) {
+        return this.indexLinks[a.index + ',' + b.index];
+      }
+
+      function neighborNodes() {
+        console.log('DOUBLE CLICK');
+        if (this.neighborToggle) {
+          //Reduce the opacity of all but the neighbouring nodes
+          let d = d3.select(this).node().__data__;
+          nodes.style('opacity', function (o) {
+            return neighbors(d, o) || neighbors(o, d) ? 1 : 0.1;
+          });
+          edges.style('opacity', function (o) {
+            return d.index == o.source.index || d.index == o.target.index
+              ? 1
+              : 0.1;
+          });
+          //Reduce the op
+          this.neighborToggle = true;
+        } else {
+          //Put them back to opacity=1
+          nodes.style('opacity', 1);
+          edges.style('opacity', 1);
+          this.neighborToggle = false;
+        }
+      }
+
       // Drag functions
       function dragstarted() {
         d3.select(this).clone(true).classed('notclone', true); // look into this
@@ -349,6 +389,10 @@ export default Vue.extend({
           .on('drag', dragged)
           .on('end', dragended),
       );
+
+      nodes.on('dblclick', function (e) {
+        console.log('DOUBLE CLICK', e, neighborNodes);
+      }); //neighborNodes);
 
       d3.selectAll('.legendRect').on('click', (l: string) => {
         const click = d3.selectAll(`.${l.replace(/\s/g, '')}`).attr('click');
