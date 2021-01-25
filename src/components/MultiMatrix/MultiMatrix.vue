@@ -518,7 +518,12 @@ export default Vue.extend({
           return `translate(0,${this.orderingScale(i)})`;
         });
 
-      this.edgeRows.exit().remove();
+      // this.edgeRows.exit().remove();
+      this.edgeRows.exit()
+      .transition()
+      .duration(1000)
+      .style('opacity', 0.2)
+      .remove()
 
       const rowEnter = this.edgeRows
         .enter()
