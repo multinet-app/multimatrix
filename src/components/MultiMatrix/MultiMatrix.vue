@@ -430,7 +430,12 @@ export default Vue.extend({
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
 
-      this.edgeColumns.exit().remove();
+      // this.edgeColumns.exit().remove();
+      this.edgeColumns.exit()
+      .transition()
+      .duration(1000)
+      .style('opacity', 0.2)
+      .remove();
 
       const columnEnter = this.edgeColumns
         .enter()
