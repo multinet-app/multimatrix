@@ -245,21 +245,21 @@ export default Vue.extend({
       // Calculate the attribute scales
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
-          const minimum: number = min(
-            this.network.links.map((link: Link) => parseFloat(link[col])),
-          );
-          const maximum: number = max(
-            this.network.links.map((link: Link) => parseFloat(link[col])),
-          );
-          const domain: number[] = [minimum, maximum];
+          let vals = [];
+          this.rowData.forEach((row: any) => vals.push(row.values[col]));
+          vals = vals.flat().map(Number);
+          const minimum = min(vals);
+          const maximum = max(vals);
 
+          const domain: number[] = [minimum, maximum];
           const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
           scale.clamp(true);
           scales[col] = scale;
         } else {
-          const values: string[] = this.network.links.map(
-            (link: Link) => link[col],
+          let values: string[] = this.rowData.map(
+            (row: any) => row.values[col],
           );
+          values = values.flat();
           const domain = [...new Set(values)];
           const scale = scaleOrdinal(schemeCategory10).domain(domain);
 
