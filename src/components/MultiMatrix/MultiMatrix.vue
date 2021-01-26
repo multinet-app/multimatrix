@@ -13,6 +13,7 @@ import {
   axisTop,
   max,
   min,
+  nest,
   range,
   ScaleBand,
   scaleBand,
@@ -45,6 +46,10 @@ export default Vue.extend({
       required: true,
     },
     visualizedAttributes: {
+      type: Array as PropType<string[]>,
+      default: () => [],
+    },
+    visualizedLinkAttributes: {
       type: Array as PropType<string[]>,
       default: () => [],
     },
@@ -144,10 +149,16 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { network, visualizedAttributes, enableGraffinity } = this;
+      const {
+        network,
+        visualizedAttributes,
+        visualizedLinkAttributes,
+        enableGraffinity,
+      } = this;
       return {
         network,
         visualizedAttributes,
+        visualizedLinkAttributes,
         enableGraffinity,
       };
     },
@@ -228,9 +239,70 @@ export default Vue.extend({
       return scales;
     },
 
+    attributeLinksScales() {
+      const scales: { [key: string]: any } = {};
+
+      // Calculate the attribute scales
+      this.visualizedLinkAttributes.forEach((col: string) => {
+        if (this.isQuantitative(col)) {
+          const minimum: number = min(
+            this.network.links.map((link: Link) => parseFloat(link[col])),
+          );
+          const maximum: number = max(
+            this.network.links.map((link: Link) => parseFloat(link[col])),
+          );
+          const domain: number[] = [minimum, maximum];
+
+          const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
+          scale.clamp(true);
+          scales[col] = scale;
+        } else {
+          const values: string[] = this.network.links.map(
+            (link: Link) => link[col],
+          );
+          const domain = [...new Set(values)];
+          const scale = scaleOrdinal(schemeCategory10).domain(domain);
+
+          scales[col] = scale;
+        }
+      });
+
+      return scales;
+    },
+
+    rowData(): any {
+      const rowData = nest()
+        .key((d: any) => d._from)
+        .entries(this.network.links);
+
+      const edgeAttributes = Object.keys(rowData[0].values[0]);
+
+      const rowLinkData = [];
+      rowData.forEach((d: any) => {
+        const rowAttrs = {};
+        edgeAttributes.forEach((attr: string) => {
+          const attrList = d.values.reduce((accum: any[], currentVal: any) => {
+            const val = [];
+            val.push(currentVal[attr]);
+            return [...accum, ...val];
+          }, []);
+          rowAttrs[attr] = attrList;
+        });
+        const key = d['key'];
+        const rowObj = { key: key, values: rowAttrs };
+        rowLinkData.push(rowObj);
+      });
+
+      return rowLinkData;
+    },
+
     colWidth(): number {
       const attrWidth = parseFloat(select('#attributes').attr('width'));
-      return attrWidth / this.visualizedAttributes.length - this.colMargin;
+      return (
+        attrWidth / this.visualizedAttributes.length +
+        this.visualizedLinkAttributes.length -
+        this.colMargin
+      );
     },
 
     colorScale(): ScaleLinear<string, number> {
@@ -243,6 +315,10 @@ export default Vue.extend({
   watch: {
     visualizedAttributes() {
       this.renderAttributes();
+    },
+
+    visualizedLinkAttributes() {
+      this.renderLinkAttributes();
     },
 
     network() {
@@ -330,12 +406,14 @@ export default Vue.extend({
     this.provenance = this.setUpProvenance();
 
     this.renderAttributes();
+    this.renderLinkAttributes();
     this.initializeEdges();
   },
 
   methods: {
     changeMatrix(this: any) {
       this.renderAttributes();
+      this.renderLinkAttributes();
       this.initializeEdges();
     },
 
@@ -1048,10 +1126,163 @@ export default Vue.extend({
         });
     },
 
+    renderLinkAttributes(): void {
+      // Create a group for each column and add header info
+      this.linkAttributeRows = this.attributes
+        .selectAll('.attrColumn')
+        .data(this.visualizedLinkAttributes, (d: string) => d);
+
+      this.linkAttributeRows.exit().remove();
+
+      // Update locations of existing elements
+      this.linkAttributeRows.attr(
+        'transform',
+        (d: string, i: number) =>
+          `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
+      );
+
+      const attributeRowsEnter = this.linkAttributeRows
+        .enter()
+        .append('g')
+        .attr('class', 'attrColumn')
+        .attr(
+          'transform',
+          (d: string, i: number) =>
+            `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
+        );
+
+      attributeRowsEnter
+        .append('text')
+        .style('font-size', '14px')
+        .style('text-transform', 'capitalize')
+        .style('word-wrap', 'break-word')
+        .attr('text-anchor', 'left')
+        .attr('transform', 'translate(0,-65)')
+        .attr('cursor', 'pointer')
+        .attr('y', 16)
+        .text((d: string) => d)
+        .attr('width', this.colWidth)
+        .on('click', (d: string) => this.sort(d));
+
+      attributeRowsEnter
+        .append('path')
+        .attr('class', `sortIcon attr attrSortIcon`)
+        .attr('cursor', 'pointer')
+        .attr('d', (d: string) => {
+          const type = this.isQuantitative(d) ? 'quant' : 'categorical';
+          return this.icons[type].d;
+        })
+        .attr(
+          'transform',
+          (d: string, i: number) =>
+            `scale(0.1)translate(${
+              (this.colWidth + this.colMargin) * i * 10 - 200
+            }, -1100)`,
+        )
+        .style('fill', '#8B8B8B')
+        .on('click', (d: string) => this.sort(d));
+
+      selectAll('.attr-axis').remove();
+
+      // Add the scale bar at the top of the attr column
+      this.visualizedLinkAttributes.forEach((col: string, index: number) => {
+        if (this.isQuantitative(col)) {
+          this.attributes
+            .append('g')
+            .attr('class', 'attr-axis')
+            .attr(
+              'transform',
+              `translate(${(this.colWidth + this.colMargin) * index},-15)`,
+            )
+            .call(
+              axisTop(this.attributeLinksScales[col])
+                .tickValues(this.attributeLinksScales[col].domain())
+                .tickFormat((d: any) => {
+                  if (d / 1000 >= 1) {
+                    d = Math.round(d / 1000) + 'K';
+                  }
+                  return parseFloat(d).toFixed(4);
+                }),
+            )
+            .selectAll('text')
+            .style('text-anchor', (d: any, i: number) =>
+              i % 2 ? 'end' : 'start',
+            );
+        }
+      });
+
+      attributeRowsEnter
+        .append('g')
+        .attr('class', (d: string) => `attrRows ${d}`);
+
+      this.attributeRows.merge(attributeRowsEnter);
+
+      const attributeVis = (selectAll('.attrRows') as any)
+        .selectAll('.attrRow')
+        .data(this.rowData, (d: any) => d.values);
+
+      console.log('ROW DATA', this.rowData);
+      console.log('NETWORK', this.network);
+
+      // Update existing vis elements to resize width
+      attributeVis
+        .selectAll('rect')
+        .attr('width', (d: Link, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+
+          if (this.isQuantitative(varName)) {
+            return this.attributeLinksScales[varName](d[varName]);
+          } else {
+            return this.colWidth;
+          }
+        });
+
+      attributeVis.exit().remove();
+
+      const attributeVisEnter = attributeVis
+        .enter()
+        .append('g')
+        .attr('class', 'attrRow')
+        .attr(
+          'transform',
+          (d: Link, i: number) => `translate(0,${this.orderingScale(i)})`,
+        );
+
+      // Draw new vis elements (boxplot/squishedbarchart)
+      attributeVisEnter
+        .append('rect')
+        .attr('height', this.orderingScale.bandwidth())
+        .attr('width', (d: Link, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+
+          if (this.isQuantitative(varName)) {
+            return this.attributeLinksScales[varName](d[varName]);
+          } else {
+            return this.colWidth;
+          }
+        })
+        .attr('fill', (d: Link, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+
+          if (this.isQuantitative(varName)) {
+            return '#82b1ff';
+          } else {
+            return this.attributeLinksScales[varName](d[varName]);
+          }
+        })
+        .attr('cursor', 'pointer')
+        .on('mouseover', (d: Link) => this.hoverNode(d.id))
+        .on('mouseout', (d: Link) => this.unHoverNode(d.id))
+        .on('click', (d: Link) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        });
+    },
+
     isQuantitative(varName: string): boolean {
       const uniqueValues = [
         ...new Set(
-          this.network.nodes.map((node: Node) => parseFloat(node[varName])),
+          this.network.links.map((link: Link) => parseFloat(link[varName])),
         ),
       ];
       return uniqueValues.length > 5;
@@ -1123,12 +1354,12 @@ export default Vue.extend({
       }
     },
 
-    selectNeighborNodes(nodeID: string, neighbors: string[]): void {
+    selectNeighborNodes(linkID: string, neighbors: string[]): void {
       // Remove or add node from column selected nodes
-      if (nodeID in this.selectedNodesAndNeighbors) {
-        delete this.selectedNodesAndNeighbors[nodeID];
+      if (linkID in this.selectedNodesAndNeighbors) {
+        delete this.selectedNodesAndNeighbors[linkID];
       } else {
-        const newElement = { [nodeID]: neighbors };
+        const newElement = { [linkID]: neighbors };
         this.selectedNodesAndNeighbors = Object.assign(
           this.selectedNodesAndNeighbors,
           newElement,
