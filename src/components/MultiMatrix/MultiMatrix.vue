@@ -430,12 +430,12 @@ export default Vue.extend({
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
 
-      // this.edgeColumns.exit().remove();
-      this.edgeColumns.exit()
-      .transition()
-      .duration(1000)
-      .style('opacity', 0.2)
-      .remove();
+      this.edgeColumns
+        .exit()
+        .transition()
+        .duration(1000)
+        .style('opacity', 0.2)
+        .remove();
 
       const columnEnter = this.edgeColumns
         .enter()
@@ -518,11 +518,7 @@ export default Vue.extend({
           return `translate(0,${this.orderingScale(i)})`;
         });
 
-      // this.edgeRows.exit().remove();
       this.edgeRows.exit()
-      .transition()
-      .duration(1000)
-      .style('opacity', 0.2)
       .remove()
 
       const rowEnter = this.edgeRows
@@ -613,7 +609,11 @@ export default Vue.extend({
       // Draw cells
       this.cells = selectAll('.cellsGroup')
         .selectAll('.cell')
-        .data((d: unknown, i: number) => this.matrix[i]);
+        .data((d: unknown, i: number) => {
+          console.log(i, this.matrix[i]);
+          return this.matrix[i];
+        });
+      // .data((d: unknown, i: number) => this.matrix[i]);
 
       // Update existing cells
       this.cells
