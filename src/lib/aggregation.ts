@@ -379,7 +379,7 @@ function retractSuperNodeData(
     const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
-    
+
     return expandNodesCopy;
   }
 }
