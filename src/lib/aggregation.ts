@@ -101,7 +101,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     nodes: finalNodes,
     links: newLinks,
   };
-  
+
   return network;
 }
 
@@ -232,7 +232,7 @@ function expandSuperNodeData(
       if (node.type === 'node') {
         // look up the child Node's parent if it has one
         const parentNodeID = superChildrenMap.get(node.id);
-        if (parentNodeID) {
+        if (parentNodeID !== undefined) {
           // get the parent node in the list
           const parentIndexFunc = (matrixNode: Node) =>
             matrixNode.id === parentNodeID;
@@ -241,8 +241,6 @@ function expandSuperNodeData(
         }
       }
     });
-
-    console.log(nodeCopy);
     return nodeCopy;
   }
 }
