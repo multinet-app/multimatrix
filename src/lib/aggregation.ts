@@ -222,11 +222,6 @@ function expandSuperNodeData(
       count += 1;
     });
 
-    // Update the index of the new nodes the expanded vis network
-    nodeCopy.forEach((node: Node, index: number) => {
-      node.index = index;
-    });
-
     // Add a parent position value for the child nodes
     nodeCopy.forEach((node: Node) => {
       if (node.type === 'node') {
