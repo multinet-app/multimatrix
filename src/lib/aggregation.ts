@@ -227,13 +227,11 @@ function expandSuperNodeData(
       node.index = index;
     });
 
-    // Add a parent position value for the regular nodes
+    // Add a parent position value for the child nodes
     nodeCopy.forEach((node: Node) => {
       if (node.type === 'node') {
-        // look up the child Node's parent if it has one
         const parentNodeID = superChildrenMap.get(node.id);
         if (parentNodeID !== undefined) {
-          // get the parent node in the list
           const parentIndexFunc = (matrixNode: Node) =>
             matrixNode.id === parentNodeID;
           const parentNodePosition = nodeCopy.findIndex(parentIndexFunc);
