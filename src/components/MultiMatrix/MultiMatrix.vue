@@ -430,12 +430,25 @@ export default Vue.extend({
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
 
-      this.edgeColumns.exit().remove()
+      this.edgeColumns.exit().remove();
 
       const columnEnter = this.edgeColumns
         .enter()
         .append('g')
         .attr('class', 'column')
+        .attr('transform', (d: Node) => {
+          if (d.type === 'node') {
+            return `translate(${this.orderingScale(
+              d.parentPosition,
+            )})rotate(-90)`;
+          } else {
+            return `translate(0, 0)`;
+          }
+        });
+
+      columnEnter
+        .transition()
+        .duration(1000)
         .attr('transform', (d: Node, i: number) => {
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
