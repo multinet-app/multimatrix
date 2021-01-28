@@ -44,7 +44,9 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
-      if (superNode !== undefined) superNode.CHILDREN.push(node.id);
+      if (superNode !== undefined) { 
+        superNode.CHILDREN.push(node.id);
+      }
     }
   });
 
@@ -195,7 +197,7 @@ function expandSuperNodeData(
   childrenNodeNameDict: Map<string, Node>,
   superNodeNameDict: Map<string, Node>,
 ) {
-  const superNodeCopy = deepCopyNodes(aggrNodesCopy);
+  const nodeCopy = deepCopyNodes(aggrNodesCopy);
   const superNode = superNodeNameDict.get(superNodeName);
 
   // If the supernode exists in the dictionary,
@@ -211,15 +213,19 @@ function expandSuperNodeData(
     });
 
     // Find and insert the children of the selected supernode into the correct spot
-    const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
-    const superIndexStart = superNodeCopy.findIndex(superIndexFunc);
+    const insertNodeFunc = (superNode: Node) => superNode.id == superNodeName;
+    const insertNodeStart = nodeCopy.findIndex(insertNodeFunc);
     let count = 1;
     childNodes.forEach((node) => {
-      superNodeCopy.splice(superIndexStart + count, 0, node);
+      nodeCopy.splice(insertNodeStart + count, 0, node);
       count += 1;
     });
 
-    return superNodeCopy;
+    // Update the index of the new nodes the expanded vis network
+    nodeCopy.forEach((node: Node, index: number) => {
+      node.index = index;
+    });
+    return nodeCopy;
   }
 }
 
@@ -363,6 +369,10 @@ function retractSuperNodeData(
     const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
+    // Update the index of the new nodes in the retracted vis network
+    expandNodesCopy.forEach((node: Node, index: number) => {
+      node.index = index;
+    });
 
     return expandNodesCopy;
   }
