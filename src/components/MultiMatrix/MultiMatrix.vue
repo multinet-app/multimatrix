@@ -433,7 +433,7 @@ export default Vue.extend({
       this.edgeColumns
         .exit()
         .transition()
-        .duration(1000)
+        .duration(500)
         .style('opacity', 0.2)
         .remove();
 
@@ -518,18 +518,23 @@ export default Vue.extend({
           return `translate(0,${this.orderingScale(i)})`;
         });
 
-      this.edgeRows.exit()
-      .remove()
+      this.edgeRows.exit().remove();
 
       const rowEnter = this.edgeRows
         .enter()
         .append('g')
         .attr('class', 'rowContainer')
-        .attr('transform', `translate(0, 0)`);
+        .attr('transform', (d: Node) => {
+          if (d.type === 'node') {
+            return `translate(0, ${this.orderingScale(d.parentPosition)})`;
+          } else {
+            return `translate(0, 0)`;
+          }
+        });
 
       rowEnter
         .transition()
-        .duration(1100)
+        .duration(1000)
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
@@ -609,11 +614,7 @@ export default Vue.extend({
       // Draw cells
       this.cells = selectAll('.cellsGroup')
         .selectAll('.cell')
-        .data((d: unknown, i: number) => {
-          console.log(i, this.matrix[i]);
-          return this.matrix[i];
-        });
-      // .data((d: unknown, i: number) => this.matrix[i]);
+        .data((d: unknown, i: number) => this.matrix[i]);
 
       // Update existing cells
       this.cells
