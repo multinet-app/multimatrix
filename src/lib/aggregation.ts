@@ -44,7 +44,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
-      if (superNode !== undefined) { 
+      if (superNode !== undefined) {
         superNode.CHILDREN.push(node.id);
       }
     }
@@ -101,7 +101,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     nodes: finalNodes,
     links: newLinks,
   };
-
+  
   return network;
 }
 
@@ -196,6 +196,7 @@ function expandSuperNodeData(
   aggrNodesCopy: Node[],
   childrenNodeNameDict: Map<string, Node>,
   superNodeNameDict: Map<string, Node>,
+  superChildrenMap: Map<string, string>,
 ) {
   const nodeCopy = deepCopyNodes(aggrNodesCopy);
   const superNode = superNodeNameDict.get(superNodeName);
@@ -225,6 +226,23 @@ function expandSuperNodeData(
     nodeCopy.forEach((node: Node, index: number) => {
       node.index = index;
     });
+
+    // Add a parent position value for the regular nodes
+    nodeCopy.forEach((node: Node) => {
+      if (node.type === 'node') {
+        // look up the child Node's parent if it has one
+        const parentNodeID = superChildrenMap.get(node.id);
+        if (parentNodeID) {
+          // get the parent node in the list
+          const parentIndexFunc = (matrixNode: Node) =>
+            matrixNode.id === parentNodeID;
+          const parentNodePosition = nodeCopy.findIndex(parentIndexFunc);
+          node.parentPosition = parentNodePosition;
+        }
+      }
+    });
+
+    console.log(nodeCopy);
     return nodeCopy;
   }
 }
@@ -316,6 +334,7 @@ export function expandSuperNetwork(
     aggrNodesCopy,
     childrenNodeNameDict,
     superNodeNameDict,
+    superChildrenDict,
   );
 
   // Construct a new set of network links
