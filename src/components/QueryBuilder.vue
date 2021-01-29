@@ -91,6 +91,39 @@ export default Vue.extend({
       }
       return indexLinks;
     },
+    aqlNetwork(): any {
+      let aqlNetwork: Network = { nodes: [], links: [] };
+
+      // check for duplicates
+      let nodeChecker: string[] = [];
+      for (let path of this.aqlPaths) {
+        for (let arr of path.vertices) {
+          if (!nodeChecker.includes(arr['_key'])) {
+            nodeChecker.push(arr['_key']);
+          }
+        }
+      }
+
+      // create network in correct format
+      for (let path of this.aqlPaths) {
+        for (let arr of path.vertices) {
+          if (nodeChecker.includes(arr['_key'])) {
+            arr.id = arr['_id'];
+            aqlNetwork.nodes.push(arr);
+            nodeChecker.splice(nodeChecker.indexOf(arr['_key']), 1);
+          }
+        }
+        for (let arr of path.edges) {
+          arr.source = arr['_from'];
+          delete arr['_from'];
+          arr.target = arr['_to'];
+          delete arr['_to'];
+          aqlNetwork.links.push(arr);
+        }
+      }
+
+      return aqlNetwork;
+    },
   },
 
   watch: {
@@ -101,6 +134,7 @@ export default Vue.extend({
       this.initializeSchema();
     },
     aqlPaths() {
+      this.renderQueryNetwork();
       this.renderQueryResults();
     },
   },
@@ -596,6 +630,145 @@ export default Vue.extend({
       //   .attr('stroke', 'white')
       //   .attr('stroke-width', 1);
     },
+    renderQueryNetwork(this: any) {
+      const svg = d3.select(this.$refs.queryNetwork);
+
+      // console.log('network', this.aqlNetwork);
+      d3.select('#queryNetworkGroup').selectAll('*').remove();
+
+      const linksData = this.aqlNetwork.links;
+      const nodesData = this.aqlNetwork.nodes;
+
+      const force = d3
+        .forceSimulation(nodesData)
+        .force('charge', d3.forceManyBody().strength(-150))
+        .force(
+          'link',
+          d3.forceLink(linksData).id((d: any) => d.id),
+        )
+        .force(
+          'center',
+          d3
+            .forceCenter()
+            .x(this.width / 2)
+            .y((this.height / 8) * 3),
+        );
+
+      const queryNetworkGroup = svg.append('g').attr('id', 'queryNetworkGroup');
+
+      const edges = queryNetworkGroup
+        .append('g')
+        .attr('class', 'link')
+        .selectAll('line')
+        .data(linksData)
+        .join('line')
+        .style('stroke', '#ccc')
+        .style('stroke-width', 1);
+
+      const nodes = queryNetworkGroup
+        .selectAll('circle')
+        .data(nodesData)
+        .join('circle')
+        .attr('r', 10)
+        .attr('label', (d: any) => d.Label)
+        .attr('id', (d: any) => d.Label.replace(/\s/g, ''))
+        .style('fill', (d: any) => {
+          const label = d.Label.replace(/\s/g, '');
+          let colorKey = 'none';
+          for (const key in this.colorsDict) {
+            if (label === key) {
+              colorKey = key;
+            } else if (this.colorsDict[key].includes(label)) {
+              colorKey = key;
+            }
+          }
+          return this.colorScale(colorKey);
+        })
+        .attr('stroke', 'white')
+        .attr('stroke-width', 1);
+
+      nodes.on('mouseover', (this: any, node: Node) => {
+        d3.select(`#${node.Label}`).classed('treehover', true);
+      });
+
+      // Simple tooltip
+      nodes.append('title').text((d: any) => d.Label);
+
+      force.on('tick', () => {
+        edges
+          .attr('x1', function (d: any) {
+            return d.source.x;
+          })
+          .attr('y1', function (d: any) {
+            return d.source.y;
+          })
+          .attr('x2', function (d: any) {
+            return d.target.x;
+          })
+          .attr('y2', function (d: any) {
+            return d.target.y;
+          });
+
+        nodes
+          .attr('cx', function (d: any) {
+            return (d.x = Math.max(10, Math.min(800 - 10, d.x)));
+          })
+          .attr('cy', function (d: any) {
+            return (d.y = Math.max(10, Math.min((900 / 4) * 3 - 10, d.y)));
+          });
+      });
+
+      // Check if neighbors
+      function neighbors(a, b) {
+        return this.indexLinks[a.index + ',' + b.index];
+      }
+
+      function neighborNodes() {
+        console.log('DOUBLE CLICK');
+        if (this.neighborToggle) {
+          //Reduce the opacity of all but the neighbouring nodes
+          let d = d3.select(this).node().__data__;
+          nodes.style('opacity', function (o) {
+            return neighbors(d, o) || neighbors(o, d) ? 1 : 0.1;
+          });
+          edges.style('opacity', function (o) {
+            return d.index == o.source.index || d.index == o.target.index
+              ? 1
+              : 0.1;
+          });
+          //Reduce the opacity
+          this.neighborToggle = true;
+        } else {
+          //Put them back to opacity=1
+          nodes.style('opacity', 1);
+          edges.style('opacity', 1);
+          this.neighborToggle = false;
+        }
+      }
+
+      nodes.on('dblclick', function (e) {
+        console.log('DOUBLE CLICK', e, neighborNodes);
+      }); //neighborNodes);
+
+      d3.selectAll('.legendRect').on('click', (l: string) => {
+        const click = d3.selectAll(`.${l.replace(/\s/g, '')}`).attr('click');
+
+        if (click === null) {
+          d3.selectAll(`.${l.replace(/\s/g, '')}`)
+            .classed('legendSelected', true)
+            .attr('click', 'clicked');
+          this.unSelectedLinks.push(l);
+        } else {
+          d3.selectAll(`.${l.replace(/\s/g, '')}`)
+            .classed('legendSelected', false)
+            .attr('click', null);
+          this.unSelectedLinks = this.unSelectedLinks.filter((sl: string) => {
+            return sl != l;
+          });
+        }
+        this.modifyLinks(this.unSelectedLinks, this.schemaNetwork);
+      });
+    },
   },
 });
 </script>
@@ -618,7 +791,17 @@ export default Vue.extend({
         </v-btn>
       </v-row>
     </v-col>
-    <div id="queryResults" ref="queryResults" width="800" height="900" />
+    <v-tabs>
+      <v-tab>Network</v-tab>
+      <v-tab>Paths </v-tab>
+
+      <v-tab-item>
+        <svg id="queryNetwork" ref="queryNetwork" width="800" height="900" />
+      </v-tab-item>
+      <v-tab-item>
+        <div id="queryResults" ref="queryResults" width="800" height="900" />
+      </v-tab-item>
+    </v-tabs>
   </div>
 </template>
 
