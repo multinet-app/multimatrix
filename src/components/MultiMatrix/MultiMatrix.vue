@@ -436,6 +436,19 @@ export default Vue.extend({
         .enter()
         .append('g')
         .attr('class', 'column')
+        .attr('transform', (d: Node) => {
+          if (d.type === 'node') {
+            return `translate(${this.orderingScale(
+              d.parentPosition,
+            )})rotate(-90)`;
+          } else {
+            return `translate(0, 0)rotate(-90)`;
+          }
+        });
+
+      columnEnter
+        .transition()
+        .duration(1000)
         .attr('transform', (d: Node, i: number) => {
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
@@ -519,11 +532,17 @@ export default Vue.extend({
         .enter()
         .append('g')
         .attr('class', 'rowContainer')
-        .attr('transform', `translate(0, 0)`);
+        .attr('transform', (d: Node) => {
+          if (d.type === 'node') {
+            return `translate(0, ${this.orderingScale(d.parentPosition)})`;
+          } else {
+            return `translate(0, 0)`;
+          }
+        });
 
       rowEnter
         .transition()
-        .duration(1100)
+        .duration(1000)
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
