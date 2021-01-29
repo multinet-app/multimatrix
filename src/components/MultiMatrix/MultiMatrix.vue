@@ -442,7 +442,7 @@ export default Vue.extend({
               d.parentPosition,
             )})rotate(-90)`;
           } else {
-            return `translate(0, 0)`;
+            return `translate(0, 0)rotate(-90)`;
           }
         });
 
