@@ -523,9 +523,6 @@ export default Vue.extend({
         .selectAll('.rowContainer')
         .data(this.network.nodes, (d: Node) => d._id || d.id)
         .attr('transform', (d: Node, i: number) => {
-          if (d.type === 'node') {
-            return `translate(10, ${this.orderingScale(i)})`;
-          }
           return `translate(0,${this.orderingScale(i)})`;
         });
 
@@ -537,7 +534,7 @@ export default Vue.extend({
         .attr('class', 'rowContainer')
         .attr('transform', (d: Node) => {
           if (d.type === 'node') {
-            return `translate(10, ${this.orderingScale(d.parentPosition)})`;
+            return `translate(0, ${this.orderingScale(d.parentPosition)})`;
           } else {
             return `translate(0, 0)`;
           }
@@ -547,9 +544,6 @@ export default Vue.extend({
         .transition()
         .duration(1000)
         .attr('transform', (d: Node, i: number) => {
-          if (d.type === 'node') {
-            return `translate(10, ${this.orderingScale(i)})`;
-          }
           return `translate(0,${this.orderingScale(i)})`;
         });
 
@@ -569,7 +563,15 @@ export default Vue.extend({
       // add foreign objects for label
       rowEnter
         .append('foreignObject')
-        .attr('x', -rowLabelContainerStart)
+        .attr('x', (d: Node) => {
+          if (d.type === 'node') {
+            return (-rowLabelContainerStart + 15)
+          }
+          else {
+            return (-rowLabelContainerStart);
+          }
+        })
+        // .attr('x', -rowLabelContainerStart)
         .attr('y', -5)
         .attr('width', labelContainerWidth)
         .attr('height', labelContainerHeight)
