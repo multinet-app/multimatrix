@@ -470,7 +470,14 @@ export default Vue.extend({
       columnEnter
         .append('foreignObject')
         .attr('y', -5)
-        .attr('x', columnLabelContainerStart)
+        .attr('x', (d: Node) => {
+          if (d.type === 'node') {
+            return columnLabelContainerStart - 5;
+          }
+          else {
+            return columnLabelContainerStart;
+          }
+        })
         .attr('width', labelContainerWidth)
         .attr('height', labelContainerHeight)
         .append('xhtml:p')
@@ -571,7 +578,6 @@ export default Vue.extend({
             return (-rowLabelContainerStart);
           }
         })
-        // .attr('x', -rowLabelContainerStart)
         .attr('y', -5)
         .attr('width', labelContainerWidth)
         .attr('height', labelContainerHeight)
