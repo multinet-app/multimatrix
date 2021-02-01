@@ -38,6 +38,9 @@ export default Vue.extend({
     unSelectedLinks: string[];
     selectedHops: number;
     neighborToggle: boolean;
+    tableSearch: string;
+    tableHeaders: any[];
+    tableData: any[];
   } {
     return {
       browser: {
@@ -55,6 +58,14 @@ export default Vue.extend({
       unSelectedLinks: [],
       selectedHops: 0,
       neighborToggle: false,
+      tableSearch: '',
+      tableHeaders: [],
+      tableData: [],
+      // queryFilter: {},
+      // querySortDesc: false,
+      // queryPage: 1,
+      // queryItemsPerPage: 4,
+      // querySortBy: '_id',
     };
   },
 
@@ -135,7 +146,8 @@ export default Vue.extend({
     },
     aqlPaths() {
       this.renderQueryNetwork();
-      this.renderQueryResults();
+      this.createTableHeaders();
+      this.createTableData();
     },
   },
 
@@ -502,138 +514,65 @@ export default Vue.extend({
         this.$emit('aqlQueryParameters', start, end, this.selectedHops);
       }
     },
+    createTableHeaders(): any {
+      let tableHeaders = [
+        {
+          text: 'Path',
+          align: 'start',
+          sortable: false,
+          value: 'pathID',
+        },
+      ];
 
-    renderQueryResults(this: any) {
-      const table = d3.select(this.$refs.queryResults).append('table');
-
-      // const cell = {
-      //   width: 70,
-      //   height: 20,
-      //   buffer: 15,
-      // };
-      // const bar = {
-      //   height: 20,
-      // };
-
-      const tableData = [];
-      console.log(this.aqlPaths);
-
-      let tableHeaders = [];
-      for (let i = 1; i < this.selectedHops + 1; i++) {
-        tableHeaders.push({ header: `Node ${i}`, sorted: false });
-        tableHeaders.push({ header: `Edge ${i}`, sorted: false });
+      for (let i = 0; i < this.selectedHops; i++) {
+        tableHeaders.push({ text: `Node ${i + 1}`, value: `Node ${i + 1}` });
+        tableHeaders.push({
+          text: `Node ${i + 1} Label`,
+          value: `Node ${i + 1} Label`,
+        });
+        tableHeaders.push({ text: `Edge ${i + 1}`, value: `Edge ${i + 1}` });
+        tableHeaders.push({
+          text: `Edge ${i + 1} Type`,
+          value: `Edge ${i + 1} Type`,
+        });
       }
       tableHeaders.push({
-        header: `Node ${this.selectedHops + 1}`,
-        sorted: false,
+        text: `Node ${this.selectedHops + 1}`,
+        value: `Node ${this.selectedHops + 1}`,
+      });
+      tableHeaders.push({
+        text: `Node ${this.selectedHops + 1} Label`,
+        value: `Node ${this.selectedHops + 1} Label`,
       });
 
-      // Format table data
-      this.aqlPaths.forEach((path: any) => {
-        const row = [];
-        for (let i = 0; i < this.selectedHops; i++) {
+      this.tableHeaders = tableHeaders;
+    },
+    createTableData() {
+      const tableData = [];
+
+      this.aqlPaths.forEach((path: any, j: number) => {
+        let pathData = {};
+        pathData.pathID = j + 1;
+
+        for (let i = 0; i < this.selectedHops + 1; i++) {
           if (path.vertices[i]) {
-            row.push(path.vertices[i]);
-          } else {
-            row.push(null);
+            pathData[`Node ${i + 1}`] = path.vertices[i]._id;
+            pathData[`Node ${i + 1} Label`] = path.vertices[i].Label;
           }
           if (path.edges[i]) {
-            row.push(path.edges[i]);
-          } else {
-            row.push(null);
+            pathData[`Edge ${i + 1}`] = path.edges[i]._id;
+            pathData[`Edge ${i + 1} Type`] = path.edges[i].Type;
           }
         }
-        if (path.vertices[this.selectedHops]) {
-          row.push(path.vertices[this.selectedHops]);
-        } else {
-          row.push(null);
-        }
-        tableData.push(row);
+
+        tableData.push(pathData);
       });
 
-      let columnHeaders = table
-        .append('thead')
-        .append('tr')
-        .selectAll('th')
-        .data(tableHeaders)
-        .enter()
-        .append('th')
-        .text((d: any) => d.header);
-
-      let rows = table
-        .append('tbody')
-        .selectAll('tr')
-        .data(tableData)
-        .enter()
-        .append('tr');
-
-      rows
-        .selectAll('td')
-        .data((d: any) => {
-          return tableHeaders.map((k: any, i: number) => {
-            k['values'] = d[i];
-            return k;
-          });
-        })
-        .enter()
-        .append('td')
-        .text((d: any) => {
-          return d.values._id;
-        });
-
-      columnHeaders.on('click', (d: any) => {
-        console.log('clicked!', d);
-        //   if (d.sorted) {
-        //     rows.sort((a: any, b: any) => {
-        //       console.log(a, b);
-        //       return b[d] < a[d];
-        //     });
-        //     d.sorted = true;
-        //   } else {
-        //     rows.sort((a: any, b: any) => {
-        //       return b[d] > a[d];
-        //     });
-        //     d.sorted = true;
-        //   }
-      });
-
-      // svg
-      //   .append('g')
-      //   .selectAll('line')
-      //   .data(this.aqlPaths)
-      //   .join('line')
-      //   .style('stroke', '#ccc')
-      //   .style('stroke-width', 2)
-      //   .attr('x1', (d: any) => {
-      //     d.edges.forEach((e: any, i: number) => {
-      //       return i;
-      //     });
-      //   })
-      //   .attr('x2', (d: any) => {
-      //     d.edges.forEach((e: any, i: number) => {
-      //       return width/i;
-      //     });
-      //   })
-      //   .attr('y1', (d: any, i: number) => {
-      //     return i * (i + 10);
-      //   })
-      //   .attr('y2', (d: any, i: number) => {
-      //     return i * (i + 10);
-      //   });
-
-      // const nodes = svg
-      //   .selectAll('circle')
-      //   .data(this.aqlPaths)
-      //   .join('circle')
-      //   .attr('r', 5)
-      //   .style('fill', 'grey')
-      //   .attr('stroke', 'white')
-      //   .attr('stroke-width', 1);
+      this.tableData = tableData;
     },
     renderQueryNetwork(this: any) {
       const svg = d3.select(this.$refs.queryNetwork);
 
-      // console.log('network', this.aqlNetwork);
       d3.select('#queryNetworkGroup').selectAll('*').remove();
 
       const linksData = this.aqlNetwork.links;
@@ -799,7 +738,25 @@ export default Vue.extend({
         <svg id="queryNetwork" ref="queryNetwork" width="800" height="900" />
       </v-tab-item>
       <v-tab-item>
-        <div id="queryResults" ref="queryResults" width="800" height="900" />
+        <!-- <div id="queryResults" ref="queryResults" width="800" height="900" /> -->
+        <v-card>
+          <v-card-title>
+            Paths
+            <v-spacer></v-spacer>
+            <v-text-field
+              v-model="tableSearch"
+              append-icon="mdi-magnify"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
+          </v-card-title>
+          <v-data-table
+            :headers="tableHeaders"
+            :items="tableData"
+            :search="tableSearch"
+          ></v-data-table>
+        </v-card>
       </v-tab-item>
     </v-tabs>
   </div>
