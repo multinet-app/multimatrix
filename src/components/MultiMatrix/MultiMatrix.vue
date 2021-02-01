@@ -523,6 +523,9 @@ export default Vue.extend({
         .selectAll('.rowContainer')
         .data(this.network.nodes, (d: Node) => d._id || d.id)
         .attr('transform', (d: Node, i: number) => {
+          if (d.type === 'node') {
+            return `translate(10, ${this.orderingScale(i)})`;
+          }
           return `translate(0,${this.orderingScale(i)})`;
         });
 
@@ -534,7 +537,7 @@ export default Vue.extend({
         .attr('class', 'rowContainer')
         .attr('transform', (d: Node) => {
           if (d.type === 'node') {
-            return `translate(0, ${this.orderingScale(d.parentPosition)})`;
+            return `translate(10, ${this.orderingScale(d.parentPosition)})`;
           } else {
             return `translate(0, 0)`;
           }
@@ -544,6 +547,9 @@ export default Vue.extend({
         .transition()
         .duration(1000)
         .attr('transform', (d: Node, i: number) => {
+          if (d.type === 'node') {
+            return `translate(10, ${this.orderingScale(i)})`;
+          }
           return `translate(0,${this.orderingScale(i)})`;
         });
 
