@@ -473,8 +473,7 @@ export default Vue.extend({
         .attr('x', (d: Node) => {
           if (d.type === 'node') {
             return columnLabelContainerStart - 5;
-          }
-          else {
+          } else {
             return columnLabelContainerStart;
           }
         })
@@ -572,10 +571,9 @@ export default Vue.extend({
         .append('foreignObject')
         .attr('x', (d: Node) => {
           if (d.type === 'node') {
-            return (-rowLabelContainerStart + 15)
-          }
-          else {
-            return (-rowLabelContainerStart);
+            return -rowLabelContainerStart + 15;
+          } else {
+            return -rowLabelContainerStart;
           }
         })
         .attr('y', -5)
