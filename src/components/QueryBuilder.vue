@@ -61,11 +61,6 @@ export default Vue.extend({
       tableSearch: '',
       tableHeaders: [],
       tableData: [],
-      // queryFilter: {},
-      // querySortDesc: false,
-      // queryPage: 1,
-      // queryItemsPerPage: 4,
-      // querySortBy: '_id',
     };
   },
 
@@ -282,10 +277,13 @@ export default Vue.extend({
 
       const force = d3
         .forceSimulation(nodesData)
-        .force('charge', d3.forceManyBody().strength(-150))
+        .force('charge', d3.forceManyBody().strength(-100).distanceMax(300))
         .force(
           'link',
-          d3.forceLink(linksData).id((d: any) => d.id),
+          d3
+            .forceLink(linksData)
+            .id((d: any) => d.id)
+            .distance(200),
         )
         .force(
           'center',
@@ -302,13 +300,18 @@ export default Vue.extend({
         .data(linksData)
         .join('line')
         .style('stroke', '#ccc')
-        .style('stroke-width', 1);
+        .style('stroke-width', 2);
 
       const nodes = this.networkGroup
-        .selectAll('circle')
+        .selectAll('.node')
         .data(nodesData)
-        .join('circle')
-        .attr('r', 10)
+        .enter()
+        .append('g')
+        .attr('class', 'node');
+
+      const circles = nodes
+        .append('circle')
+        .attr('r', 20)
         .attr('label', (d: any) => d.Label)
         .attr('id', (d: any) => d.Label.replace(/\s/g, ''))
         .style('fill', (d: any) => {
@@ -326,12 +329,12 @@ export default Vue.extend({
         .attr('stroke', 'white')
         .attr('stroke-width', 1);
 
-      nodes.on('mouseover', (this: any, node: Node) => {
-        d3.select(`#${node.Label}`).classed('treehover', true);
-      });
-
-      // Simple tooltip
-      nodes.append('title').text((d: any) => d.Label);
+      const nodeText = nodes
+        .append('text')
+        .attr('dx', 10)
+        .attr('dy', '.35em')
+        .text((d: any) => d.Label)
+        .style('stroke', 'gray');
 
       force.on('tick', () => {
         edges
@@ -348,15 +351,22 @@ export default Vue.extend({
             return d.target.y;
           });
 
-        nodes
+        circles
           .attr('cx', function (d: any) {
             return (d.x = Math.max(10, Math.min(800 - 10, d.x)));
           })
           .attr('cy', function (d: any) {
             return (d.y = Math.max(10, Math.min((900 / 4) * 3 - 10, d.y)));
           });
-      });
 
+        nodeText
+          .attr('x', function (d: any) {
+            return d.x;
+          })
+          .attr('y', function (d: any) {
+            return d.y;
+          });
+      });
       // Check if neighbors
       function neighbors(a, b) {
         return this.indexLinks[a.index + ',' + b.index];
@@ -428,7 +438,7 @@ export default Vue.extend({
         }
       }
 
-      nodes.call(
+      circles.call(
         d3
           .drag()
           .on('start', dragstarted)
@@ -580,7 +590,7 @@ export default Vue.extend({
 
       const force = d3
         .forceSimulation(nodesData)
-        .force('charge', d3.forceManyBody().strength(-150))
+        .force('charge', d3.forceManyBody().strength(-100))
         .force(
           'link',
           d3.forceLink(linksData).id((d: any) => d.id),
@@ -770,6 +780,10 @@ svg >>> circle {
 svg >>> circle.treehover {
   stroke: black;
   stroke-width: 2px;
+}
+
+svg >>> circle text {
+  font: 12px helvetica;
 }
 
 svg >>> .legendSelected {
