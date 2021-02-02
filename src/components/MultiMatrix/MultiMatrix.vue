@@ -470,13 +470,7 @@ export default Vue.extend({
       columnEnter
         .append('foreignObject')
         .attr('y', -5)
-        .attr('x', (d: Node) => {
-          if (d.type === 'node') {
-            return columnLabelContainerStart - 5;
-          } else {
-            return columnLabelContainerStart;
-          }
-        })
+        .attr('x', columnLabelContainerStart)
         .attr('width', labelContainerWidth)
         .attr('height', labelContainerHeight)
         .append('xhtml:p')
@@ -494,6 +488,14 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverNode(d.id);
         });
+
+      columnEnter.selectAll('p').style('color', (d: Node) => {
+        if (d.type === 'node') {
+          return '#aaa';
+        } else {
+          return 'black';
+        }
+      });
 
       columnEnter
         .append('path')
@@ -581,7 +583,17 @@ export default Vue.extend({
         .attr('height', labelContainerHeight)
         .append('xhtml:p')
         .text((d: Node) => d._key)
-        .classed('rowLabels', true)
+        .classed('rowLabels', true);
+
+      rowEnter.selectAll('p').style('color', (d: Node) => {
+        if (d.type === 'node') {
+          return '#aaa';
+        } else {
+          return 'black';
+        }
+      });
+
+      rowEnter
         .on('mouseout', (d: Node) => {
           this.hideToolTip();
           this.unHoverNode(d.id);
