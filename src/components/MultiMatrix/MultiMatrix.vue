@@ -579,7 +579,7 @@ export default Vue.extend({
           }
         })
         .attr('y', -5)
-        .attr('width', labelContainerWidth)
+        .attr('width', labelContainerWidth - 15)
         .attr('height', labelContainerHeight)
         .append('xhtml:p')
         .text((d: Node) => d._key)
