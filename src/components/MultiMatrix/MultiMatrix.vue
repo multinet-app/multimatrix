@@ -277,6 +277,9 @@ export default Vue.extend({
     aggrColorScale() {
       this.$emit('updateAggrMatrixLegendScale', this.aggrColorScale);
     },
+    childColorScale() {
+      this.$emit('updateChildMatrixLegendScale', this.childColorScale);
+    },
   },
 
   async mounted(this: any) {
@@ -653,6 +656,16 @@ export default Vue.extend({
                 ),
               );
               this.clickMap.set(supernode.id, false);
+
+              // Display Children Legend
+              const values = [...this.clickMap.values()];
+              if (values.includes(true)) {
+                const childLegend = select('#child-matrix-legend');
+                childLegend.selectAll('g').style('opacity', 0.9);
+              } else {
+                const childLegend = select('#child-matrix-legend');
+                childLegend.selectAll('g').style('opacity', 0);
+              }
             } else {
               this.$emit(
                 'updateNetwork',
@@ -665,6 +678,16 @@ export default Vue.extend({
                 ),
               );
               this.clickMap.set(supernode.id, true);
+
+              // Display Children Legend
+              const values = [...this.clickMap.values()];
+              if (values.includes(true)) {
+                const childLegend = select('#child-matrix-legend');
+                childLegend.selectAll('g').style('opacity', 0.9);
+              } else {
+                const childLegend = select('#child-matrix-legend');
+                childLegend.selectAll('g').style('opacity', 0);
+              }
             }
           } else {
             this.selectElement(d);
@@ -1032,15 +1055,11 @@ export default Vue.extend({
 
             // Hide the Matrix Legend
             const matrixLegend = select('#matrix-legend');
-            matrixLegend.selectAll('g')
-            .style('opacity', 0);
+            matrixLegend.selectAll('g').style('opacity', 0);
 
             // View the Aggregation Legend
             const aggrLegend = select('#aggr-matrix-legend');
-            aggrLegend.selectAll('g')
-            .style('opacity', 0.9);
-
-
+            aggrLegend.selectAll('g').style('opacity', 0.9);
           } else {
             this.sort(d);
           }
