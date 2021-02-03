@@ -88,9 +88,18 @@ export default Vue.extend({
         .classed('legendLinear', true)
         .attr('transform', 'translate(10, 60)');
 
+      // Decide a number of bins for the scale
+      let colorScaleBinMax = 0;
+      if (colorScale.domain()[1] >= 5) {
+        colorScaleBinMax = 5;
+      } else {
+        colorScaleBinMax = colorScale.domain()[1] + 1;
+      }
+
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
         .shapeWidth(30)
+        .cells(colorScaleBinMax)
         .orient('horizontal')
         .scale(colorScale)
         .labelFormat(format('.0f'));
@@ -237,7 +246,7 @@ export default Vue.extend({
             <svg id="aggr-matrix-legend"></svg>
           </v-list-item>
         </div>
-                <div class="pa-4">
+        <div class="pa-4">
           <!-- Aggregated Matrix Legend -->
           <v-list-item
             class="pb-0 px-0"
