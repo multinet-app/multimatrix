@@ -153,7 +153,7 @@ export function processChildNodes(nodes: Node[]) {
     const newNode = {
       ...node,
     };
-    newNode.type = 'childNode';
+    newNode.type = 'childnode';
     nodeCopy.push(newNode);
   });
   return nodeCopy;
@@ -178,7 +178,7 @@ export function processChildLinks(links: Link[]) {
 function mapSuperChildren(node: Node[]) {
   const superChildrenMap = new Map<string, string>();
   node.forEach((networkNode: Node) => {
-    if (networkNode.type === 'childNode') {
+    if (networkNode.type === 'childnode') {
       return;
     }
     const superChildren = networkNode.CHILDREN;
@@ -224,7 +224,7 @@ function expandSuperNodeData(
 
     // Add a parent position value for the child nodes
     nodeCopy.forEach((node: Node) => {
-      if (node.type === 'childNode') {
+      if (node.type === 'childnode') {
         const parentNodeID = superChildrenMap.get(node.id);
         if (parentNodeID !== undefined) {
           const parentIndexFunc = (matrixNode: Node) =>
