@@ -242,6 +242,18 @@ export default Vue.extend({
         .domain([0, this.maxNumConnections])
         .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
     },
+
+    aggrColorScale(): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, this.maxAggrConnections])
+        .range(['#dcedfa', '#0066cc']);
+    },
+
+    childColorScale(): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, this.maxChildConnections])
+        .range(['#f79d97', '#c0362c']);
+    },
   },
 
   watch: {
@@ -388,7 +400,7 @@ export default Vue.extend({
               this.maxAggrConnections = cell.z;
             }
           }
-          if (cell.rowCellType === 'childNode') {
+          if (cell.rowCellType === 'childnode') {
             if (cell.z > this.maxChildConnections) {
               this.maxChildConnections = cell.z;
             }
@@ -457,7 +469,7 @@ export default Vue.extend({
         .append('g')
         .attr('class', 'column')
         .attr('transform', (d: Node) => {
-          if (d.type === 'childNode') {
+          if (d.type === 'childnode') {
             return `translate(${this.orderingScale(
               d.parentPosition,
             )})rotate(-90)`;
@@ -510,7 +522,7 @@ export default Vue.extend({
         });
 
       columnEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'childNode') {
+        if (d.type === 'childnode') {
           return '#aaa';
         } else {
           return 'black';
@@ -561,7 +573,7 @@ export default Vue.extend({
         .append('g')
         .attr('class', 'rowContainer')
         .attr('transform', (d: Node) => {
-          if (d.type === 'childNode') {
+          if (d.type === 'childnode') {
             return `translate(0, ${this.orderingScale(d.parentPosition)})`;
           } else {
             return `translate(0, 0)`;
@@ -592,7 +604,7 @@ export default Vue.extend({
       rowEnter
         .append('foreignObject')
         .attr('x', (d: Node) => {
-          if (d.type === 'childNode') {
+          if (d.type === 'childnode') {
             return -rowLabelContainerStart + 15;
           } else {
             return -rowLabelContainerStart;
@@ -606,7 +618,7 @@ export default Vue.extend({
         .classed('rowLabels', true);
 
       rowEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'childNode') {
+        if (d.type === 'childnode') {
           return '#aaa';
         } else {
           return 'black';
@@ -621,7 +633,7 @@ export default Vue.extend({
         .on('click', (d: Node) => {
           // allow expanding the vis if graffinity features are turned on
           if (this.enableGraffinity) {
-            if (d.type === 'childNode') {
+            if (d.type === 'childnode') {
               return;
             }
             const supernode = d;
@@ -679,7 +691,17 @@ export default Vue.extend({
         .attr('width', this.cellSize - 2)
         .attr('height', this.cellSize - 2)
         .attr('rx', cellRadius)
-        .style('fill', (d: Cell) => this.colorScale(d.z))
+        .style('fill', (d: Cell) => {
+          if (d.rowCellType === undefined) {
+            return this.colorScale(d.z);
+          }
+          if (d.rowCellType === 'supernode') {
+            return this.aggrColorScale(d.z);
+          }
+          if (d.rowCellType === 'childnode') {
+            return this.childColorScale(d.z);
+          }
+        })
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (d: Cell, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
@@ -708,7 +730,17 @@ export default Vue.extend({
         .attr('width', this.cellSize - 2)
         .attr('height', this.cellSize - 2)
         .attr('rx', cellRadius)
-        .style('fill', (d: Cell) => this.colorScale(d.z))
+        .style('fill', (d: Cell) => {
+          if (d.rowCellType === undefined) {
+            return this.colorScale(d.z);
+          }
+          if (d.rowCellType === 'supernode') {
+            return this.aggrColorScale(d.z);
+          }
+          if (d.rowCellType === 'childnode') {
+            return this.childColorScale(d.z);
+          }
+        })
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (d: Cell, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
