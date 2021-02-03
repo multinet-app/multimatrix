@@ -98,7 +98,7 @@ export default Vue.extend({
 
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
-        .shapeWidth(30)
+        .shapeWidth(20)
         .cells(colorScaleBinMax)
         .orient('horizontal')
         .scale(colorScale)
@@ -124,7 +124,7 @@ export default Vue.extend({
 
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
-        .shapeWidth(30)
+        .shapeWidth(20)
         .cells(colorScaleBinMax)
         .orient('horizontal')
         .scale(colorScale)
