@@ -274,6 +274,9 @@ export default Vue.extend({
     colorScale() {
       this.$emit('updateMatrixLegendScale', this.colorScale);
     },
+    aggrColorScale() {
+      this.$emit('updateAggrMatrixLegendScale', this.aggrColorScale);
+    },
   },
 
   async mounted(this: any) {
@@ -1026,6 +1029,18 @@ export default Vue.extend({
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
             );
+
+            // Hide the Matrix Legend
+            const matrixLegend = select('#matrix-legend');
+            matrixLegend.selectAll('g')
+            .style('opacity', 0);
+
+            // View the Aggregation Legend
+            const aggrLegend = select('#aggr-matrix-legend');
+            aggrLegend.selectAll('g')
+            .style('opacity', 0.9);
+
+
           } else {
             this.sort(d);
           }
