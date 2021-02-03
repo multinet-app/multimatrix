@@ -82,6 +82,10 @@ export default Vue.extend({
       a.click();
     },
     createLegend(colorScale: ScaleLinear<string, number>) {
+      if (colorScale.domain()[1] === 0) {
+        const matrixLegend = select('#matrix-legend');
+        matrixLegend.remove();
+      }
       const legendSVG = select('#matrix-legend');
       legendSVG
         .append('g')
