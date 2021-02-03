@@ -82,15 +82,37 @@ export default Vue.extend({
       a.click();
     },
     createLegend(colorScale: ScaleLinear<string, number>) {
-      if (colorScale.domain()[1] === 0) {
-        const matrixLegend = select('#matrix-legend');
-        matrixLegend.remove();
-      }
       const legendSVG = select('#matrix-legend');
       legendSVG
         .append('g')
         .classed('legendLinear', true)
         .attr('transform', 'translate(10, 60)');
+
+      // Decide a number of bins for the scale
+      let colorScaleBinMax = 0;
+      if (colorScale.domain()[1] >= 5) {
+        colorScaleBinMax = 5;
+      } else {
+        colorScaleBinMax = colorScale.domain()[1] + 1;
+      }
+
+      // construct the legend and format the labels to have 0 decimal places
+      const legendLinear = (legendColor() as any)
+        .shapeWidth(30)
+        .cells(colorScaleBinMax)
+        .orient('horizontal')
+        .scale(colorScale)
+        .labelFormat(format('.0f'));
+
+      legendSVG.select('.legendLinear').call(legendLinear);
+    },
+    createAggrMatrixLegend(colorScale: ScaleLinear<string, number>) {
+      const legendSVG = select('#aggr-matrix-legend');
+      legendSVG
+        .append('g')
+        .classed('legendLinear', true)
+        .attr('transform', 'translate(10, 60)')
+        .style('opacity', 0);
 
       // Decide a number of bins for the scale
       let colorScaleBinMax = 0;
@@ -279,6 +301,7 @@ export default Vue.extend({
           }"
           @restart-simulation="hello()"
           @updateMatrixLegendScale="createLegend"
+          @updateAggrMatrixLegendScale="createAggrMatrixLegend"
           @updateNetwork="updateNetwork"
         />
       </v-row>
