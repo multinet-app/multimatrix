@@ -227,6 +227,26 @@ export default Vue.extend({
             <svg id="matrix-legend"></svg>
           </v-list-item>
         </div>
+        <div class="pa-4">
+          <!-- Aggregated Matrix Legend -->
+          <v-list-item
+            class="pb-0 px-0"
+            style="display: flex; max-height: 50px"
+          >
+            Aggregate Legend
+            <svg id="aggr-matrix-legend"></svg>
+          </v-list-item>
+        </div>
+                <div class="pa-4">
+          <!-- Aggregated Matrix Legend -->
+          <v-list-item
+            class="pb-0 px-0"
+            style="display: flex; max-height: 50px"
+          >
+            Children Legend
+            <svg id="child-matrix-legend"></svg>
+          </v-list-item>
+        </div>
       </v-list>
     </v-navigation-drawer>
 
