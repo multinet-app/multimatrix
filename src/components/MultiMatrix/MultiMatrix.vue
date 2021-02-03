@@ -61,6 +61,8 @@ export default Vue.extend({
     attributesSVG: any;
     cellSize: number;
     maxNumConnections: number;
+    maxAggrConnections: number;
+    maxChildConnections: number;
     matrix: Cell[][];
     attributes: any;
     attributeRows: any;
@@ -94,6 +96,8 @@ export default Vue.extend({
       attributesSVG: undefined,
       cellSize: 15,
       maxNumConnections: -Infinity,
+      maxAggrConnections: -Infinity,
+      maxChildConnections: -Infinity,
       matrix: [],
       attributes: undefined,
       attributeRows: undefined,
@@ -342,12 +346,16 @@ export default Vue.extend({
     processData(): void {
       // Reset some values that will be re-calcuated
       this.maxNumConnections = 0;
+      this.maxAggrConnections = 0;
+      this.maxChildConnections = 0;
       this.matrix = [];
 
       this.network.nodes.forEach((rowNode: Node, i: number) => {
         this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
           return {
             cellName: `${rowNode.id}_${colNode.id}`,
+            rowCellType: rowNode.type,
+            colCellType: colNode.type,
             correspondingCell: `${colNode.id}_${rowNode.id}`,
             rowID: rowNode.id,
             colID: colNode.id,
@@ -370,8 +378,20 @@ export default Vue.extend({
       // Find max value of z
       this.matrix.forEach((row: Cell[]) => {
         row.forEach((cell: Cell) => {
-          if (cell.z > this.maxNumConnections) {
-            this.maxNumConnections = cell.z;
+          if (cell.rowCellType === undefined) {
+            if (cell.z > this.maxNumConnections) {
+              this.maxNumConnections = cell.z;
+            }
+          }
+          if (cell.rowCellType === 'supernode') {
+            if (cell.z > this.maxAggrConnections) {
+              this.maxAggrConnections = cell.z;
+            }
+          }
+          if (cell.rowCellType === 'childNode') {
+            if (cell.z > this.maxChildConnections) {
+              this.maxChildConnections = cell.z;
+            }
           }
         });
       });
@@ -437,7 +457,7 @@ export default Vue.extend({
         .append('g')
         .attr('class', 'column')
         .attr('transform', (d: Node) => {
-          if (d.type === 'node') {
+          if (d.type === 'childNode') {
             return `translate(${this.orderingScale(
               d.parentPosition,
             )})rotate(-90)`;
@@ -490,7 +510,7 @@ export default Vue.extend({
         });
 
       columnEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'node') {
+        if (d.type === 'childNode') {
           return '#aaa';
         } else {
           return 'black';
@@ -541,7 +561,7 @@ export default Vue.extend({
         .append('g')
         .attr('class', 'rowContainer')
         .attr('transform', (d: Node) => {
-          if (d.type === 'node') {
+          if (d.type === 'childNode') {
             return `translate(0, ${this.orderingScale(d.parentPosition)})`;
           } else {
             return `translate(0, 0)`;
@@ -572,7 +592,7 @@ export default Vue.extend({
       rowEnter
         .append('foreignObject')
         .attr('x', (d: Node) => {
-          if (d.type === 'node') {
+          if (d.type === 'childNode') {
             return -rowLabelContainerStart + 15;
           } else {
             return -rowLabelContainerStart;
@@ -586,7 +606,7 @@ export default Vue.extend({
         .classed('rowLabels', true);
 
       rowEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'node') {
+        if (d.type === 'childNode') {
           return '#aaa';
         } else {
           return 'black';
@@ -601,7 +621,7 @@ export default Vue.extend({
         .on('click', (d: Node) => {
           // allow expanding the vis if graffinity features are turned on
           if (this.enableGraffinity) {
-            if (d.type === 'node') {
+            if (d.type === 'childNode') {
               return;
             }
             const supernode = d;
