@@ -334,7 +334,7 @@ export default Vue.extend({
         .attr('dx', 10)
         .attr('dy', '.35em')
         .text((d: any) => d.Label)
-        .style('stroke', 'gray');
+        .style('stroke', 'black');
 
       force.on('tick', () => {
         edges
