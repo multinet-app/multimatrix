@@ -721,10 +721,16 @@ export default Vue.extend({
           if (d.rowCellType === undefined) {
             return this.colorScale(d.z);
           }
-          if (d.rowCellType === 'supernode') {
+          if (d.rowCellType === 'supernode' && d.colCellType === "supernode") {
             return this.aggrColorScale(d.z);
           }
-          if (d.rowCellType === 'childnode') {
+          if (d.rowCellType === 'childnode' && d.colCellType === "childnode") {
+            return this.childColorScale(d.z);
+          }
+                    if (d.rowCellType === 'childnode' && d.colCellType === "supernode") {
+            return this.childColorScale(d.z);
+          }
+                    if (d.rowCellType === 'supernode' && d.colCellType === "childnode") {
             return this.childColorScale(d.z);
           }
         })
@@ -760,13 +766,20 @@ export default Vue.extend({
           if (d.rowCellType === undefined) {
             return this.colorScale(d.z);
           }
-          if (d.rowCellType === 'supernode') {
+          if (d.rowCellType === 'supernode' && d.colCellType === "supernode") {
             return this.aggrColorScale(d.z);
           }
-          if (d.rowCellType === 'childnode') {
+          if (d.rowCellType === 'childnode' && d.colCellType === "childnode") {
+            return this.childColorScale(d.z);
+          }
+                    if (d.rowCellType === 'childnode' && d.colCellType === "supernode") {
+            return this.childColorScale(d.z);
+          }
+                    if (d.rowCellType === 'supernode' && d.colCellType === "childnode") {
             return this.childColorScale(d.z);
           }
         })
+
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (d: Cell, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
