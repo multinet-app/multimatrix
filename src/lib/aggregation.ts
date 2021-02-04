@@ -417,7 +417,7 @@ function retractSuperLinksData(
   // whose _from id matches that of the children of the supernode selected
   childLinksCopy.forEach((link: Link) => {
     superChildren.forEach((childNodeName: string) => {
-      if (link._from === childNodeName) {
+      if (link._from === childNodeName || link._to === childNodeName) {
         superChildrenLinks.push(link);
       }
     });
@@ -428,6 +428,7 @@ function retractSuperLinksData(
   let newLinks = expandedLinksCopy;
   superChildren.forEach((childNode) => {
     newLinks = newLinks.filter((link: Link) => link._from !== childNode);
+    newLinks = newLinks.filter((links: Link) => links._to !== childNode);
   });
 
   return newLinks;
