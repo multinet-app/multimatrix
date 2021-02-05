@@ -81,49 +81,19 @@ export default Vue.extend({
       a.download = `${this.networkName}.json`;
       a.click();
     },
-    createLegend(colorScale: ScaleLinear<string, number>) {
-      const legendSVG = select('#matrix-legend');
+    createLegend(colorScale: ScaleLinear<string, number>, legendName: string) {
+      let legendSVG = undefined;
+      if (legendName === 'aggregate') {
+        legendSVG = select('#aggr-matrix-legend');
+      } else if (legendName === 'child') {
+        legendSVG = select('#child-matrix-legend');
+      } else {
+        legendSVG = select('#matrix-legend');
+      }
       legendSVG
         .append('g')
         .classed('legendLinear', true)
         .attr('transform', 'translate(10, 60)');
-
-      // construct the legend and format the labels to have 0 decimal places
-      const legendLinear = (legendColor() as any)
-        .shapeWidth(20)
-        .cells(colorScale.domain()[1] >= 5 ? 5 : 0)
-        .orient('horizontal')
-        .scale(colorScale)
-        .labelFormat(format('.0f'));
-
-      legendSVG.select('.legendLinear').call(legendLinear);
-    },
-    createAggrMatrixLegend(colorScale: ScaleLinear<string, number>) {
-      const legendSVG = select('#aggr-matrix-legend');
-      legendSVG
-        .append('g')
-        .classed('legendLinear', true)
-        .attr('transform', 'translate(10, 60)')
-        .style('opacity', 0);
-
-      // construct the legend and format the labels to have 0 decimal places
-      const legendLinear = (legendColor() as any)
-        .shapeWidth(20)
-        .cells(colorScale.domain()[1] >= 5 ? 5 : 0)
-        .orient('horizontal')
-        .scale(colorScale)
-        .labelFormat(format('.0f'));
-
-      legendSVG.select('.legendLinear').call(legendLinear);
-    },
-
-    createChildMatrixLegend(colorScale: ScaleLinear<string, number>) {
-      const legendSVG = select('#child-matrix-legend');
-      legendSVG
-        .append('g')
-        .classed('legendLinear', true)
-        .attr('transform', 'translate(10, 60)')
-        .style('opacity', 0);
 
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
@@ -304,8 +274,8 @@ export default Vue.extend({
           }"
           @restart-simulation="hello()"
           @updateMatrixLegendScale="createLegend"
-          @updateAggrMatrixLegendScale="createAggrMatrixLegend"
-          @updateChildMatrixLegendScale="createChildMatrixLegend"
+          @updateAggrMatrixLegendScale="createLegend"
+          @updateChildMatrixLegendScale="createLegend"
           @updateNetwork="updateNetwork"
         />
       </v-row>
