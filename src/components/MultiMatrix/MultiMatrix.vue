@@ -396,17 +396,27 @@ export default Vue.extend({
       // Find max value of z
       this.matrix.forEach((row: Cell[]) => {
         row.forEach((cell: Cell) => {
-          if (cell.rowCellType === undefined) {
+          if (cell.rowCellType === undefined || cell.colCellType === "undefined") {
             if (cell.z > this.maxNumConnections) {
               this.maxNumConnections = cell.z;
             }
           }
-          if (cell.rowCellType === 'supernode') {
+          if (cell.rowCellType === 'supernode' && cell.colCellType === "supernode") {
             if (cell.z > this.maxAggrConnections) {
               this.maxAggrConnections = cell.z;
             }
           }
-          if (cell.rowCellType === 'childnode') {
+          if (cell.rowCellType === 'childnode' && cell.colCellType === "childnode") {
+            if (cell.z > this.maxChildConnections) {
+              this.maxChildConnections = cell.z;
+            }
+          }
+                    if (cell.rowCellType === 'childnode' && cell.colCellType === "supernode") {
+            if (cell.z > this.maxChildConnections) {
+              this.maxChildConnections = cell.z;
+            }
+          }
+                    if (cell.rowCellType === 'supernode' && cell.colCellType === "childnode") {
             if (cell.z > this.maxChildConnections) {
               this.maxChildConnections = cell.z;
             }
