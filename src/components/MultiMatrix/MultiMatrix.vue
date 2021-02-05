@@ -275,10 +275,10 @@ export default Vue.extend({
       this.$emit('updateMatrixLegendScale', this.colorScale);
     },
     aggrColorScale() {
-      this.$emit('updateAggrMatrixLegendScale', this.aggrColorScale);
+      this.$emit('updateAggrMatrixLegendScale', this.aggrColorScale, "aggregate");
     },
     childColorScale() {
-      this.$emit('updateChildMatrixLegendScale', this.childColorScale);
+      this.$emit('updateChildMatrixLegendScale', this.childColorScale, "child");
     },
   },
 
