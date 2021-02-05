@@ -749,13 +749,7 @@ export default Vue.extend({
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.aggrColorScale(d.z);
           }
-          if (d.rowCellType === 'childnode' && d.colCellType === 'childnode') {
-            return this.childColorScale(d.z);
-          }
-          if (d.rowCellType === 'childnode' && d.colCellType === 'supernode') {
-            return this.childColorScale(d.z);
-          }
-          if (d.rowCellType === 'supernode' && d.colCellType === 'childnode') {
+          if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
         })
