@@ -475,6 +475,13 @@ export default Vue.extend({
         .attr('height', labelContainerHeight)
         .append('xhtml:p')
         .text((d: Node) => d._key)
+        .style('color', (d: Node) => {
+          if (d.type === 'node') {
+            return '#aaa';
+          } else {
+            return 'black';
+          }
+        })
         .classed('colLabels', true)
         .on('click', (d: Node) => {
           this.selectElement(d);
@@ -488,14 +495,6 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverNode(d.id);
         });
-
-      columnEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'node') {
-          return '#aaa';
-        } else {
-          return 'black';
-        }
-      });
 
       columnEnter
         .append('path')
@@ -583,15 +582,14 @@ export default Vue.extend({
         .attr('height', labelContainerHeight)
         .append('xhtml:p')
         .text((d: Node) => d._key)
+        .style('color', (d: Node) => {
+          if (d.type === 'node') {
+            return '#aaa';
+          } else {
+            return 'black';
+          }
+        })
         .classed('rowLabels', true);
-
-      rowEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'node') {
-          return '#aaa';
-        } else {
-          return 'black';
-        }
-      });
 
       rowEnter
         .on('mouseout', (d: Node) => {
