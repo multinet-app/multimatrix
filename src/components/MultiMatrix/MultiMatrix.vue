@@ -413,23 +413,7 @@ export default Vue.extend({
             }
           }
           if (
-            cell.rowCellType === 'childnode' &&
-            cell.colCellType === 'childnode'
-          ) {
-            if (cell.z > this.maxChildConnections) {
-              this.maxChildConnections = cell.z;
-            }
-          }
-          if (
-            cell.rowCellType === 'childnode' &&
-            cell.colCellType === 'supernode'
-          ) {
-            if (cell.z > this.maxChildConnections) {
-              this.maxChildConnections = cell.z;
-            }
-          }
-          if (
-            cell.rowCellType === 'supernode' &&
+            cell.rowCellType === 'childnode' ||
             cell.colCellType === 'childnode'
           ) {
             if (cell.z > this.maxChildConnections) {
