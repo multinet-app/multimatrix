@@ -88,18 +88,10 @@ export default Vue.extend({
         .classed('legendLinear', true)
         .attr('transform', 'translate(10, 60)');
 
-      // Decide a number of bins for the scale
-      let colorScaleBinMax = 0;
-      if (colorScale.domain()[1] >= 5) {
-        colorScaleBinMax = 5;
-      } else {
-        colorScaleBinMax = colorScale.domain()[1] + 1;
-      }
-
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
         .shapeWidth(20)
-        .cells(colorScaleBinMax)
+        .cells(colorScale.domain()[1] >= 5 ? 5 : 0)
         .orient('horizontal')
         .scale(colorScale)
         .labelFormat(format('.0f'));
@@ -114,18 +106,10 @@ export default Vue.extend({
         .attr('transform', 'translate(10, 60)')
         .style('opacity', 0);
 
-      // Decide a number of bins for the scale
-      let colorScaleBinMax = 0;
-      if (colorScale.domain()[1] >= 5) {
-        colorScaleBinMax = 5;
-      } else {
-        colorScaleBinMax = colorScale.domain()[1] + 1;
-      }
-
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
         .shapeWidth(20)
-        .cells(colorScaleBinMax)
+        .cells(colorScale.domain()[1] >= 5 ? 5 : 0)
         .orient('horizontal')
         .scale(colorScale)
         .labelFormat(format('.0f'));
@@ -141,18 +125,10 @@ export default Vue.extend({
         .attr('transform', 'translate(10, 60)')
         .style('opacity', 0);
 
-      // Decide a number of bins for the scale
-      let colorScaleBinMax = 0;
-      if (colorScale.domain()[1] >= 5) {
-        colorScaleBinMax = 5;
-      } else {
-        colorScaleBinMax = colorScale.domain()[1] + 1;
-      }
-
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
         .shapeWidth(20)
-        .cells(colorScaleBinMax)
+        .cells(colorScale.domain()[1] >= 5 ? 5 : 0)
         .orient('horizontal')
         .scale(colorScale)
         .labelFormat(format('.0f'));
