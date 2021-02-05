@@ -398,7 +398,7 @@ export default Vue.extend({
         row.forEach((cell: Cell) => {
           if (
             cell.rowCellType === undefined ||
-            cell.colCellType === 'undefined'
+            cell.colCellType === undefined
           ) {
             if (cell.z > this.maxNumConnections) {
               this.maxNumConnections = cell.z;
