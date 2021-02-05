@@ -396,27 +396,42 @@ export default Vue.extend({
       // Find max value of z
       this.matrix.forEach((row: Cell[]) => {
         row.forEach((cell: Cell) => {
-          if (cell.rowCellType === undefined || cell.colCellType === "undefined") {
+          if (
+            cell.rowCellType === undefined ||
+            cell.colCellType === 'undefined'
+          ) {
             if (cell.z > this.maxNumConnections) {
               this.maxNumConnections = cell.z;
             }
           }
-          if (cell.rowCellType === 'supernode' && cell.colCellType === "supernode") {
+          if (
+            cell.rowCellType === 'supernode' &&
+            cell.colCellType === 'supernode'
+          ) {
             if (cell.z > this.maxAggrConnections) {
               this.maxAggrConnections = cell.z;
             }
           }
-          if (cell.rowCellType === 'childnode' && cell.colCellType === "childnode") {
+          if (
+            cell.rowCellType === 'childnode' &&
+            cell.colCellType === 'childnode'
+          ) {
             if (cell.z > this.maxChildConnections) {
               this.maxChildConnections = cell.z;
             }
           }
-                    if (cell.rowCellType === 'childnode' && cell.colCellType === "supernode") {
+          if (
+            cell.rowCellType === 'childnode' &&
+            cell.colCellType === 'supernode'
+          ) {
             if (cell.z > this.maxChildConnections) {
               this.maxChildConnections = cell.z;
             }
           }
-                    if (cell.rowCellType === 'supernode' && cell.colCellType === "childnode") {
+          if (
+            cell.rowCellType === 'supernode' &&
+            cell.colCellType === 'childnode'
+          ) {
             if (cell.z > this.maxChildConnections) {
               this.maxChildConnections = cell.z;
             }
@@ -731,16 +746,16 @@ export default Vue.extend({
           if (d.rowCellType === undefined) {
             return this.colorScale(d.z);
           }
-          if (d.rowCellType === 'supernode' && d.colCellType === "supernode") {
+          if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.aggrColorScale(d.z);
           }
-          if (d.rowCellType === 'childnode' && d.colCellType === "childnode") {
+          if (d.rowCellType === 'childnode' && d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
-                    if (d.rowCellType === 'childnode' && d.colCellType === "supernode") {
+          if (d.rowCellType === 'childnode' && d.colCellType === 'supernode') {
             return this.childColorScale(d.z);
           }
-                    if (d.rowCellType === 'supernode' && d.colCellType === "childnode") {
+          if (d.rowCellType === 'supernode' && d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
         })
@@ -776,16 +791,16 @@ export default Vue.extend({
           if (d.rowCellType === undefined) {
             return this.colorScale(d.z);
           }
-          if (d.rowCellType === 'supernode' && d.colCellType === "supernode") {
+          if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.aggrColorScale(d.z);
           }
-          if (d.rowCellType === 'childnode' && d.colCellType === "childnode") {
+          if (d.rowCellType === 'childnode' && d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
-                    if (d.rowCellType === 'childnode' && d.colCellType === "supernode") {
+          if (d.rowCellType === 'childnode' && d.colCellType === 'supernode') {
             return this.childColorScale(d.z);
           }
-                    if (d.rowCellType === 'supernode' && d.colCellType === "childnode") {
+          if (d.rowCellType === 'supernode' && d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
         })
