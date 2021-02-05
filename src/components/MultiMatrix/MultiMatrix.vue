@@ -475,6 +475,13 @@ export default Vue.extend({
         .attr('height', labelContainerHeight)
         .append('xhtml:p')
         .text((d: Node) => d._key)
+        .style('color', (d: Node) => {
+          if (d.type === 'node') {
+            return '#aaa';
+          } else {
+            return 'black';
+          }
+        })
         .classed('colLabels', true)
         .on('click', (d: Node) => {
           this.selectElement(d);
@@ -563,13 +570,28 @@ export default Vue.extend({
       // add foreign objects for label
       rowEnter
         .append('foreignObject')
-        .attr('x', -rowLabelContainerStart)
+        .attr('x', (d: Node) => {
+          if (d.type === 'node') {
+            return -rowLabelContainerStart + 15;
+          } else {
+            return -rowLabelContainerStart;
+          }
+        })
         .attr('y', -5)
-        .attr('width', labelContainerWidth)
+        .attr('width', labelContainerWidth - 15)
         .attr('height', labelContainerHeight)
         .append('xhtml:p')
         .text((d: Node) => d._key)
-        .classed('rowLabels', true)
+        .style('color', (d: Node) => {
+          if (d.type === 'node') {
+            return '#aaa';
+          } else {
+            return 'black';
+          }
+        })
+        .classed('rowLabels', true);
+
+      rowEnter
         .on('mouseout', (d: Node) => {
           this.hideToolTip();
           this.unHoverNode(d.id);
