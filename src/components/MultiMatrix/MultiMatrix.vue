@@ -44,6 +44,18 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
+    showNonAggrLegend: {
+      type: Boolean,
+      required: true,
+    },
+    showAggrLegend: {
+      type: Boolean,
+      required: true,
+    },
+    showChildLegend: {
+      type: Boolean,
+      required: true,
+    },
     visualizedAttributes: {
       type: Array as PropType<string[]>,
       default: () => [],
@@ -148,11 +160,21 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { network, visualizedAttributes, enableGraffinity } = this;
+      const {
+        network,
+        visualizedAttributes,
+        enableGraffinity,
+        showNonAggrLegend,
+        showAggrLegend,
+        showChildLegend,
+      } = this;
       return {
         network,
         visualizedAttributes,
         enableGraffinity,
+        showNonAggrLegend,
+        showAggrLegend,
+        showChildLegend,
       };
     },
 
@@ -670,14 +692,10 @@ export default Vue.extend({
               );
               this.clickMap.set(supernode.id, false);
 
-              // Display Children Legend
+              // Hide Child Legend
               const values = [...this.clickMap.values()];
-              if (values.includes(true)) {
-                const childLegend = select('#child-matrix-legend');
-                childLegend.selectAll('g').style('opacity', 0.9);
-              } else {
-                const childLegend = select('#child-matrix-legend');
-                childLegend.selectAll('g').style('opacity', 0);
+              if (!values.includes(true)) {
+                this.$emit('updateChildLegend', false);
               }
             } else {
               this.$emit(
@@ -692,15 +710,8 @@ export default Vue.extend({
               );
               this.clickMap.set(supernode.id, true);
 
-              // Display Children Legend
-              const values = [...this.clickMap.values()];
-              if (values.includes(true)) {
-                const childLegend = select('#child-matrix-legend');
-                childLegend.selectAll('g').style('opacity', 0.9);
-              } else {
-                const childLegend = select('#child-matrix-legend');
-                childLegend.selectAll('g').style('opacity', 0);
-              }
+              // Display Child Legend
+              this.$emit('updateChildLegend', true);
             }
           } else {
             this.selectElement(d);
@@ -1067,13 +1078,9 @@ export default Vue.extend({
               superGraph(this.network.nodes, this.network.links, d),
             );
 
-            // Hide the Matrix Legend
-            const matrixLegend = select('#matrix-legend');
-            matrixLegend.selectAll('g').style('opacity', 0);
-
-            // View the Aggregation Legend
-            const aggrLegend = select('#aggr-matrix-legend');
-            aggrLegend.selectAll('g').style('opacity', 0.9);
+            // View/Hide Matrix Legends
+            this.$emit('updateNonAggrLegend', false);
+            this.$emit('updateAggrLegend', true);
           } else {
             this.sort(d);
           }
