@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable */
 import Vue, { PropType } from 'vue';
 
 import {
@@ -21,8 +22,10 @@ import {
   scaleLinear,
   scaleOrdinal,
   schemeCategory10,
+  schemeSpectral,
   select,
   selectAll,
+  stack,
 } from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
@@ -241,7 +244,6 @@ export default Vue.extend({
 
     attributeLinksScales() {
       const scales: { [key: string]: any } = {};
-
       // Calculate the attribute scales
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
@@ -256,14 +258,16 @@ export default Vue.extend({
           scale.clamp(true);
           scales[col] = scale;
         } else {
-          let values: string[] = this.rowData.map(
-            (row: any) => row.values[col],
-          );
-          values = values.flat();
-          const domain = [...new Set(values)];
-          const scale = scaleOrdinal(schemeCategory10).domain(domain);
+          // const values: string[] = this.rowData.map(
+          //   (row: any) => row.values[col],
+          // );
+          // const domain = values.flat()
+          // .reduce((a, v) => ((a[v] = (a[v] || 0) + 1), a), {});
 
-          scales[col] = scale;
+          // console.log('DOMAIN', domain);
+          // const scale = scaleOrdinal().domain(domain).range([0, this.colWidth]);
+
+          scales[col] = scaleOrdinal().range([0, this.colWidth]);
         }
       });
 
@@ -1037,6 +1041,7 @@ export default Vue.extend({
       // Add the scale bar at the top of the attr column
       this.visualizedAttributes.forEach((col: string, index: number) => {
         if (this.isQuantitative(col)) {
+          console.log(this.attributeScales[col]);
           this.attributes
             .append('g')
             .attr('class', 'attr-axis')
@@ -1217,59 +1222,63 @@ export default Vue.extend({
 
       this.attributeRows.merge(attributeRowsEnter);
 
+      let seriesData = [];
+      let yScale = null;
+
+      this.visualizedLinkAttributes.forEach((col: string) => {
+        if (this.isQuantitative(col)) {
+          seriesData = this.rowData;
+        } else {
+          let data = [];
+          let keys = this.rowData.map((row: any) => row.values[col]);
+          keys = keys.flat().reduce((a, v) => ((a[v] = a[v] || 0), a), {});
+
+          this.rowData.forEach((row) => {
+            let copyKeys = Object.assign({}, keys);
+
+            row.values[col].forEach((a) => (copyKeys[a] += 1));
+            copyKeys.name = row.key;
+
+            data.push(copyKeys);
+          });
+
+          seriesData = stack()
+            .keys(Object.keys(keys))(data)
+            .map((d) => (d.forEach((v) => (v.key = d.key)), d));
+
+          yScale = scaleBand()
+            .domain(data.map((d) => d.keys))
+            .range([0, this.colWidth]);
+        }
+      });
+
+      console.log('SERIES DATA', seriesData);
+      console.log('COL WIDTH', this.colWidth);
+
+      const xScale = scaleLinear().domain([0, 20]).range([0, this.colWidth]);
+
+      const color = scaleOrdinal()
+        .domain(seriesData.map((d) => d.key))
+        .range(schemeSpectral[seriesData.length]);
+
       const attributeVis = (selectAll('.attrRows') as any)
-        .selectAll('.attrRow')
-        .data(this.rowData, (d: any) => d.values);
-
-      console.log('ROW DATA', this.rowData);
-      console.log('NETWORK', this.network);
-
-      // Update existing vis elements to resize width
-      attributeVis
-        .selectAll('rect')
-        .attr('width', (d: Link, i: number, htmlNodes: any) => {
-          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-
-          if (this.isQuantitative(varName)) {
-            return this.attributeLinksScales[varName](d[varName]);
-          } else {
-            return this.colWidth;
-          }
-        });
-
-      attributeVis.exit().remove();
-
-      const attributeVisEnter = attributeVis
+        .append('g')
+        .selectAll('g')
+        .data(seriesData)
         .enter()
         .append('g')
-        .attr('class', 'attrRow')
-        .attr(
-          'transform',
-          (d: Link, i: number) => `translate(0,${this.orderingScale(i)})`,
-        );
+        .classed('attrRow', true)
+        .attr('fill', (d) => color(d.key));
 
-      // Draw new vis elements (boxplot/squishedbarchart)
-      attributeVisEnter
-        .append('rect')
+      // DERYA Draw new vis elements (boxplot/squishedbarchart)
+      attributeVis
+        .selectAll('rect')
+        .data((d) => d)
+        .join('rect')
+        .attr('x', (d) => xScale(d[0]))
+        .attr('y', (d) => this.orderingScale(d.data.name))
+        .attr('width', (d) => xScale(d[1]) - xScale(d[0]))
         .attr('height', this.orderingScale.bandwidth())
-        .attr('width', (d: Link, i: number, htmlNodes: any) => {
-          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-
-          if (this.isQuantitative(varName)) {
-            return this.attributeLinksScales[varName](d[varName]);
-          } else {
-            return this.colWidth;
-          }
-        })
-        .attr('fill', (d: Link, i: number, htmlNodes: any) => {
-          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-
-          if (this.isQuantitative(varName)) {
-            return '#82b1ff';
-          } else {
-            return this.attributeLinksScales[varName](d[varName]);
-          }
-        })
         .attr('cursor', 'pointer')
         .on('mouseover', (d: Link) => this.hoverNode(d.id))
         .on('mouseout', (d: Link) => this.unHoverNode(d.id))
