@@ -104,7 +104,7 @@ export default Vue.extend({
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
         .shapeWidth(20)
-        .cells(colorScale.domain()[1] >= 5 ? 5 : 0)
+        .cells(colorScale.domain()[1] >= 5 ? 5 : colorScale.domain()[1] + 1)
         .orient('horizontal')
         .scale(colorScale)
         .labelFormat(format('.0f'));
