@@ -24,7 +24,6 @@ export default Vue.extend({
     selectNeighbors: boolean;
     showGridLines: boolean;
     enableGraffinity: boolean;
-    showNonAggrLegend: boolean;
     showAggrLegend: boolean;
     showChildLegend: boolean;
     directional: boolean;
@@ -40,7 +39,6 @@ export default Vue.extend({
       selectNeighbors: true,
       showGridLines: true,
       enableGraffinity: false,
-      showNonAggrLegend: true,
       showAggrLegend: false,
       showChildLegend: false,
       directional: false,
@@ -115,11 +113,6 @@ export default Vue.extend({
     updateNetwork(network: Network) {
       this.network = network;
     },
-
-    updateNonAggrLegend(showNonAggrLegend: boolean) {
-      this.showNonAggrLegend = showNonAggrLegend;
-    },
-
     updateAggrLegend(showAggrLegend: boolean) {
       this.showAggrLegend = showAggrLegend;
     },
@@ -246,7 +239,7 @@ export default Vue.extend({
         <div class="pa-4">
           <!-- Matrix Legend -->
           <v-list-item
-            v-if="showNonAggrLegend"
+            v-if="!showAggrLegend"
             class="pb-0 px-0"
             style="display: flex; max-height: 50px"
           >
@@ -288,7 +281,6 @@ export default Vue.extend({
             selectNeighbors,
             showGridLines,
             enableGraffinity,
-            showNonAggrLegend,
             showAggrLegend,
             showChildLegend,
             visualizedAttributes,
@@ -299,7 +291,6 @@ export default Vue.extend({
           @updateAggrMatrixLegendScale="createLegend"
           @updateChildMatrixLegendScale="createLegend"
           @updateNetwork="updateNetwork"
-          @updateNonAggrLegend="updateNonAggrLegend"
           @updateAggrLegend="updateAggrLegend"
           @updateChildLegend="updateChildLegend"
         />

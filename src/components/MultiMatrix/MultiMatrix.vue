@@ -1093,7 +1093,6 @@ export default Vue.extend({
             );
 
             // View/Hide Matrix Legends
-            this.$emit('updateNonAggrLegend', false);
             this.$emit('updateAggrLegend', true);
           } else {
             this.sort(d);
