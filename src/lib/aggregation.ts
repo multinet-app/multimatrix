@@ -119,7 +119,6 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
 export function schemaGraph(nodes: any[], edges: any[], selectedSchema: string[], schema: any[], label: string) {
   // de-construct nodes into their original components and
   // make a new list of nodes
-  // console.log("N", nodes, "E", edges, "SS", selectedSchema, "S", schema, "L", label)
 
   const newNodes: any[] = [];
   nodes.forEach((node) => {

@@ -1,8 +1,15 @@
 <script lang="ts">
 import * as d3 from 'd3';
-import Vue from 'vue';
-import { Dimensions } from '@/types';
+import Vue, { PropType } from 'vue';
+import { Dimensions, Network } from '@/types';
+
 export default Vue.extend({
+  props: {
+    schemaNetwork: {
+      type: Object as PropType<Network>,
+    },
+  },
+
   data(): {
     browser: Dimensions;
     visMargins: { left: number; top: number; right: number; bottom: number };
@@ -11,6 +18,7 @@ export default Vue.extend({
     mouse: any;
     classifications: string[];
     currentClassification: string;
+    columnHeader: any[];
   } {
     return {
       browser: {
@@ -190,9 +198,22 @@ export default Vue.extend({
       ],
       classifications: ['RC1', 'Mouse/Primate', 'RC1 Reduced'],
       currentClassification: '',
+      columnHeader: [
+        {
+          label: 'Count',
+          value: (d) => d.value,
+        },
+      ],
     };
   },
   computed: {
+    properties(this: any) {
+      const { schemaNetwork } = this;
+      return {
+        schemaNetwork,
+      };
+    },
+
     root(): any {
       let i = 0;
       let links: any[] = [];
@@ -293,7 +314,7 @@ export default Vue.extend({
       .select(this.$refs.treelist)
       .attr(
         'viewBox',
-        `${-this.nodeSize} ${this.nodeSize * 28} ${this.height / 4} ${
+        `${-this.nodeSize} ${this.nodeSize * 28 - 15} ${this.height / 4} ${
           this.width / 4
         }`,
       );
@@ -309,11 +330,15 @@ export default Vue.extend({
   methods: {
     update(this: any) {
       d3.select('#treelist').selectAll('*').remove();
+
       const nodes = this.root.descendants();
+
       this.$emit('changeSchema', nodes.slice(1));
+
       const node = this.svg
         .selectAll('.option')
         .data(nodes, (d: any) => d.id || (d.id = d.data.id));
+
       const link = this.svg
         .append('g')
         .attr('fill', 'none')
@@ -330,7 +355,9 @@ export default Vue.extend({
         `,
         )
         .attr('class', (d: any) => `link${d.source.index}`);
+
       const nodeEnter = node.enter().append('g').attr('class', 'option');
+
       nodeEnter
         .attr(
           'transform',
@@ -338,6 +365,7 @@ export default Vue.extend({
         )
         .on('click', this.click)
         .on('mouseover', (d: any) => this.$emit('hoverSchema', d.data.id));
+
       nodeEnter
         .append('circle')
         .attr('cx', (d: any) => d.depth * this.nodeSize)
@@ -359,12 +387,15 @@ export default Vue.extend({
           this.colorTracker[ancestorID].push(d.id.replace(/\s/g, ''));
           return this.colorScale(ancestorID);
         });
+
       this.$emit('schemaColors', this.colorTracker);
+
       nodeEnter
         .append('text')
         .attr('dy', '0.32em')
         .attr('x', (d: any) => d.depth * this.nodeSize + 6)
         .text((d: any) => d.data.id);
+
       nodeEnter.append('title').text((d: any) =>
         d
           .ancestors()
@@ -372,12 +403,59 @@ export default Vue.extend({
           .map((d: any) => d.data.id)
           .join('/'),
       );
+
+      //  Calculate numbers of nodes in each category
+      const schemaTable = {};
+      this.schemaNetwork.nodes.forEach((n) => {
+        schemaTable[n.Label] = n.children.length;
+      });
+
+      console.log('SCHEMA TABLE', schemaTable);
+      console.log('data', this.root.descendants());
+
+      const tableData = [];
+      this.root.descendants().forEach((n) => {
+        const obj = { key: '', value: 0 };
+        if (schemaTable[n.id.toUpperCase()]) {
+          obj.key = n.id;
+          obj.value = schemaTable[n.id.toUpperCase()];
+          tableData.push(obj);
+        } else {
+          obj.key = n.id;
+          obj.value = '-';
+          tableData.push(obj);
+        }
+      });
+
+      console.log('TABLE DATA', tableData);
+
+      for (const { label } of this.columnHeader) {
+        this.svg
+          .append('text')
+          .attr('dy', '0.32em')
+          .attr('x', 185)
+          .attr('y', '-15')
+          .attr('text-anchor', 'middle')
+          .attr('font-weight', 'bold')
+          .text(label);
+
+        nodeEnter
+          .append('text')
+          .attr('dy', '0.32em')
+          .attr('x', this.width - label.length)
+          .attr('text-anchor', 'end')
+          .attr('fill', (d) => (d.children ? null : '#555'))
+          .data(tableData)
+          .text((d) => d.value);
+      }
+
       node
         .exit()
         .transition()
         .duration(this.duration)
         .style('opacity', 0)
         .remove();
+
       link
         .exit()
         .transition()
@@ -385,6 +463,7 @@ export default Vue.extend({
         .style('opacity', 0)
         .remove();
     },
+
     click(this: any, d: any) {
       const allPaths = [];
       const change: string[] = this.familyTree.filter((i) => i == d.id);

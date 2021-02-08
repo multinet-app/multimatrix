@@ -285,6 +285,7 @@ export default Vue.extend({
           <tree-list
             ref="treelist"
             v-if="workspace"
+            v-bind="{ schemaNetwork }"
             @restart-simulation="hello()"
             @changeSchema="changeSchema"
             @hoverSchema="hoverNodes"
