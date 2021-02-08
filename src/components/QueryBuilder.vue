@@ -3,9 +3,7 @@
 import * as d3 from 'd3';
 import Vue, { PropType } from 'vue';
 import { schemaGraph } from '@/lib/aggregation';
-
 import { Dimensions, Network, Link, Node } from '@/types';
-
 export default Vue.extend({
   props: {
     network: {
@@ -27,7 +25,6 @@ export default Vue.extend({
     colorsDict: {},
     aqlPaths: {},
   },
-
   data(): {
     browser: Dimensions;
     visMargins: { left: number; top: number; right: number; bottom: number };
@@ -63,7 +60,6 @@ export default Vue.extend({
       tableData: [],
     };
   },
-
   computed: {
     properties(this: any) {
       const {
@@ -99,7 +95,6 @@ export default Vue.extend({
     },
     aqlNetwork(): any {
       let aqlNetwork: Network = { nodes: [], links: [] };
-
       // check for duplicates
       let nodeChecker: string[] = [];
       for (let path of this.aqlPaths) {
@@ -109,7 +104,6 @@ export default Vue.extend({
           }
         }
       }
-
       // create network in correct format
       for (let path of this.aqlPaths) {
         for (let arr of path.vertices) {
@@ -127,16 +121,16 @@ export default Vue.extend({
           aqlNetwork.links.push(arr);
         }
       }
-
       return aqlNetwork;
     },
   },
-
   watch: {
     treeListHover() {
       this.hoverSchema();
     },
     currentSchema() {
+      d3.selectAll('.startQuery').remove();
+      d3.selectAll('.endQuery').remove();
       this.initializeSchema();
     },
     aqlPaths() {
@@ -145,13 +139,10 @@ export default Vue.extend({
       this.createTableData();
     },
   },
-
   async mounted(this: any) {
     this.width = d3.select(this.$refs.schemaView).attr('width');
     this.height = d3.select(this.$refs.schemaView).attr('height');
-
     this.svg = d3.select(this.$refs.schemaView);
-
     // Draw schema rect
     this.svg
       .append('rect')
@@ -159,27 +150,24 @@ export default Vue.extend({
       .attr('height', (this.height / 4) * 3)
       .attr('stroke', 'black')
       .attr('fill', 'none');
-
     // Draw query rect
     this.svg
+      .append('g')
+      .attr('id', 'queryBox')
       .append('rect')
       .attr('width', this.width)
       .attr('height', this.height / 4)
       .attr('stroke', 'black')
       .attr('transform', `translate(0, ${(this.height / 4) * 3})`)
-      .attr('fill', 'none')
-      .attr('id', 'queryBox');
-
+      .attr('fill', 'none');
+    // .attr('id', 'queryBox');
     this.networkGroup = this.svg.append('g').attr('id', 'networkGroup');
-
     this.schemaDict = {};
-
     // Draw legend
     this.uniqueLinks = [
       ...new Set(this.network.links.map((l: Link) => l.Type)),
     ];
     const legendSVG = d3.select(this.$refs.schemaView).append('g');
-
     legendSVG
       .selectAll('rect')
       .data(this.uniqueLinks)
@@ -191,7 +179,6 @@ export default Vue.extend({
       .attr('stroke', 'black')
       .attr('x', 10)
       .attr('y', (l: string, i: number) => 10 + i * 15);
-
     legendSVG
       .selectAll('text')
       .data(this.uniqueLinks)
@@ -202,7 +189,6 @@ export default Vue.extend({
       .attr('x', 30)
       .attr('y', (l: string, i: number) => 20 + i * 15)
       .html((l: string) => l);
-
     legendSVG
       .append('g')
       .selectAll('rect')
@@ -217,20 +203,17 @@ export default Vue.extend({
       .attr('active', 'no')
       .attr('class', 'legendRect');
   },
-
   methods: {
     initializeSchema(this: any) {
       // move this to another function that watches for treeRelationships
       const childColumn = Object.keys(this.treeRelationships[0])[0];
       const parentColumn = Object.keys(this.treeRelationships[0])[1];
-
       const children: string[] = this.treeRelationships.map((c) =>
         c[childColumn].toUpperCase(),
       );
       const parents: string[] = this.treeRelationships.map((p) =>
         p[parentColumn].toUpperCase(),
       );
-
       // Create dictionary: children as keys, parents as values
       const schemaDict: any = parents.reduce(function (
         schemaDict,
@@ -244,16 +227,13 @@ export default Vue.extend({
       this.schemaDict = schemaDict;
       // Create list of all the current leaves
       const groups: string[] = [];
-
       this.currentSchema.forEach((n) => {
         if (n.children == null && n.id != undefined) {
           groups.push(n.id.toUpperCase());
         }
       });
-
       // Deep copy of network edges necessary to avoid mutations in object structure during simulation
       const edges = JSON.parse(JSON.stringify(this.network.links));
-
       const newNetwork = schemaGraph(
         this.network.nodes,
         edges,
@@ -261,20 +241,16 @@ export default Vue.extend({
         schemaDict,
         'Label',
       );
-
       this.schemaNetwork = newNetwork;
       this.createSchema(this.schemaNetwork);
     },
     createSchema(this: any, schema: Network) {
       this.$emit('updateSchemaNetwork', schema);
-
       d3.select('#networkGroup').selectAll('*').remove();
       d3.select('#queryBox').attr('start', null);
       d3.select('#queryBox').attr('end', null);
-
       const linksData = schema.links;
       const nodesData = schema.nodes;
-
       const force = d3
         .forceSimulation(nodesData)
         .force('charge', d3.forceManyBody().strength(-100).distanceMax(300))
@@ -292,7 +268,6 @@ export default Vue.extend({
             .x(this.width / 2)
             .y((this.height / 8) * 3),
         );
-
       const edges = this.networkGroup
         .append('g')
         .attr('class', 'link')
@@ -301,14 +276,12 @@ export default Vue.extend({
         .join('line')
         .style('stroke', '#ccc')
         .style('stroke-width', 2);
-
       const nodes = this.networkGroup
         .selectAll('.node')
         .data(nodesData)
         .enter()
         .append('g')
         .attr('class', 'node');
-
       const circles = nodes
         .append('circle')
         .attr('r', 20)
@@ -328,14 +301,12 @@ export default Vue.extend({
         })
         .attr('stroke', 'white')
         .attr('stroke-width', 1);
-
       const nodeText = nodes
         .append('text')
         .attr('dx', 10)
         .attr('dy', '.35em')
         .text((d: any) => d.Label)
         .style('stroke', 'black');
-
       force.on('tick', () => {
         edges
           .attr('x1', function (d: any) {
@@ -350,7 +321,6 @@ export default Vue.extend({
           .attr('y2', function (d: any) {
             return d.target.y;
           });
-
         circles
           .attr('cx', function (d: any) {
             return (d.x = Math.max(10, Math.min(800 - 10, d.x)));
@@ -358,7 +328,6 @@ export default Vue.extend({
           .attr('cy', function (d: any) {
             return (d.y = Math.max(10, Math.min((900 / 4) * 3 - 10, d.y)));
           });
-
         nodeText
           .attr('x', function (d: any) {
             return d.x;
@@ -371,7 +340,6 @@ export default Vue.extend({
       function neighbors(a, b) {
         return this.indexLinks[a.index + ',' + b.index];
       }
-
       function neighborNodes() {
         console.log('DOUBLE CLICK');
         if (this.neighborToggle) {
@@ -394,33 +362,42 @@ export default Vue.extend({
           this.neighborToggle = false;
         }
       }
-
       // Drag functions
       function dragstarted() {
         d3.select(this).clone(true).classed('notclone', true); // look into this
         d3.select(this).raise().attr('stroke', 'black').classed('clone', true);
         force.stop();
       }
-
       function dragged(d: any) {
         d3.select(this)
           .attr('cx', (d.x = d3.event.x))
           .attr('cy', (d.y = d3.event.y));
       }
-
       function dragended() {
         const mouseCoordinates = d3.mouse(this);
         const networkHeight: number = d3.select('#schemaView').attr('height');
         const networkWidth: number = d3.select('#schemaView').attr('width');
         const nodeLabel = d3.select(this).attr('label');
-
         if (mouseCoordinates[1] > (networkHeight / 4) * 3) {
           if (mouseCoordinates[0] < networkWidth / 2) {
             d3.select(this)
               .attr('cx', networkWidth / 4)
               .attr('cy', (networkHeight / 8) * 7)
               .attr('r', 20);
-            d3.select('#queryBox').attr('start', nodeLabel);
+
+            const queryBox = d3.select('#queryBox');
+            queryBox.attr('start', nodeLabel);
+
+            queryBox.selectAll('text.startQuery').remove();
+
+            queryBox
+              .append('text')
+              .attr('dx', networkWidth / 4)
+              .attr('dy', networkHeight - 50)
+              .text(nodeLabel)
+              .style('stroke', 'black')
+              .attr('text-anchor', 'middle')
+              .attr('class', 'startQuery');
           } else if (
             mouseCoordinates[0] >= networkWidth / 2 &&
             mouseCoordinates[0] < networkWidth
@@ -429,7 +406,20 @@ export default Vue.extend({
               .attr('cx', (networkWidth / 4) * 3)
               .attr('cy', (networkHeight / 8) * 7)
               .attr('r', 20);
+
+            const queryBox = d3.select('#queryBox');
             d3.select('#queryBox').attr('end', nodeLabel);
+
+            queryBox.selectAll('text.endQuery').remove();
+
+            queryBox
+              .append('text')
+              .attr('dx', (networkWidth / 4) * 3)
+              .attr('dy', networkHeight - 50)
+              .text(nodeLabel)
+              .style('stroke', 'black')
+              .attr('text-anchor', 'middle')
+              .attr('class', 'endQuery');
           } else {
             d3.select(this).remove();
           }
@@ -437,7 +427,6 @@ export default Vue.extend({
           d3.select(this).remove();
         }
       }
-
       circles.call(
         d3
           .drag()
@@ -445,14 +434,11 @@ export default Vue.extend({
           .on('drag', dragged)
           .on('end', dragended),
       );
-
       nodes.on('dblclick', function (e) {
         console.log('DOUBLE CLICK', e, neighborNodes);
       }); //neighborNodes);
-
       d3.selectAll('.legendRect').on('click', (l: string) => {
         const click = d3.selectAll(`.${l.replace(/\s/g, '')}`).attr('click');
-
         if (click === null) {
           d3.selectAll(`.${l.replace(/\s/g, '')}`)
             .classed('legendSelected', true)
@@ -469,26 +455,21 @@ export default Vue.extend({
         this.modifyLinks(this.unSelectedLinks, this.schemaNetwork);
       });
     },
-
     updateSchema(this: any) {
       d3.select('#networkGroup').selectAll('*').remove();
       this.initializeSchema();
     },
-
     // Hover schema nodes based on tree list hover
     hoverSchema() {
       const hoverClass =
         '#' + this.treeListHover.toString().toUpperCase().replace(/\s/g, '');
       d3.selectAll('.treehover').classed('treehover', false);
-
       d3.select(hoverClass).attr('class', 'treehover').raise();
     },
-
     // Modify edges based on legend
     modifyLinks(this: any, unSelectedLinksList: string[], network: Network) {
       const removedNodes = [];
       const newLinks = [];
-
       network.links.forEach((l: Link) => {
         if (!unSelectedLinksList.includes(l.Type)) {
           newLinks.push(l);
@@ -497,7 +478,6 @@ export default Vue.extend({
           removedNodes.push(l.targetID);
         }
       });
-
       const newNodes = network.nodes.map((n: Node) => {
         n.children.forEach((c: string) => {
           if (!removedNodes.includes(n.children)) {
@@ -512,10 +492,8 @@ export default Vue.extend({
         nodes: newNodes,
         links: newLinks,
       };
-
       this.createSchema(newNetwork);
     },
-
     // Generates AQL query
     queryGenerator(this: any) {
       const start = d3.select('#queryBox').attr('start');
@@ -533,7 +511,6 @@ export default Vue.extend({
           value: 'pathID',
         },
       ];
-
       for (let i = 0; i < this.selectedHops; i++) {
         tableHeaders.push({ text: `Node ${i + 1}`, value: `Node ${i + 1}` });
         tableHeaders.push({
@@ -554,16 +531,13 @@ export default Vue.extend({
         text: `Node ${this.selectedHops + 1} Label`,
         value: `Node ${this.selectedHops + 1} Label`,
       });
-
       this.tableHeaders = tableHeaders;
     },
     createTableData() {
       const tableData = [];
-
       this.aqlPaths.forEach((path: any, j: number) => {
         let pathData = {};
         pathData.pathID = j + 1;
-
         for (let i = 0; i < this.selectedHops + 1; i++) {
           if (path.vertices[i]) {
             pathData[`Node ${i + 1}`] = path.vertices[i]._id;
@@ -574,20 +548,15 @@ export default Vue.extend({
             pathData[`Edge ${i + 1} Type`] = path.edges[i].Type;
           }
         }
-
         tableData.push(pathData);
       });
-
       this.tableData = tableData;
     },
     renderQueryNetwork(this: any) {
       const svg = d3.select(this.$refs.queryNetwork);
-
       d3.select('#queryNetworkGroup').selectAll('*').remove();
-
       const linksData = this.aqlNetwork.links;
       const nodesData = this.aqlNetwork.nodes;
-
       const force = d3
         .forceSimulation(nodesData)
         .force('charge', d3.forceManyBody().strength(-100))
@@ -602,9 +571,7 @@ export default Vue.extend({
             .x(this.width / 2)
             .y((this.height / 8) * 3),
         );
-
       const queryNetworkGroup = svg.append('g').attr('id', 'queryNetworkGroup');
-
       const edges = queryNetworkGroup
         .append('g')
         .attr('class', 'link')
@@ -613,7 +580,6 @@ export default Vue.extend({
         .join('line')
         .style('stroke', '#ccc')
         .style('stroke-width', 1);
-
       const nodes = queryNetworkGroup
         .selectAll('circle')
         .data(nodesData)
@@ -635,14 +601,11 @@ export default Vue.extend({
         })
         .attr('stroke', 'white')
         .attr('stroke-width', 1);
-
       nodes.on('mouseover', (this: any, node: Node) => {
         d3.select(`#${node.Label}`).classed('treehover', true);
       });
-
       // Simple tooltip
       nodes.append('title').text((d: any) => d.Label);
-
       force.on('tick', () => {
         edges
           .attr('x1', function (d: any) {
@@ -657,7 +620,6 @@ export default Vue.extend({
           .attr('y2', function (d: any) {
             return d.target.y;
           });
-
         nodes
           .attr('cx', function (d: any) {
             return (d.x = Math.max(10, Math.min(800 - 10, d.x)));
@@ -666,12 +628,10 @@ export default Vue.extend({
             return (d.y = Math.max(10, Math.min((900 / 4) * 3 - 10, d.y)));
           });
       });
-
       // Check if neighbors
       function neighbors(a, b) {
         return this.indexLinks[a.index + ',' + b.index];
       }
-
       function neighborNodes() {
         console.log('DOUBLE CLICK');
         if (this.neighborToggle) {
@@ -694,14 +654,11 @@ export default Vue.extend({
           this.neighborToggle = false;
         }
       }
-
       nodes.on('dblclick', function (e) {
         console.log('DOUBLE CLICK', e, neighborNodes);
       }); //neighborNodes);
-
       d3.selectAll('.legendRect').on('click', (l: string) => {
         const click = d3.selectAll(`.${l.replace(/\s/g, '')}`).attr('click');
-
         if (click === null) {
           d3.selectAll(`.${l.replace(/\s/g, '')}`)
             .classed('legendSelected', true)
@@ -741,14 +698,11 @@ export default Vue.extend({
       </v-row>
     </v-col>
     <v-tabs>
-      <v-tab>Network</v-tab>
       <v-tab>Paths </v-tab>
 
+      <v-tab>Network</v-tab>
+
       <v-tab-item>
-        <svg id="queryNetwork" ref="queryNetwork" width="800" height="900" />
-      </v-tab-item>
-      <v-tab-item>
-        <!-- <div id="queryResults" ref="queryResults" width="800" height="900" /> -->
         <v-card>
           <v-card-title>
             Paths
@@ -768,6 +722,9 @@ export default Vue.extend({
           ></v-data-table>
         </v-card>
       </v-tab-item>
+      <v-tab-item>
+        <svg id="queryNetwork" ref="queryNetwork" width="800" height="900" />
+      </v-tab-item>
     </v-tabs>
   </div>
 </template>
@@ -776,33 +733,27 @@ export default Vue.extend({
 svg >>> circle {
   cursor: pointer;
 }
-
 svg >>> circle.treehover {
   stroke: black;
   stroke-width: 2px;
 }
-
 svg >>> circle text {
   font: 12px helvetica;
 }
-
 svg >>> .legendSelected {
   fill: grey;
 }
-
 svg >>> table {
   width: 100%;
   border: 1px solid black;
   border-collapse: collapse;
 }
-
 svg >>> th {
   background: #333;
   color: white;
   font-weight: bold;
   cursor: s-resize;
 }
-
 svg >>> td,
 th {
   padding: 6px;
