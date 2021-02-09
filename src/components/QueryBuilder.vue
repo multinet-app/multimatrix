@@ -287,7 +287,7 @@ export default Vue.extend({
         .attr('r', 20)
         .attr('label', (d: any) => d.Label)
         .attr('id', (d: any) => d.Label.replace(/\s/g, ''))
-        .style('fill', (d: any) => {
+        .style('stroke', (d: any) => {
           const label = d.Label.replace(/\s/g, '');
           let colorKey = 'none';
           for (const key in this.colorsDict) {
@@ -299,14 +299,16 @@ export default Vue.extend({
           }
           return this.colorScale(colorKey);
         })
-        .attr('stroke', 'white')
-        .attr('stroke-width', 1);
+        .attr('fill', 'white')
+        .attr('stroke-width', 3);
       const nodeText = nodes
         .append('text')
         .attr('dx', 10)
         .attr('dy', '.35em')
         .text((d: any) => d.Label)
-        .style('stroke', 'black');
+        .style('stroke', 'black')
+        .attr('z-index', 1000);
+
       force.on('tick', () => {
         edges
           .attr('x1', function (d: any) {
@@ -383,7 +385,8 @@ export default Vue.extend({
             d3.select(this)
               .attr('cx', networkWidth / 4)
               .attr('cy', (networkHeight / 8) * 7)
-              .attr('r', 20);
+              .attr('r', 20)
+              .style('stroke', 'black');
 
             const queryBox = d3.select('#queryBox');
             queryBox.attr('start', nodeLabel);
@@ -405,7 +408,8 @@ export default Vue.extend({
             d3.select(this)
               .attr('cx', (networkWidth / 4) * 3)
               .attr('cy', (networkHeight / 8) * 7)
-              .attr('r', 20);
+              .attr('r', 20)
+              .style('stroke', 'black');
 
             const queryBox = d3.select('#queryBox');
             d3.select('#queryBox').attr('end', nodeLabel);
@@ -601,9 +605,7 @@ export default Vue.extend({
         })
         .attr('stroke', 'white')
         .attr('stroke-width', 1);
-      nodes.on('mouseover', (this: any, node: Node) => {
-        d3.select(`#${node.Label}`).classed('treehover', true);
-      });
+
       // Simple tooltip
       nodes.append('title').text((d: any) => d.Label);
       force.on('tick', () => {
@@ -735,7 +737,7 @@ svg >>> circle {
 }
 svg >>> circle.treehover {
   stroke: black;
-  stroke-width: 2px;
+  stroke-width: 4px;
 }
 svg >>> circle text {
   font: 12px helvetica;
