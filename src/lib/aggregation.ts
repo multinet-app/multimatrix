@@ -153,7 +153,7 @@ export function processChildNodes(nodes: Node[]) {
     const newNode = {
       ...node,
     };
-    newNode.type = 'node';
+    newNode.type = 'childnode';
     nodeCopy.push(newNode);
   });
   return nodeCopy;
@@ -178,7 +178,7 @@ export function processChildLinks(links: Link[]) {
 function mapSuperChildren(node: Node[]) {
   const superChildrenMap = new Map<string, string>();
   node.forEach((networkNode: Node) => {
-    if (networkNode.type === 'node') {
+    if (networkNode.type === 'childnode') {
       return;
     }
     const superChildren = networkNode.CHILDREN;
@@ -224,7 +224,7 @@ function expandSuperNodeData(
 
     // Add a parent position value for the child nodes
     nodeCopy.forEach((node: Node) => {
-      if (node.type === 'node') {
+      if (node.type === 'childnode') {
         const parentNodeID = superChildrenMap.get(node.id);
         if (parentNodeID !== undefined) {
           const parentIndexFunc = (matrixNode: Node) =>
@@ -257,29 +257,37 @@ function expandSuperLinksData(
     superChildren = superNode.CHILDREN;
   }
 
-  // Construct a list of links whose _from is one of the superchildren selected
-  const superChildrenLinks: Link[] = [];
+  // Construct a list of links whose _from or _to is one of the superchildren selected
+  const connectionLinks: Link[] = [];
   childLinksCopy.forEach((link: Link) => {
     superChildren.forEach((childNodeName: string) => {
-      if (link._from === childNodeName) {
-        superChildrenLinks.push(link);
+      if (link._from === childNodeName || link._to === childNodeName) {
+        connectionLinks.push(link);
       }
     });
   });
 
   // Update the superchildren link subset to map connections between nodes and supernodes
   // in the new expanded vis network
-  superChildrenLinks.forEach((link) => {
-    const linkTo = link._to;
-    const parent = superChildrenDict.get(linkTo);
-    if (parent !== undefined) {
-      link._to = parent;
+  connectionLinks.forEach((link: Link) => {
+    if (superChildren.includes(link._from)) {
+      const linkTo = link._to;
+      const parent = superChildrenDict.get(linkTo);
+      if (parent !== undefined) {
+        link._to = parent;
+      }
+    } else {
+      const linkFrom = link._from;
+      const parent = superChildrenDict.get(linkFrom);
+      if (parent !== undefined) {
+        link._from = parent;
+      }
     }
   });
 
   // Combine the links from the network argument passed into expand vis function
   // with the the new subset of expanded superlinks for the expanded vis network
-  const combinedLinks = superLinksCopy.concat(superChildrenLinks);
+  const combinedLinks = superLinksCopy.concat(connectionLinks);
 
   return combinedLinks;
 }
@@ -409,7 +417,7 @@ function retractSuperLinksData(
   // whose _from id matches that of the children of the supernode selected
   childLinksCopy.forEach((link: Link) => {
     superChildren.forEach((childNodeName: string) => {
-      if (link._from === childNodeName) {
+      if (link._from === childNodeName || link._to === childNodeName) {
         superChildrenLinks.push(link);
       }
     });
@@ -420,6 +428,7 @@ function retractSuperLinksData(
   let newLinks = expandedLinksCopy;
   superChildren.forEach((childNode) => {
     newLinks = newLinks.filter((link: Link) => link._from !== childNode);
+    newLinks = newLinks.filter((links: Link) => links._to !== childNode);
   });
 
   return newLinks;

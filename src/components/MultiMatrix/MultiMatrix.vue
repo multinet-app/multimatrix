@@ -44,6 +44,14 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
+    showAggrLegend: {
+      type: Boolean,
+      required: true,
+    },
+    showChildLegend: {
+      type: Boolean,
+      required: true,
+    },
     visualizedAttributes: {
       type: Array as PropType<string[]>,
       default: () => [],
@@ -61,6 +69,8 @@ export default Vue.extend({
     attributesSVG: any;
     cellSize: number;
     maxNumConnections: number;
+    maxAggrConnections: number;
+    maxChildConnections: number;
     matrix: Cell[][];
     attributes: any;
     attributeRows: any;
@@ -94,6 +104,8 @@ export default Vue.extend({
       attributesSVG: undefined,
       cellSize: 15,
       maxNumConnections: -Infinity,
+      maxAggrConnections: -Infinity,
+      maxChildConnections: -Infinity,
       matrix: [],
       attributes: undefined,
       attributeRows: undefined,
@@ -144,11 +156,19 @@ export default Vue.extend({
 
   computed: {
     properties(this: any) {
-      const { network, visualizedAttributes, enableGraffinity } = this;
+      const {
+        network,
+        visualizedAttributes,
+        enableGraffinity,
+        showAggrLegend,
+        showChildLegend,
+      } = this;
       return {
         network,
         visualizedAttributes,
         enableGraffinity,
+        showAggrLegend,
+        showChildLegend,
       };
     },
 
@@ -238,6 +258,18 @@ export default Vue.extend({
         .domain([0, this.maxNumConnections])
         .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
     },
+
+    aggrColorScale(): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, this.maxAggrConnections])
+        .range(['#dcedfa', '#0066cc']);
+    },
+
+    childColorScale(): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, this.maxChildConnections])
+        .range(['#f79d97', '#c0362c']);
+    },
   },
 
   watch: {
@@ -257,6 +289,16 @@ export default Vue.extend({
 
     colorScale() {
       this.$emit('updateMatrixLegendScale', this.colorScale);
+    },
+    aggrColorScale() {
+      this.$emit(
+        'updateAggrMatrixLegendScale',
+        this.aggrColorScale,
+        'aggregate',
+      );
+    },
+    childColorScale() {
+      this.$emit('updateChildMatrixLegendScale', this.childColorScale, 'child');
     },
   },
 
@@ -342,12 +384,16 @@ export default Vue.extend({
     processData(): void {
       // Reset some values that will be re-calcuated
       this.maxNumConnections = 0;
+      this.maxAggrConnections = 0;
+      this.maxChildConnections = 0;
       this.matrix = [];
 
       this.network.nodes.forEach((rowNode: Node, i: number) => {
         this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
           return {
             cellName: `${rowNode.id}_${colNode.id}`,
+            rowCellType: rowNode.type,
+            colCellType: colNode.type,
             correspondingCell: `${colNode.id}_${rowNode.id}`,
             rowID: rowNode.id,
             colID: colNode.id,
@@ -370,8 +416,29 @@ export default Vue.extend({
       // Find max value of z
       this.matrix.forEach((row: Cell[]) => {
         row.forEach((cell: Cell) => {
-          if (cell.z > this.maxNumConnections) {
-            this.maxNumConnections = cell.z;
+          if (
+            cell.rowCellType === undefined ||
+            cell.colCellType === undefined
+          ) {
+            if (cell.z > this.maxNumConnections) {
+              this.maxNumConnections = cell.z;
+            }
+          }
+          if (
+            cell.rowCellType === 'supernode' &&
+            cell.colCellType === 'supernode'
+          ) {
+            if (cell.z > this.maxAggrConnections) {
+              this.maxAggrConnections = cell.z;
+            }
+          }
+          if (
+            cell.rowCellType === 'childnode' ||
+            cell.colCellType === 'childnode'
+          ) {
+            if (cell.z > this.maxChildConnections) {
+              this.maxChildConnections = cell.z;
+            }
           }
         });
       });
@@ -437,7 +504,7 @@ export default Vue.extend({
         .append('g')
         .attr('class', 'column')
         .attr('transform', (d: Node) => {
-          if (d.type === 'node') {
+          if (d.type === 'childnode') {
             return `translate(${this.orderingScale(
               d.parentPosition,
             )})rotate(-90)`;
@@ -496,6 +563,14 @@ export default Vue.extend({
           this.unHoverNode(d.id);
         });
 
+      columnEnter.selectAll('p').style('color', (d: Node) => {
+        if (d.type === 'childnode') {
+          return '#aaa';
+        } else {
+          return 'black';
+        }
+      });
+
       columnEnter
         .append('path')
         .attr('id', (d: Node) => `sortIcon${d.id}`)
@@ -540,7 +615,7 @@ export default Vue.extend({
         .append('g')
         .attr('class', 'rowContainer')
         .attr('transform', (d: Node) => {
-          if (d.type === 'node') {
+          if (d.type === 'childnode') {
             return `translate(0, ${this.orderingScale(d.parentPosition)})`;
           } else {
             return `translate(0, 0)`;
@@ -571,7 +646,7 @@ export default Vue.extend({
       rowEnter
         .append('foreignObject')
         .attr('x', (d: Node) => {
-          if (d.type === 'node') {
+          if (d.type === 'childnode') {
             return -rowLabelContainerStart + 15;
           } else {
             return -rowLabelContainerStart;
@@ -591,6 +666,14 @@ export default Vue.extend({
         })
         .classed('rowLabels', true);
 
+      rowEnter.selectAll('p').style('color', (d: Node) => {
+        if (d.type === 'childnode') {
+          return '#aaa';
+        } else {
+          return 'black';
+        }
+      });
+
       rowEnter
         .on('mouseout', (d: Node) => {
           this.hideToolTip();
@@ -599,7 +682,7 @@ export default Vue.extend({
         .on('click', (d: Node) => {
           // allow expanding the vis if graffinity features are turned on
           if (this.enableGraffinity) {
-            if (d.type === 'node') {
+            if (d.type === 'childnode') {
               return;
             }
             const supernode = d;
@@ -616,6 +699,12 @@ export default Vue.extend({
                 ),
               );
               this.clickMap.set(supernode.id, false);
+
+              // Hide Child Legend
+              const values = [...this.clickMap.values()];
+              if (!values.includes(true)) {
+                this.$emit('updateMatrixLegends', true, false);
+              }
             } else {
               this.$emit(
                 'updateNetwork',
@@ -628,6 +717,9 @@ export default Vue.extend({
                 ),
               );
               this.clickMap.set(supernode.id, true);
+
+              // Display Child Legend
+              this.$emit('updateMatrixLegends', true, true);
             }
           } else {
             this.selectElement(d);
@@ -657,7 +749,17 @@ export default Vue.extend({
         .attr('width', this.cellSize - 2)
         .attr('height', this.cellSize - 2)
         .attr('rx', cellRadius)
-        .style('fill', (d: Cell) => this.colorScale(d.z))
+        .style('fill', (d: Cell) => {
+          if (d.rowCellType === undefined) {
+            return this.colorScale(d.z);
+          }
+          if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
+            return this.aggrColorScale(d.z);
+          }
+          if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
+            return this.childColorScale(d.z);
+          }
+        })
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (d: Cell, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
@@ -686,7 +788,18 @@ export default Vue.extend({
         .attr('width', this.cellSize - 2)
         .attr('height', this.cellSize - 2)
         .attr('rx', cellRadius)
-        .style('fill', (d: Cell) => this.colorScale(d.z))
+        .style('fill', (d: Cell) => {
+          if (d.rowCellType === undefined) {
+            return this.colorScale(d.z);
+          }
+          if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
+            return this.aggrColorScale(d.z);
+          }
+          if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
+            return this.childColorScale(d.z);
+          }
+        })
+
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (d: Cell, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
@@ -972,6 +1085,9 @@ export default Vue.extend({
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
             );
+
+            // View/Hide Matrix Legends
+            this.$emit('updateMatrixLegends', true, false);
           } else {
             this.sort(d);
           }
