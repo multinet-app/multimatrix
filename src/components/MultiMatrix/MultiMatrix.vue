@@ -703,7 +703,7 @@ export default Vue.extend({
               // Hide Child Legend
               const values = [...this.clickMap.values()];
               if (!values.includes(true)) {
-                this.$emit('updateChildLegend', false);
+                this.$emit('updateMatrixLegends', true, false);
               }
             } else {
               this.$emit(
@@ -719,7 +719,7 @@ export default Vue.extend({
               this.clickMap.set(supernode.id, true);
 
               // Display Child Legend
-              this.$emit('updateChildLegend', true);
+              this.$emit('updateMatrixLegends', true, true);
             }
           } else {
             this.selectElement(d);
@@ -1087,7 +1087,7 @@ export default Vue.extend({
             );
 
             // View/Hide Matrix Legends
-            this.$emit('updateAggrLegend', true);
+            this.$emit('updateMatrixLegends', true, false);
           } else {
             this.sort(d);
           }

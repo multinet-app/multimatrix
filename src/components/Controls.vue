@@ -113,11 +113,9 @@ export default Vue.extend({
     updateNetwork(network: Network) {
       this.network = network;
     },
-    updateAggrLegend(showAggrLegend: boolean) {
-      this.showAggrLegend = showAggrLegend;
-    },
 
-    updateChildLegend(showChildLegend: boolean) {
+    updateMatrixLegends(showAggrLegend: boolean, showChildLegend: boolean) {
+      this.showAggrLegend = showAggrLegend;
       this.showChildLegend = showChildLegend;
     },
   },
@@ -291,8 +289,7 @@ export default Vue.extend({
           @updateAggrMatrixLegendScale="createLegend"
           @updateChildMatrixLegendScale="createLegend"
           @updateNetwork="updateNetwork"
-          @updateAggrLegend="updateAggrLegend"
-          @updateChildLegend="updateChildLegend"
+          @updateMatrixLegends="updateMatrixLegends"
         />
       </v-row>
     </v-col>
