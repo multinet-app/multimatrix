@@ -44,10 +44,6 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-    showNonAggrLegend: {
-      type: Boolean,
-      required: true,
-    },
     showAggrLegend: {
       type: Boolean,
       required: true,
@@ -164,7 +160,6 @@ export default Vue.extend({
         network,
         visualizedAttributes,
         enableGraffinity,
-        showNonAggrLegend,
         showAggrLegend,
         showChildLegend,
       } = this;
@@ -172,7 +167,6 @@ export default Vue.extend({
         network,
         visualizedAttributes,
         enableGraffinity,
-        showNonAggrLegend,
         showAggrLegend,
         showChildLegend,
       };
