@@ -12,6 +12,7 @@ import {
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
   axisTop,
+  format,
   max,
   min,
   nest,
@@ -26,6 +27,7 @@ import {
   select,
   selectAll,
   stack,
+  sum,
 } from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
@@ -212,6 +214,31 @@ export default Vue.extend({
 
       return computedIdMap;
     },
+    rowData(): any {
+      const rowData = nest()
+        .key((d: any) => d._from)
+        .entries(this.network.links);
+
+      const edgeAttributes = Object.keys(rowData[0].values[0]);
+
+      const rowLinkData = [];
+      rowData.forEach((d: any) => {
+        const rowAttrs = {};
+        edgeAttributes.forEach((attr: string) => {
+          const attrList = d.values.reduce((accum: any[], currentVal: any) => {
+            const val = [];
+            val.push(currentVal[attr]);
+            return [...accum, ...val];
+          }, []);
+          rowAttrs[attr] = attrList;
+        });
+        const key = d['key'];
+        const rowObj = { key: key, values: rowAttrs };
+        rowLinkData.push(rowObj);
+      });
+
+      return rowLinkData;
+    },
 
     attributeScales() {
       const scales: { [key: string]: any } = {};
@@ -272,32 +299,6 @@ export default Vue.extend({
       });
 
       return scales;
-    },
-
-    rowData(): any {
-      const rowData = nest()
-        .key((d: any) => d._from)
-        .entries(this.network.links);
-
-      const edgeAttributes = Object.keys(rowData[0].values[0]);
-
-      const rowLinkData = [];
-      rowData.forEach((d: any) => {
-        const rowAttrs = {};
-        edgeAttributes.forEach((attr: string) => {
-          const attrList = d.values.reduce((accum: any[], currentVal: any) => {
-            const val = [];
-            val.push(currentVal[attr]);
-            return [...accum, ...val];
-          }, []);
-          rowAttrs[attr] = attrList;
-        });
-        const key = d['key'];
-        const rowObj = { key: key, values: rowAttrs };
-        rowLinkData.push(rowObj);
-      });
-
-      return rowLinkData;
     },
 
     colWidth(): number {
@@ -1041,7 +1042,6 @@ export default Vue.extend({
       // Add the scale bar at the top of the attr column
       this.visualizedAttributes.forEach((col: string, index: number) => {
         if (this.isQuantitative(col)) {
-          console.log(this.attributeScales[col]);
           this.attributes
             .append('g')
             .attr('class', 'attr-axis')
@@ -1223,7 +1223,6 @@ export default Vue.extend({
       this.attributeRows.merge(attributeRowsEnter);
 
       let seriesData = [];
-      let yScale = null;
 
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
@@ -1239,53 +1238,85 @@ export default Vue.extend({
             row.values[col].forEach((a) => (copyKeys[a] += 1));
             copyKeys.name = row.key;
 
+            console.log('Before', copyKeys);
+
+            // Normalize values
+            const sumVal = sum(Object.values(copyKeys));
+            for (let key in copyKeys) {
+              if (key != 'name') {
+                copyKeys[key] = copyKeys[key] / sumVal;
+              }
+            }
+
             data.push(copyKeys);
           });
 
           seriesData = stack()
             .keys(Object.keys(keys))(data)
             .map((d) => (d.forEach((v) => (v.key = d.key)), d));
-
-          yScale = scaleBand()
-            .domain(data.map((d) => d.keys))
-            .range([0, this.colWidth]);
         }
       });
 
-      console.log('SERIES DATA', seriesData);
-      console.log('COL WIDTH', this.colWidth);
+      // Organize series data by row
+      seriesData.forEach((row) => {
+        row.forEach((col, i) => {
+          this.rowData.forEach((item) => {
+            if (item.key === col.data.name) {
+              if (item.series) {
+                item.series.push(col);
+              } else {
+                item.series = [];
+                item.series.push(col);
+              }
+            }
+          });
+        });
+      });
 
-      const xScale = scaleLinear().domain([0, 20]).range([0, this.colWidth]);
+      const xScale = scaleLinear().range([0, this.colWidth]);
 
       const color = scaleOrdinal()
         .domain(seriesData.map((d) => d.key))
         .range(schemeSpectral[seriesData.length]);
 
       const attributeVis = (selectAll('.attrRows') as any)
-        .append('g')
-        .selectAll('g')
-        .data(seriesData)
-        .enter()
-        .append('g')
-        .classed('attrRow', true)
-        .attr('fill', (d) => color(d.key));
+        .selectAll('.attrRow')
+        .data(this.rowData, (d: Node) => d.key);
 
-      // DERYA Draw new vis elements (boxplot/squishedbarchart)
+      // Update existing vis elements to resize width
       attributeVis
         .selectAll('rect')
-        .data((d) => d)
-        .join('rect')
-        .attr('x', (d) => xScale(d[0]))
-        .attr('y', (d) => this.orderingScale(d.data.name))
-        .attr('width', (d) => xScale(d[1]) - xScale(d[0]))
-        .attr('height', this.orderingScale.bandwidth())
-        .attr('cursor', 'pointer')
-        .on('mouseover', (d: Link) => this.hoverNode(d.id))
-        .on('mouseout', (d: Link) => this.unHoverNode(d.id))
-        .on('click', (d: Link) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+        .attr('width', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+          if (this.isQuantitative(varName)) {
+            return this.attributeLinksScales[varName](d[varName]);
+          } else {
+            return this.colWidth;
+          }
         });
+
+      attributeVis.exit().remove();
+
+      const attributeVisEnter = attributeVis
+        .enter()
+        .append('g')
+        .attr('class', 'attrRow')
+        .attr(
+          'transform',
+          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+        );
+
+      attributeVisEnter
+        .selectAll('rect')
+        .data((d) => d.series)
+        .enter()
+        .append('rect')
+        .attr('x', (d) => xScale(d[0]))
+        .attr('width', (d) => xScale(d[1]) - xScale(d[0]))
+        .attr('fill', (d) => color(d.key))
+        .attr('height', this.orderingScale.bandwidth())
+        .append('title')
+        .text((d) => `${d.key} ${format('.1%')(d[1] - d[0])}`);
     },
 
     isQuantitative(varName: string): boolean {
