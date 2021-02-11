@@ -235,12 +235,11 @@ export default Vue.extend({
           scale.clamp(true);
           scales[col] = scale;
         } else {
-          const values: string[] = [];
-          this.network.nodes.forEach((node: Node) => {
+          const values: string[] = this.network.nodes.map((node: Node) => {
             if (node.type === 'supernode') {
-              values.push(node['GROUP']);
+              return node['GROUP'];
             } else {
-              values.push(node[col]);
+              return node[col];
             }
           });
           const domain = [...new Set(values)];
