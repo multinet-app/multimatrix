@@ -284,18 +284,20 @@ export default Vue.extend({
           const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
           scale.clamp(true);
           scales[col] = scale;
-        } else {
-          // const values: string[] = this.rowData.map(
-          //   (row: any) => row.values[col],
-          // );
-          // const domain = values.flat()
-          // .reduce((a, v) => ((a[v] = (a[v] || 0) + 1), a), {});
-
-          // console.log('DOMAIN', domain);
-          // const scale = scaleOrdinal().domain(domain).range([0, this.colWidth]);
-
-          scales[col] = scaleOrdinal().range([0, this.colWidth]);
         }
+        // I think we dont need this..
+        // else {
+        //   // const values: string[] = this.rowData.map(
+        //   //   (row: any) => row.values[col],
+        //   // );
+        //   // const domain = values.flat()
+        //   // .reduce((a, v) => ((a[v] = (a[v] || 0) + 1), a), {});
+
+        //   // console.log('DOMAIN', domain);
+        //   // const scale = scaleOrdinal().domain(domain).range([0, this.colWidth]);
+
+        //   scales[col] = scaleOrdinal().range([0, this.colWidth]);
+        // }
       });
 
       return scales;
@@ -922,6 +924,14 @@ export default Vue.extend({
         .style('fill', '#EBB769');
     },
 
+    stackedBarColorScale(seriesData) {
+      const color = scaleOrdinal()
+        .domain(seriesData.map((d) => d.key))
+        .range(schemeSpectral[seriesData.length]);
+
+      return color;
+    },
+
     renderAttributes(): void {
       // Just has to be larger than the attributes panel (so that we render to the edge)
       const attributeWidth = 1000;
@@ -1238,8 +1248,6 @@ export default Vue.extend({
             row.values[col].forEach((a) => (copyKeys[a] += 1));
             copyKeys.name = row.key;
 
-            console.log('Before', copyKeys);
-
             // Normalize values
             const sumVal = sum(Object.values(copyKeys));
             for (let key in copyKeys) {
@@ -1275,10 +1283,6 @@ export default Vue.extend({
 
       const xScale = scaleLinear().range([0, this.colWidth]);
 
-      const color = scaleOrdinal()
-        .domain(seriesData.map((d) => d.key))
-        .range(schemeSpectral[seriesData.length]);
-
       const attributeVis = (selectAll('.attrRows') as any)
         .selectAll('.attrRow')
         .data(this.rowData, (d: Node) => d.key);
@@ -1313,7 +1317,7 @@ export default Vue.extend({
         .append('rect')
         .attr('x', (d) => xScale(d[0]))
         .attr('width', (d) => xScale(d[1]) - xScale(d[0]))
-        .attr('fill', (d) => color(d.key))
+        .attr('fill', (d) => this.stackedBarColorScale(seriesData)(d.key))
         .attr('height', this.orderingScale.bandwidth())
         .append('title')
         .text((d) => `${d.key} ${format('.1%')(d[1] - d[0])}`);
