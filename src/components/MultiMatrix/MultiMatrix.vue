@@ -235,9 +235,14 @@ export default Vue.extend({
           scale.clamp(true);
           scales[col] = scale;
         } else {
-          const values: string[] = this.network.nodes.map(
-            (node: Node) => node[col],
-          );
+          const values: string[] = [];
+          this.network.nodes.forEach((node: Node) => {
+            if (node.type === 'supernode') {
+              values.push(node['GROUP']);
+            } else {
+              values.push(node[col]);
+            }
+          });
           const domain = [...new Set(values)];
           const scale = scaleOrdinal(schemeCategory10).domain(domain);
 
@@ -1193,7 +1198,11 @@ export default Vue.extend({
           if (this.isQuantitative(varName)) {
             return '#82b1ff';
           } else {
-            return this.attributeScales[varName](d[varName]);
+            if (d.type === 'supernode') {
+              return this.attributeScales[varName](d['GROUP']);
+            } else {
+              return this.attributeScales[varName](d[varName]);
+            }
           }
         })
         .attr('cursor', 'pointer')
