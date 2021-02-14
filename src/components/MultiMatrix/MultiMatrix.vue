@@ -29,6 +29,7 @@ import {
   stack,
   sum,
 } from 'd3';
+import * as BoxPlot from 'd3-boxplot';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 
 import 'science';
@@ -285,19 +286,6 @@ export default Vue.extend({
           scale.clamp(true);
           scales[col] = scale;
         }
-        // I think we dont need this..
-        // else {
-        //   // const values: string[] = this.rowData.map(
-        //   //   (row: any) => row.values[col],
-        //   // );
-        //   // const domain = values.flat()
-        //   // .reduce((a, v) => ((a[v] = (a[v] || 0) + 1), a), {});
-
-        //   // console.log('DOMAIN', domain);
-        //   // const scale = scaleOrdinal().domain(domain).range([0, this.colWidth]);
-
-        //   scales[col] = scaleOrdinal().range([0, this.colWidth]);
-        // }
       });
 
       return scales;
@@ -1234,10 +1222,9 @@ export default Vue.extend({
 
       let seriesData = [];
 
+      // Reorganize this
       this.visualizedLinkAttributes.forEach((col: string) => {
-        if (this.isQuantitative(col)) {
-          seriesData = this.rowData;
-        } else {
+        if (!this.isQuantitative(col)) {
           let data = [];
           let keys = this.rowData.map((row: any) => row.values[col]);
           keys = keys.flat().reduce((a, v) => ((a[v] = a[v] || 0), a), {});
@@ -1262,23 +1249,23 @@ export default Vue.extend({
           seriesData = stack()
             .keys(Object.keys(keys))(data)
             .map((d) => (d.forEach((v) => (v.key = d.key)), d));
-        }
-      });
 
-      // Organize series data by row
-      seriesData.forEach((row) => {
-        row.forEach((col, i) => {
-          this.rowData.forEach((item) => {
-            if (item.key === col.data.name) {
-              if (item.series) {
-                item.series.push(col);
-              } else {
-                item.series = [];
-                item.series.push(col);
-              }
-            }
+          // Organize series data by row
+          seriesData.forEach((row) => {
+            row.forEach((col, i) => {
+              this.rowData.forEach((item) => {
+                if (item.key === col.data.name) {
+                  if (item.series) {
+                    item.series.push(col);
+                  } else {
+                    item.series = [];
+                    item.series.push(col);
+                  }
+                }
+              });
+            });
           });
-        });
+        }
       });
 
       const xScale = scaleLinear().range([0, this.colWidth]);
@@ -1310,17 +1297,39 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      attributeVisEnter
-        .selectAll('rect')
-        .data((d) => d.series)
-        .enter()
-        .append('rect')
-        .attr('x', (d) => xScale(d[0]))
-        .attr('width', (d) => xScale(d[1]) - xScale(d[0]))
-        .attr('fill', (d) => this.stackedBarColorScale(seriesData)(d.key))
-        .attr('height', this.orderingScale.bandwidth())
-        .append('title')
-        .text((d) => `${d.key} ${format('.1%')(d[1] - d[0])}`);
+      this.visualizedLinkAttributes.forEach((col: string, index: number) => {
+        if (this.isQuantitative(col)) {
+          // Boxplot styling
+          const bScale = scaleLinear()
+            .domain(this.attributeLinksScales[col].domain())
+            .range([0, this.colWidth]);
+
+          const bPlot = BoxPlot.boxplot()
+            .scale(bScale)
+            .showInnerDots(true)
+            .boxwidth(this.orderingScale.bandwidth() * 0.5)
+            .bandwidth(this.orderingScale.bandwidth())
+            .jitter(0)
+            .opacity(1);
+
+          attributeVisEnter
+            .datum((d) => BoxPlot.boxplotStats(d.values[col]))
+            .call(bPlot);
+        } else {
+          // Add stacked barchart
+          attributeVisEnter
+            .selectAll('rect')
+            .data((d) => d.series)
+            .enter()
+            .append('rect')
+            .attr('x', (d) => xScale(d[0]))
+            .attr('width', (d) => xScale(d[1]) - xScale(d[0]))
+            .attr('fill', (d) => this.stackedBarColorScale(seriesData)(d.key))
+            .attr('height', this.orderingScale.bandwidth())
+            .append('title')
+            .text((d) => `${d.key} ${format('.1%')(d[1] - d[0])}`);
+        }
+      });
     },
 
     isQuantitative(varName: string): boolean {
