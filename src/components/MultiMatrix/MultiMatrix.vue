@@ -1730,9 +1730,13 @@ svg >>> text.clicked {
   fill: black !important;
 }
 
-svg >>> line {
+svg >>> .gridLines {
   pointer-events: none;
   stroke: #aaa;
   opacity: 0.3;
+}
+
+svg >>> g.box line {
+  stroke: slategray;
 }
 </style>
