@@ -14,7 +14,7 @@ function processAttributes(nodes: Node[], attribute: string) {
   const intAttribute = selectedAttribute.every((element: any) =>
     Number.isInteger(element),
   );
-  
+
   // Create a set of the attributes based on the type of the attribute (number, string)
   if (intAttribute) {
     const intAttributes = selectedAttribute.map((x: string) => parseInt(x, 10));
@@ -290,8 +290,6 @@ function expandSuperLinksData(
     });
   });
 
-
-
   // Update the superchildren link subset to map connections between nodes and supernodes
   // in the new expanded vis network
   connectionLinks.forEach((link: Link) => {
@@ -309,7 +307,6 @@ function expandSuperLinksData(
       }
     }
   });
-
 
   // Combine the links from the network argument passed into expand vis function
   // with the the new subset of expanded superlinks for the expanded vis network
