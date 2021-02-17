@@ -1,5 +1,4 @@
 <script lang="ts">
-/* eslint-disable */
 import Vue, { PropType } from 'vue';
 
 import {
@@ -26,6 +25,8 @@ import {
   schemeSpectral,
   select,
   selectAll,
+  Series,
+  SeriesPoint,
   stack,
   sum,
 } from 'd3';
@@ -94,6 +95,7 @@ export default Vue.extend({
     provenance: any;
     sortKey: string;
     colMargin: number;
+    linkAttributeRows: any;
   } {
     return {
       browser: {
@@ -150,6 +152,7 @@ export default Vue.extend({
       provenance: undefined,
       sortKey: '',
       colMargin: 5,
+      linkAttributeRows: undefined,
     };
   },
 
@@ -215,16 +218,23 @@ export default Vue.extend({
 
       return computedIdMap;
     },
-    rowData(): any {
+
+    rowData() {
       const rowData = nest()
         .key((d: any) => d._from)
         .entries(this.network.links);
 
       const edgeAttributes = Object.keys(rowData[0].values[0]);
 
-      const rowLinkData = [];
+      const rowLinkData: {
+        key: string;
+        values: { [key: string]: string[] };
+        series: SeriesPoint<{
+          [key: string]: number;
+        }>[];
+      }[] = [];
       rowData.forEach((d: any) => {
-        const rowAttrs = {};
+        const rowAttrs: { [key: string]: string[] } = {};
         edgeAttributes.forEach((attr: string) => {
           const attrList = d.values.reduce((accum: any[], currentVal: any) => {
             const val = [];
@@ -234,7 +244,7 @@ export default Vue.extend({
           rowAttrs[attr] = attrList;
         });
         const key = d['key'];
-        const rowObj = { key: key, values: rowAttrs };
+        const rowObj = { key: key, values: rowAttrs, series: [] };
         rowLinkData.push(rowObj);
       });
 
@@ -275,11 +285,13 @@ export default Vue.extend({
       // Calculate the attribute scales
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
-          let vals = [];
-          this.rowData.forEach((row: any) => vals.push(row.values[col]));
-          vals = vals.flat().map(Number);
-          const minimum = min(vals);
-          const maximum = max(vals);
+          const vals: number[][] = [];
+          this.rowData.forEach((row) =>
+            vals.push(row.values[col].map((d) => parseInt(d))),
+          );
+          const valsFlat = vals.flat();
+          const minimum = min(valsFlat) || 0;
+          const maximum = max(valsFlat) || 0;
 
           const domain: number[] = [minimum, maximum];
           const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
@@ -294,8 +306,9 @@ export default Vue.extend({
     colWidth(): number {
       const attrWidth = parseFloat(select('#attributes').attr('width'));
       return (
-        attrWidth / this.visualizedAttributes.length +
-        this.visualizedLinkAttributes.length -
+        attrWidth /
+          (this.visualizedAttributes.length +
+            this.visualizedLinkAttributes.length) -
         this.colMargin
       );
     },
@@ -912,7 +925,14 @@ export default Vue.extend({
         .style('fill', '#EBB769');
     },
 
-    stackedBarColorScale(seriesData) {
+    stackedBarColorScale(
+      seriesData: Series<
+        {
+          [key: string]: number;
+        },
+        string
+      >[],
+    ) {
       const color = scaleOrdinal()
         .domain(seriesData.map((d) => d.key))
         .range(schemeSpectral[seriesData.length]);
@@ -1129,7 +1149,7 @@ export default Vue.extend({
         });
     },
 
-    renderLinkAttributes(): void {
+    renderLinkAttributes() {
       // Create a group for each column and add header info
       this.linkAttributeRows = this.attributes
         .selectAll('.attrColumn')
@@ -1220,41 +1240,42 @@ export default Vue.extend({
 
       this.attributeRows.merge(attributeRowsEnter);
 
-      let seriesData = [];
+      let seriesData: Series<{ [key: string]: number }, string>[] = [];
 
       // Reorganize this
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (!this.isQuantitative(col)) {
-          let data = [];
-          let keys = this.rowData.map((row: any) => row.values[col]);
-          keys = keys.flat().reduce((a, v) => ((a[v] = a[v] || 0), a), {});
+          const data: { [key: string]: number }[] = [];
+          const keys = this.rowData.map((row: any) => row.values[col]);
+          const keysFlat = keys
+            .flat()
+            .reduce((a, v) => ((a[v] = a[v] || 0), a), {});
 
           this.rowData.forEach((row) => {
-            let copyKeys = Object.assign({}, keys);
+            const copyKeys = Object.assign({}, keysFlat);
 
             row.values[col].forEach((a) => (copyKeys[a] += 1));
             copyKeys.name = row.key;
 
             // Normalize values
             const sumVal = sum(Object.values(copyKeys));
-            for (let key in copyKeys) {
-              if (key != 'name') {
+            for (const key in copyKeys) {
+              if (key !== 'name') {
                 copyKeys[key] = copyKeys[key] / sumVal;
               }
             }
 
             data.push(copyKeys);
           });
-
           seriesData = stack()
-            .keys(Object.keys(keys))(data)
-            .map((d) => (d.forEach((v) => (v.key = d.key)), d));
+            .keys(Object.keys(keysFlat))(data)
+            .map((d) => (d.forEach((v) => ((v as any).key = d.key)), d));
 
           // Organize series data by row
           seriesData.forEach((row) => {
-            row.forEach((col, i) => {
+            row.forEach((col) => {
               this.rowData.forEach((item) => {
-                if (item.key === col.data.name) {
+                if (item.key === col.data.name.toString()) {
                   if (item.series) {
                     item.series.push(col);
                   } else {
@@ -1297,7 +1318,7 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      this.visualizedLinkAttributes.forEach((col: string, index: number) => {
+      this.visualizedLinkAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
           // Boxplot styling
           const bScale = scaleLinear()
@@ -1313,21 +1334,48 @@ export default Vue.extend({
             .opacity(1);
 
           attributeVisEnter
-            .datum((d) => BoxPlot.boxplotStats(d.values[col]))
+            .datum(
+              (d: {
+                key: string;
+                values: {
+                  [key: string]: string[];
+                };
+                series: number[];
+              }) => BoxPlot.boxplotStats(d.values[col]),
+            )
             .call(bPlot);
         } else {
           // Add stacked barchart
           attributeVisEnter
             .selectAll('rect')
-            .data((d) => d.series)
+            .data(
+              (d: {
+                key: string;
+                values: {
+                  [key: string]: string[];
+                };
+                series: Series<{ [key: string]: number }, string>;
+              }) => d.series,
+            )
             .enter()
             .append('rect')
-            .attr('x', (d) => xScale(d[0]))
-            .attr('width', (d) => xScale(d[1]) - xScale(d[0]))
-            .attr('fill', (d) => this.stackedBarColorScale(seriesData)(d.key))
+            .attr('x', (d: Series<{ [key: string]: number }, string>) =>
+              xScale(d[0] as any),
+            )
+            .attr(
+              'width',
+              (d: Series<{ [key: string]: number }, string>) =>
+                xScale(d[1] as any) - xScale(d[0] as any),
+            )
+            .attr('fill', (d: Series<{ [key: string]: number }, string>) =>
+              this.stackedBarColorScale(seriesData)(d.key),
+            )
             .attr('height', this.orderingScale.bandwidth())
             .append('title')
-            .text((d) => `${d.key} ${format('.1%')(d[1] - d[0])}`);
+            .text(
+              (d: Series<{ [key: string]: number }, string>) =>
+                `${d.key} ${format('.1%')((d[1] as any) - (d[0] as any))}`,
+            );
         }
       });
     },
