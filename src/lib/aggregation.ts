@@ -1,6 +1,32 @@
 import { defineSuperNeighbors } from '@/lib/multinet';
 import { Link, Node } from '@/types';
 
+// Function for processing attributes for the visualziation and supergraph
+function processAttributes(nodes: Node[], attribute: string) {
+  // Store attribute selected by the user before processing for type
+  let selectedAttributes = new Set<any>();
+  const selectedAttribute: any = [];
+  nodes.forEach((node: Node) => {
+    selectedAttribute.push(node[attribute]);
+  });
+
+  // Check if the attribute can be parsed as an integer
+  const intAttribute = selectedAttribute.every((element: any) =>
+    Number.isInteger(element),
+  );
+  
+  // Create a set of the attributes based on the type of the attribute (number, string)
+  if (intAttribute) {
+    const intAttributes = selectedAttribute.map((x: string) => parseInt(x, 10));
+    intAttributes.sort((a: number, b: number) => a - b);
+    selectedAttributes = new Set(intAttributes);
+  } else {
+    selectedAttributes = new Set(selectedAttribute);
+  }
+
+  return selectedAttributes;
+}
+
 // Function that builds a supergraph network that contains
 // supernodes, superlinks, nodes, and links
 export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
@@ -15,11 +41,8 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     return newNode;
   });
 
-  // Set for keeping track of attribute selected by user
-  const selectedAttributes = new Set<string>();
-  newNodes.forEach((node: Node) => {
-    selectedAttributes.add(node[attribute]);
-  });
+  // Process attributes according to the attribute type
+  const selectedAttributes = processAttributes(newNodes, attribute);
 
   // Data structure for ensuring constant time lookup between
   // selected attribute and supernodes
@@ -267,6 +290,8 @@ function expandSuperLinksData(
     });
   });
 
+
+
   // Update the superchildren link subset to map connections between nodes and supernodes
   // in the new expanded vis network
   connectionLinks.forEach((link: Link) => {
@@ -284,6 +309,7 @@ function expandSuperLinksData(
       }
     }
   });
+
 
   // Combine the links from the network argument passed into expand vis function
   // with the the new subset of expanded superlinks for the expanded vis network
