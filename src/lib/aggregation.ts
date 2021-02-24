@@ -3,12 +3,10 @@ import { Link, Node } from '@/types';
 
 // Function for processing attributes for the visualziation and supergraph
 function processAttributes(nodes: Node[], attribute: string) {
+
   // Store attribute selected by the user before processing for type
   let selectedAttributes = new Set<any>();
-  const selectedAttribute: any = [];
-  nodes.forEach((node: Node) => {
-    selectedAttribute.push(node[attribute]);
-  });
+  const selectedAttribute = nodes.map((node: Node) => node[attribute]);
 
   // Check if the attribute can be parsed as an integer
   const intAttribute = selectedAttribute.every((element: any) =>
@@ -63,7 +61,6 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     superNodes.push(superNode);
   });
 
-  // Update the children property of each supernode object
   newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
@@ -107,17 +104,11 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // Calculate a new set of neighbor nodes
   const neighborNodes = defineSuperNeighbors(combinedNodes, newLinks);
 
-  // Remove nodes who do not have neighbors
-  let finalNodes = neighborNodes;
-  superNodes.forEach((superNode) => {
-    const children = superNode.CHILDREN;
-    finalNodes.forEach((node) => {
-      if (children.includes(node.id)) {
-        const nodeIDValue = node.id;
-        finalNodes = finalNodes.filter((node) => node.id !== nodeIDValue);
-      }
-    });
-  });
+  // console.log("Neighbor Nodes: ", neighborNodes);
+
+  // Remove nodes that are of type node
+  const finalNodes = neighborNodes.filter((node: Node) => node.type !== 'node');
+
 
   // Construct new network object
   const network = {
