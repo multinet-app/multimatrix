@@ -3,7 +3,6 @@ import { Link, Node } from '@/types';
 
 // Function for processing attributes for the visualziation and supergraph
 function processAttributes(nodes: Node[], attribute: string) {
-
   // Store attribute selected by the user before processing for type
   let selectedAttributes = new Set<any>();
   const selectedAttribute = nodes.map((node: Node) => node[attribute]);
@@ -108,7 +107,6 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
 
   // Remove nodes that are of type node
   const finalNodes = neighborNodes.filter((node: Node) => node.type !== 'node');
-
 
   // Construct new network object
   const network = {
