@@ -269,6 +269,26 @@ function expandSuperLinksData(
     superChildren = superNode.CHILDREN;
   }
 
+  console.log('superchildren for node: ', superNodeName);
+  console.log('superchildren: ', superChildren);
+  console.log('child links: ', childLinksCopy);
+  const childrenConnectionLinksFrom = childLinksCopy.filter((link: Link) => {
+    return superChildren.includes(link._to);
+  });
+  console.log(
+    'children links for the expanded supernetwork: ',
+    childrenConnectionLinksFrom,
+  );
+  const childrenConnectionLinksTo = childLinksCopy.filter((link: Link) => {
+    return superChildren.includes(link._to) || superChildren.includes(link._from);
+  });
+  console.log(
+    'children links for the expanded supernetwork to: ',
+    childrenConnectionLinksTo,
+  );
+
+  childLinksCopy.map((link: Link) => console.log("from: ", link._from, "to: ", link._to));
+
   // Construct a list of links whose _from or _to is one of the superchildren selected
   const connectionLinks: Link[] = [];
   childLinksCopy.forEach((link: Link) => {
