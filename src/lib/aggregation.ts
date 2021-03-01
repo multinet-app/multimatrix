@@ -134,10 +134,13 @@ function processExpandSuperLinks(
 }
 
 // Function that gets the name of the children that belong in the supernode
-function getSuperChildren(superNodeName: string, superNodeNameDict: Map<string, Node>) { 
+function getSuperChildren(
+  superNodeName: string,
+  superNodeNameDict: Map<string, Node>,
+) {
   const superNode = superNodeNameDict.get(superNodeName);
   let superChildren: string[] = [];
-  if (superNode) { 
+  if (superNode) {
     superChildren = superNode.CHILDREN;
   }
   return superChildren;
@@ -321,7 +324,10 @@ function expandSuperLinksData(
   const superLinksCopy = deepCopyLinks(aggrLinksCopy);
 
   // Construct a list of the children nodes that belong to the selected supernode
-  const superChildren: string[] = getSuperChildren(superNodeName, superNodeNameDict);
+  const superChildren: string[] = getSuperChildren(
+    superNodeName,
+    superNodeNameDict,
+  );
 
   const childFromLinks = childLinksCopy.filter((link: Link) => {
     return superChildren.includes(link._from);
@@ -398,10 +404,10 @@ export function expandSuperNetwork(
   }
 
   // Filter the links to contain only nodes that are in the super children list
-  const finalLinks = expandLinks.filter((link: Link) => { 
+  const finalLinks = expandLinks.filter((link: Link) => {
     const nodeIDs = neighborNodes.map((node: Node) => node.id);
     return nodeIDs.includes(link._from) && nodeIDs.includes(link._to);
-  })
+  });
   // Create a new network containing the data for visualizing the expanded supergraph matrix
   // const network = {};
   const network = {
