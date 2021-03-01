@@ -73,7 +73,7 @@ function defineNeighborNodes(nodes: Node[], links: Link[]) {
       }
     }
   });
-  console.log('neighbor nodes: ', nodes);
+  // console.log('neighbor nodes: ', nodes);
   return nodes;
 }
 
@@ -131,6 +131,16 @@ function processExpandSuperLinks(
   });
 
   return superExpandLinks;
+}
+
+// Function that gets the name of the children that belong in the supernode
+function getSuperChildren(superNodeName: string, superNodeNameDict: Map<string, Node>) { 
+  const superNode = superNodeNameDict.get(superNodeName);
+  let superChildren: string[] = [];
+  if (superNode) { 
+    superChildren = superNode.CHILDREN;
+  }
+  return superChildren;
 }
 
 ///////////////////////////Super Graph Function Stuff//////////////////////////////////////
@@ -311,11 +321,7 @@ function expandSuperLinksData(
   const superLinksCopy = deepCopyLinks(aggrLinksCopy);
 
   // Construct a list of the children nodes that belong to the selected supernode
-  const superNode = superNodeNameDict.get(superNodeName);
-  let superChildren: string[] = [];
-  if (superNode !== undefined) {
-    superChildren = superNode.CHILDREN;
-  }
+  const superChildren: string[] = getSuperChildren(superNodeName, superNodeNameDict);
 
   const childFromLinks = childLinksCopy.filter((link: Link) => {
     return superChildren.includes(link._from);
@@ -335,7 +341,7 @@ function expandSuperLinksData(
     .concat(allChildrenLinks);
 
   // console.log("original superlinks: ", superLinksCopy);
-  console.log('children links: ', allChildrenLinks);
+  // console.log('children links: ', allChildrenLinks);
   // console.log("super expand links: ", superExpandLinks);
   // console.log("new children super links: ", newSuperChildrenLinks);
 
@@ -385,22 +391,22 @@ export function expandSuperNetwork(
   // console.log("expanded nodes: ", expandNodes);
   // console.log("aggregated links: ", aggrLinksCopy);
   // console.log("expanded links: ", expandLinks);
-
-  // if (expandNodes && expandLinks) {
-  //   const foo = defineNeighborNodes(expandNodes, expandLinks);
-  //   console.log('result of foo: ', foo);
-  // }
   // Create a new set of neighbors for the new network nodes
   let neighborNodes: Node[] = [];
   if (expandNodes && expandLinks) {
     neighborNodes = defineNeighborNodes(expandNodes, expandLinks);
   }
 
+  // Filter the links to contain only nodes that are in the super children list
+  const finalLinks = expandLinks.filter((link: Link) => { 
+    const nodeIDs = neighborNodes.map((node: Node) => node.id);
+    return nodeIDs.includes(link._from) && nodeIDs.includes(link._to);
+  })
   // Create a new network containing the data for visualizing the expanded supergraph matrix
   // const network = {};
   const network = {
     nodes: neighborNodes,
-    links: expandLinks,
+    links: finalLinks,
   };
 
   return network;
