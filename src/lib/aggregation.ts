@@ -417,12 +417,12 @@ function retractSuperNodeData(
 
   // If the supernode exists in the dictionary,
   // get the children of the supernode
-  if (superNode) {
+  if (superNode !== undefined) {
     const superChildrenIDs = superNode.CHILDREN;
     const childNodes: Node[] = [];
     superChildrenIDs.forEach((id: string) => {
       const childNode = childrenNodeNameDict.get(id);
-      if (childNode) {
+      if (childNode !== undefined) {
         childNodes.push(childNode);
       }
     });
@@ -514,7 +514,7 @@ export function retractSuperNetwork(
 
   // Create a new set of neighbors for the new network nodes
   let neighborNodes: Node[] = [];
-  if (retractNodes && retractLinks) {
+  if (retractNodes !== undefined && retractLinks !== undefined) {
     neighborNodes = defineNeighborNodes(retractNodes, retractLinks);
   }
 
