@@ -64,7 +64,7 @@ function defineNeighborNodes(nodes: Node[], links: Link[]) {
     if (nodeIDs.includes(link._from) && nodeIDs.includes(link._to)) {
       const findNodeFrom = nodes.find((node) => node.id === link._from);
       const findNodeTo = nodes.find((node) => node.id === link._to);
-      if (findNodeFrom && findNodeTo) {
+      if (findNodeFrom !== undefined && findNodeTo !== undefined) {
         findNodeFrom.neighbors.push(link._to);
         findNodeTo.neighbors.push(link._from);
       }
@@ -111,14 +111,14 @@ function processExpandSuperLinks(
     if (childNodes.includes(newLink._from)) {
       const linkTo = newLink._to;
       const parent = superChildrenDict.get(linkTo);
-      if (parent) {
+      if (parent !== undefined) {
         newLink._to = parent;
       }
     }
     if (childNodes.includes(newLink._to)) {
       const linkFrom = newLink._from;
       const parent = superChildrenDict.get(linkFrom);
-      if (parent) {
+      if (parent !== undefined) {
         newLink._from = parent;
       }
     }
@@ -134,7 +134,7 @@ function getSuperChildren(
 ) {
   const superNode = superNodeNameDict.get(superNodeName);
   let superChildren: string[] = [];
-  if (superNode) {
+  if (superNode !== undefined) {
     superChildren = superNode.CHILDREN;
   }
   return superChildren;
@@ -271,12 +271,12 @@ function expandSuperNodeData(
 
   // If the supernode exists in the dictionary,
   // get the children of the supernode
-  if (superNode) {
+  if (superNode !== undefined) {
     const superChildrenIDs = superNode.CHILDREN;
     const childNodes: Node[] = [];
     superChildrenIDs.forEach((id: string) => {
       const childNode = childrenNodeNameDict.get(id);
-      if (childNode) {
+      if (childNode !== undefined) {
         childNodes.push(childNode);
       }
     });
@@ -294,7 +294,7 @@ function expandSuperNodeData(
     const expandedNodes = nodeCopy.map((node: Node) => {
       if (node.type === 'childnode') {
         const parentNodeID = superChildrenMap.get(node.id);
-        if (parentNodeID) {
+        if (parentNodeID !== undefined) {
           const parentIndexFunc = (matrixNode: Node) =>
             matrixNode.id === parentNodeID;
           const parentNodePosition = nodeCopy.findIndex(parentIndexFunc);
@@ -385,7 +385,7 @@ export function expandSuperNetwork(
   );
 
   let neighborNodes: Node[] = [];
-  if (expandNodes && expandLinks) {
+  if (expandNodes !== undefined && expandLinks !== undefined) {
     neighborNodes = defineNeighborNodes(expandNodes, expandLinks);
   }
 
