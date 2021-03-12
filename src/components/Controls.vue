@@ -87,10 +87,6 @@ export default Vue.extend({
 
       legendSVG.select('.legendLinear').call(legendLinear);
     },
-
-    updateNetwork(network: Network) {
-      this.network = network;
-    },
   },
   watch: {
     showGridLines: function () {
