@@ -6,7 +6,7 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
-import { loadData } from '@/lib/multinet';
+import store from '@/store';
 import { Network } from '@/types';
 
 // This is to be removed (stop-gap solution to superGraph network update)
@@ -18,9 +18,6 @@ export default Vue.extend({
   },
 
   data(): {
-    network: Network;
-    workspace: string;
-    networkName: string;
     selectNeighbors: boolean;
     showGridLines: boolean;
     enableGraffinity: boolean;
@@ -28,12 +25,6 @@ export default Vue.extend({
     visualizedAttributes: string[];
   } {
     return {
-      network: {
-        nodes: [],
-        links: [],
-      },
-      workspace: '',
-      networkName: '',
       selectNeighbors: true,
       showGridLines: true,
       enableGraffinity: false,
@@ -50,23 +41,23 @@ export default Vue.extend({
         return [];
       }
     },
+
+    network() {
+      return store.getters.network;
+    },
   },
 
   async mounted() {
-    const { workspace, networkName, host } = getUrlVars();
+    const { workspace, networkName } = getUrlVars();
     if (!workspace || !networkName) {
       throw new Error(
         `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
       );
     }
 
-    this.network = await loadData(workspace, networkName, host);
-    this.workspace = workspace;
-    this.networkName = networkName;
-
-    // Catch network update events here to propagate new data into the app.
-    eventBus.$on('updateNetwork', (network: Network) => {
-      this.network = network;
+    await store.dispatch.fetchNetwork({
+      workspaceName: workspace,
+      networkName,
     });
   },
 
@@ -235,7 +226,7 @@ export default Vue.extend({
       <v-row class="ma-0">
         <multi-matrix
           ref="multimatrix"
-          v-if="workspace"
+          v-if="network !== null"
           v-bind="{
             network,
             selectNeighbors,
