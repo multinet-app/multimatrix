@@ -24,6 +24,7 @@ import {
   selectAll,
 } from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
+import store from '@/store';
 
 import 'science';
 import 'reorder.js';
@@ -585,8 +586,7 @@ export default Vue.extend({
             const supernode = d;
             // expand and retract the supernode aggregation based on user selection
             if (this.clickMap.get(supernode.id)) {
-              this.$emit(
-                'updateNetwork',
+              store.commit.setNetwork(
                 retractSuperNetwork(
                   this.nonAggrNodes,
                   this.nonAggrLinks,
@@ -597,8 +597,7 @@ export default Vue.extend({
               );
               this.clickMap.set(supernode.id, false);
             } else {
-              this.$emit(
-                'updateNetwork',
+              store.commit.setNetwork(
                 expandSuperNetwork(
                   this.nonAggrNodes,
                   this.nonAggrLinks,
@@ -948,8 +947,7 @@ export default Vue.extend({
           if (this.enableGraffinity) {
             this.nonAggrNodes = processChildNodes(this.network.nodes);
             this.nonAggrLinks = processChildLinks(this.network.links);
-            this.$emit(
-              'updateNetwork',
+            store.commit.setNetwork(
               superGraph(this.network.nodes, this.network.links, d),
             );
           } else {

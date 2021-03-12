@@ -7,7 +7,6 @@ import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import store from '@/store';
-import { Network } from '@/types';
 
 // This is to be removed (stop-gap solution to superGraph network update)
 export const eventBus = new Vue();
@@ -237,7 +236,6 @@ export default Vue.extend({
           }"
           @restart-simulation="hello()"
           @updateMatrixLegendScale="createLegend"
-          @updateNetwork="updateNetwork"
         />
       </v-row>
     </v-col>
