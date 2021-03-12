@@ -42,7 +42,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
       CHILDREN: [],
       GROUP: attr,
       _key: attr,
-      id: 'supernodes/' + attr,
+      _id: 'supernodes/' + attr,
       neighbors: [],
       type: 'supernode',
     };
@@ -55,7 +55,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
       if (superNode !== undefined) {
-        superNode.CHILDREN.push(node.id);
+        superNode.CHILDREN.push(node._id);
       }
     }
   });
@@ -77,11 +77,11 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     superNodes.forEach((superNode) => {
       superNode.CHILDREN.forEach((origin: string) => {
         if (linkFrom === origin) {
-          const newLinkFrom = superNode.id;
+          const newLinkFrom = superNode._id;
           link._from = newLinkFrom;
         }
         if (linkTo === origin) {
-          const newLinkTo = superNode.id;
+          const newLinkTo = superNode._id;
           link._to = newLinkTo;
         }
       });
@@ -99,9 +99,9 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   superNodes.forEach((superNode) => {
     const children = superNode.CHILDREN;
     finalNodes.forEach((node) => {
-      if (children.includes(node.id)) {
-        const nodeIDValue = node.id;
-        finalNodes = finalNodes.filter((node) => node.id !== nodeIDValue);
+      if (children.includes(node._id)) {
+        const nodeIDValue = node._id;
+        finalNodes = finalNodes.filter((node) => node._id !== nodeIDValue);
       }
     });
   });
@@ -149,7 +149,7 @@ function deepCopyLinks(links: Link[]) {
 function mapNetworkNodes(nodes: Node[]) {
   const nodeMap = new Map<string, Node>();
   nodes.forEach((node: Node) => {
-    nodeMap.set(node.id, node);
+    nodeMap.set(node._id, node);
   });
   return nodeMap;
 }
@@ -193,7 +193,7 @@ function mapSuperChildren(node: Node[]) {
     }
     const superChildren = networkNode.CHILDREN;
     superChildren.forEach((childNode: string) => {
-      superChildrenMap.set(childNode, networkNode.id);
+      superChildrenMap.set(childNode, networkNode._id);
     });
   });
   return superChildrenMap;
@@ -224,7 +224,7 @@ function expandSuperNodeData(
     });
 
     // Find and insert the children of the selected supernode into the correct spot
-    const insertNodeFunc = (superNode: Node) => superNode.id == superNodeName;
+    const insertNodeFunc = (superNode: Node) => superNode._id == superNodeName;
     const insertNodeStart = nodeCopy.findIndex(insertNodeFunc);
     let count = 1;
     childNodes.forEach((node) => {
@@ -235,10 +235,10 @@ function expandSuperNodeData(
     // Add a parent position value for the child nodes
     nodeCopy.forEach((node: Node) => {
       if (node.type === 'node') {
-        const parentNodeID = superChildrenMap.get(node.id);
+        const parentNodeID = superChildrenMap.get(node._id);
         if (parentNodeID !== undefined) {
           const parentIndexFunc = (matrixNode: Node) =>
-            matrixNode.id === parentNodeID;
+            matrixNode._id === parentNodeID;
           const parentNodePosition = nodeCopy.findIndex(parentIndexFunc);
           node.parentPosition = parentNodePosition;
         }
@@ -298,8 +298,8 @@ function expandSuperLinksData(
 function defineNeighborNodes(nodes: Node[], links: Link[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   links.forEach((link) => {
-    const findNodeFrom = nodes.find((node) => node.id === link._from);
-    const findNodeTo = nodes.find((node) => node.id === link._to);
+    const findNodeFrom = nodes.find((node) => node._id === link._from);
+    const findNodeTo = nodes.find((node) => node._id === link._to);
     if (findNodeFrom !== undefined && findNodeTo !== undefined) {
       findNodeFrom.neighbors.push(link._to);
       findNodeTo.neighbors.push(link._from);
@@ -331,7 +331,7 @@ export function expandSuperNetwork(
 
   // Construct a new set of network nodes
   const expandNodes = expandSuperNodeData(
-    superNode.id,
+    superNode._id,
     aggrNodesCopy,
     childrenNodeNameDict,
     superNodeNameDict,
@@ -340,7 +340,7 @@ export function expandSuperNetwork(
 
   // Construct a new set of network links
   const expandLinks = expandSuperLinksData(
-    superNode.id,
+    superNode._id,
     aggrLinksCopy,
     nonAggrLinksCopy,
     superNodeNameDict,
@@ -386,7 +386,7 @@ function retractSuperNodeData(
 
     // Find and remove the children of the selected supernode and insert remaining nodes
     // into the correct position for visualizing the supergraph network
-    const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
+    const superIndexFunc = (superNode: Node) => superNode._id == superNodeName;
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
 
@@ -457,7 +457,7 @@ export function retractSuperNetwork(
 
   // Construct a new set of network nodes
   const retractNodes = retractSuperNodeData(
-    superNode.id,
+    superNode._id,
     aggrNodesCopy,
     childrenNodeNameDict,
     superNodeNameDict,
@@ -465,7 +465,7 @@ export function retractSuperNetwork(
 
   // Construct a new set of network links
   const retractLinks = retractSuperLinksData(
-    superNode.id,
+    superNode._id,
     aggrLinksCopy,
     nonAggrLinksCopy,
     superNodeNameDict,
