@@ -13,7 +13,7 @@ export interface Link {
 
 export interface Network {
   nodes: Node[];
-  links: Link[];
+  edges: Link[];
 }
 
 export interface Node {

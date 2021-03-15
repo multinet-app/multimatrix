@@ -109,7 +109,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   // Construct new network object
   const network = {
     nodes: finalNodes,
-    links: newLinks,
+    edges: newLinks,
   };
 
   return network;
@@ -356,7 +356,7 @@ export function expandSuperNetwork(
   // Create a new network containing the data for visualizing the expanded supergraph matrix
   const network = {
     nodes: neighborNodes,
-    links: expandLinks,
+    edges: expandLinks,
   };
 
   return network;
@@ -480,7 +480,7 @@ export function retractSuperNetwork(
   // Create a new network containing the data for visualizing the retracted supergraph matrix
   const network = {
     nodes: neighborNodes,
-    links: retractLinks,
+    edges: retractLinks,
   };
 
   return network;

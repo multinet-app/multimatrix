@@ -75,7 +75,7 @@ export default Vue.extend({
     nonAggrNodes: Node[];
     nonAggrLinks: Link[];
     expandRetractAggrVisNodes: Network; // variable for keeping track of the current nodes being visualized
-    expandRetractAggrVisLinks: Network; // variable for keeping track of the current links being visualized
+    expandRetractAggrVisEdges: Network; // variable for keeping track of the current links being visualized
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
@@ -110,11 +110,11 @@ export default Vue.extend({
       nonAggrLinks: [],
       expandRetractAggrVisNodes: {
         nodes: [],
-        links: [],
+        edges: [],
       },
-      expandRetractAggrVisLinks: {
+      expandRetractAggrVisEdges: {
         nodes: [],
-        links: [],
+        edges: [],
       },
       icons: {
         quant: {
@@ -361,12 +361,12 @@ export default Vue.extend({
         });
       });
 
-      // Count occurrences of links and store it in the matrix
-      this.network.links.forEach((link: Link) => {
-        this.matrix[this.idMap[link._from]][this.idMap[link._to]].z += 1;
+      // Count occurrences of edges and store it in the matrix
+      this.network.edges.forEach((edge: Link) => {
+        this.matrix[this.idMap[edge._from]][this.idMap[edge._to]].z += 1;
 
         if (!this.directional) {
-          this.matrix[this.idMap[link._to]][this.idMap[link._from]].z += 1;
+          this.matrix[this.idMap[edge._to]][this.idMap[edge._from]].z += 1;
         }
       });
 
@@ -591,7 +591,7 @@ export default Vue.extend({
                   this.nonAggrNodes,
                   this.nonAggrLinks,
                   this.network.nodes,
-                  this.network.links,
+                  this.network.edges,
                   supernode,
                 ),
               );
@@ -602,7 +602,7 @@ export default Vue.extend({
                   this.nonAggrNodes,
                   this.nonAggrLinks,
                   this.network.nodes,
-                  this.network.links,
+                  this.network.edges,
                   supernode,
                 ),
               );
@@ -946,9 +946,9 @@ export default Vue.extend({
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
             this.nonAggrNodes = processChildNodes(this.network.nodes);
-            this.nonAggrLinks = processChildLinks(this.network.links);
+            this.nonAggrLinks = processChildLinks(this.network.edges);
             store.commit.setNetwork(
-              superGraph(this.network.nodes, this.network.links, d),
+              superGraph(this.network.nodes, this.network.edges, d),
             );
           } else {
             this.sort(d);
@@ -1267,16 +1267,16 @@ export default Vue.extend({
         type === 'clusterBary' ||
         type === 'clusterLeaf'
       ) {
-        const links: any[] = Array(this.network.links.length);
+        const edges: any[] = Array(this.network.edges.length);
 
         // Generate links that are compatible with reorder.js
-        this.network.links.forEach((link: Link, index: number) => {
-          links[index] = {
+        this.network.edges.forEach((edge: Link, index: number) => {
+          edges[index] = {
             source: this.network.nodes.find(
-              (node: Node) => node._id === link._from,
+              (node: Node) => node._id === edge._from,
             ),
             target: this.network.nodes.find(
-              (node: Node) => node._id === link._to,
+              (node: Node) => node._id === edge._to,
             ),
           };
         });
@@ -1284,7 +1284,7 @@ export default Vue.extend({
         const sortableNetwork = reorder
           .graph()
           .nodes(this.network.nodes)
-          .links(links)
+          .links(edges)
           .init();
 
         if (type === 'clusterBary') {
