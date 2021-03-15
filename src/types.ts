@@ -5,11 +5,7 @@ export interface Dimensions {
   width: number;
 }
 
-export interface Link {
-  _key: string;
-  id: string;
-  _from: string;
-  _to: string;
+export interface Link extends TableRow {
   [propName: string]: any;
 }
 
