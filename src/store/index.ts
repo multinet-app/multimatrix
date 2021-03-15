@@ -63,7 +63,9 @@ const {
       // Generate all node table promises
       const nodePromises: Promise<RowsSpec>[] = [];
       networkTables.nodeTables.forEach((table) => {
-        nodePromises.push(api.table(workspaceName, table, { offset: 0, limit: 1000 }));
+        nodePromises.push(
+          api.table(workspaceName, table, { offset: 0, limit: 1000 }),
+        );
       });
 
       // Resolve all node table promises and extract the rows
@@ -74,7 +76,11 @@ const {
       });
 
       // Generate and resolve edge table promise and extract rows
-      const edgePromise = await api.table(workspaceName, networkTables.edgeTable, { offset: 0, limit: 1000 });
+      const edgePromise = await api.table(
+        workspaceName,
+        networkTables.edgeTable,
+        { offset: 0, limit: 1000 },
+      );
       const edges = edgePromise.rows;
 
       // Build the network object and set it as the network in the store
