@@ -8,7 +8,14 @@ import {
   expandSuperNetwork,
   retractSuperNetwork,
 } from '@/lib/aggregation';
-import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
+import {
+  Cell,
+  Dimensions,
+  Link,
+  Network,
+  Node,
+  ProvenanceState,
+} from '@/types';
 import {
   axisTop,
   max,
@@ -744,9 +751,9 @@ export default Vue.extend({
     },
 
     changeInteraction(
-      state: State,
+      state: ProvenanceState,
       nodeID: string,
-      interaction: keyof State['selections'],
+      interaction: keyof ProvenanceState['selections'],
       interactionName: string = interaction,
     ): void {
       if (nodeID in state.selections[interaction]) {
@@ -1242,7 +1249,11 @@ export default Vue.extend({
 
     generateSortAction(
       sortKey: string,
-    ): { label: string; action: (key: string) => State; args: any[] } {
+    ): {
+      label: string;
+      action: (key: string) => ProvenanceState;
+      args: any[];
+    } {
       return {
         label: 'sort',
         action: (key: string) => {
@@ -1326,7 +1337,7 @@ export default Vue.extend({
       return order;
     },
 
-    getApplicationState(): State {
+    getApplicationState(): ProvenanceState {
       return this.provenance.graph().current.state;
     },
 
