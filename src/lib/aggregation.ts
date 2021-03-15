@@ -3,8 +3,8 @@ import { Link, Node } from '@/types';
 function defineSuperNeighbors(nodes: any[], links: any[]) {
   nodes.map((d: { neighbors: string[] }) => (d.neighbors = []));
   links.forEach((link) => {
-    const findNodeFrom = nodes.find((node) => node.id === link._from);
-    const findNodeTo = nodes.find((node) => node.id === link._to);
+    const findNodeFrom = nodes.find((node) => node._id === link._from);
+    const findNodeTo = nodes.find((node) => node._id === link._to);
     findNodeFrom.neighbors.push(link._to);
     findNodeTo.neighbors.push(link._from);
   });
