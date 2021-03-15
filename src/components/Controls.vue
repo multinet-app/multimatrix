@@ -68,7 +68,7 @@ export default Vue.extend({
           type: `text/json`,
         }),
       );
-      a.download = `${this.networkName}.json`;
+      a.download = `${store.getters.networkName}.json`;
       a.click();
     },
     createLegend(colorScale: ScaleLinear<string, number>) {
