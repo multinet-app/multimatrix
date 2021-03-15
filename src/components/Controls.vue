@@ -34,7 +34,7 @@ export default Vue.extend({
 
   computed: {
     attributeList(this: any) {
-      if (typeof this.network.nodes[0] !== 'undefined') {
+      if (this.network !== null && typeof this.network.nodes[0] !== 'undefined') {
         return Object.keys(this.network.nodes[0]);
       } else {
         return [];
