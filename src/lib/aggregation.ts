@@ -525,3 +525,28 @@ export function retractSuperNetwork(
   };
   return network;
 }
+
+// Function that builds the non-aggregated matrix
+export function nonAggrNetwork(nonAggrNodes: Node[], nonAggrLinks: Link[]) {
+  const nodeCopy: Node[] = nonAggrNodes.map((node: Node) => {
+    const newNode = {
+      ...node,
+    };
+    newNode.type = undefined;
+    return newNode;
+  });
+
+  const linkCopy: Link[] = nonAggrLinks.map((link: Link) => {
+    const newLink = {
+      ...link,
+    };
+    newLink.type = undefined;
+    return newLink;
+  });
+
+  const network = {
+    nodes: nodeCopy,
+    links: linkCopy,
+  };
+  return network;
+}
