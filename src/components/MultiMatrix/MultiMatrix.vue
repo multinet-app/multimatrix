@@ -704,6 +704,24 @@ export default Vue.extend({
         const retractPath =
           'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
 
+        // Update existing icons
+        (selectAll('.aggrButton') as any)
+          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .attr('d', (d: Node) => {
+            console.log(d._key);
+            if (d.type === 'supernode') {
+              const nodeID = d.id;
+              if (this.clickMap.get(nodeID) === true) {
+                return retractPath;
+              } else {
+                return expandPath;
+              }
+            } else {
+              return '';
+            }
+          });
+
+        // Add new icons
         rowEnter
           .append('path')
           .attr('d', (d: Node) => {
