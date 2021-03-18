@@ -756,7 +756,7 @@ export default Vue.extend({
         })
         .on('click', (d: Node) => {
           // allow expanding the vis if graffinity features are turned on
-          if (this.enableGraffinity === true) {
+          if (this.enableGraffinity) {
             if (d.type === 'childnode') {
               return;
             }
