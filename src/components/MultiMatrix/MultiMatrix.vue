@@ -7,7 +7,6 @@ import {
   processChildLinks,
   expandSuperNetwork,
   retractSuperNetwork,
-  nonAggrNetwork,
 } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
@@ -293,17 +292,6 @@ export default Vue.extend({
       this.processData();
       this.changeMatrix();
     },
-
-    enableGraffinity() {
-      if (this.enableGraffinity === false) {
-        this.$emit(
-          'updateNetwork',
-          nonAggrNetwork(this.nonAggrNodes, this.nonAggrLinks),
-        );
-        this.$emit('updateMatrixLegends', false, false);
-      }
-    },
-
     colorScale() {
       this.$emit('updateMatrixLegendScale', this.colorScale);
     },
@@ -796,15 +784,24 @@ export default Vue.extend({
               // Display Child Legend
               this.$emit('updateMatrixLegends', true, true);
             }
+          } else {
+            rowEnter
+              .on('click', (d: Node) => {
+                this.selectElement(d);
+                this.selectNeighborNodes(d.id, d.neighbors);
+              })
+              .attr('cursor', 'pointer');
           }
         });
 
       rowEnter.append('g').attr('class', 'cellsGroup');
       if (this.enableGraffinity === false) {
-        rowEnter.on('click', (d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
-        });
+        rowEnter
+          .on('click', (d: Node) => {
+            this.selectElement(d);
+            this.selectNeighborNodes(d.id, d.neighbors);
+          })
+          .attr('cursor', 'pointer');
       }
 
       this.edgeRows.merge(rowEnter);
