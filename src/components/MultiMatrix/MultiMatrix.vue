@@ -725,8 +725,7 @@ export default Vue.extend({
           .append('path')
           .attr('d', (d: Node) => {
             if (d.type === 'supernode') {
-              const nodeID = d.id;
-              if (this.clickMap.get(nodeID) === true) {
+              if (this.clickMap.get(d.id) === true) {
                 return retractPath;
               } else {
                 return expandPath;
