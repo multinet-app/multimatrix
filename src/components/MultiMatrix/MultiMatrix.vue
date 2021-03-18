@@ -697,8 +697,7 @@ export default Vue.extend({
           .data(this.network.nodes, (d: Node) => d._id || d.id)
           .attr('d', (d: Node) => {
             if (d.type === 'supernode') {
-              const nodeID = d.id;
-              if (this.clickMap.get(nodeID) === true) {
+              if (this.clickMap.get(d.id)) {
                 return retractPath;
               } else {
                 return expandPath;
