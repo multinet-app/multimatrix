@@ -794,14 +794,14 @@ export default Vue.extend({
         });
 
       rowEnter.append('g').attr('class', 'cellsGroup');
-      if (this.enableGraffinity === false) {
-        rowEnter
-          .on('click', (d: Node) => {
-            this.selectElement(d);
-            this.selectNeighborNodes(d.id, d.neighbors);
-          })
-          .attr('cursor', 'pointer');
-      }
+
+      // Green highlight if the aggregation is not enabled
+      rowEnter
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        })
+        .attr('cursor', 'pointer');
 
       this.edgeRows.merge(rowEnter);
 
