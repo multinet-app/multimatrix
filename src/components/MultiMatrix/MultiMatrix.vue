@@ -684,6 +684,9 @@ export default Vue.extend({
         this.unHoverNode(d.id);
       });
 
+      // Translation for invisible rectangles
+      const invisibleRectTransform = 'translate(-74, 3)';
+
       // Show the icons
       if (this.showIcon === true) {
         // Icon Paths
@@ -723,7 +726,7 @@ export default Vue.extend({
           })
           .attr('class', 'aggrButton')
           .attr('fill', '#8B8B8B')
-          .attr('transform', 'scale(0.6)translate(-127, 2)');
+          .attr('transform', invisibleRectTransform);
       }
 
       // Add Rectangles
@@ -731,7 +734,7 @@ export default Vue.extend({
         .append('rect')
         .attr('width', 10)
         .attr('height', 10)
-        .attr('transform', 'translate(-74, 3)')
+        .attr('transform', invisibleRectTransform)
         .style('opacity', 0)
         .attr('class', 'invisibleRect')
         .attr('cursor', (d: Node) => {
