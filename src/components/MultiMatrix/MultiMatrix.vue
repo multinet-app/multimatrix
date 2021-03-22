@@ -305,6 +305,11 @@ export default Vue.extend({
     childColorScale() {
       this.$emit('updateChildMatrixLegendScale', this.childColorScale, 'child');
     },
+    enableGraffinity() {
+      if (this.enableGraffinity === false) {
+        console.log('Restore Original Matrix');
+      }
+    },
   },
 
   async mounted(this: any) {
