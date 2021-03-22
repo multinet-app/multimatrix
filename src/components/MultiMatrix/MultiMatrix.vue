@@ -7,6 +7,7 @@ import {
   processChildLinks,
   expandSuperNetwork,
   retractSuperNetwork,
+  nonAggrNetwork,
 } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
@@ -292,6 +293,44 @@ export default Vue.extend({
       this.processData();
       this.changeMatrix();
     },
+
+    enableGraffinity() {
+      if (this.enableGraffinity === false) {
+        console.log('Disabled Aggregation!');
+
+        // Clear the click map so correct icons are drawn for aggregation
+        this.clickMap.clear();
+
+        // Update matrix to non-aggregated state
+        console.log("the network nodes: ", this.nonAggrNodes);
+        this.$emit(
+          'updateNetwork',
+          nonAggrNetwork(this.nonAggrNodes, this.nonAggrLinks),
+        );
+
+        // Update everything on the screen
+        const labelContainerHeight = 25;
+        const rowLabelContainerStart = 75;
+        const labelContainerWidth = rowLabelContainerStart;
+        (selectAll('.rowContainer')as any)
+        .selectAll('foreignObject')
+          .attr('x', (d: Node) => {
+            if (d.type === 'childnode') {
+              console.log("this should not happen")
+              return -rowLabelContainerStart + 29;
+            } else {
+              return -rowLabelContainerStart + 20;
+            }
+          })
+          .attr('y', -5)
+          .attr('width', labelContainerWidth - 15)
+          .attr('height', labelContainerHeight);
+
+
+
+        this.$emit('updateMatrixLegends', false, false);
+      }
+    },
     colorScale() {
       this.$emit('updateMatrixLegendScale', this.colorScale);
     },
@@ -304,11 +343,6 @@ export default Vue.extend({
     },
     childColorScale() {
       this.$emit('updateChildMatrixLegendScale', this.childColorScale, 'child');
-    },
-    enableGraffinity() {
-      if (this.enableGraffinity === false) {
-        console.log('Restore Original Matrix');
-      }
     },
   },
 
