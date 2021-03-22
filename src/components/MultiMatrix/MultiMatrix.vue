@@ -840,14 +840,6 @@ export default Vue.extend({
 
       rowEnter.append('g').attr('class', 'cellsGroup');
 
-      // Green highlight if the aggregation is not enabled
-      // rowEnter
-      //   .on('click', (d: Node) => {
-      //     this.selectElement(d);
-      //     this.selectNeighborNodes(d.id, d.neighbors);
-      //   })
-      //   .attr('cursor', 'pointer');
-
       this.edgeRows.merge(rowEnter);
 
       this.drawGridLines();
