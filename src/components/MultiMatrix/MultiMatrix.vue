@@ -95,7 +95,7 @@ export default Vue.extend({
     sortKey: string;
     colMargin: number;
     showIcon: boolean;
-    disableAggr: boolean;
+    aggregated: boolean;
   } {
     return {
       browser: {
@@ -155,7 +155,7 @@ export default Vue.extend({
       sortKey: '',
       colMargin: 5,
       showIcon: false,
-      disableAggr: false,
+      aggregated: false,
     };
   },
 
@@ -297,7 +297,7 @@ export default Vue.extend({
     },
 
     enableGraffinity() {
-      if (this.enableGraffinity === false && this.disableAggr === true) {
+      if (!this.enableGraffinity && this.aggregated === true) {
         console.log('Disabled Aggregation!');
 
         // Clear the click map so correct icons are drawn for aggregation
@@ -342,7 +342,11 @@ export default Vue.extend({
           .style('color', 'black')
           .classed('rowLabels', true);
 
+        // Update the legend
         this.$emit('updateMatrixLegends', false, false);
+
+        // Reset aggregated state
+        this.aggregated = false;
       }
     },
     colorScale() {
@@ -1251,7 +1255,7 @@ export default Vue.extend({
             );
 
             // Turn on the disable aggregation
-            this.disableAggr = true;
+            this.aggregated = true;
 
             // View/Hide Matrix Legends
             this.$emit('updateMatrixLegends', true, false);
