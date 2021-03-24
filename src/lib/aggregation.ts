@@ -190,6 +190,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   selectedAttributes.forEach((attr: string) => {
     const superNode = {
       CHILDREN: [],
+      CHILD_COUNT: 0,
       GROUP: attr,
       _key: attr,
       id: 'supernodes/' + attr,
@@ -205,6 +206,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
       const superNode = superMap.get(node[attribute]);
       if (superNode !== undefined) {
         superNode.CHILDREN.push(node.id);
+        superNode.CHILD_COUNT += 1;
       }
     }
   });
