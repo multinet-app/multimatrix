@@ -348,6 +348,13 @@ export default Vue.extend({
         // Reset aggregated state
         this.aggregated = false;
       }
+      // if (this.enableGraffinity && this.aggregated === true) {
+      //   console.log('add counts');
+      //   // (selectAll('.attrRow') as any)
+      //   //   .data(this.network.nodes, (d: Node) => d._id || d.id)
+      //   //   .append('foreignObject')
+      //   //   .class('hello', true);
+      // }
     },
     colorScale() {
       this.$emit('updateMatrixLegendScale', this.colorScale);
@@ -749,31 +756,6 @@ export default Vue.extend({
           }
         })
         .classed('rowLabels', true);
-
-      // Add the children count
-      rowEnter
-        .append('foreignObject')
-        .attr('x', () => {
-          return -rowLabelContainerStart + 50;
-        })
-        .attr('y', -5)
-        .attr('width', () => {
-          return labelContainerWidth - 55;
-        })
-        .attr('height', labelContainerHeight)
-        .classed('countForeign', true)
-        .append('xhtml:p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d.CHILD_COUNT;
-          } else {
-            return undefined;
-          }
-        })
-        .style('color', () => {
-          return 'black';
-        })
-        .classed('countLabels', true);
 
       rowEnter.selectAll('p').style('color', (d: Node) => {
         if (d.type === 'childnode') {
@@ -1276,7 +1258,7 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .attr('y', 16)
         .text((d: string) => d)
-        .attr('width', this.colWidth)
+        .attr('width', this.colWidth - 40)
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
             this.nonAggrNodes = processChildNodes(this.network.nodes);
@@ -1363,9 +1345,9 @@ export default Vue.extend({
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
           if (this.isQuantitative(varName)) {
-            return this.attributeScales[varName](d[varName]);
+            return this.attributeScales[varName](d[varName]) - 40;
           } else {
-            return this.colWidth;
+            return this.colWidth - 40;
           }
         });
 
@@ -1380,7 +1362,11 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      // Draw new vis elements (bars/colors)
+      // Constants for count labels
+      const labelContainerHeight = 25;
+      const rowLabelContainerStart = 75;
+      const labelContainerWidth = rowLabelContainerStart;
+
       attributeVisEnter
         .append('rect')
         .attr('height', this.orderingScale.bandwidth())
@@ -1388,9 +1374,9 @@ export default Vue.extend({
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
           if (this.isQuantitative(varName)) {
-            return this.attributeScales[varName](d[varName]);
+            return this.attributeScales[varName](d[varName]) - 40;
           } else {
-            return this.colWidth;
+            return this.colWidth - 40;
           }
         })
         .attr('fill', (d: Node, i: number, htmlNodes: any) => {
@@ -1413,6 +1399,30 @@ export default Vue.extend({
           this.selectElement(d);
           this.selectNeighborNodes(d.id, d.neighbors);
         });
+      // Draw new vis elements (bars/colors)
+      attributeVisEnter
+        .append('foreignObject')
+        .attr('x', () => {
+          return 270;
+        })
+        .attr('y', -5)
+        .attr('width', () => {
+          return labelContainerWidth - 55;
+        })
+        .attr('height', labelContainerHeight)
+        .classed('countForeign', true)
+        .append('xhtml:p')
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d.CHILD_COUNT;
+          } else {
+            return undefined;
+          }
+        })
+        .style('color', () => {
+          return 'black';
+        })
+        .classed('countLabels', true);
     },
 
     isQuantitative(varName: string): boolean {
