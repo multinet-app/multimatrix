@@ -316,7 +316,7 @@ export default Vue.extend({
 
         // Update the rows and row labels
         (selectAll('.rowContainer') as any)
-          .selectAll('foreignObject')
+          .selectAll('.rowForeign')
           .data(this.network.nodes, (d: Node) => d._id || d.id)
           .attr('x', -rowLabelContainerStart + 20)
           .attr('y', -5)
@@ -730,8 +730,15 @@ export default Vue.extend({
           }
         })
         .attr('y', -5)
-        .attr('width', labelContainerWidth - 15)
+        .attr('width', (d: Node) => {
+          if (d.type === 'supernode') {
+            return labelContainerWidth - 45;
+          } else {
+            return labelContainerWidth - 15;
+          }
+        })
         .attr('height', labelContainerHeight)
+        .classed('rowForeign', true)
         .append('xhtml:p')
         .text((d: Node) => d._key)
         .style('color', (d: Node) => {
@@ -742,6 +749,31 @@ export default Vue.extend({
           }
         })
         .classed('rowLabels', true);
+
+      // Add the children count
+      rowEnter
+        .append('foreignObject')
+        .attr('x', () => {
+          return -rowLabelContainerStart + 50;
+        })
+        .attr('y', -5)
+        .attr('width', () => {
+          return labelContainerWidth - 55;
+        })
+        .attr('height', labelContainerHeight)
+        .classed('countForeign', true)
+        .append('xhtml:p')
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d.CHILD_COUNT;
+          } else {
+            return undefined;
+          }
+        })
+        .style('color', () => {
+          return 'black';
+        })
+        .classed('countLabels', true);
 
       rowEnter.selectAll('p').style('color', (d: Node) => {
         if (d.type === 'childnode') {
