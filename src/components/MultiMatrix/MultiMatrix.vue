@@ -1353,6 +1353,48 @@ export default Vue.extend({
 
       attributeVis.exit().remove();
 
+      // Update attribute groups
+      (selectAll('.attrRow') as any)
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr(
+          'transform',
+          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+        );
+
+      (selectAll('.attrVis') as any)
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr('height', this.orderingScale.bandwidth())
+        .attr('width', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+
+          if (this.isQuantitative(varName)) {
+            return this.attributeScales[varName](d[varName]) - 40;
+          } else {
+            return this.colWidth - 40;
+          }
+        })
+        .attr('class', 'visAttr')
+        .attr('fill', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+
+          if (this.isQuantitative(varName)) {
+            return '#82b1ff';
+          } else {
+            if (d.type === 'supernode') {
+              return this.attributeScales[varName](d['GROUP']);
+            } else {
+              return this.attributeScales[varName](d[varName]);
+            }
+          }
+        })
+        .attr('cursor', 'pointer')
+        .on('mouseover', (d: Node) => this.hoverNode(d.id))
+        .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        });
+
       const attributeVisEnter = attributeVis
         .enter()
         .append('g')
@@ -1362,7 +1404,6 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      // Draw new vis elements (bars/colors)
       attributeVisEnter
         .append('rect')
         .attr('height', this.orderingScale.bandwidth())
@@ -1375,6 +1416,7 @@ export default Vue.extend({
             return this.colWidth - 40;
           }
         })
+        .attr('class', 'visAttr')
         .attr('fill', (d: Node, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
