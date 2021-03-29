@@ -1362,11 +1362,7 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      // Constants for count labels
-      const labelContainerHeight = 25;
-      const rowLabelContainerStart = 75;
-      const labelContainerWidth = rowLabelContainerStart;
-
+      // Draw new vis elements (bars/colors)
       attributeVisEnter
         .append('rect')
         .attr('height', this.orderingScale.bandwidth())
@@ -1399,30 +1395,6 @@ export default Vue.extend({
           this.selectElement(d);
           this.selectNeighborNodes(d.id, d.neighbors);
         });
-      // Draw new vis elements (bars/colors)
-      attributeVisEnter
-        .append('foreignObject')
-        .attr('x', () => {
-          return 270;
-        })
-        .attr('y', -5)
-        .attr('width', () => {
-          return labelContainerWidth - 55;
-        })
-        .attr('height', labelContainerHeight)
-        .classed('countForeign', true)
-        .append('xhtml:p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d.CHILD_COUNT;
-          } else {
-            return undefined;
-          }
-        })
-        .style('color', () => {
-          return 'black';
-        })
-        .classed('countLabels', true);
     },
 
     isQuantitative(varName: string): boolean {
