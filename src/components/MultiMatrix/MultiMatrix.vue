@@ -348,13 +348,6 @@ export default Vue.extend({
         // Reset aggregated state
         this.aggregated = false;
       }
-      // if (this.enableGraffinity && this.aggregated === true) {
-      //   console.log('add counts');
-      //   // (selectAll('.attrRow') as any)
-      //   //   .data(this.network.nodes, (d: Node) => d._id || d.id)
-      //   //   .append('foreignObject')
-      //   //   .class('hello', true);
-      // }
     },
     colorScale() {
       this.$emit('updateMatrixLegendScale', this.colorScale);
@@ -1361,22 +1354,19 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      (selectAll('.attrVis') as any)
+      (selectAll('.visAttr') as any)
         .data(this.network.nodes, (d: Node) => d._id || d.id)
         .attr('height', this.orderingScale.bandwidth())
         .attr('width', (d: Node, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-
           if (this.isQuantitative(varName)) {
             return this.attributeScales[varName](d[varName]) - 40;
           } else {
             return this.colWidth - 40;
           }
         })
-        .attr('class', 'visAttr')
         .attr('fill', (d: Node, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-
           if (this.isQuantitative(varName)) {
             return '#82b1ff';
           } else {
@@ -1437,6 +1427,8 @@ export default Vue.extend({
           this.selectElement(d);
           this.selectNeighborNodes(d.id, d.neighbors);
         });
+
+      attributeVis.merge(attributeVisEnter);
     },
 
     isQuantitative(varName: string): boolean {
@@ -1445,7 +1437,7 @@ export default Vue.extend({
           this.network.nodes.map((node: Node) => parseFloat(node[varName])),
         ),
       ];
-      return uniqueValues.length > 5;
+      return uniqueValues.length > 13;
     },
 
     selectElement(element: Cell | Node): void {
