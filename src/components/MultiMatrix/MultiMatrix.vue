@@ -298,8 +298,6 @@ export default Vue.extend({
 
     enableGraffinity() {
       if (!this.enableGraffinity && this.aggregated === true) {
-        console.log('Disabled Aggregation!');
-
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
 
