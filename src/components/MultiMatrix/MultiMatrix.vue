@@ -964,7 +964,6 @@ export default Vue.extend({
     },
     renderAttributeVis(): void {
       // Just has to be larger than the attributes panel (so that we render to the edge)
-      console.log("combinedAttributes", this.combinedAttributes)
       const attributeWidth = 1000;
 
       // Add/Update zebras
@@ -1187,8 +1186,6 @@ export default Vue.extend({
         }
       });
 
-      // const xScale = scaleLinear().range([0, this.colWidth]);
-      
       const attributeVis = (selectAll('.attrRows') as any)
         .selectAll('.attrRow')
         .data(this.network.nodes, (d: Node) => d._id || d.id);
@@ -1228,7 +1225,7 @@ export default Vue.extend({
           varName = htmlNodes[i].parentElement.classList[1]
     
           if (this.combinedAttributes.includes(varName)) {
-          // Draw node vis elements
+          // Draw node attributes
           if (this.visualizedAttributes.includes(varName)){
             toAppend.append('rect')
             .attr('height', this.orderingScale.bandwidth())
@@ -1254,7 +1251,7 @@ export default Vue.extend({
               this.selectNeighborNodes(d.id, d.neighbors);
             })
           } else {
-            // Draw link vis elements
+            // Draw link attributes
             if (this.isQuantitative(varName)) {
           // Draw box plot
           const bScale = scaleLinear()
@@ -1282,7 +1279,12 @@ export default Vue.extend({
             .call(bPlot);
         } else if (this.visualizedLinkAttributes.includes(varName)) {
           // Draw stacked bar chart
-            const stackedBars = toAppend
+            
+            
+            selectAll('rect.stackedBars').exit().remove()
+
+            const stackedBars = 
+            toAppend
             .selectAll('rect')
             .data(
               (d: {
@@ -1293,8 +1295,8 @@ export default Vue.extend({
                 series: Series<{ [key: string]: number }, string>;
               }) => d.series,
             )
-            stackedBars.exit().remove()
 
+            
 
             const stackedBarsEnter = stackedBars
             .enter()
@@ -1311,6 +1313,7 @@ export default Vue.extend({
               this.stackedBarColorScale(seriesData)(d.key),
             )
             .attr('height', this.orderingScale.bandwidth())
+            .classed('stackedBars', true)
             .append('title')
             .text(
               (d: Series<{ [key: string]: number }, string>) =>
