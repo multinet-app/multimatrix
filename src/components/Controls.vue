@@ -47,14 +47,18 @@ export default Vue.extend({
   computed: {
     attributeList(this: any) {
       if (typeof this.network.nodes[0] !== 'undefined') {
-        return Object.keys(this.network.nodes[0]);
+        return Object.keys(this.network.nodes[0]).filter((k: string) => {
+          return k != '_key' && k != '_rev' && k != 'id';
+        });
       } else {
         return [];
       }
     },
     linkAttributeList(this: any) {
       if (typeof this.network.links[0] !== 'undefined') {
-        return Object.keys(this.network.links[0]);
+        return Object.keys(this.network.links[0]).filter((k: string) => {
+          return k != '_key' && k != '_rev' && k != 'id';
+        });
       } else {
         return [];
       }
