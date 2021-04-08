@@ -7,6 +7,7 @@ import {
   processChildLinks,
   expandSuperNetwork,
   retractSuperNetwork,
+  nonAggrNetwork,
 } from '@/lib/aggregation';
 import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
 import {
@@ -94,6 +95,7 @@ export default Vue.extend({
     sortKey: string;
     colMargin: number;
     showIcon: boolean;
+    aggregated: boolean;
   } {
     return {
       browser: {
@@ -153,6 +155,7 @@ export default Vue.extend({
       sortKey: '',
       colMargin: 5,
       showIcon: false,
+      aggregated: false,
     };
   },
 
@@ -291,6 +294,58 @@ export default Vue.extend({
     directional() {
       this.processData();
       this.changeMatrix();
+    },
+
+    enableGraffinity() {
+      if (!this.enableGraffinity && this.aggregated === true) {
+        // Clear the click map so correct icons are drawn for aggregation
+        this.clickMap.clear();
+
+        this.$emit(
+          'updateNetwork',
+          nonAggrNetwork(this.nonAggrNodes, this.nonAggrLinks),
+        );
+
+        // Update everything on the screen
+        const columnLabelContainerStart = 20;
+        const labelContainerHeight = 25;
+        const rowLabelContainerStart = 75;
+        const labelContainerWidth = rowLabelContainerStart;
+
+        // Update the rows and row labels
+        (selectAll('.rowContainer') as any)
+          .selectAll('foreignObject')
+          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .attr('x', -rowLabelContainerStart + 20)
+          .attr('y', -5)
+          .attr('width', labelContainerWidth - 15)
+          .attr('height', labelContainerHeight);
+
+        (selectAll('.rowLabels') as any)
+          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .style('color', 'black')
+          .classed('rowLabels', true);
+
+        // Update the columns and the column labels
+        (selectAll('.column') as any)
+          .selectAll('foreignObject')
+          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .attr('y', -5)
+          .attr('x', columnLabelContainerStart)
+          .attr('width', labelContainerWidth)
+          .attr('height', labelContainerHeight);
+
+        (selectAll('.colLabels') as any)
+          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .style('color', 'black')
+          .classed('rowLabels', true);
+
+        // Update the legend
+        this.$emit('updateMatrixLegends', false, false);
+
+        // Reset aggregated state
+        this.aggregated = false;
+      }
     },
     colorScale() {
       this.$emit('updateMatrixLegendScale', this.colorScale);
@@ -1196,6 +1251,9 @@ export default Vue.extend({
               'updateNetwork',
               superGraph(this.network.nodes, this.network.links, d),
             );
+
+            // Turn on the disable aggregation
+            this.aggregated = true;
 
             // View/Hide Matrix Legends
             this.$emit('updateMatrixLegends', true, false);
