@@ -1282,7 +1282,7 @@ export default Vue.extend({
         .style('word-wrap', 'break-word')
         .attr('text-anchor', 'left')
         .attr('transform', 'translate(258, 0)')
-        .text('# children')
+        .text('# children');
 
       attributeRowsEnter
         .append('path')
