@@ -1450,7 +1450,7 @@ export default Vue.extend({
         })
         .attr('y', -5)
         .attr('width', () => {
-          return labelContainerWidth - 55;
+          return labelContainerWidth - 50;
         })
         .attr('height', labelContainerHeight)
         .classed('countForeign', true)
