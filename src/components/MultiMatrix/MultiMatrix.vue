@@ -298,7 +298,6 @@ export default Vue.extend({
 
     enableGraffinity() {
       if (!this.enableGraffinity && this.aggregated === true) {
-        console.log('Disabled Aggregation!');
 
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
@@ -1477,7 +1476,6 @@ export default Vue.extend({
           this.network.nodes.map((node: Node) => parseFloat(node[varName])),
         ),
       ];
-      console.log('number of unique values: ', uniqueValues.length);
       return uniqueValues.length > uniqueValues.length + 1;
     },
 
