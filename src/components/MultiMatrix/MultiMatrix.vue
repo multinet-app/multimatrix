@@ -1274,6 +1274,16 @@ export default Vue.extend({
           }
         });
 
+      // Add Children Count Label
+      attributeRowsEnter
+        .append('text')
+        .style('font-size', '10px')
+        .style('text-transform', 'capitalize')
+        .style('word-wrap', 'break-word')
+        .attr('text-anchor', 'left')
+        .attr('transform', 'translate(258, 0)')
+        .text('# children')
+
       attributeRowsEnter
         .append('path')
         .attr('class', `sortIcon attr attrSortIcon`)
