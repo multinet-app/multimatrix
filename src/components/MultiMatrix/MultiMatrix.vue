@@ -227,8 +227,8 @@ export default Vue.extend({
 
       const edgeAttributes = Object.keys(rowData[0].values[0]);
 
-      const combinedRowData = [...this.network.nodes]
-      rowData.forEach((d: any, i:number) => {
+      const combinedRowData = [...this.network.nodes];
+      rowData.forEach((d: any, i: number) => {
         const rowAttrs: { [key: string]: string[] } = {};
         edgeAttributes.forEach((attr: string) => {
           const attrList = d.values.reduce((accum: any[], currentVal: any) => {
@@ -238,10 +238,10 @@ export default Vue.extend({
           }, []);
           rowAttrs[attr] = attrList;
         });
-        combinedRowData[i]['values'] = rowAttrs
-        combinedRowData[i]['series'] = []
+        combinedRowData[i]['values'] = rowAttrs;
+        combinedRowData[i]['series'] = [];
       });
-      
+
       return combinedRowData;
     },
 
@@ -319,14 +319,11 @@ export default Vue.extend({
 
   watch: {
     visualizedAttributes() {
-      this.combineNodeAttributes()
+      this.combineNodeAttributes();
     },
     visualizedLinkAttributes() {
-      this.combineLinkAttributes()
+      this.combineLinkAttributes();
     },
-    // combinedAttributes() {
-    //   this.renderAttributeVis()
-    //   },
     network() {
       this.processData();
       this.changeMatrix();
@@ -411,42 +408,60 @@ export default Vue.extend({
 
     this.provenance = this.setUpProvenance();
 
-    this.renderAttributeVis()
+    this.renderAttributeVis();
     this.initializeEdges();
   },
 
   methods: {
     changeMatrix(this: any) {
-      this.renderAttributeVis()
+      this.renderAttributeVis();
       this.initializeEdges();
     },
     combineNodeAttributes() {
       let nodeDifference = this.combinedAttributes
-                 .filter(x => !this.visualizedAttributes.includes(x))
-                 .concat(this.visualizedAttributes.filter(x => !this.combinedAttributes.includes(x)));
+        .filter((x) => !this.visualizedAttributes.includes(x))
+        .concat(
+          this.visualizedAttributes.filter(
+            (x) => !this.combinedAttributes.includes(x),
+          ),
+        );
       nodeDifference = nodeDifference
-                 .filter(x => !this.visualizedLinkAttributes.includes(x))
-                 .concat(this.visualizedLinkAttributes.filter(x => !nodeDifference.includes(x)));
-      if (this.combinedAttributes.includes(nodeDifference[0])){
-        this.combinedAttributes = this.combinedAttributes.filter((el:string) => el != nodeDifference[0])
+        .filter((x) => !this.visualizedLinkAttributes.includes(x))
+        .concat(
+          this.visualizedLinkAttributes.filter(
+            (x) => !nodeDifference.includes(x),
+          ),
+        );
+      if (this.combinedAttributes.includes(nodeDifference[0])) {
+        this.combinedAttributes = this.combinedAttributes.filter(
+          (el: string) => el != nodeDifference[0],
+        );
       } else {
-        this.combinedAttributes.push(nodeDifference[0])
+        this.combinedAttributes.push(nodeDifference[0]);
       }
-      this.renderAttributeVis()
+      this.renderAttributeVis();
     },
     combineLinkAttributes() {
       let linkDifference = this.combinedAttributes
-                 .filter(x => !this.visualizedLinkAttributes.includes(x))
-                 .concat(this.visualizedLinkAttributes.filter(x => !this.combinedAttributes.includes(x)));
+        .filter((x) => !this.visualizedLinkAttributes.includes(x))
+        .concat(
+          this.visualizedLinkAttributes.filter(
+            (x) => !this.combinedAttributes.includes(x),
+          ),
+        );
       linkDifference = linkDifference
-                 .filter(x => !this.visualizedAttributes.includes(x))
-                 .concat(this.visualizedAttributes.filter(x => !linkDifference.includes(x)));
-      if (this.combinedAttributes.includes(linkDifference[0])){
-        this.combinedAttributes = this.combinedAttributes.filter((el:string) => el != linkDifference[0])
+        .filter((x) => !this.visualizedAttributes.includes(x))
+        .concat(
+          this.visualizedAttributes.filter((x) => !linkDifference.includes(x)),
+        );
+      if (this.combinedAttributes.includes(linkDifference[0])) {
+        this.combinedAttributes = this.combinedAttributes.filter(
+          (el: string) => el != linkDifference[0],
+        );
       } else {
-        this.combinedAttributes.push(linkDifference[0])
+        this.combinedAttributes.push(linkDifference[0]);
       }
-      this.renderAttributeVis()
+      this.renderAttributeVis();
     },
     processData(): void {
       // Reset some values that will be re-calcuated
@@ -1079,55 +1094,56 @@ export default Vue.extend({
 
       selectAll('.attr-axis').remove();
 
-      // Add the scale bar at the top of the attr column
+      // Add the scale bar at the top of the quant attr column
       this.combinedAttributes.forEach((col: string, index: number) => {
-        if (this.visualizedAttributes.includes(col)){
+        if (this.visualizedAttributes.includes(col)) {
           if (this.isQuantitative(col)) {
-          this.attributes
-            .append('g')
-            .attr('class', 'attr-axis')
-            .attr(
-              'transform',
-              `translate(${(this.colWidth + this.colMargin) * index},-15)`,
-            )
-            .call(
-              axisTop(this.attributeScales[col])
-                .tickValues(this.attributeScales[col].domain())
-                .tickFormat((d: any) => {
-                  if (d / 1000 >= 1) {
-                    d = Math.round(d / 1000) + 'K';
-                  }
-                  return parseFloat(d).toFixed(4);
-                }),
-            )
-            .selectAll('text')
-            .style('text-anchor', (d: any, i: number) =>
-              i % 2 ? 'end' : 'start',
-            );
-        }} else {
+            this.attributes
+              .append('g')
+              .attr('class', 'attr-axis')
+              .attr(
+                'transform',
+                `translate(${(this.colWidth + this.colMargin) * index},-15)`,
+              )
+              .call(
+                axisTop(this.attributeScales[col])
+                  .tickValues(this.attributeScales[col].domain())
+                  .tickFormat((d: any) => {
+                    if (d / 1000 >= 1) {
+                      d = Math.round(d / 1000) + 'K';
+                    }
+                    return parseFloat(d).toFixed(4);
+                  }),
+              )
+              .selectAll('text')
+              .style('text-anchor', (d: any, i: number) =>
+                i % 2 ? 'end' : 'start',
+              );
+          }
+        } else {
           if (this.isQuantitative(col)) {
-          this.attributes
-            .append('g')
-            .attr('class', 'attr-axis')
-            .attr(
-              'transform',
-              `translate(${(this.colWidth + this.colMargin) * index},-15)`,
-            )
-            .call(
-              axisTop(this.attributeLinksScales[col])
-                .tickValues(this.attributeLinksScales[col].domain())
-                .tickFormat((d: any) => {
-                  if (d / 1000 >= 1) {
-                    d = Math.round(d / 1000) + 'K';
-                  }
-                  return parseFloat(d).toFixed(4);
-                }),
-            )
-            .selectAll('text')
-            .style('text-anchor', (d: any, i: number) =>
-              i % 2 ? 'end' : 'start',
-            );
-        }
+            this.attributes
+              .append('g')
+              .attr('class', 'attr-axis')
+              .attr(
+                'transform',
+                `translate(${(this.colWidth + this.colMargin) * index},-15)`,
+              )
+              .call(
+                axisTop(this.attributeLinksScales[col])
+                  .tickValues(this.attributeLinksScales[col].domain())
+                  .tickFormat((d: any) => {
+                    if (d / 1000 >= 1) {
+                      d = Math.round(d / 1000) + 'K';
+                    }
+                    return parseFloat(d).toFixed(4);
+                  }),
+              )
+              .selectAll('text')
+              .style('text-anchor', (d: any, i: number) =>
+                i % 2 ? 'end' : 'start',
+              );
+          }
         }
       });
 
@@ -1197,13 +1213,35 @@ export default Vue.extend({
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
           if (this.isQuantitative(varName)) {
-            if (this.visualizedAttributes.includes(varName)){
+            // Resize quant node attr
+            if (this.visualizedAttributes.includes(varName)) {
               return this.attributeScales[varName](d[varName]);
-            } else {
-              return this.attributeLinksScales[varName](d[varName])
-            } 
+            }
+            // Resize quant link attr
+            if (this.visualizedLinkAttributes.includes(varName)) {
+              return this.attributeLinksScales[varName](d[varName]);
+            }
           } else {
-            return this.colWidth;
+            // Resize qual node attr
+            if (this.visualizedAttributes.includes(varName)) {
+              return this.colWidth;
+            }
+            // Resize qual link attr
+            if (this.visualizedLinkAttributes.includes(varName)) {
+              return (
+                this.stackedBarScale(d[1] as any) -
+                this.stackedBarScale(d[0] as any)
+              );
+            }
+          }
+        })
+        .attr('x', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+          if (
+            this.visualizedLinkAttributes.includes(varName) &&
+            !this.isQuantitative(varName)
+          ) {
+            return this.stackedBarScale(d[0] as any);
           }
         });
 
@@ -1218,122 +1256,120 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      attributeVisEnter
-        .each((d: Node, i: number, htmlNodes: any) => {
-          const toAppend = select(htmlNodes[i])
-          let varName =  null
-          varName = htmlNodes[i].parentElement.classList[1]
-    
-          if (this.combinedAttributes.includes(varName)) {
+      attributeVisEnter.each((d: Node, i: number, htmlNodes: any) => {
+        const toAppend = select(htmlNodes[i]);
+        let varName = null;
+        varName = htmlNodes[i].parentElement.classList[1];
+
+        if (this.combinedAttributes.includes(varName)) {
           // Draw node attributes
-          if (this.visualizedAttributes.includes(varName)){
-            toAppend.append('rect')
-            .attr('height', this.orderingScale.bandwidth())
-            .attr('width', (d: Node) => {
-              if (this.isQuantitative(varName)) {
-                return this.attributeScales[varName](d[varName]);
-              } else {
-                return this.colWidth;
-              }
-            })
-            .attr('fill', (d: Node) => {
-              if (this.isQuantitative(varName)) {
-                return '#82b1ff';
-              } else {
-                return this.attributeScales[varName](d[varName]);
-              }
-            })
-            .attr('cursor', 'pointer')
-            .on('mouseover', (d: Node) => this.hoverNode(d.id))
-            .on('mouseout', (d: Node) => this.unHoverNode(d.id))
-            .on('click', (d: Node) => {
-              this.selectElement(d);
-              this.selectNeighborNodes(d.id, d.neighbors);
-            })
+          if (this.visualizedAttributes.includes(varName)) {
+            toAppend
+              .append('rect')
+              .attr('height', this.orderingScale.bandwidth())
+              .attr('width', (d: Node) => {
+                if (this.isQuantitative(varName)) {
+                  return this.attributeScales[varName](d[varName]);
+                } else {
+                  return this.colWidth;
+                }
+              })
+              .attr('fill', (d: Node) => {
+                if (this.isQuantitative(varName)) {
+                  return '#82b1ff';
+                } else {
+                  return this.attributeScales[varName](d[varName]);
+                }
+              })
+              .attr('cursor', 'pointer')
+              .on('mouseover', (d: Node) => this.hoverNode(d.id))
+              .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+              .on('click', (d: Node) => {
+                this.selectElement(d);
+                this.selectNeighborNodes(d.id, d.neighbors);
+              });
           } else {
             // Draw link attributes
             if (this.isQuantitative(varName)) {
-          // Draw box plot
-          const bScale = scaleLinear()
-            .domain(this.attributeLinksScales[varName].domain())
-            .range([0, this.colWidth]);
+              // Draw box plot
+              const bScale = scaleLinear()
+                .domain(this.attributeLinksScales[varName].domain())
+                .range([0, this.colWidth]);
 
-          const bPlot = BoxPlot.boxplot()
-            .scale(bScale)
-            .showInnerDots(true)
-            .boxwidth(this.orderingScale.bandwidth() * 0.5)
-            .bandwidth(this.orderingScale.bandwidth())
-            .jitter(0)
-            .opacity(1);
+              const bPlot = BoxPlot.boxplot()
+                .scale(bScale)
+                .showInnerDots(true)
+                .boxwidth(this.orderingScale.bandwidth() * 0.5)
+                .bandwidth(this.orderingScale.bandwidth())
+                .jitter(0)
+                .opacity(1);
 
-          toAppend
-            .datum(
-              (d: {
-                key: string;
-                values: {
-                  [key: string]: string[];
-                };
-                series: number[];
-              }) => BoxPlot.boxplotStats(d.values[varName]),
-            )
-            .call(bPlot);
-        } else if (this.visualizedLinkAttributes.includes(varName)) {
-          // Draw stacked bar chart
-            
-            
-            selectAll('rect.stackedBars').exit().remove()
+              toAppend
+                .datum(
+                  (d: {
+                    key: string;
+                    values: {
+                      [key: string]: string[];
+                    };
+                    series: number[];
+                  }) => BoxPlot.boxplotStats(d.values[varName]),
+                )
+                .call(bPlot);
+            } else if (this.visualizedLinkAttributes.includes(varName)) {
+              // Draw stacked bar chart
+              const stackedBars = toAppend.selectAll('.stackedBars').data(
+                (d: {
+                  id: string;
+                  values: {
+                    [key: string]: string[];
+                  };
+                  series: Series<{ [key: string]: number }, string>;
+                }) => d.series,
+              );
 
-            const stackedBars = 
-            toAppend
-            .selectAll('rect')
-            .data(
-              (d: {
-                id: string;
-                values: {
-                  [key: string]: string[];
-                };
-                series: Series<{ [key: string]: number }, string>;
-              }) => d.series,
-            )
+              selectAll('.rowGroup').selectAll('.stackedBars').exit().remove();
 
-            
+              const stackedBarsEnter = stackedBars
+                .enter()
+                .append('rect')
+                .attr('class', 'stackedBars')
+                .attr('x', (d: Series<{ [key: string]: number }, string>) =>
+                  this.stackedBarScale(d[0] as any),
+                )
+                .attr(
+                  'width',
+                  (d: Series<{ [key: string]: number }, string>) =>
+                    this.stackedBarScale(d[1] as any) -
+                    this.stackedBarScale(d[0] as any),
+                )
+                .attr('fill', (d: Series<{ [key: string]: number }, string>) =>
+                  this.stackedBarColorScale(seriesData)(d.key),
+                )
+                .attr('height', this.orderingScale.bandwidth())
+                .append('title')
+                .text(
+                  (d: Series<{ [key: string]: number }, string>) =>
+                    `${d.key} ${format('.1%')((d[1] as any) - (d[0] as any))}`,
+                );
 
-            const stackedBarsEnter = stackedBars
-            .enter()
-            .append('rect')
-            .attr('x', (d: Series<{ [key: string]: number }, string>) =>
-              this.stackedBarScale(d[0] as any),
-            )
-            .attr(
-              'width',
-              (d: Series<{ [key: string]: number }, string>) =>
-                this.stackedBarScale(d[1] as any) - this.stackedBarScale(d[0] as any),
-            )
-            .attr('fill', (d: Series<{ [key: string]: number }, string>) =>
-              this.stackedBarColorScale(seriesData)(d.key),
-            )
-            .attr('height', this.orderingScale.bandwidth())
-            .classed('stackedBars', true)
-            .append('title')
-            .text(
-              (d: Series<{ [key: string]: number }, string>) =>
-                `${d.key} ${format('.1%')((d[1] as any) - (d[0] as any))}`,
-            )
-
-            stackedBars.merge(stackedBarsEnter)
-        }
+              stackedBars.merge(stackedBarsEnter);
+            }
           }
           toAppend.selectAll('rect').attr('width', (d: Node) => {
-              if (this.isQuantitative(varName) && this.visualizedAttributes.includes(varName)) {
-                return this.attributeScales[varName](d[varName]);
-              } else {
-                return this.colWidth;
-              }     
-        })
-          }
-        })
-    },
+            if (
+              this.isQuantitative(varName) &&
+              this.visualizedAttributes.includes(varName)
+            ) {
+              return this.attributeScales[varName](d[varName]);
+            } else {
+              return this.colWidth;
+            }
+          });
+        }
+      });
 
+      attributeVis.merge(attributeVisEnter);
+    },
     isQuantitative(varName: string): boolean {
       const uniqueValues = [
         ...new Set(
