@@ -44,7 +44,9 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
   newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
       const superNode = superMap.get(node[attribute]);
-      if (superNode !== undefined) superNode.CHILDREN.push(node.id);
+      if (superNode !== undefined) {
+        superNode.CHILDREN.push(node.id);
+      }
     }
   });
 
@@ -194,8 +196,9 @@ function expandSuperNodeData(
   aggrNodesCopy: Node[],
   childrenNodeNameDict: Map<string, Node>,
   superNodeNameDict: Map<string, Node>,
+  superChildrenMap: Map<string, string>,
 ) {
-  const superNodeCopy = deepCopyNodes(aggrNodesCopy);
+  const nodeCopy = deepCopyNodes(aggrNodesCopy);
   const superNode = superNodeNameDict.get(superNodeName);
 
   // If the supernode exists in the dictionary,
@@ -211,15 +214,27 @@ function expandSuperNodeData(
     });
 
     // Find and insert the children of the selected supernode into the correct spot
-    const superIndexFunc = (superNode: Node) => superNode.id == superNodeName;
-    const superIndexStart = superNodeCopy.findIndex(superIndexFunc);
+    const insertNodeFunc = (superNode: Node) => superNode.id == superNodeName;
+    const insertNodeStart = nodeCopy.findIndex(insertNodeFunc);
     let count = 1;
     childNodes.forEach((node) => {
-      superNodeCopy.splice(superIndexStart + count, 0, node);
+      nodeCopy.splice(insertNodeStart + count, 0, node);
       count += 1;
     });
 
-    return superNodeCopy;
+    // Add a parent position value for the child nodes
+    nodeCopy.forEach((node: Node) => {
+      if (node.type === 'node') {
+        const parentNodeID = superChildrenMap.get(node.id);
+        if (parentNodeID !== undefined) {
+          const parentIndexFunc = (matrixNode: Node) =>
+            matrixNode.id === parentNodeID;
+          const parentNodePosition = nodeCopy.findIndex(parentIndexFunc);
+          node.parentPosition = parentNodePosition;
+        }
+      }
+    });
+    return nodeCopy;
   }
 }
 
@@ -310,6 +325,7 @@ export function expandSuperNetwork(
     aggrNodesCopy,
     childrenNodeNameDict,
     superNodeNameDict,
+    superChildrenDict,
   );
 
   // Construct a new set of network links
