@@ -1274,14 +1274,22 @@ export default Vue.extend({
         });
 
       // Add Children Count Label
+      if (!this.aggregated) {
       attributeRowsEnter
         .append('text')
         .style('font-size', '10px')
         .style('text-transform', 'capitalize')
         .style('word-wrap', 'break-word')
+        .style('opacity', 0)
         .attr('text-anchor', 'left')
         .attr('transform', 'translate(258, 0)')
+        .attr("class", "childCount")
         .text('# children');
+      }
+      else {
+        (select(".childCount") as any)
+        .style('opacity', 1);
+      }
 
       attributeRowsEnter
         .append('path')
