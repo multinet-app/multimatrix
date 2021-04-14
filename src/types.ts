@@ -54,3 +54,11 @@ export interface State {
     search: { [key: string]: any };
   };
 }
+
+export interface AttrVis {
+  _key: string;
+  id: string;
+  [propName: string]: any;
+  series: any[];
+  values: { [key: string]: any };
+}

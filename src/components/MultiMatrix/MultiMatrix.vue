@@ -8,7 +8,7 @@ import {
   expandSuperNetwork,
   retractSuperNetwork,
 } from '@/lib/aggregation';
-import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
+import { Cell, Dimensions, Link, Network, Node, State, AttrVis } from '@/types';
 import {
   axisTop,
   format,
@@ -222,7 +222,7 @@ export default Vue.extend({
       return computedIdMap;
     },
 
-    rowData() {
+    rowData(): any {
       const rowData = nest()
         .key((d: any) => d._from)
         .entries(this.network.links);
@@ -230,7 +230,7 @@ export default Vue.extend({
       const edgeAttributes = Object.keys(rowData[0].values[0]);
 
       const combinedRowData = [...this.network.nodes];
-      rowData.forEach((d: any, i: number) => {
+      rowData.forEach((d: { [key: string]: any }, i: number) => {
         const rowAttrs: { [key: string]: string[] } = {};
         edgeAttributes.forEach((attr: string) => {
           const attrList = d.values.reduce((accum: any[], currentVal: any) => {
@@ -282,8 +282,8 @@ export default Vue.extend({
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
           const vals: number[][] = [];
-          this.rowData.forEach((row) =>
-            vals.push(row.values[col].map((d) => parseInt(d))),
+          this.rowData.forEach((row: { [key: string]: any }) =>
+            vals.push(row.values[col].map((d: any) => Number(d))),
           );
           const valsFlat = vals.flat();
           const minimum = min(valsFlat) || 0;
@@ -308,8 +308,8 @@ export default Vue.extend({
         this.colMargin
       );
     },
-    stackedBarScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>().range([0, this.colWidth]);
+    stackedBarScale(): ScaleLinear<number, number> {
+      return scaleLinear<number, number>().range([0, this.colWidth]);
     },
 
     colorScale(): ScaleLinear<string, number> {
@@ -815,7 +815,7 @@ export default Vue.extend({
           currentState.time = Date.now();
           currentState.event = interactionType;
           const interactionName = interactionType; // cell, search, etc
-          let interactedElement = interactionType;
+          let interactedElement: string = interactionType;
           if (interactionName === 'cell' && cell !== undefined) {
             interactID = cell.colID;
             interactedElement = cell.cellName; // + cellData.rowID;
@@ -872,7 +872,7 @@ export default Vue.extend({
       state: State,
       nodeID: string,
       interaction: keyof State['selections'],
-      interactionName: string = interaction,
+      interactionName = interaction,
     ): void {
       if (nodeID in state.selections[interaction]) {
         // Remove element if in list, if list is empty, delete key
@@ -1180,15 +1180,20 @@ export default Vue.extend({
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (!this.isQuantitative(col)) {
           const data: { [key: string]: number }[] = [];
-          const keys = this.rowData.map((row: any) => row.values[col]);
+          const keys = this.rowData.map(
+            (row: { [key: string]: any }) => row.values[col],
+          );
           const keysFlat = keys
             .flat()
-            .reduce((a, v) => ((a[v] = a[v] || 0), a), {});
+            .reduce((a: any, v: any) => ((a[v] = a[v] || 0), a), {});
 
-          this.rowData.forEach((row) => {
-            const copyKeys = Object.assign({}, keysFlat);
+          this.rowData.forEach((row: { [key: string]: any }) => {
+            const copyKeys: { [key: string]: number } = Object.assign(
+              {},
+              keysFlat,
+            );
 
-            row.values[col].forEach((a) => (copyKeys[a] += 1));
+            row.values[col].forEach((a: string) => (copyKeys[a] += 1));
             copyKeys.name = row.id;
 
             // Normalize values
@@ -1208,7 +1213,7 @@ export default Vue.extend({
           // Organize series data by row
           seriesData.forEach((row) => {
             row.forEach((col) => {
-              this.rowData.forEach((item) => {
+              this.rowData.forEach((item: { [key: string]: any }) => {
                 if (item.id === col.data.name.toString()) {
                   if (item.series) {
                     item.series.push(col);
@@ -1225,12 +1230,12 @@ export default Vue.extend({
 
       const attributeVis = (selectAll('.attrRows') as any)
         .selectAll('.attrRow')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node | AttrVis) => d._id || d.id);
 
       // Update existing vis elements to resize width
       attributeVis
         .selectAll('rect')
-        .attr('width', (d: Node, i: number, htmlNodes: any) => {
+        .attr('width', (d: AttrVis, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
           if (this.isQuantitative(varName)) {
@@ -1249,20 +1254,17 @@ export default Vue.extend({
             }
             // Resize qual link attr
             if (this.visualizedLinkAttributes.includes(varName)) {
-              return (
-                this.stackedBarScale(d[1] as any) -
-                this.stackedBarScale(d[0] as any)
-              );
+              return this.stackedBarScale(d[1]) - this.stackedBarScale(d[0]);
             }
           }
         })
-        .attr('x', (d: Node, i: number, htmlNodes: any) => {
+        .attr('x', (d: AttrVis, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
           if (
             this.visualizedLinkAttributes.includes(varName) &&
             !this.isQuantitative(varName)
           ) {
-            return this.stackedBarScale(d[0] as any);
+            return this.stackedBarScale(d[0]);
           }
         });
 
@@ -1274,13 +1276,12 @@ export default Vue.extend({
         .attr('class', 'attrRow')
         .attr(
           'transform',
-          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+          (d: AttrVis, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      attributeVisEnter.each((d: Node, i: number, htmlNodes: any) => {
+      attributeVisEnter.each((d: AttrVis, i: number, htmlNodes: any) => {
         const toAppend = select(htmlNodes[i]);
-        let varName = null;
-        varName = htmlNodes[i].parentElement.classList[1];
+        const varName = htmlNodes[i].parentElement.classList[1];
 
         if (this.combinedAttributes.includes(varName)) {
           // Draw node attributes
@@ -1326,27 +1327,13 @@ export default Vue.extend({
                 .opacity(1);
 
               toAppend
-                .datum(
-                  (d: {
-                    key: string;
-                    values: {
-                      [key: string]: string[];
-                    };
-                    series: number[];
-                  }) => BoxPlot.boxplotStats(d.values[varName]),
-                )
+                .datum((d: AttrVis) => BoxPlot.boxplotStats(d.values[varName]))
                 .call(bPlot);
             } else if (this.visualizedLinkAttributes.includes(varName)) {
               // Draw stacked bar chart
-              const stackedBars = toAppend.selectAll('.stackedBars').data(
-                (d: {
-                  id: string;
-                  values: {
-                    [key: string]: string[];
-                  };
-                  series: Series<{ [key: string]: number }, string>;
-                }) => d.series,
-              );
+              const stackedBars = toAppend
+                .selectAll('.stackedBars')
+                .data((d: AttrVis) => d['series']);
 
               selectAll('.rowGroup').selectAll('.stackedBars').exit().remove();
 
@@ -1354,38 +1341,24 @@ export default Vue.extend({
                 .enter()
                 .append('rect')
                 .attr('class', 'stackedBars')
-                .attr('x', (d: Series<{ [key: string]: number }, string>) =>
-                  this.stackedBarScale(d[0] as any),
-                )
+                .attr('x', (d: AttrVis) => this.stackedBarScale(d[0]))
                 .attr(
                   'width',
-                  (d: Series<{ [key: string]: number }, string>) =>
-                    this.stackedBarScale(d[1] as any) -
-                    this.stackedBarScale(d[0] as any),
+                  (d: AttrVis) =>
+                    this.stackedBarScale(d[1]) - this.stackedBarScale(d[0]),
                 )
-                .attr('fill', (d: Series<{ [key: string]: number }, string>) =>
-                  this.stackedBarColorScale(seriesData)(d.key),
+                .attr('fill', (d: AttrVis) =>
+                  this.stackedBarColorScale(seriesData)(d['key']),
                 )
                 .attr('height', this.orderingScale.bandwidth())
                 .append('title')
                 .text(
-                  (d: Series<{ [key: string]: number }, string>) =>
-                    `${d.key} ${format('.1%')((d[1] as any) - (d[0] as any))}`,
+                  (d: AttrVis) => `${d['key']} ${format('.1%')(d[1] - d[0])}`,
                 );
 
               stackedBars.merge(stackedBarsEnter);
             }
           }
-          toAppend.selectAll('rect').attr('width', (d: Node) => {
-            if (
-              this.isQuantitative(varName) &&
-              this.visualizedAttributes.includes(varName)
-            ) {
-              return this.attributeScales[varName](d[varName]);
-            } else {
-              return this.colWidth;
-            }
-          });
         }
       });
 
