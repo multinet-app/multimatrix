@@ -314,7 +314,7 @@ export default Vue.extend({
 
         // Update the rows and row labels
         (selectAll('.rowContainer') as any)
-          .selectAll('foreignObject')
+          .selectAll('.rowForeign')
           .data(this.network.nodes, (d: Node) => d._id || d.id)
           .attr('x', -rowLabelContainerStart + 20)
           .attr('y', -5)
@@ -339,6 +339,11 @@ export default Vue.extend({
           .data(this.network.nodes, (d: Node) => d._id || d.id)
           .style('color', 'black')
           .classed('rowLabels', true);
+
+        // Update the children count and labels
+        (select('.childCount') as any).style('opacity', 0);
+
+        (selectAll('.countLabels') as any).style('opacity', 0);
 
         // Update the legend
         this.$emit('updateMatrixLegends', false, false);
@@ -728,8 +733,15 @@ export default Vue.extend({
           }
         })
         .attr('y', -5)
-        .attr('width', labelContainerWidth - 15)
+        .attr('width', (d: Node) => {
+          if (d.type === 'supernode') {
+            return labelContainerWidth - 45;
+          } else {
+            return labelContainerWidth - 15;
+          }
+        })
         .attr('height', labelContainerHeight)
+        .classed('rowForeign', true)
         .append('xhtml:p')
         .text((d: Node) => d._key)
         .style('color', (d: Node) => {
@@ -1242,7 +1254,7 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .attr('y', 16)
         .text((d: string) => d)
-        .attr('width', this.colWidth)
+        .attr('width', this.colWidth - 40)
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
             this.nonAggrNodes = processChildNodes(this.network.nodes);
@@ -1264,6 +1276,22 @@ export default Vue.extend({
             this.sort(d);
           }
         });
+
+      // Add Children Count Label
+      attributeRowsEnter
+        .append('text')
+        .style('font-size', '10px')
+        .style('text-transform', 'capitalize')
+        .style('word-wrap', 'break-word')
+        .style('opacity', 0)
+        .attr('text-anchor', 'left')
+        .attr('transform', 'translate(258, 0)')
+        .attr('class', 'childCount')
+        .text('# children');
+
+      if (this.aggregated) {
+        (select('.childCount') as any).style('opacity', 1);
+      }
 
       attributeRowsEnter
         .append('path')
@@ -1329,13 +1357,52 @@ export default Vue.extend({
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
           if (this.isQuantitative(varName)) {
-            return this.attributeScales[varName](d[varName]);
+            return this.attributeScales[varName](d[varName]) - 40;
           } else {
-            return this.colWidth;
+            return this.colWidth - 40;
           }
         });
 
       attributeVis.exit().remove();
+
+      // Update attribute groups
+      (selectAll('.attrRow') as any)
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr(
+          'transform',
+          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
+        );
+
+      (selectAll('.visAttr') as any)
+        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .attr('height', this.orderingScale.bandwidth())
+        .attr('width', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+          if (this.isQuantitative(varName)) {
+            return this.attributeScales[varName](d[varName]) - 40;
+          } else {
+            return this.colWidth - 40;
+          }
+        })
+        .attr('fill', (d: Node, i: number, htmlNodes: any) => {
+          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
+          if (this.isQuantitative(varName)) {
+            return '#82b1ff';
+          } else {
+            if (d.type === 'supernode') {
+              return this.attributeScales[varName](d['GROUP']);
+            } else {
+              return this.attributeScales[varName](d[varName]);
+            }
+          }
+        })
+        .attr('cursor', 'pointer')
+        .on('mouseover', (d: Node) => this.hoverNode(d.id))
+        .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+        .on('click', (d: Node) => {
+          this.selectElement(d);
+          this.selectNeighborNodes(d.id, d.neighbors);
+        });
 
       const attributeVisEnter = attributeVis
         .enter()
@@ -1346,7 +1413,6 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      // Draw new vis elements (bars/colors)
       attributeVisEnter
         .append('rect')
         .attr('height', this.orderingScale.bandwidth())
@@ -1354,11 +1420,12 @@ export default Vue.extend({
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
           if (this.isQuantitative(varName)) {
-            return this.attributeScales[varName](d[varName]);
+            return this.attributeScales[varName](d[varName]) - 40;
           } else {
-            return this.colWidth;
+            return this.colWidth - 40;
           }
         })
+        .attr('class', 'visAttr')
         .attr('fill', (d: Node, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
 
@@ -1379,6 +1446,43 @@ export default Vue.extend({
           this.selectElement(d);
           this.selectNeighborNodes(d.id, d.neighbors);
         });
+
+      // Constants for count labels
+      const labelContainerHeight = 25;
+      const rowLabelContainerStart = 75;
+      const labelContainerWidth = rowLabelContainerStart;
+
+      // Draw Super Children Label Count
+      attributeVisEnter
+        .append('foreignObject')
+        .attr('x', () => {
+          return 270;
+        })
+        .attr('y', -5)
+        .attr('width', () => {
+          return labelContainerWidth - 50;
+        })
+        .attr('height', labelContainerHeight)
+        .classed('countForeign', true)
+        .append('xhtml:p')
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d.CHILD_COUNT;
+          } else {
+            return '--';
+          }
+        })
+        .style('color', () => {
+          return 'black';
+        })
+        .style('opacity', 0)
+        .classed('countLabels', true);
+
+      if (this.aggregated) {
+        selectAll('.countLabels').style('opacity', 1);
+      }
+
+      attributeVis.merge(attributeVisEnter);
     },
 
     isQuantitative(varName: string): boolean {
@@ -1387,7 +1491,7 @@ export default Vue.extend({
           this.network.nodes.map((node: Node) => parseFloat(node[varName])),
         ),
       ];
-      return uniqueValues.length > 5;
+      return uniqueValues.length > 15;
     },
 
     selectElement(element: Cell | Node): void {
