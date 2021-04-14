@@ -298,7 +298,6 @@ export default Vue.extend({
 
     enableGraffinity() {
       if (!this.enableGraffinity && this.aggregated === true) {
-
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
 
@@ -340,6 +339,11 @@ export default Vue.extend({
           .data(this.network.nodes, (d: Node) => d._id || d.id)
           .style('color', 'black')
           .classed('rowLabels', true);
+
+        // Update the children count and labels
+        (select('.childCount') as any).style('opacity', 0);
+
+        (selectAll('.countLabels') as any).style('opacity', 0);
 
         // Update the legend
         this.$emit('updateMatrixLegends', false, false);
@@ -1274,7 +1278,6 @@ export default Vue.extend({
         });
 
       // Add Children Count Label
-      if (!this.aggregated) {
       attributeRowsEnter
         .append('text')
         .style('font-size', '10px')
@@ -1283,12 +1286,11 @@ export default Vue.extend({
         .style('opacity', 0)
         .attr('text-anchor', 'left')
         .attr('transform', 'translate(258, 0)')
-        .attr("class", "childCount")
+        .attr('class', 'childCount')
         .text('# children');
-      }
-      else {
-        (select(".childCount") as any)
-        .style('opacity', 1);
+
+      if (this.aggregated) {
+        (select('.childCount') as any).style('opacity', 1);
       }
 
       attributeRowsEnter
@@ -1473,7 +1475,12 @@ export default Vue.extend({
         .style('color', () => {
           return 'black';
         })
+        .style('opacity', 0)
         .classed('countLabels', true);
+
+      if (this.aggregated) {
+        selectAll('.countLabels').style('opacity', 1);
+      }
 
       attributeVis.merge(attributeVisEnter);
     },
