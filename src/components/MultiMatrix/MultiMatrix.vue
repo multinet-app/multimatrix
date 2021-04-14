@@ -1491,7 +1491,7 @@ export default Vue.extend({
           this.network.nodes.map((node: Node) => parseFloat(node[varName])),
         ),
       ];
-      return uniqueValues.length > uniqueValues.length + 15;
+      return uniqueValues.length > 15;
     },
 
     selectElement(element: Cell | Node): void {
