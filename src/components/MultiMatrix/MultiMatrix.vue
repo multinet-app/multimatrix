@@ -1333,7 +1333,7 @@ export default Vue.extend({
               // Draw stacked bar chart
               const stackedBars = toAppend
                 .selectAll('.stackedBars')
-                .data((d: AttrVis) => d['series']);
+                .data((d: AttrVis) => d.series);
 
               selectAll('.rowGroup').selectAll('.stackedBars').exit().remove();
 

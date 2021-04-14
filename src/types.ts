@@ -59,6 +59,6 @@ export interface AttrVis {
   _key: string;
   id: string;
   [propName: string]: any;
-  series: any[];
+  series: [number, number, { [key: string]: any }, string][]
   values: { [key: string]: any };
 }
