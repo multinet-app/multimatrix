@@ -872,7 +872,7 @@ export default Vue.extend({
       state: State,
       nodeID: string,
       interaction: keyof State['selections'],
-      interactionName = interaction,
+      interactionName: string = interaction,
     ): void {
       if (nodeID in state.selections[interaction]) {
         // Remove element if in list, if list is empty, delete key
@@ -992,7 +992,7 @@ export default Vue.extend({
         string
       >[],
     ) {
-      const color = scaleOrdinal()
+      const color = scaleOrdinal<string, string>()
         .domain(seriesData.map((d) => d.key))
         .range(schemeSpectral[seriesData.length]);
 
@@ -1280,7 +1280,7 @@ export default Vue.extend({
         );
 
       attributeVisEnter.each((d: AttrVis, i: number, htmlNodes: any) => {
-        const toAppend = select(htmlNodes[i]);
+        const toAppend = select<HTMLElement, any>(htmlNodes[i]);
         const varName = htmlNodes[i].parentElement.classList[1];
 
         if (this.combinedAttributes.includes(varName)) {
@@ -1341,22 +1341,23 @@ export default Vue.extend({
                 .enter()
                 .append('rect')
                 .attr('class', 'stackedBars')
-                .attr('x', (d: AttrVis) => this.stackedBarScale(d[0]))
+                .attr('x', (d: AttrVis['Series']) => this.stackedBarScale(d[0]))
                 .attr(
                   'width',
-                  (d: AttrVis) =>
+                  (d: AttrVis['Series']) =>
                     this.stackedBarScale(d[1]) - this.stackedBarScale(d[0]),
                 )
-                .attr('fill', (d: AttrVis) =>
+                .attr('fill', (d: AttrVis['Series']) =>
                   this.stackedBarColorScale(seriesData)(d['key']),
                 )
                 .attr('height', this.orderingScale.bandwidth())
                 .append('title')
                 .text(
-                  (d: AttrVis) => `${d['key']} ${format('.1%')(d[1] - d[0])}`,
+                  (d: AttrVis['Series']) =>
+                    `${d['key']} ${format('.1%')(d[1] - d[0])}`,
                 );
 
-              stackedBars.merge(stackedBarsEnter);
+              stackedBars.merge(stackedBarsEnter as any);
             }
           }
         }
