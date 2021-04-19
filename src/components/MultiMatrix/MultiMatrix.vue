@@ -96,6 +96,7 @@ export default Vue.extend({
     colMargin: number;
     showIcon: boolean;
     aggregated: boolean;
+    sidebarWidth: number;
   } {
     return {
       browser: {
@@ -156,6 +157,7 @@ export default Vue.extend({
       colMargin: 5,
       showIcon: false,
       aggregated: false,
+      sidebarWidth: 256,
     };
   },
 
@@ -1625,7 +1627,7 @@ export default Vue.extend({
       select(this.$refs.tooltip as any).html(message);
 
       select(this.$refs.tooltip as any)
-        .style('left', `${window.pageXOffset + matrix.e}px`)
+        .style('left', `${matrix.e - this.sidebarWidth}px`)
         .style(
           'top',
           `${
