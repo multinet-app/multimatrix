@@ -27,6 +27,8 @@ export interface Cell {
   x: number;
   y: number;
   z: number;
+  rowCellType: string;
+  colCellType: string;
   rowID: string;
   colID: string;
   cellName: string;
