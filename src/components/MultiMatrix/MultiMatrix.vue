@@ -587,6 +587,14 @@ export default Vue.extend({
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
 
+      // Update existing topoCols
+      this.edges
+        .selectAll('.topoCol')
+        .attr(
+          'width',
+          matrixHighlightLength + this.visMargins.top + this.visMargins.bottom,
+        );
+
       // add the highlight columns
       columnEnter
         .append('rect')
@@ -710,6 +718,14 @@ export default Vue.extend({
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
+
+      // Update existing topoRols
+      this.edges
+        .selectAll('.topoRow')
+        .attr(
+          'width',
+          matrixHighlightLength + this.visMargins.left + this.visMargins.right,
+        );
 
       rowEnter
         .append('rect')
