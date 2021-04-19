@@ -593,7 +593,8 @@ export default Vue.extend({
         .attr(
           'width',
           matrixHighlightLength + this.visMargins.top + this.visMargins.bottom,
-        );
+        )
+        .attr('x', -matrixHighlightLength - this.visMargins.bottom);
 
       // add the highlight columns
       columnEnter
