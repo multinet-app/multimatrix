@@ -6,8 +6,7 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
-import { loadData } from '@/lib/multinet';
-import { Network } from '@/types';
+import store from '@/store';
 
 // This is to be removed (stop-gap solution to superGraph network update)
 export const eventBus = new Vue();
@@ -18,26 +17,21 @@ export default Vue.extend({
   },
 
   data(): {
-    network: Network;
-    workspace: string;
-    networkName: string;
     selectNeighbors: boolean;
     showGridLines: boolean;
     enableGraffinity: boolean;
+    showAggrLegend: boolean;
+    showChildLegend: boolean;
     directional: boolean;
     visualizedAttributes: string[];
     visualizedLinkAttributes: string[];
   } {
     return {
-      network: {
-        nodes: [],
-        links: [],
-      },
-      workspace: '',
-      networkName: '',
       selectNeighbors: true,
       showGridLines: true,
       enableGraffinity: false,
+      showAggrLegend: false,
+      showChildLegend: false,
       directional: false,
       visualizedAttributes: [],
       visualizedLinkAttributes: [],
@@ -46,7 +40,10 @@ export default Vue.extend({
 
   computed: {
     attributeList(this: any) {
-      if (typeof this.network.nodes[0] !== 'undefined') {
+      if (
+        this.network !== null &&
+        typeof this.network.nodes[0] !== 'undefined'
+      ) {
         return Object.keys(this.network.nodes[0]).filter((k: string) => {
           return k != '_key' && k != '_rev' && k != 'id';
         });
@@ -55,31 +52,34 @@ export default Vue.extend({
       }
     },
     linkAttributeList(this: any) {
-      if (typeof this.network.links[0] !== 'undefined') {
-        return Object.keys(this.network.links[0]).filter((k: string) => {
+      if (
+        this.network !== null &&
+        typeof this.network.nodes[0] !== 'undefined'
+      ) {
+        return Object.keys(this.network.edges[0]).filter((k: string) => {
           return k != '_key' && k != '_rev' && k != 'id';
         });
       } else {
         return [];
       }
     },
+
+    network() {
+      return store.getters.network;
+    },
   },
 
   async mounted() {
-    const { workspace, networkName, host } = getUrlVars();
+    const { workspace, networkName } = getUrlVars();
     if (!workspace || !networkName) {
       throw new Error(
         `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
       );
     }
 
-    this.network = await loadData(workspace, networkName, host);
-    this.workspace = workspace;
-    this.networkName = networkName;
-
-    // Catch network update events here to propagate new data into the app.
-    eventBus.$on('updateNetwork', (network: Network) => {
-      this.network = network;
+    await store.dispatch.fetchNetwork({
+      workspaceName: workspace,
+      networkName,
     });
   },
 
@@ -91,11 +91,18 @@ export default Vue.extend({
           type: `text/json`,
         }),
       );
-      a.download = `${this.networkName}.json`;
+      a.download = `${store.getters.networkName}.json`;
       a.click();
     },
-    createLegend(colorScale: ScaleLinear<string, number>) {
-      const legendSVG = select('#matrix-legend');
+    createLegend(colorScale: ScaleLinear<string, number>, legendName: string) {
+      let legendSVG = undefined;
+      if (legendName === 'aggregate') {
+        legendSVG = select('#aggr-matrix-legend');
+      } else if (legendName === 'child') {
+        legendSVG = select('#child-matrix-legend');
+      } else {
+        legendSVG = select('#matrix-legend');
+      }
       legendSVG
         .append('g')
         .classed('legendLinear', true)
@@ -103,7 +110,8 @@ export default Vue.extend({
 
       // construct the legend and format the labels to have 0 decimal places
       const legendLinear = (legendColor() as any)
-        .shapeWidth(30)
+        .shapeWidth(20)
+        .cells(colorScale.domain()[1] >= 5 ? 5 : colorScale.domain()[1] + 1)
         .orient('horizontal')
         .scale(colorScale)
         .labelFormat(format('.0f'));
@@ -111,8 +119,9 @@ export default Vue.extend({
       legendSVG.select('.legendLinear').call(legendLinear);
     },
 
-    updateNetwork(network: Network) {
-      this.network = network;
+    updateMatrixLegends(showAggrLegend: boolean, showChildLegend: boolean) {
+      this.showAggrLegend = showAggrLegend;
+      this.showChildLegend = showChildLegend;
     },
   },
   watch: {
@@ -249,11 +258,32 @@ export default Vue.extend({
         <div class="pa-4">
           <!-- Matrix Legend -->
           <v-list-item
+            v-if="!showAggrLegend"
             class="pb-0 px-0"
             style="display: flex; max-height: 50px"
           >
             Matrix Legend
             <svg id="matrix-legend"></svg>
+          </v-list-item>
+
+          <!-- Aggregated Matrix Legend -->
+          <v-list-item
+            v-if="showAggrLegend"
+            class="pb-0 px-0"
+            style="display: flex; max-height: 50px"
+          >
+            Aggregate Legend
+            <svg id="aggr-matrix-legend"></svg>
+          </v-list-item>
+
+          <!-- Child Matrix Legend -->
+          <v-list-item
+            v-if="showChildLegend"
+            class="pb-0 px-0"
+            style="display: flex; max-height: 50px"
+          >
+            Children Legend
+            <svg id="child-matrix-legend"></svg>
           </v-list-item>
         </div>
       </v-list>
@@ -264,19 +294,23 @@ export default Vue.extend({
       <v-row class="ma-0">
         <multi-matrix
           ref="multimatrix"
-          v-if="workspace"
+          v-if="network !== null"
           v-bind="{
             network,
             selectNeighbors,
             showGridLines,
             enableGraffinity,
+            showAggrLegend,
+            showChildLegend,
             visualizedAttributes,
             visualizedLinkAttributes,
             directional,
           }"
           @restart-simulation="hello()"
           @updateMatrixLegendScale="createLegend"
-          @updateNetwork="updateNetwork"
+          @updateAggrMatrixLegendScale="createLegend"
+          @updateChildMatrixLegendScale="createLegend"
+          @updateMatrixLegends="updateMatrixLegends"
         />
       </v-row>
     </v-col>
