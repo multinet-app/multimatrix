@@ -1,24 +1,20 @@
+import { TableRow } from 'multinet';
+
 export interface Dimensions {
   height: number;
   width: number;
 }
 
-export interface Link {
-  _key: string;
-  id: string;
-  _from: string;
-  _to: string;
+export interface Link extends TableRow {
   [propName: string]: any;
 }
 
 export interface Network {
   nodes: Node[];
-  links: Link[];
+  edges: Link[];
 }
 
-export interface Node {
-  _key: string;
-  id: string;
+export interface Node extends TableRow {
   neighbors: string[];
   [propName: string]: any;
 }
@@ -36,6 +32,12 @@ export interface Cell {
 }
 
 export interface State {
+  workspaceName: string | null;
+  networkName: string | null;
+  network: Network | null;
+}
+
+export interface ProvenanceState {
   workerID: number;
   nodes: string;
   search: string;

@@ -9,7 +9,14 @@ import {
   retractSuperNetwork,
   nonAggrNetwork,
 } from '@/lib/aggregation';
-import { Cell, Dimensions, Link, Network, Node, State } from '@/types';
+import {
+  Cell,
+  Dimensions,
+  Link,
+  Network,
+  Node,
+  ProvenanceState,
+} from '@/types';
 import {
   axisTop,
   max,
@@ -25,6 +32,7 @@ import {
   selectAll,
 } from 'd3';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
+import store from '@/store';
 
 import 'science';
 import 'reorder.js';
@@ -85,7 +93,7 @@ export default Vue.extend({
     nonAggrNodes: Node[];
     nonAggrLinks: Link[];
     expandRetractAggrVisNodes: Network; // variable for keeping track of the current nodes being visualized
-    expandRetractAggrVisLinks: Network; // variable for keeping track of the current links being visualized
+    expandRetractAggrVisEdges: Network; // variable for keeping track of the current links being visualized
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
     selectedElements: { [key: string]: string[] };
@@ -124,11 +132,11 @@ export default Vue.extend({
       nonAggrLinks: [],
       expandRetractAggrVisNodes: {
         nodes: [],
-        links: [],
+        edges: [],
       },
-      expandRetractAggrVisLinks: {
+      expandRetractAggrVisEdges: {
         nodes: [],
-        links: [],
+        edges: [],
       },
       icons: {
         quant: {
@@ -220,7 +228,7 @@ export default Vue.extend({
     idMap() {
       const computedIdMap: { [key: string]: number } = {};
       this.network.nodes.forEach((node: Node, index: number) => {
-        computedIdMap[node.id] = index;
+        computedIdMap[node._id] = index;
       });
 
       return computedIdMap;
@@ -303,8 +311,7 @@ export default Vue.extend({
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
 
-        this.$emit(
-          'updateNetwork',
+        store.commit.setNetwork(
           nonAggrNetwork(this.nonAggrNodes, this.nonAggrLinks),
         );
 
@@ -317,28 +324,28 @@ export default Vue.extend({
         // Update the rows and row labels
         (selectAll('.rowContainer') as any)
           .selectAll('.rowForeign')
-          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .data(this.network.nodes, (d: Node) => d._id)
           .attr('x', -rowLabelContainerStart + 20)
           .attr('y', -5)
           .attr('width', labelContainerWidth - 15)
           .attr('height', labelContainerHeight);
 
         (selectAll('.rowLabels') as any)
-          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .data(this.network.nodes, (d: Node) => d._id)
           .style('color', 'black')
           .classed('rowLabels', true);
 
         // Update the columns and the column labels
         (selectAll('.column') as any)
           .selectAll('foreignObject')
-          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .data(this.network.nodes, (d: Node) => d._id)
           .attr('y', -5)
           .attr('x', columnLabelContainerStart)
           .attr('width', labelContainerWidth)
           .attr('height', labelContainerHeight);
 
         (selectAll('.colLabels') as any)
-          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .data(this.network.nodes, (d: Node) => d._id)
           .style('color', 'black')
           .classed('rowLabels', true);
 
@@ -458,12 +465,12 @@ export default Vue.extend({
       this.network.nodes.forEach((rowNode: Node, i: number) => {
         this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => {
           return {
-            cellName: `${rowNode.id}_${colNode.id}`,
+            cellName: `${rowNode._id}_${colNode._id}`,
             rowCellType: rowNode.type,
             colCellType: colNode.type,
-            correspondingCell: `${colNode.id}_${rowNode.id}`,
-            rowID: rowNode.id,
-            colID: colNode.id,
+            correspondingCell: `${colNode._id}_${rowNode._id}`,
+            rowID: rowNode._id,
+            colID: colNode._id,
             x: j,
             y: i,
             z: 0,
@@ -471,12 +478,12 @@ export default Vue.extend({
         });
       });
 
-      // Count occurrences of links and store it in the matrix
-      this.network.links.forEach((link: Link) => {
-        this.matrix[this.idMap[link._from]][this.idMap[link._to]].z += 1;
+      // Count occurrences of edges and store it in the matrix
+      this.network.edges.forEach((edge: Link) => {
+        this.matrix[this.idMap[edge._from]][this.idMap[edge._to]].z += 1;
 
         if (!this.directional) {
-          this.matrix[this.idMap[link._to]][this.idMap[link._from]].z += 1;
+          this.matrix[this.idMap[edge._to]][this.idMap[edge._from]].z += 1;
         }
       });
 
@@ -559,7 +566,7 @@ export default Vue.extend({
       // creates column groupings
       this.edgeColumns = this.edges
         .selectAll('.column')
-        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .data(this.network.nodes, (d: Node) => d._id)
         .attr('transform', (d: Node, i: number) => {
           return `translate(${this.orderingScale(i)})rotate(-90)`;
         });
@@ -600,7 +607,7 @@ export default Vue.extend({
       columnEnter
         .append('rect')
         .classed('topoCol', true)
-        .attr('id', (d: Node) => `topoCol${d.id}`)
+        .attr('id', (d: Node) => `topoCol${d._id}`)
         .attr('x', -matrixHighlightLength - this.visMargins.bottom)
         .attr('y', 0)
         .attr(
@@ -638,13 +645,13 @@ export default Vue.extend({
       columnEnter
         .on('mouseover', (d: Node, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
+          this.hoverNode(d._id);
         })
         .attr('cursor', 'pointer');
 
       columnEnter.on('mouseout', (d: Node) => {
         this.hideToolTip();
-        this.unHoverNode(d.id);
+        this.unHoverNode(d._id);
       });
 
       // Invisible Rectangles for Foreign Column Labels
@@ -659,12 +666,12 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .on('click', (d: Node) => {
           this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          this.selectNeighborNodes(d._id, d.neighbors);
         });
 
       columnEnter
         .append('path')
-        .attr('id', (d: Node) => `sortIcon${d.id}`)
+        .attr('id', (d: Node) => `sortIcon${d._id}`)
         .attr('class', 'sortIcon')
         .attr('d', this.icons.cellSort.d)
         .style('fill', (d: Node) =>
@@ -675,18 +682,18 @@ export default Vue.extend({
           `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
         )
         .on('click', (d: Node) => {
-          this.sort(d.id);
+          this.sort(d._id);
           const action = this.changeInteractionWrapper('neighborSelect');
           this.provenance.applyAction(action);
         })
         .attr('cursor', 'pointer')
         .on('mouseover', (d: Node, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
+          this.hoverNode(d._id);
         })
         .on('mouseout', (d: Node) => {
           this.hideToolTip();
-          this.unHoverNode(d.id);
+          this.unHoverNode(d._id);
         });
 
       this.edgeColumns.merge(columnEnter);
@@ -694,7 +701,7 @@ export default Vue.extend({
       // Draw each row
       this.edgeRows = this.edges
         .selectAll('.rowContainer')
-        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .data(this.network.nodes, (d: Node) => d._id)
         .attr('transform', (d: Node, i: number) => {
           return `translate(0,${this.orderingScale(i)})`;
         });
@@ -731,7 +738,7 @@ export default Vue.extend({
       rowEnter
         .append('rect')
         .classed('topoRow', true)
-        .attr('id', (d: Node) => `topoRow${d.id}`)
+        .attr('id', (d: Node) => `topoRow${d._id}`)
         .attr('x', -this.visMargins.left)
         .attr('y', 0)
         .attr(
@@ -783,7 +790,7 @@ export default Vue.extend({
       rowEnter
         .on('mouseover', (d: Node, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
+          this.hoverNode(d._id);
         })
         .attr('cursor', 'pointer');
 
@@ -805,12 +812,12 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .on('click', (d: Node) => {
           this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          this.selectNeighborNodes(d._id, d.neighbors);
         });
 
       rowEnter.on('mouseout', (d: Node) => {
         this.hideToolTip();
-        this.unHoverNode(d.id);
+        this.unHoverNode(d._id);
       });
 
       // Show the icons
@@ -825,10 +832,10 @@ export default Vue.extend({
 
         // Update existing icons
         (selectAll('.aggrButton') as any)
-          .data(this.network.nodes, (d: Node) => d._id || d.id)
+          .data(this.network.nodes, (d: Node) => d._id)
           .attr('d', (d: Node) => {
             if (d.type === 'supernode') {
-              if (this.clickMap.get(d.id)) {
+              if (this.clickMap.get(d._id)) {
                 return retractPath;
               } else {
                 return expandPath;
@@ -843,7 +850,7 @@ export default Vue.extend({
           .append('path')
           .attr('d', (d: Node) => {
             if (d.type === 'supernode') {
-              if (this.clickMap.get(d.id) === true) {
+              if (this.clickMap.get(d._id) === true) {
                 return retractPath;
               } else {
                 return expandPath;
@@ -879,18 +886,17 @@ export default Vue.extend({
               }
               const supernode = d;
               // expand and retract the supernode aggregation based on user selection
-              if (this.clickMap.get(supernode.id)) {
-                this.$emit(
-                  'updateNetwork',
+              if (this.clickMap.get(supernode._id)) {
+                store.commit.setNetwork(
                   retractSuperNetwork(
                     this.nonAggrNodes,
                     this.nonAggrLinks,
                     this.network.nodes,
-                    this.network.links,
+                    this.network.edges,
                     supernode,
                   ),
                 );
-                this.clickMap.set(supernode.id, false);
+                this.clickMap.set(supernode._id, false);
 
                 // Hide Child Legend
                 const values = [...this.clickMap.values()];
@@ -898,17 +904,16 @@ export default Vue.extend({
                   this.$emit('updateMatrixLegends', true, false);
                 }
               } else {
-                this.$emit(
-                  'updateNetwork',
+                store.commit.setNetwork(
                   expandSuperNetwork(
                     this.nonAggrNodes,
                     this.nonAggrLinks,
                     this.network.nodes,
-                    this.network.links,
+                    this.network.edges,
                     supernode,
                   ),
                 );
-                this.clickMap.set(supernode.id, true);
+                this.clickMap.set(supernode._id, true);
 
                 // Display Child Legend
                 this.$emit('updateMatrixLegends', true, true);
@@ -917,7 +922,7 @@ export default Vue.extend({
               rowEnter
                 .on('click', (d: Node) => {
                   this.selectElement(d);
-                  this.selectNeighborNodes(d.id, d.neighbors);
+                  this.selectNeighborNodes(d._id, d.neighbors);
                 })
                 .attr('cursor', 'pointer');
             }
@@ -1075,9 +1080,9 @@ export default Vue.extend({
     },
 
     changeInteraction(
-      state: State,
+      state: ProvenanceState,
       nodeID: string,
-      interaction: keyof State['selections'],
+      interaction: keyof ProvenanceState['selections'],
       interactionName: string = interaction,
     ): void {
       if (nodeID in state.selections[interaction]) {
@@ -1142,7 +1147,7 @@ export default Vue.extend({
     },
 
     sort(order: string): void {
-      const nodeIDs = this.network.nodes.map((node: Node) => node.id);
+      const nodeIDs = this.network.nodes.map((node: Node) => node._id);
 
       this.order = this.changeOrder(order, nodeIDs.includes(order));
       this.orderingScale.domain(this.order);
@@ -1186,7 +1191,7 @@ export default Vue.extend({
 
       selectAll('.sortIcon')
         .style('fill', '#8B8B8B')
-        .filter((d: any) => d.id === order)
+        .filter((d: any) => d._id === order)
         .style('fill', '#EBB769');
     },
 
@@ -1197,7 +1202,7 @@ export default Vue.extend({
       // Add/Update zebras
       this.attributeZebras = (select('.zebras') as any)
         .selectAll('.attrRowBackground')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node) => d._id);
 
       this.attributeZebras.exit().remove();
 
@@ -1219,22 +1224,22 @@ export default Vue.extend({
         .append('rect')
         .classed('highlightRow', true)
         .attr('y', (d: Node, i: number) => this.orderingScale(i))
-        .attr('id', (d: Node) => `highlightRow${d.id}`)
+        .attr('id', (d: Node) => `highlightRow${d._id}`)
         .attr('width', attributeWidth)
         .attr('height', this.orderingScale.bandwidth())
         .attr('fill-opacity', 0)
         .attr('cursor', 'pointer')
         .on('mouseover', (d: Node, i: number, nodes: any) => {
           this.showToolTip(d, i, nodes);
-          this.hoverNode(d.id);
+          this.hoverNode(d._id);
         })
         .on('mouseout', (d: Node) => {
           this.hideToolTip();
-          this.unHoverNode(d.id);
+          this.unHoverNode(d._id);
         })
         .on('click', (d: Node) => {
           this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          this.selectNeighborNodes(d._id, d.neighbors);
         });
 
       this.attributeZebras.merge(attributeZebrasEnter);
@@ -1277,10 +1282,9 @@ export default Vue.extend({
         .on('click', (d: string) => {
           if (this.enableGraffinity) {
             this.nonAggrNodes = processChildNodes(this.network.nodes);
-            this.nonAggrLinks = processChildLinks(this.network.links);
-            this.$emit(
-              'updateNetwork',
-              superGraph(this.network.nodes, this.network.links, d),
+            this.nonAggrLinks = processChildLinks(this.network.edges);
+            store.commit.setNetwork(
+              superGraph(this.network.nodes, this.network.edges, d),
             );
 
             // Turn on the disable aggregation
@@ -1367,7 +1371,7 @@ export default Vue.extend({
 
       const attributeVis = (selectAll('.attrRows') as any)
         .selectAll('.attrRow')
-        .data(this.network.nodes, (d: Node) => d._id || d.id);
+        .data(this.network.nodes, (d: Node) => d._id);
 
       // Update existing vis elements to resize width
       attributeVis
@@ -1386,14 +1390,14 @@ export default Vue.extend({
 
       // Update attribute groups
       (selectAll('.attrRow') as any)
-        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .data(this.network.nodes, (d: Node) => d._id)
         .attr(
           'transform',
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
       (selectAll('.visAttr') as any)
-        .data(this.network.nodes, (d: Node) => d._id || d.id)
+        .data(this.network.nodes, (d: Node) => d._id)
         .attr('height', this.orderingScale.bandwidth())
         .attr('width', (d: Node, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
@@ -1416,11 +1420,11 @@ export default Vue.extend({
           }
         })
         .attr('cursor', 'pointer')
-        .on('mouseover', (d: Node) => this.hoverNode(d.id))
-        .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+        .on('mouseover', (d: Node) => this.hoverNode(d._id))
+        .on('mouseout', (d: Node) => this.unHoverNode(d._id))
         .on('click', (d: Node) => {
           this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          this.selectNeighborNodes(d._id, d.neighbors);
         });
 
       const attributeVisEnter = attributeVis
@@ -1459,11 +1463,11 @@ export default Vue.extend({
           }
         })
         .attr('cursor', 'pointer')
-        .on('mouseover', (d: Node) => this.hoverNode(d.id))
-        .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+        .on('mouseover', (d: Node) => this.hoverNode(d._id))
+        .on('mouseout', (d: Node) => this.unHoverNode(d._id))
         .on('click', (d: Node) => {
           this.selectElement(d);
-          this.selectNeighborNodes(d.id, d.neighbors);
+          this.selectNeighborNodes(d._id, d.neighbors);
         });
 
       // Constants for count labels
@@ -1545,17 +1549,17 @@ export default Vue.extend({
           );
         }
       } else {
-        if (element.id in this.selectedElements) {
-          delete this.selectedElements[element.id];
+        if (element._id in this.selectedElements) {
+          delete this.selectedElements[element._id];
         } else {
           elementsToSelect = [
-            `[id="highlightRow${element.id}"]`,
-            `[id="topoRow${element.id}"]`,
-            `[id="topoCol${element.id}"]`,
-            `[id="colLabel${element.id}"]`,
-            `[id="rowLabel${element.id}"]`,
+            `[id="highlightRow${element._id}"]`,
+            `[id="topoRow${element._id}"]`,
+            `[id="topoCol${element._id}"]`,
+            `[id="colLabel${element._id}"]`,
+            `[id="rowLabel${element._id}"]`,
           ];
-          newElement = { [element.id]: elementsToSelect };
+          newElement = { [element._id]: elementsToSelect };
           this.selectedElements = Object.assign(
             this.selectedElements,
             newElement,
@@ -1631,7 +1635,7 @@ export default Vue.extend({
       Number of edges: ${d.z}`;
       } else {
         // Get node id
-        message = `ID: ${d.id}`;
+        message = `ID: ${d._id}`;
 
         // Loop through other props to add to tooltip
         for (const key of Object.keys(d)) {
@@ -1679,7 +1683,11 @@ export default Vue.extend({
 
     generateSortAction(
       sortKey: string,
-    ): { label: string; action: (key: string) => State; args: any[] } {
+    ): {
+      label: string;
+      action: (key: string) => ProvenanceState;
+      args: any[];
+    } {
       return {
         label: 'sort',
         action: (key: string) => {
@@ -1704,16 +1712,16 @@ export default Vue.extend({
         type === 'clusterBary' ||
         type === 'clusterLeaf'
       ) {
-        const links: any[] = Array(this.network.links.length);
+        const edges: any[] = Array(this.network.edges.length);
 
         // Generate links that are compatible with reorder.js
-        this.network.links.forEach((link: Link, index: number) => {
-          links[index] = {
+        this.network.edges.forEach((edge: Link, index: number) => {
+          edges[index] = {
             source: this.network.nodes.find(
-              (node: Node) => node.id === link._from,
+              (node: Node) => node._id === edge._from,
             ),
             target: this.network.nodes.find(
-              (node: Node) => node.id === link._to,
+              (node: Node) => node._id === edge._to,
             ),
           };
         });
@@ -1721,7 +1729,7 @@ export default Vue.extend({
         const sortableNetwork = reorder
           .graph()
           .nodes(this.network.nodes)
-          .links(links)
+          .links(edges)
           .init();
 
         if (type === 'clusterBary') {
@@ -1743,7 +1751,7 @@ export default Vue.extend({
         );
       } else if (isNode === true) {
         order = range(this.network.nodes.length).sort((a, b) =>
-          this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
+          this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id),
         );
         order = range(this.network.nodes.length).sort(
           (a, b) =>
@@ -1752,7 +1760,7 @@ export default Vue.extend({
         );
       } else if (this.sortKey === 'shortName') {
         order = range(this.network.nodes.length).sort((a, b) =>
-          this.network.nodes[a].id.localeCompare(this.network.nodes[b].id),
+          this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id),
         );
       } else {
         order = range(this.network.nodes.length).sort(
@@ -1763,7 +1771,7 @@ export default Vue.extend({
       return order;
     },
 
-    getApplicationState(): State {
+    getApplicationState(): ProvenanceState {
       return this.provenance.graph().current.state;
     },
 

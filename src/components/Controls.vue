@@ -6,8 +6,7 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
-import { loadData } from '@/lib/multinet';
-import { Network } from '@/types';
+import store from '@/store';
 
 // This is to be removed (stop-gap solution to superGraph network update)
 export const eventBus = new Vue();
@@ -18,9 +17,6 @@ export default Vue.extend({
   },
 
   data(): {
-    network: Network;
-    workspace: string;
-    networkName: string;
     selectNeighbors: boolean;
     showGridLines: boolean;
     enableGraffinity: boolean;
@@ -30,12 +26,6 @@ export default Vue.extend({
     visualizedAttributes: string[];
   } {
     return {
-      network: {
-        nodes: [],
-        links: [],
-      },
-      workspace: '',
-      networkName: '',
       selectNeighbors: true,
       showGridLines: true,
       enableGraffinity: false,
@@ -48,29 +38,32 @@ export default Vue.extend({
 
   computed: {
     attributeList(this: any) {
-      if (typeof this.network.nodes[0] !== 'undefined') {
+      if (
+        this.network !== null &&
+        typeof this.network.nodes[0] !== 'undefined'
+      ) {
         return Object.keys(this.network.nodes[0]);
       } else {
         return [];
       }
     },
+
+    network() {
+      return store.getters.network;
+    },
   },
 
   async mounted() {
-    const { workspace, networkName, host } = getUrlVars();
+    const { workspace, networkName } = getUrlVars();
     if (!workspace || !networkName) {
       throw new Error(
         `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
       );
     }
 
-    this.network = await loadData(workspace, networkName, host);
-    this.workspace = workspace;
-    this.networkName = networkName;
-
-    // Catch network update events here to propagate new data into the app.
-    eventBus.$on('updateNetwork', (network: Network) => {
-      this.network = network;
+    await store.dispatch.fetchNetwork({
+      workspaceName: workspace,
+      networkName,
     });
   },
 
@@ -82,7 +75,7 @@ export default Vue.extend({
           type: `text/json`,
         }),
       );
-      a.download = `${this.networkName}.json`;
+      a.download = `${store.getters.networkName}.json`;
       a.click();
     },
     createLegend(colorScale: ScaleLinear<string, number>, legendName: string) {
@@ -108,10 +101,6 @@ export default Vue.extend({
         .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);
-    },
-
-    updateNetwork(network: Network) {
-      this.network = network;
     },
 
     updateMatrixLegends(showAggrLegend: boolean, showChildLegend: boolean) {
@@ -273,7 +262,7 @@ export default Vue.extend({
       <v-row class="ma-0">
         <multi-matrix
           ref="multimatrix"
-          v-if="workspace"
+          v-if="network !== null"
           v-bind="{
             network,
             selectNeighbors,
@@ -288,7 +277,6 @@ export default Vue.extend({
           @updateMatrixLegendScale="createLegend"
           @updateAggrMatrixLegendScale="createLegend"
           @updateChildMatrixLegendScale="createLegend"
-          @updateNetwork="updateNetwork"
           @updateMatrixLegends="updateMatrixLegends"
         />
       </v-row>
