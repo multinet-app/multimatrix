@@ -257,10 +257,10 @@ export default Vue.extend({
         .key((d: any) => d._from)
         .entries(this.network.edges);
 
-      const edgeAttributes = Object.keys(rowData[0].values[0]);
+      console.log(rowData);
 
-      const combinedRowData = [...this.network.nodes];
-      rowData.forEach((d: { [key: string]: any }, i: number) => {
+      const edgeAttributes = Object.keys(rowData[0].values[0]);
+      rowData.forEach((d: { [key: string]: any }) => {
         const rowAttrs: { [key: string]: string[] } = {};
         edgeAttributes.forEach((attr: string) => {
           const attrList = d.values.reduce((accum: any[], currentVal: any) => {
@@ -270,11 +270,17 @@ export default Vue.extend({
           }, []);
           rowAttrs[attr] = attrList;
         });
-        combinedRowData[i]['values'] = rowAttrs;
-        combinedRowData[i]['series'] = [];
+
+        const nodeToUpdate = this.network.nodes.find(
+          (node) => node._id === d.key,
+        );
+        if (nodeToUpdate !== undefined) {
+          nodeToUpdate['values'] = rowAttrs;
+          nodeToUpdate['series'] = [];
+        }
       });
 
-      return combinedRowData;
+      return this.network.nodes;
     },
 
     attributeScales() {
@@ -316,9 +322,11 @@ export default Vue.extend({
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
           const vals: number[][] = [];
-          this.rowData.forEach((row: { [key: string]: any }) =>
-            vals.push(row.values[col].map((d: any) => Number(d))),
-          );
+          this.rowData.forEach((row: { [key: string]: any }) => {
+            if (row.values !== undefined) {
+              vals.push(row.values[col].map((d: any) => Number(d)));
+            }
+          });
           const valsFlat = vals.flat();
           const minimum = min(valsFlat) || 0;
           const maximum = max(valsFlat) || 0;
@@ -1721,9 +1729,13 @@ export default Vue.extend({
                 .jitter(0)
                 .opacity(1);
 
-              toAppend
-                .datum((d: AttrVis) => BoxPlot.boxplotStats(d.values[varName]))
-                .call(bPlot);
+              if (d.values !== undefined) {
+                toAppend
+                  .datum((d: AttrVis) =>
+                    BoxPlot.boxplotStats(d.values[varName]),
+                  )
+                  .call(bPlot);
+              }
             } else if (this.visualizedLinkAttributes.includes(varName)) {
               // Draw stacked bar chart
               const stackedBars = toAppend
