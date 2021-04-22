@@ -347,7 +347,8 @@ export default Vue.extend({
         attrWidth /
           (this.visualizedAttributes.length +
             this.visualizedLinkAttributes.length) -
-        this.colMargin
+        this.colMargin -
+        40 // 40 for children count
       );
     },
     stackedBarScale(): ScaleLinear<number, number> {
@@ -1421,7 +1422,7 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .attr('y', 16)
         .text((d: string) => d)
-        .attr('width', this.colWidth - 40)
+        .attr('width', this.colWidth)
         .on('click', (d: string) => {
           if (this.visualizedAttributes.includes(d) && this.enableGraffinity) {
             this.nonAggrNodes = processChildNodes(this.network.nodes);
@@ -1648,9 +1649,9 @@ export default Vue.extend({
         .attr('width', (d: Node, i: number, htmlNodes: any) => {
           const varName = htmlNodes[i].parentElement.parentElement.classList[1];
           if (this.isQuantitative(varName)) {
-            return this.attributeScales[varName](d[varName]) - 40;
+            return this.attributeScales[varName](d[varName]);
           } else {
-            return this.colWidth - 40;
+            return this.colWidth;
           }
         })
         .attr('fill', (d: Node, i: number, htmlNodes: any) => {
@@ -1694,9 +1695,9 @@ export default Vue.extend({
               .attr('height', this.orderingScale.bandwidth())
               .attr('width', (d: Node) => {
                 if (this.isQuantitative(varName)) {
-                  return this.attributeScales[varName](d[varName]) - 40;
+                  return this.attributeScales[varName](d[varName]);
                 } else {
-                  return this.colWidth - 40;
+                  return this.colWidth;
                 }
               })
               .attr('fill', (d: Node) => {
