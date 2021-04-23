@@ -10,7 +10,7 @@ export default {
     Controls,
   },
 
-  async mounted() {
+  setup() {
     const { workspace, graph: networkName } = getUrlVars();
     if (!workspace || !networkName) {
       throw new Error(
