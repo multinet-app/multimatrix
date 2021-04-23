@@ -1,4 +1,4 @@
-import { TableRow } from 'multinet';
+import { TableRow, UserSpec } from 'multinet';
 
 export interface Dimensions {
   height: number;
@@ -37,6 +37,7 @@ export interface State {
   workspaceName: string | null;
   networkName: string | null;
   network: Network | null;
+  userInfo: UserSpec | null;
 }
 
 export interface ProvenanceState {

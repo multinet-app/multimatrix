@@ -7,12 +7,16 @@ import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { getUrlVars } from '@/lib/utils';
 import store from '@/store';
+import AboutDialog from '@/components/AboutDialog.vue';
+import LoginMenu from '@/components/LoginMenu.vue';
 
 // This is to be removed (stop-gap solution to superGraph network update)
 export const eventBus = new Vue();
 
 export default Vue.extend({
   components: {
+    AboutDialog,
+    LoginMenu,
     MultiMatrix,
   },
 
@@ -129,7 +133,10 @@ export default Vue.extend({
       value="true"
     >
       <v-toolbar color="grey lighten-2">
-        <v-toolbar-title class="d-flex align-center">
+        <v-toolbar-title
+          class="d-flex align-center"
+          flat
+        >
           <div>
             <v-row class="mx-0 align-center">
               <v-col class="pb-0 pt-2 px-0">
@@ -143,11 +150,14 @@ export default Vue.extend({
               <v-col class="text-left">
                 MultiMatrix
               </v-col>
+              <v-col class="pa-0">
+                <about-dialog />
+              </v-col>
             </v-row>
           </div>
         </v-toolbar-title>
         <v-spacer />
-        <!-- login-menu / -->
+        <login-menu />
       </v-toolbar>
 
       <v-list class="pa-0">

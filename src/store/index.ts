@@ -3,7 +3,7 @@ import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
 import api from '@/api';
-import { RowsSpec, TableRow } from 'multinet';
+import { RowsSpec, TableRow, UserSpec } from 'multinet';
 import {
   Link, Network, Node, State,
 } from '@/types';
@@ -22,6 +22,7 @@ const {
     workspaceName: null,
     networkName: null,
     network: null,
+    userInfo: null,
   } as State,
 
   getters: {
@@ -48,6 +49,10 @@ const {
 
     setNetwork(state, network: Network) {
       state.network = network;
+    },
+
+    setUserInfo(state, userInfo: UserSpec | null) {
+      state.userInfo = userInfo;
     },
   },
   actions: {
@@ -95,6 +100,21 @@ const {
         edges: edges as Link[],
       };
       commit.setNetwork(network);
+    },
+
+    async fetchUserInfo(context) {
+      const { commit } = rootActionContext(context);
+
+      const info = await api.userInfo();
+      commit.setUserInfo(info);
+    },
+
+    async logout(context) {
+      const { commit } = rootActionContext(context);
+
+      // Perform the server logout.
+      await api.logout();
+      commit.setUserInfo(null);
     },
   },
 });
