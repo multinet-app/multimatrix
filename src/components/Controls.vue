@@ -5,7 +5,6 @@ import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
-import { getUrlVars } from '@/lib/utils';
 import store from '@/store';
 
 // This is to be removed (stop-gap solution to superGraph network update)
@@ -57,20 +56,6 @@ export default Vue.extend({
         selectAll('.gridLines').attr('opacity', 0);
       }
     },
-  },
-
-  async mounted() {
-    const { workspace, graph: networkName } = getUrlVars();
-    if (!workspace || !networkName) {
-      throw new Error(
-        `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
-      );
-    }
-
-    await store.dispatch.fetchNetwork({
-      workspaceName: workspace,
-      networkName,
-    });
   },
 
   methods: {
