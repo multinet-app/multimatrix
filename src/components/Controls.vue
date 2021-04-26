@@ -6,14 +6,12 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import store from '@/store';
-import Alert from '@/components/Alert.vue';
 
 // This is to be removed (stop-gap solution to superGraph network update)
 export const eventBus = new Vue();
 
 export default Vue.extend({
   components: {
-    Alert,
     MultiMatrix,
   },
 
@@ -47,10 +45,6 @@ export default Vue.extend({
 
     network() {
       return store.getters.network;
-    },
-
-    loadError() {
-      return store.getters.loadError;
     },
   },
 
@@ -265,7 +259,7 @@ export default Vue.extend({
     </v-navigation-drawer>
 
     <!-- MultiMatrix component -->
-    <v-col>
+    <v-col v-if="network !== null">
       <v-row class="ma-0">
         <multi-matrix
           v-if="network !== null"
@@ -287,7 +281,6 @@ export default Vue.extend({
           @updateMatrixLegends="updateMatrixLegends"
         />
 
-        <alert v-if="loadError.message !== ''" />
       </v-row>
     </v-col>
   </div>
