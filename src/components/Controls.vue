@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from 'vue';
-import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
+import MultiMatrix from '@/components/MultiMatrix.vue';
 import { select, selectAll } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
