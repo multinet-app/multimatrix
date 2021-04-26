@@ -3,9 +3,9 @@ import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
 import api from '@/api';
-import { RowsSpec, TableRow } from 'multinet';
+import { GraphSpec, RowsSpec, TableRow } from 'multinet';
 import {
-  Link, Network, Node, State,
+  Link, LoadError, Network, Node, State,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
 
@@ -22,6 +22,10 @@ const {
     workspaceName: null,
     networkName: null,
     network: null,
+    loadError: {
+      message: '',
+      href: '',
+    },
   } as State,
 
   getters: {
@@ -36,6 +40,10 @@ const {
     network(state: State) {
       return state.network;
     },
+
+    loadError(state) {
+      return state.loadError;
+    },
   },
   mutations: {
     setWorkspaceName(state, workspaceName: string) {
@@ -49,6 +57,13 @@ const {
     setNetwork(state, network: Network) {
       state.network = network;
     },
+
+    setLoadError(state, loadError: LoadError) {
+      state.loadError = {
+        message: loadError.message,
+        href: loadError.href,
+      };
+    },
   },
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
@@ -56,8 +71,44 @@ const {
       commit.setWorkspaceName(workspaceName);
       commit.setNetworkName(networkName);
 
+      let networkTables: GraphSpec | undefined;
+
       // Get all table names
-      const networkTables = await api.graph(workspaceName, networkName);
+      try {
+        networkTables = await api.graph(workspaceName, networkName);
+      } catch (error) {
+        if (error.status === 404) {
+          if (workspaceName === undefined || networkName === undefined) {
+            commit.setLoadError({
+              message: 'Workspace and/or network were not defined in the url',
+              href: 'https://multinet.app',
+            });
+          } else {
+            commit.setLoadError({
+              message: error.statusText,
+              href: 'https://multinet.app',
+            });
+          }
+        } else if (error.status === 401) {
+          commit.setLoadError({
+            message: 'You are not authorized to view this workspace',
+            href: 'https://multinet.app',
+          });
+        } else {
+          commit.setLoadError({
+            message: 'An unexpected error ocurred',
+            href: 'https://multinet.app',
+          });
+        }
+      } finally {
+        if (store.getters.loadError.message === '' && typeof networkTables === 'undefined') {
+          // Catches CORS errors, issues when DB/API are down, etc.
+          commit.setLoadError({
+            message: 'There was a network issue when getting data',
+            href: `./?workspace=${workspaceName}&graph=${networkName}`,
+          });
+        }
+      }
 
       if (networkTables === undefined) {
         return;
@@ -66,9 +117,7 @@ const {
       // Generate all node table promises
       const nodePromises: Promise<RowsSpec>[] = [];
       networkTables.nodeTables.forEach((table) => {
-        nodePromises.push(
-          api.table(workspaceName, table, { offset: 0, limit: 1000 }),
-        );
+        nodePromises.push(api.table(workspaceName, table, { offset: 0, limit: 1000 }));
       });
 
       // Resolve all node table promises and extract the rows
@@ -79,11 +128,7 @@ const {
       });
 
       // Generate and resolve edge table promise and extract rows
-      const edgePromise = await api.table(
-        workspaceName,
-        networkTables.edgeTable,
-        { offset: 0, limit: 1000 },
-      );
+      const edgePromise = await api.table(workspaceName, networkTables.edgeTable, { offset: 0, limit: 1000 });
       const edges = edgePromise.rows;
 
       // Add neighbor definition to nodes

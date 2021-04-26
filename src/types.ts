@@ -33,10 +33,16 @@ export interface Cell {
   correspondingCell: string;
 }
 
+export interface LoadError {
+  message: string;
+  href: string;
+}
+
 export interface State {
   workspaceName: string | null;
   networkName: string | null;
   network: Network | null;
+  loadError: LoadError;
 }
 
 export interface ProvenanceState {
