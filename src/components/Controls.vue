@@ -299,31 +299,26 @@ export default Vue.extend({
     </v-navigation-drawer>
 
     <!-- MultiMatrix component -->
-    <v-col v-if="network !== null">
-      <v-row class="ma-0">
-        <multi-matrix
-          v-if="network !== null"
-          ref="multimatrix"
-          v-bind="{
-            network,
-            selectNeighbors,
-            showGridLines,
-            enableGraffinity,
-            showAggrLegend,
-            showChildLegend,
-            visualizedAttributes,
+    <multi-matrix
+      v-if="network !== null"
+      ref="multimatrix"
+      v-bind="{
+        network,
+        selectNeighbors,
+        showGridLines,
+        enableGraffinity,
+        showAggrLegend,
+        showChildLegend,
+        visualizedAttributes,
             visualizedLinkAttributes,
-            directional,
-          }"
-          @restart-simulation="hello()"
-          @updateMatrixLegendScale="createLegend"
-          @updateAggrMatrixLegendScale="createLegend"
-          @updateChildMatrixLegendScale="createLegend"
-          @updateMatrixLegends="updateMatrixLegends"
-        />
-
-      </v-row>
-    </v-col>
+        directional,
+      }"
+      @restart-simulation="hello()"
+      @updateMatrixLegendScale="createLegend"
+      @updateAggrMatrixLegendScale="createLegend"
+      @updateChildMatrixLegendScale="createLegend"
+      @updateMatrixLegends="updateMatrixLegends"
+    />
   </div>
 </template>
 

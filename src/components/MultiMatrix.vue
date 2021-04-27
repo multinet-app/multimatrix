@@ -2041,8 +2041,8 @@ export default Vue.extend({
 
 <template>
   <div>
-    <v-row>
-      <v-col cols="9">
+    <v-container class="d-inline-flex">
+      <div>
         <svg
           id="matrix"
           ref="matrix"
@@ -2050,18 +2050,17 @@ export default Vue.extend({
           :height="matrixHeight"
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
         />
-        <!-- <svg
+      </div>
+      <!-- <svg
       id="attributes"
       ref="attributes"
       :width="attributesWidth"
       :height="attributesHeight"
       :viewbox="`0 0 ${attributesWidth} ${attributesHeight}`"
     /> -->
-      </v-col>
-      <v-col cols="3">
-        <line-up :data="network.nodes" />
-      </v-col>
-    </v-row>
+      <line-up :data="network.nodes" />
+    </v-container>
+
     <div
       id="tooltip"
       ref="tooltip"

@@ -34,4 +34,8 @@ export default {
   z-index: 10;
   height: 1000px;
 }
+
+.le-th {
+  margin-bottom: 0 !important;
+}
 </style>
