@@ -39,6 +39,7 @@ import { schemeCategory10, schemeSpectral } from 'd3-scale-chromatic';
 import * as BoxPlot from 'd3-boxplot';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import store from '@/store';
+import LineUp from '@/components/LineUp.vue';
 
 import 'science';
 import 'reorder.js';
@@ -46,6 +47,10 @@ import 'reorder.js';
 declare const reorder: any;
 
 export default Vue.extend({
+  components: {
+    LineUp,
+  },
+
   props: {
     network: {
       type: Object as PropType<Network>,
@@ -338,12 +343,13 @@ export default Vue.extend({
 
     colWidth(): number {
       const attrWidth = parseFloat(select('#attributes').attr('width'));
-      return (
-        (attrWidth - 40)
-          / (this.visualizedAttributes.length
-            + this.visualizedLinkAttributes.length)
-        - this.colMargin // 40 for children count
-      );
+      // return (
+      //   (attrWidth - 40)
+      //     / (this.visualizedAttributes.length
+      //       + this.visualizedLinkAttributes.length)
+      //   - this.colMargin // 40 for children count
+      // );
+       return 100;
     },
     stackedBarScale(): ScaleLinear<number, number> {
       return scaleLinear<number, number>().range([0, this.colWidth]);
@@ -474,11 +480,11 @@ export default Vue.extend({
         `translate(${this.visMargins.left},${this.visMargins.top})`,
       );
 
-    this.attributes = select('#attributes')
-      .append('g')
-      .attr('transform', `translate(0,${this.visMargins.top})`);
+    // this.attributes = select('#attributes')
+    //   .append('g')
+    //   .attr('transform', `translate(0,${this.visMargins.top})`);
 
-    this.attributes.append('g').attr('class', 'zebras');
+    // this.attributes.append('g').attr('class', 'zebras');
 
     // Draw buttons for alternative sorts
     let initialY = -this.visMargins.left + 10;
@@ -521,13 +527,13 @@ export default Vue.extend({
 
     this.provenance = this.setUpProvenance();
 
-    this.renderAttributeVis();
+    // this.renderAttributes();
     this.initializeEdges();
   },
 
   methods: {
     changeMatrix(this: any) {
-      this.renderAttributeVis();
+      // this.renderAttributes();
       this.initializeEdges();
     },
     combineNodeAttributes() {
@@ -2035,20 +2041,27 @@ export default Vue.extend({
 
 <template>
   <div>
-    <svg
-      id="matrix"
-      ref="matrix"
-      :width="matrixWidth"
-      :height="matrixHeight"
-      :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
-    />
-    <svg
+    <v-row>
+      <v-col cols="9">
+        <svg
+          id="matrix"
+          ref="matrix"
+          :width="matrixWidth"
+          :height="matrixHeight"
+          :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
+        />
+        <!-- <svg
       id="attributes"
       ref="attributes"
       :width="attributesWidth"
       :height="attributesHeight"
       :viewbox="`0 0 ${attributesWidth} ${attributesHeight}`"
-    />
+    /> -->
+      </v-col>
+      <v-col cols="3">
+        <line-up :data="network.nodes" />
+      </v-col>
+    </v-row>
     <div
       id="tooltip"
       ref="tooltip"
