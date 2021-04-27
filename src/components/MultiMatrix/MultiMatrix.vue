@@ -546,6 +546,8 @@ export default Vue.extend({
             (x) => !this.combinedAttributes.includes(x),
           ),
         );
+
+      console.log(nodeDifference);
       nodeDifference = nodeDifference
         .filter((x) => !this.visualizedLinkAttributes.includes(x))
         .concat(
@@ -558,7 +560,7 @@ export default Vue.extend({
           (el: string) => el != nodeDifference[0],
         );
       } else {
-        this.combinedAttributes.push(nodeDifference[0]);
+        this.combinedAttributes.push(...nodeDifference);
       }
       this.renderAttributeVis();
     },
