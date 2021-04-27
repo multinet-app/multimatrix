@@ -538,6 +538,7 @@ export default Vue.extend({
       this.initializeEdges();
     },
     combineNodeAttributes() {
+      // Add attributes in order of selection across both nodes and links
       let nodeDifference = this.combinedAttributes
         .filter((x) => !this.visualizedAttributes.includes(x))
         .concat(
@@ -562,6 +563,7 @@ export default Vue.extend({
       this.renderAttributeVis();
     },
     combineLinkAttributes() {
+      // Add attributes in order of selection across both nodes and links
       let linkDifference = this.combinedAttributes
         .filter((x) => !this.visualizedLinkAttributes.includes(x))
         .concat(
