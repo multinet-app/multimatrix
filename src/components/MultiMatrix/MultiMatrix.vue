@@ -252,15 +252,13 @@ export default Vue.extend({
       return computedIdMap;
     },
 
-    rowData(): any {
-      const rowData = nest()
+    rowNest(): any {
+      const rowNest = nest()
         .key((d: any) => d._from)
         .entries(this.network.edges);
 
-      console.log(rowData);
-
-      const edgeAttributes = Object.keys(rowData[0].values[0]);
-      rowData.forEach((d: { [key: string]: any }) => {
+      const edgeAttributes = Object.keys(rowNest[0].values[0]);
+      rowNest.forEach((d: { [key: string]: any }) => {
         const rowAttrs: { [key: string]: string[] } = {};
         edgeAttributes.forEach((attr: string) => {
           const attrList = d.values.reduce((accum: any[], currentVal: any) => {
@@ -322,7 +320,7 @@ export default Vue.extend({
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (this.isQuantitative(col)) {
           const vals: number[][] = [];
-          this.rowData.forEach((row: { [key: string]: any }) => {
+          this.rowNest.forEach((row: { [key: string]: any }) => {
             if (row.values !== undefined) {
               vals.push(row.values[col].map((d: any) => Number(d)));
             }
@@ -1545,14 +1543,14 @@ export default Vue.extend({
       this.visualizedLinkAttributes.forEach((col: string) => {
         if (!this.isQuantitative(col)) {
           const data: { [key: string]: number }[] = [];
-          const keys = this.rowData.map(
+          const keys = this.rowNest.map(
             (row: { [key: string]: any }) => row.values[col],
           );
           const keysFlat = keys
             .flat()
             .reduce((a: any, v: any) => ((a[v] = a[v] || 0), a), {});
 
-          this.rowData.forEach((row: { [key: string]: any }) => {
+          this.rowNest.forEach((row: { [key: string]: any }) => {
             const copyKeys: { [key: string]: number } = Object.assign(
               {},
               keysFlat,
@@ -1578,7 +1576,7 @@ export default Vue.extend({
           // Organize series data by row
           seriesData.forEach((row) => {
             row.forEach((col) => {
-              this.rowData.forEach((item: { [key: string]: any }) => {
+              this.rowNest.forEach((item: { [key: string]: any }) => {
                 if (item.id === col.data.name.toString()) {
                   if (item.series) {
                     item.series.push(col);
