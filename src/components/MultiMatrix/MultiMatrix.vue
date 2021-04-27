@@ -1557,7 +1557,7 @@ export default Vue.extend({
             );
 
             row.values[col].forEach((a: string) => (copyKeys[a] += 1));
-            copyKeys.name = row.id;
+            copyKeys.name = row._id;
 
             // Normalize values
             const sumVal = sum(Object.values(copyKeys));
@@ -1577,7 +1577,7 @@ export default Vue.extend({
           seriesData.forEach((row) => {
             row.forEach((col) => {
               this.rowNest.forEach((item: { [key: string]: any }) => {
-                if (item.id === col.data.name.toString()) {
+                if (item._id === col.data.name.toString()) {
                   if (item.series) {
                     item.series.push(col);
                   } else {
@@ -1593,7 +1593,7 @@ export default Vue.extend({
 
       const attributeVis = (selectAll('.attrRows') as any)
         .selectAll('.attrRow')
-        .data(this.network.nodes, (d: Node | AttrVis) => d._id || d.id);
+        .data(this.network.nodes, (d: Node | AttrVis) => d._id);
 
       // Update existing vis elements to resize width
       attributeVis
@@ -1706,11 +1706,11 @@ export default Vue.extend({
                 }
               })
               .attr('cursor', 'pointer')
-              .on('mouseover', (d: Node) => this.hoverNode(d.id))
-              .on('mouseout', (d: Node) => this.unHoverNode(d.id))
+              .on('mouseover', (d: Node) => this.hoverNode(d._id))
+              .on('mouseout', (d: Node) => this.unHoverNode(d._id))
               .on('click', (d: Node) => {
                 this.selectElement(d);
-                this.selectNeighborNodes(d.id, d.neighbors);
+                this.selectNeighborNodes(d._id, d.neighbors);
               });
           } else {
             // Draw link attributes
