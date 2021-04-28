@@ -10,7 +10,7 @@ export default {
 
   setup() {
     const network = computed(() => store.getters.network);
-    const selectedElements = computed(() => store.getters.selectedElements);
+    const selectedNodes = computed(() => store.getters.selectedNodes);
 
     const lineup: Ref<LineUp | null> = ref(null);
     const builder: Ref<DataBuilder | null> = ref(null);
@@ -42,8 +42,8 @@ export default {
 
           // Find the symmetric difference between the ids here and those in the store
           function diffFunction<T>(arr1: Array<T>, arr2: Array<T>): Array<T> { return arr1.filter((x) => arr2.indexOf(x) === -1); }
-          const differentIDs = diffFunction<string>(clickedIDs, [...selectedElements.value])
-            .concat(diffFunction([...selectedElements.value], clickedIDs));
+          const differentIDs = diffFunction<string>(clickedIDs, [...selectedNodes.value])
+            .concat(diffFunction([...selectedNodes.value], clickedIDs));
 
           // Click on the elements that are different to add/remove them from the store
           differentIDs.forEach((nodeID) => store.commit.clickElement(nodeID));
@@ -53,7 +53,7 @@ export default {
 
     watchEffect(() => {
       // Convert the ids to indices
-      const indices = selectedElements.value
+      const indices = selectedNodes.value
         .map((elementID) => (builder.value !== null
           ? builder.value.buildData().data.findIndex((dataElement) => dataElement._id === elementID)
           : -1))

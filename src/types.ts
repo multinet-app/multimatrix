@@ -45,7 +45,7 @@ export interface State {
   loadError: LoadError;
   userInfo: UserSpec | null;
   cellSize: number;
-  selectedElements: string[];
+  selectedNodes: string[];
 }
 
 export interface ProvenanceState {

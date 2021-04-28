@@ -110,7 +110,6 @@ export default Vue.extend({
     expandRetractAggrVisEdges: Network; // variable for keeping track of the current links being visualized
     icons: { [key: string]: { [d: string]: string } };
     selectedNodesAndNeighbors: { [key: string]: string[] };
-    selectedElements: { [key: string]: string[] };
     order: any;
     orderType: any;
     provenance: any;
@@ -174,7 +173,6 @@ export default Vue.extend({
         },
       },
       selectedNodesAndNeighbors: {},
-      selectedElements: {},
       order: undefined,
       orderType: undefined,
       provenance: undefined,
@@ -212,8 +210,8 @@ export default Vue.extend({
       return store.state.cellSize;
     },
 
-    selectedElements2() {
-      return store.getters.selectedElements;
+    selectedNodes() {
+      return store.getters.selectedNodes;
     },
 
     matrixNodeLength(): number {
@@ -381,6 +379,28 @@ export default Vue.extend({
   },
 
   watch: {
+    selectedNodes() {
+      // Apply column highlight
+      selectAll('.topoCol')
+        .data(this.network.nodes)
+        .classed('clicked', (node) => this.selectedNodes.indexOf(node._id) !== -1);
+
+      // Apply column label highlight
+      selectAll('.colLabels')
+        .data(this.network.nodes)
+        .classed('clicked', (node) => this.selectedNodes.indexOf(node._id) !== -1);
+
+      // Apply row highlight
+      selectAll('.topoRow')
+        .data(this.network.nodes)
+        .classed('clicked', (node) => this.selectedNodes.indexOf(node._id) !== -1);
+
+      // Apply row label highlight
+      selectAll('.rowLabels')
+        .data(this.network.nodes)
+        .classed('clicked', (node) => this.selectedNodes.indexOf(node._id) !== -1);
+    },
+
     visualizedAttributes() {
       this.combineNodeAttributes();
     },
@@ -1751,70 +1771,6 @@ export default Vue.extend({
 
     isString(element: unknown): element is string {
       return element instanceof String;
-    },
-
-    selectElement(element: Cell | Node): void {
-      let elementsToSelect: string[] = [];
-      let newElement: { [key: string]: string[] };
-
-      if (this.isCell(element)) {
-        // Remove or add cell from selected cells
-        if (element.cellName in this.selectedElements) {
-          delete this.selectedElements[element.cellName];
-        } else {
-          // Get all the elements to be selected
-          elementsToSelect = [
-            `[id="highlightRow${element.colID}"]`,
-            `[id="topoRow${element.colID}"]`,
-            `[id="topoCol${element.colID}"]`,
-            `[id="colLabel${element.colID}"]`,
-            `[id="rowLabel${element.colID}"]`,
-
-            `[id="highlightRow${element.rowID}"]`,
-            `[id="topoRow${element.rowID}"]`,
-            `[id="topoCol${element.rowID}"]`,
-            `[id="colLabel${element.rowID}"]`,
-            `[id="rowLabel${element.rowID}"]`,
-
-            `[id="${element.cellName}"]`,
-          ];
-          newElement = { [element.cellName]: elementsToSelect };
-          this.selectedElements = Object.assign(
-            this.selectedElements,
-            newElement,
-          );
-        }
-      } else if (element._id in this.selectedElements) {
-        delete this.selectedElements[element._id];
-      } else {
-        elementsToSelect = [
-          `[id="highlightRow${element._id}"]`,
-          `[id="topoRow${element._id}"]`,
-          `[id="topoCol${element._id}"]`,
-          `[id="colLabel${element._id}"]`,
-          `[id="rowLabel${element._id}"]`,
-        ];
-        newElement = { [element._id]: elementsToSelect };
-        this.selectedElements = Object.assign(
-          this.selectedElements,
-          newElement,
-        );
-      }
-
-      // Reset all nodes to not neighbor highlighted
-      selectAll('.clicked').classed('clicked', false);
-
-      // Loop through the neighbor nodes to be highlighted and highlight them
-      const selections: string[] = [];
-      Object.keys(this.selectedElements).forEach((elementID) => {
-        this.selectedElements[elementID].forEach((elementToSelect) => {
-          selections.push(elementToSelect);
-        });
-      });
-
-      if (selections.length > 0) {
-        selectAll(selections.join(',')).classed('clicked', true);
-      }
     },
 
     showToolTip(event: MouseEvent, networkElement: Cell | Node): void {

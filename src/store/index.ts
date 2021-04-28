@@ -30,7 +30,7 @@ const {
     },
     userInfo: null,
     cellSize: 15,
-    selectedElements: [],
+    selectedNodes: [],
   } as State,
 
   getters: {
@@ -50,8 +50,8 @@ const {
       return state.loadError;
     },
 
-    selectedElements(state) {
-      return state.selectedElements;
+    selectedNodes(state) {
+      return state.selectedNodes;
     },
   },
   mutations: {
@@ -79,11 +79,13 @@ const {
     },
 
     clickElement(state, elementID: string) {
-      if (state.selectedElements.indexOf(elementID) === -1) {
-        state.selectedElements.push(elementID);
+      if (state.selectedNodes.indexOf(elementID) === -1) {
+        state.selectedNodes.push(elementID);
       } else {
-        state.selectedElements = state.selectedElements.filter((arrayElementID) => arrayElementID !== elementID);
+        state.selectedNodes = state.selectedNodes.filter((arrayElementID) => arrayElementID !== elementID);
       }
+
+      console.log(state.selectedNodes);
     },
   },
   actions: {
