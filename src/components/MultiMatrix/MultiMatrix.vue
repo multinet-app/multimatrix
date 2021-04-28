@@ -346,7 +346,8 @@ export default Vue.extend({
           (this.visualizedAttributes.length +
             this.visualizedLinkAttributes.length) -
         this.colMargin -
-        40 // 40 for children count
+        (40 / (this.visualizedAttributes.length +
+            this.visualizedLinkAttributes.length)) // 40 for children count
       );
     },
     stackedBarScale(): ScaleLinear<number, number> {
@@ -1469,11 +1470,7 @@ export default Vue.extend({
           return this.icons[type].d;
         })
         .attr(
-          'transform',
-          (d: string, i: number) =>
-            `scale(0.1)translate(${
-              (this.colWidth + this.colMargin) * i * 10 - 200
-            }, -1100)`,
+          'transform', 'scale(0.1)translate(-200, -1100)',
         )
         .style('fill', '#8B8B8B')
         .on('click', (d: string) => this.sort(d));
