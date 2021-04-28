@@ -30,6 +30,7 @@ const {
     },
     userInfo: null,
     cellSize: 15,
+    selectedElements: [],
   } as State,
 
   getters: {
@@ -47,6 +48,10 @@ const {
 
     loadError(state) {
       return state.loadError;
+    },
+
+    selectedElements(state) {
+      return state.selectedElements;
     },
   },
   mutations: {
@@ -71,6 +76,14 @@ const {
 
     setUserInfo(state, userInfo: UserSpec | null) {
       state.userInfo = userInfo;
+    },
+
+    clickElement(state, elementID: string) {
+      if (state.selectedElements.indexOf(elementID) === -1) {
+        state.selectedElements.push(elementID);
+      } else {
+        state.selectedElements = state.selectedElements.filter((arrayElementID) => arrayElementID !== elementID);
+      }
     },
   },
   actions: {

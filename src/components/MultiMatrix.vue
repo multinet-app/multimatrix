@@ -212,6 +212,10 @@ export default Vue.extend({
       return store.state.cellSize;
     },
 
+    selectedElements2() {
+      return store.getters.selectedElements;
+    },
+
     matrixNodeLength(): number {
       return this.network.nodes.length;
     },
@@ -786,8 +790,7 @@ export default Vue.extend({
         .style('opacity', 0)
         .attr('cursor', 'pointer')
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          this.selectElement(matrixElement);
-          this.selectNeighborNodes(matrixElement._id, matrixElement.neighbors);
+          store.commit.clickElement(matrixElement._id);
         });
 
       columnEnter
@@ -919,8 +922,7 @@ export default Vue.extend({
         .style('opacity', 0)
         .attr('cursor', 'pointer')
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          this.selectElement(matrixElement);
-          this.selectNeighborNodes(matrixElement._id, matrixElement.neighbors);
+          store.commit.clickElement(matrixElement._id);
         });
 
       rowEnter.on('mouseout', (event: MouseEvent, node: Node) => {
@@ -1020,8 +1022,7 @@ export default Vue.extend({
                 this.$emit('updateMatrixLegends', true, true);
               }
             } else {
-              this.selectElement(node);
-              this.selectNeighborNodes(node._id, node.neighbors);
+              store.commit.clickElement(node._id);
             }
           });
       }
@@ -1341,8 +1342,7 @@ export default Vue.extend({
           this.unHoverNode(matrixElement._id);
         })
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          this.selectElement(matrixElement);
-          this.selectNeighborNodes(matrixElement._id, matrixElement.neighbors);
+          store.commit.clickElement(matrixElement._id);
         });
 
       this.attributeZebras.merge(attributeZebrasEnter);
@@ -1617,9 +1617,8 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .on('mouseover', (event: MouseEvent, d: Node) => this.hoverNode(d._id))
         .on('mouseout', (event: MouseEvent, d: Node) => this.unHoverNode(d._id))
-        .on('click', (event: MouseEvent, d: Node) => {
-          this.selectElement(d);
-          this.selectNeighborNodes(d._id, d.neighbors);
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          store.commit.clickElement(matrixElement._id);
         });
 
       const attributeVisEnter = attributeVis
@@ -1654,11 +1653,10 @@ export default Vue.extend({
                 return this.attributeScales[varName](d[varName]);
               })
               .attr('cursor', 'pointer')
-              .on('mouseover', (d: Node) => this.hoverNode(d._id))
-              .on('mouseout', (d: Node) => this.unHoverNode(d._id))
-              .on('click', (d: Node) => {
-                this.selectElement(d);
-                this.selectNeighborNodes(d._id, d.neighbors);
+              .on('mouseover', (event: MouseEvent, d: Node) => this.hoverNode(d._id))
+              .on('mouseout', (event: MouseEvent, d: Node) => this.unHoverNode(d._id))
+              .on('click', (event: MouseEvent, matrixElement: Node) => {
+                store.commit.clickElement(matrixElement._id);
               });
           } else {
             // Draw link attributes
@@ -1788,8 +1786,6 @@ export default Vue.extend({
         }
       } else if (element._id in this.selectedElements) {
         delete this.selectedElements[element._id];
-      } else if (element._id in this.selectedElements) {
-        delete this.selectedElements[element._id];
       } else {
         elementsToSelect = [
           `[id="highlightRow${element._id}"]`,
@@ -1818,36 +1814,6 @@ export default Vue.extend({
 
       if (selections.length > 0) {
         selectAll(selections.join(',')).classed('clicked', true);
-      }
-    },
-
-    selectNeighborNodes(linkID: string, neighbors: string[]): void {
-      // Remove or add node from column selected nodes
-      if (linkID in this.selectedNodesAndNeighbors) {
-        delete this.selectedNodesAndNeighbors[linkID];
-      } else {
-        const newElement = { [linkID]: neighbors };
-        this.selectedNodesAndNeighbors = Object.assign(
-          this.selectedNodesAndNeighbors,
-          newElement,
-        );
-      }
-
-      // Reset all nodes to not neighbor highlighted
-      selectAll('.neighbor').classed('neighbor', false);
-
-      // Loop through the neighbor nodes to be highlighted and highlight them
-      const selections: string[] = [];
-      Object.keys(this.selectedNodesAndNeighbors).forEach((node) => {
-        this.selectedNodesAndNeighbors[node].forEach((neighborNode) => {
-          selections.push(`[id="highlightRow${neighborNode}"]`);
-          selections.push(`[id="topoRow${neighborNode}"]`);
-          selections.push(`[id="nodeLabelRow${neighborNode}"]`);
-        });
-      });
-
-      if (selections.length > 0) {
-        selectAll(selections.join(',')).classed('neighbor', true);
       }
     },
 
