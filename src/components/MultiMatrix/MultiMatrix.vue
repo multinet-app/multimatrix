@@ -346,8 +346,9 @@ export default Vue.extend({
           (this.visualizedAttributes.length +
             this.visualizedLinkAttributes.length) -
         this.colMargin -
-        (40 / (this.visualizedAttributes.length +
-            this.visualizedLinkAttributes.length)) // 40 for children count
+        40 /
+          (this.visualizedAttributes.length +
+            this.visualizedLinkAttributes.length) // 40 for children count
       );
     },
     stackedBarScale(): ScaleLinear<number, number> {
@@ -1469,9 +1470,7 @@ export default Vue.extend({
           const type = this.isQuantitative(d) ? 'quant' : 'categorical';
           return this.icons[type].d;
         })
-        .attr(
-          'transform', 'scale(0.1)translate(-200, -1100)',
-        )
+        .attr('transform', 'scale(0.1)translate(-200, -1100)')
         .style('fill', '#8B8B8B')
         .on('click', (d: string) => this.sort(d));
 
