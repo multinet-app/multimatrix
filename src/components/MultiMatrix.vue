@@ -91,7 +91,6 @@ export default Vue.extend({
     visMargins: any;
     matrixSVG: any;
     attributesSVG: any;
-    cellSize: number;
     maxNumConnections: number;
     maxAggrConnections: number;
     maxChildConnections: number;
@@ -133,7 +132,6 @@ export default Vue.extend({
       },
       matrixSVG: undefined,
       attributesSVG: undefined,
-      cellSize: 15,
       maxNumConnections: -Infinity,
       maxAggrConnections: -Infinity,
       maxChildConnections: -Infinity,
@@ -208,6 +206,10 @@ export default Vue.extend({
         showAggrLegend,
         showChildLegend,
       };
+    },
+
+    cellSize() {
+      return store.state.cellSize;
     },
 
     matrixNodeLength(): number {

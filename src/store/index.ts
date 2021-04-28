@@ -29,18 +29,19 @@ const {
       href: '',
     },
     userInfo: null,
+    cellSize: 15,
   } as State,
 
   getters: {
-    workspaceName(state: State) {
+    workspaceName(state) {
       return state.workspaceName;
     },
 
-    networkName(state: State) {
+    networkName(state) {
       return state.networkName;
     },
 
-    network(state: State) {
+    network(state) {
       return state.network;
     },
 

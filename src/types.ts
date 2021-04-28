@@ -44,6 +44,7 @@ export interface State {
   network: Network | null;
   loadError: LoadError;
   userInfo: UserSpec | null;
+  cellSize: number;
 }
 
 export interface ProvenanceState {
