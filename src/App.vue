@@ -15,11 +15,6 @@ export default {
 
   setup() {
     const { workspace, graph: networkName } = getUrlVars();
-    if (!workspace || !networkName) {
-      throw new Error(
-        `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
-      );
-    }
 
     store.dispatch.fetchNetwork({
       workspaceName: workspace,
