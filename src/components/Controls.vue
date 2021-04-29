@@ -24,6 +24,7 @@ export default Vue.extend({
     showChildLegend: boolean;
     directional: boolean;
     visualizedAttributes: string[];
+    visualizedLinkAttributes: string[];
   } {
     return {
       selectNeighbors: true,
@@ -33,6 +34,7 @@ export default Vue.extend({
       showChildLegend: false,
       directional: false,
       visualizedAttributes: [],
+      visualizedLinkAttributes: [],
     };
   },
 
@@ -42,7 +44,21 @@ export default Vue.extend({
         this.network !== null &&
         typeof this.network.nodes[0] !== 'undefined'
       ) {
-        return Object.keys(this.network.nodes[0]);
+        return Object.keys(this.network.nodes[0]).filter((k: string) => {
+          return k != '_key' && k != '_rev' && k != 'id';
+        });
+      } else {
+        return [];
+      }
+    },
+    linkAttributeList(this: any) {
+      if (
+        this.network !== null &&
+        typeof this.network.nodes[0] !== 'undefined'
+      ) {
+        return Object.keys(this.network.edges[0]).filter((k: string) => {
+          return k != '_key' && k != '_rev' && k != 'id';
+        });
       } else {
         return [];
       }
@@ -172,6 +188,22 @@ export default Vue.extend({
             />
           </v-list-item>
 
+          <v-list-item class="px-0">
+            <v-select
+              v-model="visualizedLinkAttributes"
+              :items="linkAttributeList"
+              label="Link Attributes"
+              multiple
+              outlined
+              chips
+              dense
+              deletable-chips
+              small-chips
+              hint="Choose the edge attributes to visualize"
+              persistent-hint
+            />
+          </v-list-item>
+
           <!-- Auto-Select Neighbors List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
@@ -271,6 +303,7 @@ export default Vue.extend({
             showAggrLegend,
             showChildLegend,
             visualizedAttributes,
+            visualizedLinkAttributes,
             directional,
           }"
           @restart-simulation="hello()"
