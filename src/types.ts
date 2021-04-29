@@ -60,3 +60,11 @@ export interface ProvenanceState {
     search: { [key: string]: unknown[] };
   };
 }
+
+export interface AttrVis {
+  _key: string;
+  id: string;
+  [propName: string]: any;
+  series: [number, number, { [key: string]: any }, string][];
+  values: { [key: string]: any };
+}
