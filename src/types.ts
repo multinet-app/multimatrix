@@ -1,4 +1,4 @@
-import { TableRow } from 'multinet';
+import { TableRow, UserSpec } from 'multinet';
 
 export interface Dimensions {
   height: number;
@@ -43,6 +43,7 @@ export interface State {
   networkName: string | null;
   network: Network | null;
   loadError: LoadError;
+  userInfo: UserSpec | null;
 }
 
 export interface ProvenanceState {
@@ -65,4 +66,12 @@ export interface ProvenanceState {
     cellRow: { [key: string]: unknown[] };
     search: { [key: string]: unknown[] };
   };
+}
+
+export interface AttrVis {
+  _key: string;
+  id: string;
+  [propName: string]: any;
+  series: [number, number, { [key: string]: any }, string][];
+  values: { [key: string]: any };
 }

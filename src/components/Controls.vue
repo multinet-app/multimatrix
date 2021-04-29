@@ -6,12 +6,16 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import store from '@/store';
+import AboutDialog from '@/components/AboutDialog.vue';
+import LoginMenu from '@/components/LoginMenu.vue';
 
 // This is to be removed (stop-gap solution to superGraph network update)
 export const eventBus = new Vue();
 
 export default Vue.extend({
   components: {
+    AboutDialog,
+    LoginMenu,
     MultiMatrix,
   },
 
@@ -23,6 +27,7 @@ export default Vue.extend({
     showChildLegend: boolean;
     directional: boolean;
     visualizedAttributes: string[];
+    visualizedLinkAttributes: string[];
     } {
     return {
       selectNeighbors: true,
@@ -32,13 +37,26 @@ export default Vue.extend({
       showChildLegend: false,
       directional: false,
       visualizedAttributes: [],
+      visualizedLinkAttributes: [],
     };
   },
 
   computed: {
-    attributeList(): string[] {
-      if (this.network !== null && typeof this.network.nodes[0] !== 'undefined') {
-        return Object.keys(this.network.nodes[0]);
+    attributeList(this: any) {
+      if (
+        this.network !== null
+        && typeof this.network.nodes[0] !== 'undefined'
+      ) {
+        return Object.keys(this.network.nodes[0]).filter((k: string) => k !== '_key' && k !== '_rev' && k !== 'id');
+      }
+      return [];
+    },
+    linkAttributeList(this: any) {
+      if (
+        this.network !== null
+        && typeof this.network.nodes[0] !== 'undefined'
+      ) {
+        return Object.keys(this.network.edges[0]).filter((k: string) => k !== '_key' && k !== '_rev' && k !== 'id');
       }
       return [];
     },
@@ -51,9 +69,9 @@ export default Vue.extend({
   watch: {
     showGridLines() {
       if (this.showGridLines) {
-        selectAll('.gridLines').attr('opacity', 1);
+        selectAll('.gridLines').style('opacity', 0.3);
       } else {
-        selectAll('.gridLines').attr('opacity', 0);
+        selectAll('.gridLines').style('opacity', 0);
       }
     },
   },
@@ -114,7 +132,10 @@ export default Vue.extend({
       value="true"
     >
       <v-toolbar color="grey lighten-2">
-        <v-toolbar-title class="d-flex align-center">
+        <v-toolbar-title
+          class="d-flex align-center"
+          flat
+        >
           <div>
             <v-row class="mx-0 align-center">
               <v-col class="pb-0 pt-2 px-0">
@@ -128,11 +149,14 @@ export default Vue.extend({
               <v-col class="text-left">
                 MultiMatrix
               </v-col>
+              <v-col class="pa-0">
+                <about-dialog />
+              </v-col>
             </v-row>
           </div>
         </v-toolbar-title>
         <v-spacer />
-        <!-- login-menu / -->
+        <login-menu />
       </v-toolbar>
 
       <v-list class="pa-0">
@@ -153,6 +177,22 @@ export default Vue.extend({
               deletable-chips
               small-chips
               hint="Choose the node attributes to visualize"
+              persistent-hint
+            />
+          </v-list-item>
+
+          <v-list-item class="px-0">
+            <v-select
+              v-model="visualizedLinkAttributes"
+              :items="linkAttributeList"
+              label="Link Attributes"
+              multiple
+              outlined
+              chips
+              dense
+              deletable-chips
+              small-chips
+              hint="Choose the edge attributes to visualize"
               persistent-hint
             />
           </v-list-item>
@@ -272,6 +312,7 @@ export default Vue.extend({
             showAggrLegend,
             showChildLegend,
             visualizedAttributes,
+            visualizedLinkAttributes,
             directional,
           }"
           @restart-simulation="hello()"

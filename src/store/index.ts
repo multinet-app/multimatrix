@@ -3,7 +3,9 @@ import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
 import api from '@/api';
-import { GraphSpec, RowsSpec, TableRow } from 'multinet';
+import {
+  GraphSpec, RowsSpec, TableRow, UserSpec,
+} from 'multinet';
 import {
   Link, LoadError, Network, Node, State,
 } from '@/types';
@@ -26,6 +28,7 @@ const {
       message: '',
       href: '',
     },
+    userInfo: null,
   } as State,
 
   getters: {
@@ -63,6 +66,10 @@ const {
         message: loadError.message,
         href: loadError.href,
       };
+    },
+
+    setUserInfo(state, userInfo: UserSpec | null) {
+      state.userInfo = userInfo;
     },
   },
   actions: {
@@ -140,6 +147,21 @@ const {
         edges: edges as Link[],
       };
       commit.setNetwork(network);
+    },
+
+    async fetchUserInfo(context) {
+      const { commit } = rootActionContext(context);
+
+      const info = await api.userInfo();
+      commit.setUserInfo(info);
+    },
+
+    async logout(context) {
+      const { commit } = rootActionContext(context);
+
+      // Perform the server logout.
+      await api.logout();
+      commit.setUserInfo(null);
     },
   },
 });
