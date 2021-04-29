@@ -1,36 +1,35 @@
 module.exports = {
   root: true,
+
   env: {
     node: true,
   },
+
   extends: [
-    'plugin:vue/essential',
-    'eslint:recommended',
+    'plugin:vue/recommended',
+    '@vue/airbnb',
+    '@vue/typescript',
+    'plugin:vue/recommended',
     '@vue/typescript/recommended',
-    '@vue/prettier',
-    '@vue/prettier/@typescript-eslint',
   ],
-  parserOptions: {
-    ecmaVersion: 2020,
-  },
+
+  plugins: [
+    'vuetify',
+  ],
+
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-unused-vars': [
-      'error',
-      { vars: 'all', args: 'after-used', ignoreRestSiblings: false },
-    ],
+    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'max-len': ['off'],
+    'import/prefer-default-export': ['off'],
+    'no-underscore-dangle': ['error', { allow: ['_id', '_from', '_to', '_key'] }],
   },
-  overrides: [
-    {
-      files: [
-        '**/__tests__/*.{js,ts,jsx,tsx}',
-        '**/tests/unit/**/*.spec.{js,ts,jsx,tsx}',
-      ],
-      env: {
-        jest: true,
-      },
+
+  parserOptions: {
+    parser: '@typescript-eslint/parser',
+    ecmaVersion: 2020,
+    ecmaFeatures: {
+      modules: true,
     },
-  ],
+  },
 };

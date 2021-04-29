@@ -25,7 +25,7 @@ export default Vue.extend({
     directional: boolean;
     visualizedAttributes: string[];
     visualizedLinkAttributes: string[];
-  } {
+    } {
     return {
       selectNeighbors: true,
       showGridLines: true,
@@ -41,27 +41,21 @@ export default Vue.extend({
   computed: {
     attributeList(this: any) {
       if (
-        this.network !== null &&
-        typeof this.network.nodes[0] !== 'undefined'
+        this.network !== null
+        && typeof this.network.nodes[0] !== 'undefined'
       ) {
-        return Object.keys(this.network.nodes[0]).filter((k: string) => {
-          return k != '_key' && k != '_rev' && k != 'id';
-        });
-      } else {
-        return [];
+        return Object.keys(this.network.nodes[0]).filter((k: string) => k !== '_key' && k !== '_rev' && k !== 'id');
       }
+      return [];
     },
     linkAttributeList(this: any) {
       if (
-        this.network !== null &&
-        typeof this.network.nodes[0] !== 'undefined'
+        this.network !== null
+        && typeof this.network.nodes[0] !== 'undefined'
       ) {
-        return Object.keys(this.network.edges[0]).filter((k: string) => {
-          return k != '_key' && k != '_rev' && k != 'id';
-        });
-      } else {
-        return [];
+        return Object.keys(this.network.edges[0]).filter((k: string) => k !== '_key' && k !== '_rev' && k !== 'id');
       }
+      return [];
     },
 
     network() {
@@ -69,8 +63,18 @@ export default Vue.extend({
     },
   },
 
+  watch: {
+    showGridLines() {
+      if (this.showGridLines) {
+        selectAll('.gridLines').style('opacity', 0.3);
+      } else {
+        selectAll('.gridLines').style('opacity', 0);
+      }
+    },
+  },
+
   async mounted() {
-    const { workspace, networkName } = getUrlVars();
+    const { workspace, graph: networkName } = getUrlVars();
     if (!workspace || !networkName) {
       throw new Error(
         `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
@@ -88,14 +92,14 @@ export default Vue.extend({
       const a = document.createElement('a');
       a.href = URL.createObjectURL(
         new Blob([JSON.stringify(this.network)], {
-          type: `text/json`,
+          type: 'text/json',
         }),
       );
       a.download = `${store.getters.networkName}.json`;
       a.click();
     },
     createLegend(colorScale: ScaleLinear<string, number>, legendName: string) {
-      let legendSVG = undefined;
+      let legendSVG;
       if (legendName === 'aggregate') {
         legendSVG = select('#aggr-matrix-legend');
       } else if (legendName === 'child') {
@@ -109,6 +113,7 @@ export default Vue.extend({
         .attr('transform', 'translate(10, 60)');
 
       // construct the legend and format the labels to have 0 decimal places
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const legendLinear = (legendColor() as any)
         .shapeWidth(20)
         .cells(colorScale.domain()[1] >= 5 ? 5 : colorScale.domain()[1] + 1)
@@ -122,15 +127,6 @@ export default Vue.extend({
     updateMatrixLegends(showAggrLegend: boolean, showChildLegend: boolean) {
       this.showAggrLegend = showAggrLegend;
       this.showChildLegend = showChildLegend;
-    },
-  },
-  watch: {
-    showGridLines: function () {
-      if (this.showGridLines) {
-        selectAll('.gridLines').attr('opacity', 1);
-      } else {
-        selectAll('.gridLines').attr('opacity', 0);
-      }
     },
   },
 });
@@ -156,9 +152,11 @@ export default Vue.extend({
                   src="../assets/logo/app_logo.svg"
                   alt="Multinet"
                   width="100%"
-                />
+                >
               </v-col>
-              <v-col class="text-left">MultiMatrix</v-col>
+              <v-col class="text-left">
+                MultiMatrix
+              </v-col>
             </v-row>
           </div>
         </v-toolbar-title>
@@ -207,7 +205,11 @@ export default Vue.extend({
           <!-- Auto-Select Neighbors List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
-              <v-switch class="ma-0" v-model="selectNeighbors" hide-details />
+              <v-switch
+                v-model="selectNeighbors"
+                class="ma-0"
+                hide-details
+              />
             </v-list-item-action>
             <v-list-item-content> Autoselect Neighbors </v-list-item-content>
           </v-list-item>
@@ -215,7 +217,11 @@ export default Vue.extend({
           <!-- Gridline Toggle List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
-              <v-switch class="ma-0" v-model="showGridLines" hide-details />
+              <v-switch
+                v-model="showGridLines"
+                class="ma-0"
+                hide-details
+              />
             </v-list-item-action>
             <v-list-item-content> Show GridLines </v-list-item-content>
           </v-list-item>
@@ -223,7 +229,11 @@ export default Vue.extend({
           <!-- Directional Edges Toggle Card -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
-              <v-switch class="ma-0" v-model="directional" hide-details />
+              <v-switch
+                v-model="directional"
+                class="ma-0"
+                hide-details
+              />
             </v-list-item-action>
             <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
@@ -231,7 +241,11 @@ export default Vue.extend({
           <!-- Graffinity Toggle List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
-              <v-switch class="ma-0" v-model="enableGraffinity" hide-details />
+              <v-switch
+                v-model="enableGraffinity"
+                class="ma-0"
+                hide-details
+              />
             </v-list-item-action>
             <v-list-item-content>
               Enable Graffinity Features
@@ -263,7 +277,7 @@ export default Vue.extend({
             style="display: flex; max-height: 50px"
           >
             Matrix Legend
-            <svg id="matrix-legend"></svg>
+            <svg id="matrix-legend" />
           </v-list-item>
 
           <!-- Aggregated Matrix Legend -->
@@ -273,7 +287,7 @@ export default Vue.extend({
             style="display: flex; max-height: 50px"
           >
             Aggregate Legend
-            <svg id="aggr-matrix-legend"></svg>
+            <svg id="aggr-matrix-legend" />
           </v-list-item>
 
           <!-- Child Matrix Legend -->
@@ -283,7 +297,7 @@ export default Vue.extend({
             style="display: flex; max-height: 50px"
           >
             Children Legend
-            <svg id="child-matrix-legend"></svg>
+            <svg id="child-matrix-legend" />
           </v-list-item>
         </div>
       </v-list>
@@ -293,8 +307,8 @@ export default Vue.extend({
     <v-col>
       <v-row class="ma-0">
         <multi-matrix
-          ref="multimatrix"
           v-if="network !== null"
+          ref="multimatrix"
           v-bind="{
             network,
             selectNeighbors,

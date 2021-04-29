@@ -4,8 +4,10 @@ import { createDirectStore } from 'direct-vuex';
 
 import api from '@/api';
 import { RowsSpec, TableRow } from 'multinet';
-import { Link, Network, Node, State } from '@/types';
-import { _defineNeighbors } from '@/lib/utils';
+import {
+  Link, Network, Node, State,
+} from '@/types';
+import { defineNeighbors } from '@/lib/utils';
 
 Vue.use(Vuex);
 
@@ -85,7 +87,7 @@ const {
       const edges = edgePromise.rows;
 
       // Add neighbor definition to nodes
-      nodes = _defineNeighbors(nodes, edges);
+      nodes = defineNeighbors(nodes, edges);
 
       // Build the network object and set it as the network in the store
       const network = {

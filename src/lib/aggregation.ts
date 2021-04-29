@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-return-assign */
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-shadow */
+
 import { Link, Node } from '@/types';
 
 export function defineSuperNeighbors(nodes: any[], links: any[]) {
@@ -97,7 +102,7 @@ function mapSuperChildren(node: Node[]) {
     if (networkNode.type === 'childnode') {
       return;
     }
-    const superChildren = networkNode.CHILDREN;
+    const superChildren = networkNode.CHILDREN as string[];
     superChildren.forEach((childNode: string) => {
       superChildrenMap.set(childNode, networkNode._id);
     });
@@ -143,7 +148,7 @@ function getSuperChildren(
   const superNode = superNodeNameDict.get(superNodeName);
   let superChildren: string[] = [];
   if (superNode !== undefined) {
-    superChildren = superNode.CHILDREN;
+    superChildren = superNode.CHILDREN as string[];
   }
   return superChildren;
 }
@@ -154,16 +159,14 @@ function getSuperChildren(
 function processAttributes(nodes: Node[], attribute: string) {
   // Store attribute selected by the user before processing for type
   let selectedAttributes = new Set<any>();
-  const selectedAttribute = nodes.map((node: Node) => node[attribute]);
+  const selectedAttribute = nodes.map<string>((node: Node) => node[attribute] as string);
 
   // Check if the attribute can be parsed as an integer
-  const intAttribute = selectedAttribute.every((element: any) =>
-    Number.isInteger(element),
-  );
+  const intAttribute = selectedAttribute.every((element: any) => Number.isInteger(element));
 
   // Create a set of the attributes based on the type of the attribute (number, string)
   if (intAttribute) {
-    const intAttributes = selectedAttribute.map((x: string) => parseInt(x, 10));
+    const intAttributes = selectedAttribute.map((x) => parseInt(x, 10));
     intAttributes.sort((a: number, b: number) => a - b);
     selectedAttributes = new Set(intAttributes);
   } else {
@@ -201,7 +204,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
       CHILD_COUNT: 0,
       GROUP: attr,
       _key: attr,
-      _id: 'supernodes/' + attr,
+      _id: `supernodes/${attr}`,
       neighbors: [],
       type: 'supernode',
     };
@@ -211,10 +214,10 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
 
   newNodes.forEach((node: Node) => {
     if (selectedAttributes.has(node[attribute])) {
-      const superNode = superMap.get(node[attribute]);
+      const superNode = superMap.get(node[attribute] as string);
       if (superNode !== undefined) {
-        superNode.CHILDREN.push(node._id);
-        superNode.CHILD_COUNT += 1;
+        (superNode.CHILDREN as string[]).push(node._id);
+        (superNode.CHILD_COUNT as number) += 1;
       }
     }
   });
@@ -234,7 +237,7 @@ export function superGraph(nodes: Node[], edges: Link[], attribute: string) {
     const linkTo = link._to;
 
     superNodes.forEach((superNode) => {
-      superNode.CHILDREN.forEach((origin: string) => {
+      (superNode.CHILDREN as string[]).forEach((origin: string) => {
         if (linkFrom === origin) {
           const newLinkFrom = superNode._id;
           link._from = newLinkFrom;
@@ -282,9 +285,9 @@ function expandSuperNodeData(
   // If the supernode exists in the dictionary,
   // get the children of the supernode
   if (superNode !== undefined) {
-    const superChildrenIDs = superNode.CHILDREN;
+    const superChildrenIDs = superNode.CHILDREN as string[];
     const childNodes: Node[] = [];
-    superChildrenIDs.forEach((id: string) => {
+    superChildrenIDs.forEach((id) => {
       const childNode = childrenNodeNameDict.get(id);
       if (childNode !== undefined) {
         childNodes.push(childNode);
@@ -292,7 +295,7 @@ function expandSuperNodeData(
     });
 
     // Find and insert the children of the selected supernode into the correct spot
-    const insertNodeFunc = (superNode: Node) => superNode._id == superNodeName;
+    const insertNodeFunc = (superNode: Node) => superNode._id === superNodeName;
     const insertNodeStart = nodeCopy.findIndex(insertNodeFunc);
     let count = 1;
     childNodes.forEach((node) => {
@@ -305,8 +308,7 @@ function expandSuperNodeData(
       if (node.type === 'childnode') {
         const parentNodeID = superChildrenMap.get(node._id);
         if (parentNodeID !== undefined) {
-          const parentIndexFunc = (matrixNode: Node) =>
-            matrixNode._id === parentNodeID;
+          const parentIndexFunc = (matrixNode: Node) => matrixNode._id === parentNodeID;
           const parentNodePosition = nodeCopy.findIndex(parentIndexFunc);
           node.parentPosition = parentNodePosition;
         }
@@ -315,6 +317,8 @@ function expandSuperNodeData(
     });
     return expandedNodes;
   }
+
+  return [];
 }
 
 // Function that constructs a new set of superlinks and links
@@ -336,12 +340,8 @@ function expandSuperLinksData(
     superNodeNameDict,
   );
 
-  const childFromLinks = childLinksCopy.filter((link: Link) => {
-    return superChildren.includes(link._from);
-  });
-  const childToLinks = childLinksCopy.filter((link: Link) => {
-    return superChildren.includes(link._to);
-  });
+  const childFromLinks = childLinksCopy.filter((link: Link) => superChildren.includes(link._from));
+  const childToLinks = childLinksCopy.filter((link: Link) => superChildren.includes(link._to));
   const allChildrenLinks = childFromLinks.concat(childToLinks);
   const superExpandLinks = processExpandSuperLinks(
     allChildrenLinks,
@@ -428,7 +428,7 @@ function retractSuperNodeData(
   // If the supernode exists in the dictionary,
   // get the children of the supernode
   if (superNode !== undefined) {
-    const superChildrenIDs = superNode.CHILDREN;
+    const superChildrenIDs = superNode.CHILDREN as string[];
     const childNodes: Node[] = [];
     superChildrenIDs.forEach((id: string) => {
       const childNode = childrenNodeNameDict.get(id);
@@ -439,11 +439,13 @@ function retractSuperNodeData(
 
     // Find and remove the children of the selected supernode and insert remaining nodes
     // into the correct position for visualizing the supergraph network
-    const superIndexFunc = (superNode: Node) => superNode._id == superNodeName;
+    const superIndexFunc = (superNode: Node) => superNode._id === superNodeName;
     const superIndexStart = expandNodesCopy.findIndex(superIndexFunc);
     expandNodesCopy.splice(superIndexStart + 1, childNodes.length);
     return expandNodesCopy;
   }
+
+  return [];
 }
 
 // Function that constructs a new set of superlinks and links
@@ -542,7 +544,7 @@ export function nonAggrNetwork(nonAggrNodes: Node[], nonAggrLinks: Link[]) {
     const newNode = {
       ...node,
     };
-    newNode.type = undefined;
+    newNode.type = '';
     return newNode;
   });
 

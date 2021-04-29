@@ -6,6 +6,7 @@ export interface Dimensions {
 }
 
 export interface Link extends TableRow {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [propName: string]: any;
 }
 
@@ -15,8 +16,9 @@ export interface Network {
 }
 
 export interface Node extends TableRow {
+  type: string;
   neighbors: string[];
-  [propName: string]: any;
+  [propName: string]: unknown;
 }
 
 export interface Cell {
@@ -49,13 +51,13 @@ export interface ProvenanceState {
   clicked: never[];
   sortKey: string;
   selections: {
-    attrRow: { [key: string]: any };
-    rowLabel: { [key: string]: any };
-    colLabel: { [key: string]: any };
-    neighborSelect: { [key: string]: any };
-    cellCol: { [key: string]: any };
-    cellRow: { [key: string]: any };
-    search: { [key: string]: any };
+    attrRow: { [key: string]: unknown[] };
+    rowLabel: { [key: string]: unknown[] };
+    colLabel: { [key: string]: unknown[] };
+    neighborSelect: { [key: string]: unknown[] };
+    cellCol: { [key: string]: unknown[] };
+    cellRow: { [key: string]: unknown[] };
+    search: { [key: string]: unknown[] };
   };
 }
 
