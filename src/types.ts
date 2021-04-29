@@ -46,6 +46,7 @@ export interface State {
   userInfo: UserSpec | null;
   cellSize: number;
   selectedNodes: string[];
+  selectedCells: Cell[];
 }
 
 export interface ProvenanceState {

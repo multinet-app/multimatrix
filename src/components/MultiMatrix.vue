@@ -214,6 +214,10 @@ export default Vue.extend({
       return store.getters.selectedNodes;
     },
 
+    selectedCells() {
+      return store.getters.selectedCells;
+    },
+
     matrixNodeLength(): number {
       return this.network.nodes.length;
     },
@@ -401,11 +405,16 @@ export default Vue.extend({
         .classed('clicked', (node) => this.selectedNodes.indexOf(node._id) !== -1);
     },
 
-    visualizedAttributes() {
-      this.combineNodeAttributes();
-    },
-    visualizedLinkAttributes() {
-      this.combineLinkAttributes();
+    selectedCells() {
+      // Apply cell highlight
+      selectAll('.cellsGroup')
+        .selectAll('.cell')
+        .classed('clicked', (cell) => {
+          if (this.isCell(cell)) {
+            return this.selectedCells.findIndex((selectedCell) => selectedCell.cellName === cell.cellName) !== -1;
+          }
+          return false;
+        });
     },
     network() {
       this.processData();
@@ -1087,7 +1096,7 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverEdge(matrixElement);
         })
-        .on('click', (event: MouseEvent, matrixElement: Cell) => this.selectElement(matrixElement))
+        .on('click', (event: MouseEvent, matrixElement: Cell) => store.commit.clickCell(matrixElement))
         .attr('cursor', 'pointer');
 
       this.cells.exit().remove();
@@ -1125,7 +1134,7 @@ export default Vue.extend({
           this.hideToolTip();
           this.unHoverEdge(matrixElement);
         })
-        .on('click', (event: MouseEvent, matrixElement: Cell) => this.selectElement(matrixElement))
+        .on('click', (event: MouseEvent, matrixElement: Cell) => store.commit.clickCell(matrixElement))
         .attr('cursor', 'pointer');
 
       this.cells.merge(cellsEnter);

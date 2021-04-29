@@ -7,6 +7,7 @@ import {
   GraphSpec, RowsSpec, TableRow, UserSpec,
 } from 'multinet';
 import {
+  Cell,
   Link, LoadError, Network, Node, State,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
@@ -31,6 +32,7 @@ const {
     userInfo: null,
     cellSize: 15,
     selectedNodes: [],
+    selectedCells: [],
   } as State,
 
   getters: {
@@ -52,6 +54,10 @@ const {
 
     selectedNodes(state) {
       return state.selectedNodes;
+    },
+
+    selectedCells(state) {
+      return state.selectedCells;
     },
   },
   mutations: {
@@ -84,8 +90,15 @@ const {
       } else {
         state.selectedNodes = state.selectedNodes.filter((arrayElementID) => arrayElementID !== elementID);
       }
+    },
 
-      console.log(state.selectedNodes);
+    clickCell(state, cell: Cell) {
+      // Add/remove cell from selectedCells. If adding make sure nodes are selected
+      if (state.selectedCells.findIndex((arrayElement) => arrayElement.cellName === cell.cellName) === -1) {
+        state.selectedCells.push(cell);
+      } else {
+        state.selectedCells = state.selectedCells.filter((arrayElement) => arrayElement.cellName !== cell.cellName);
+      }
     },
   },
   actions: {
