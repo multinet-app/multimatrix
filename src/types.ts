@@ -61,7 +61,6 @@ export interface ProvenanceState {
   clicked: never[];
   sortKey: string;
   selections: {
-    attrRow: { [key: string]: unknown[] };
     rowLabel: { [key: string]: unknown[] };
     colLabel: { [key: string]: unknown[] };
     neighborSelect: { [key: string]: unknown[] };

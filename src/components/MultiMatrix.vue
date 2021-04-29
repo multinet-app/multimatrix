@@ -72,14 +72,6 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-    visualizedAttributes: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-    visualizedLinkAttributes: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
     directional: {
       type: Boolean,
       default: false,
@@ -90,14 +82,10 @@ export default Vue.extend({
     browser: Dimensions;
     visMargins: any;
     matrixSVG: any;
-    attributesSVG: any;
     maxNumConnections: number;
     maxAggrConnections: number;
     maxChildConnections: number;
     matrix: Cell[][];
-    attributes: any;
-    attributeRows: any;
-    attributeZebras: any;
     columnHeaders: any;
     edges: any;
     edgeColumns: any;
@@ -130,14 +118,10 @@ export default Vue.extend({
         left: 75, top: 75, right: 0, bottom: 0,
       },
       matrixSVG: undefined,
-      attributesSVG: undefined,
       maxNumConnections: -Infinity,
       maxAggrConnections: -Infinity,
       maxChildConnections: -Infinity,
       matrix: [],
-      attributes: undefined,
-      attributeRows: undefined,
-      attributeZebras: undefined,
       columnHeaders: undefined,
       edges: undefined,
       edgeColumns: undefined,
@@ -190,16 +174,12 @@ export default Vue.extend({
     properties(this: any) {
       const {
         network,
-        visualizedAttributes,
-        visualizedLinkAttributes,
         enableGraffinity,
         showAggrLegend,
         showChildLegend,
       } = this;
       return {
         network,
-        visualizedAttributes,
-        visualizedLinkAttributes,
         enableGraffinity,
         showAggrLegend,
         showChildLegend,
@@ -238,14 +218,6 @@ export default Vue.extend({
       );
     },
 
-    attributesWidth(): number {
-      return 300;
-    },
-
-    attributesHeight(): number {
-      return this.matrixHeight;
-    },
-
     orderingScale(): ScaleBand<number> {
       return scaleBand<number>()
         .domain(range(0, this.matrix.length, 1))
@@ -263,104 +235,6 @@ export default Vue.extend({
       });
 
       return computedIdMap;
-    },
-
-    rowNest(): any {
-      const rowNest = nest()
-        .key((d: any) => d._from)
-        .entries(this.network.edges);
-
-      const edgeAttributes = Object.keys(rowNest[0].values[0]);
-      rowNest.forEach((d: { [key: string]: any }) => {
-        const rowAttrs: { [key: string]: string[] } = {};
-        edgeAttributes.forEach((attr: string) => {
-          const attrList = d.values.reduce((accum: any[], currentVal: any) => {
-            const val = [];
-            val.push(currentVal[attr]);
-            return [...accum, ...val];
-          }, []);
-          rowAttrs[attr] = attrList;
-        });
-
-        const nodeToUpdate = this.network.nodes.find(
-          (node) => node._id === d.key,
-        );
-        if (nodeToUpdate !== undefined) {
-          nodeToUpdate.values = rowAttrs;
-          nodeToUpdate.series = [];
-        }
-      });
-
-      return this.network.nodes;
-    },
-
-    attributeScales() {
-      const scales: { [key: string]: any } = {};
-
-      // Calculate the attribute scales
-      this.visualizedAttributes.forEach((col: string) => {
-        if (this.isQuantitative(col)) {
-          const minimum = min(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
-          const maximum = max(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
-          const domain = [minimum, maximum];
-
-          const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
-          scale.clamp(true);
-          scales[col] = scale;
-        } else {
-          const values: string[] = this.network.nodes.map((node: Node) => {
-            if (node.type === 'supernode') {
-              return node.GROUP as string;
-            }
-            return node[col] as string;
-          });
-          const domain = [...new Set(values)];
-          const scale = scaleOrdinal(schemeCategory10).domain(domain);
-
-          scales[col] = scale;
-        }
-      });
-
-      return scales;
-    },
-
-    attributeLinksScales() {
-      const scales: { [key: string]: any } = {};
-      // Calculate the attribute scales
-      this.visualizedLinkAttributes.forEach((col: string) => {
-        if (this.isQuantitative(col)) {
-          const vals: number[][] = [];
-          this.rowNest.forEach((row: { [key: string]: any }) => {
-            if (row.values !== undefined) {
-              vals.push(row.values[col].map((d: any) => Number(d)));
-            }
-          });
-          const valsFlat = vals.flat();
-          const minimum = min(valsFlat) || 0;
-          const maximum = max(valsFlat) || 0;
-
-          const domain: number[] = [minimum, maximum];
-          const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
-          scale.clamp(true);
-          scales[col] = scale;
-        }
-      });
-
-      return scales;
-    },
-
-    colWidth(): number {
-      const attrWidth = parseFloat(select('#attributes').attr('width'));
-      // return (
-      //   (attrWidth - 40)
-      //     / (this.visualizedAttributes.length
-      //       + this.visualizedLinkAttributes.length)
-      //   - this.colMargin // 40 for children count
-      // );
-       return 100;
-    },
-    stackedBarScale(): ScaleLinear<number, number> {
-      return scaleLinear<number, number>().range([0, this.colWidth]);
     },
 
     colorScale(): ScaleLinear<string, number> {
@@ -515,12 +389,6 @@ export default Vue.extend({
         `translate(${this.visMargins.left},${this.visMargins.top})`,
       );
 
-    // this.attributes = select('#attributes')
-    //   .append('g')
-    //   .attr('transform', `translate(0,${this.visMargins.top})`);
-
-    // this.attributes.append('g').attr('class', 'zebras');
-
     // Draw buttons for alternative sorts
     let initialY = -this.visMargins.left + 10;
     const buttonHeight = 15;
@@ -562,62 +430,12 @@ export default Vue.extend({
 
     this.provenance = this.setUpProvenance();
 
-    // this.renderAttributes();
     this.initializeEdges();
   },
 
   methods: {
     changeMatrix(this: any) {
-      // this.renderAttributes();
       this.initializeEdges();
-    },
-    combineNodeAttributes() {
-      // Add attributes in order of selection across both nodes and links
-      let nodeDifference = this.combinedAttributes
-        .filter((x) => !this.visualizedAttributes.includes(x))
-        .concat(
-          this.visualizedAttributes.filter(
-            (x) => !this.combinedAttributes.includes(x),
-          ),
-        );
-      nodeDifference = nodeDifference
-        .filter((x) => !this.visualizedLinkAttributes.includes(x))
-        .concat(
-          this.visualizedLinkAttributes.filter(
-            (x) => !nodeDifference.includes(x),
-          ),
-        );
-      if (this.combinedAttributes.includes(nodeDifference[0])) {
-        this.combinedAttributes = this.combinedAttributes.filter(
-          (el: string) => el !== nodeDifference[0],
-        );
-      } else {
-        this.combinedAttributes.push(...nodeDifference);
-      }
-      this.renderAttributeVis();
-    },
-    combineLinkAttributes() {
-      // Add attributes in order of selection across both nodes and links
-      let linkDifference = this.combinedAttributes
-        .filter((x) => !this.visualizedLinkAttributes.includes(x))
-        .concat(
-          this.visualizedLinkAttributes.filter(
-            (x) => !this.combinedAttributes.includes(x),
-          ),
-        );
-      linkDifference = linkDifference
-        .filter((x) => !this.visualizedAttributes.includes(x))
-        .concat(
-          this.visualizedAttributes.filter((x) => !linkDifference.includes(x)),
-        );
-      if (this.combinedAttributes.includes(linkDifference[0])) {
-        this.combinedAttributes = this.combinedAttributes.filter(
-          (el: string) => el !== linkDifference[0],
-        );
-      } else {
-        this.combinedAttributes.push(...linkDifference);
-      }
-      this.renderAttributeVis();
     },
     processData(): void {
       // Reset some values that will be re-calcuated
@@ -692,7 +510,6 @@ export default Vue.extend({
         clicked: [],
         sortKey: this.sortKey,
         selections: {
-          attrRow: {},
           rowLabel: {},
           colLabel: {},
           neighborSelect: {},
@@ -1285,13 +1102,6 @@ export default Vue.extend({
           (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
         );
 
-      (selectAll('.attrRowContainer') as any)
-        .transition(transition().duration(transitionTime))
-        .attr(
-          'transform',
-          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
-        );
-
       // if any other method other than neighbors sort, sort the columns too
       if (!nodeIDs.includes(order)) {
         this.edges
@@ -1314,461 +1124,6 @@ export default Vue.extend({
         .style('fill', '#EBB769');
     },
 
-    stackedBarColorScale(
-      seriesData: Series<
-        {
-          [key: string]: number;
-        },
-        string
-      >[],
-    ) {
-      const color = scaleOrdinal<string, string>()
-        .domain(seriesData.map((d) => d.key))
-        .range(schemeSpectral[seriesData.length]);
-
-      return color;
-    },
-    renderAttributeVis(): void {
-      // Just has to be larger than the attributes panel (so that we render to the edge)
-      const attributeWidth = 1000;
-
-      // Add/Update zebras
-      this.attributeZebras = (select('.zebras') as any)
-        .selectAll('.attrRowBackground')
-        .data(this.network.nodes, (d: Node) => d._id);
-
-      this.attributeZebras.exit().remove();
-
-      const attributeZebrasEnter = this.attributeZebras
-        .enter()
-        .append('g')
-        .attr('class', 'attrRowBackground');
-
-      attributeZebrasEnter
-        .append('rect')
-        .classed('zebra', true)
-        .attr('y', (d: Node, i: number) => this.orderingScale(i))
-        .attr('width', attributeWidth)
-        .attr('height', this.orderingScale.bandwidth())
-        .attr('fill', (d: Node, i: number) => (i % 2 === 0 ? '#fff' : '#eee'));
-
-      // Highlightable backgrounds for the vis
-      attributeZebrasEnter
-        .append('rect')
-        .classed('highlightRow', true)
-        .attr('y', (d: Node, i: number) => this.orderingScale(i))
-        .attr('id', (d: Node) => `highlightRow${d._id}`)
-        .attr('width', attributeWidth)
-        .attr('height', this.orderingScale.bandwidth())
-        .attr('fill-opacity', 0)
-        .attr('cursor', 'pointer')
-        .on('mouseover', (event: MouseEvent, matrixElement: Node) => {
-          this.showToolTip(event, matrixElement);
-          this.hoverNode(matrixElement._id);
-        })
-        .on('mouseout', (event: MouseEvent, matrixElement: Node) => {
-          this.hideToolTip();
-          this.unHoverNode(matrixElement._id);
-        })
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
-        });
-
-      this.attributeZebras.merge(attributeZebrasEnter);
-
-      // Create a group for each column and add header info
-      this.attributeRows = this.attributes
-        .selectAll('.attrColumn')
-        .data(this.combinedAttributes);
-
-      this.attributeRows.exit().remove();
-
-      // Update locations of existing elements
-      this.attributeRows.attr(
-        'transform',
-        (d: string, i: number) => `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
-      );
-
-      const attributeRowsEnter = this.attributeRows
-        .enter()
-        .append('g')
-        .attr('class', 'attrColumn')
-        .attr(
-          'transform',
-          (d: string, i: number) => `translate(${(this.colWidth + this.colMargin) * i}, 0)`,
-        );
-
-      attributeRowsEnter
-        .append('text')
-        .style('font-size', '14px')
-        .style('text-transform', 'capitalize')
-        .style('word-wrap', 'break-word')
-        .attr('text-anchor', 'left')
-        .attr('transform', 'translate(0,-65)')
-        .attr('cursor', 'pointer')
-        .attr('y', 16)
-        .text((d: string) => d)
-        .attr('width', this.colWidth)
-        .on('click', (event: MouseEvent, header: string) => {
-          if (this.visualizedAttributes.includes(header) && this.enableGraffinity) {
-            this.nonAggrNodes = processChildNodes(this.network.nodes);
-            this.nonAggrLinks = processChildLinks(this.network.edges);
-            store.commit.setNetwork(
-              superGraph(this.network.nodes, this.network.edges, header),
-            );
-
-            // Turn on the disable aggregation
-            this.aggregated = true;
-
-            // View/Hide Matrix Legends
-            this.$emit('updateMatrixLegends', true, false);
-
-            // Show the icons
-            this.showIcon = true;
-          } else {
-            this.sort(header);
-          }
-        });
-
-      // Add Children Count Label
-      attributeRowsEnter
-        .append('text')
-        .style('font-size', '10px')
-        .style('text-transform', 'capitalize')
-        .style('word-wrap', 'break-word')
-        .style('opacity', 0)
-        .attr('text-anchor', 'left')
-        .attr('transform', 'translate(258, 0)')
-        .attr('class', 'childCount')
-        .text('# children');
-
-      if (this.aggregated) {
-        (select('.childCount') as any).style('opacity', 1);
-      }
-
-      attributeRowsEnter
-        .append('path')
-        .attr('class', 'sortIcon attr attrSortIcon')
-        .attr('cursor', 'pointer')
-        .attr('d', (d: string) => {
-          const type = this.isQuantitative(d) ? 'quant' : 'categorical';
-          return this.icons[type].d;
-        })
-        .attr('transform', 'scale(0.1)translate(-200, -1100)')
-        .style('fill', '#8B8B8B')
-        .on('click', (event: MouseEvent, d: string) => this.sort(d));
-
-      selectAll('.attr-axis').remove();
-
-      // Add the scale bar at the top of the quant attr column
-      this.combinedAttributes.forEach((col: string, index: number) => {
-        if (this.visualizedAttributes.includes(col)) {
-          if (this.isQuantitative(col)) {
-            this.attributes
-              .append('g')
-              .attr('class', 'attr-axis')
-              .attr(
-                'transform',
-                `translate(${(this.colWidth + this.colMargin) * index},-15)`,
-              )
-              .call(
-                axisTop(this.attributeScales[col])
-                  .tickValues(this.attributeScales[col].domain())
-                  .tickFormat((d: any) => {
-                    if (d / 1000 >= 1) {
-                      // eslint-disable-next-line no-param-reassign
-                      d = `${Math.round(d / 1000)}K`;
-                    }
-                    return parseFloat(d).toFixed(4);
-                  }),
-              )
-              .selectAll('text')
-              .style('text-anchor', (d: any, i: number) => (i % 2 ? 'end' : 'start'));
-          }
-        } else if (this.isQuantitative(col)) {
-          this.attributes
-            .append('g')
-            .attr('class', 'attr-axis')
-            .attr(
-              'transform',
-              `translate(${(this.colWidth + this.colMargin) * index},-15)`,
-            )
-            .call(
-              axisTop(this.attributeLinksScales[col])
-                .tickValues(this.attributeLinksScales[col].domain())
-                .tickFormat((d: any) => {
-                  if (d / 1000 >= 1) {
-                    // eslint-disable-next-line no-param-reassign
-                    d = `${Math.round(d / 1000)}K`;
-                  }
-                  return parseFloat(d).toFixed(4);
-                }),
-            )
-            .selectAll('text')
-            .style('text-anchor', (d: any, i: number) => (i % 2 ? 'end' : 'start'));
-        }
-      });
-
-      attributeRowsEnter
-        .append('g')
-        .attr('class', (d: string) => `attrRows ${d}`);
-
-      this.attributeRows.merge(attributeRowsEnter);
-
-      // Create series data for link vis
-      let seriesData: Series<{ [key: string]: number }, string>[] = [];
-
-      this.visualizedLinkAttributes.forEach((col: string) => {
-        if (!this.isQuantitative(col)) {
-          const data: { [key: string]: number }[] = [];
-          const keys = this.rowNest.map(
-            (row: { [key: string]: any }) => row.values[col],
-          );
-          const keysFlat = keys
-            .flat()
-            // eslint-disable-next-line no-return-assign, no-param-reassign, no-sequences
-            .reduce((a: any, v: any) => ((a[v] = a[v] || 0), a), {});
-
-          this.rowNest.forEach((row: { [key: string]: any }) => {
-            const copyKeys: { [key: string]: number } = { ...keysFlat };
-
-            // eslint-disable-next-line no-return-assign
-            row.values[col].forEach((a: string) => (copyKeys[a] += 1));
-            copyKeys.name = row._id;
-
-            // Normalize values
-            const sumVal = sum(Object.values(copyKeys));
-            // eslint-disable-next-line no-return-assign, no-param-reassign
-            Object.keys(copyKeys).forEach((id) => {
-              if (id !== 'name') {
-                copyKeys[id] /= sumVal;
-              }
-            });
-
-            data.push(copyKeys);
-          });
-          seriesData = stack()
-            .keys(Object.keys(keysFlat))(data)
-            // eslint-disable-next-line no-return-assign, no-param-reassign, no-sequences
-            .map((d) => (d.forEach((v) => ((v as any).key = d.key)), d));
-
-          // Organize series data by row
-          seriesData.forEach((row) => {
-            row.forEach((column) => {
-              this.rowNest.forEach((item: { [key: string]: any }) => {
-                if (item._id === column.data.name.toString()) {
-                  if (item.series) {
-                    item.series.push(column);
-                  } else {
-                    // eslint-disable-next-line no-param-reassign
-                    item.series = [];
-                    item.series.push(column);
-                  }
-                }
-              });
-            });
-          });
-        }
-      });
-
-      const attributeVis = (selectAll('.attrRows') as any)
-        .selectAll('.attrRow')
-        .data(this.network.nodes, (d: Node | AttrVis) => d._id);
-
-      // Update existing vis elements to resize width
-      attributeVis
-        .selectAll('rect')
-        .attr('width', (d: AttrVis, i: number, htmlNodes: any) => {
-          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-
-          if (this.isQuantitative(varName)) {
-            // Resize quant node attr
-            if (this.visualizedAttributes.includes(varName)) {
-              return this.attributeScales[varName](d[varName]);
-            }
-            // Resize quant link attr
-            if (this.visualizedLinkAttributes.includes(varName)) {
-              return this.attributeLinksScales[varName](d[varName]);
-            }
-          } else {
-            // Resize qual node attr
-            if (this.visualizedAttributes.includes(varName)) {
-              return this.colWidth;
-            }
-            // Resize qual link attr
-            if (this.visualizedLinkAttributes.includes(varName)) {
-              return this.stackedBarScale(d[1]) - this.stackedBarScale(d[0]);
-            }
-          }
-          return 0;
-        })
-        .attr('x', (d: AttrVis, i: number, htmlNodes: any) => {
-          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-          if (
-            this.visualizedLinkAttributes.includes(varName)
-            && !this.isQuantitative(varName)
-          ) {
-            return this.stackedBarScale(d[0]);
-          }
-          return 0;
-        });
-
-      attributeVis.exit().remove();
-
-      // Update attribute groups
-      (selectAll('.attrRow') as any)
-        .data(this.network.nodes, (d: Node) => d._id)
-        .attr(
-          'transform',
-          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
-        );
-
-      (selectAll('.visAttr') as any)
-        .data(this.network.nodes, (d: Node) => d._id)
-        .attr('height', this.orderingScale.bandwidth())
-        .attr('width', (d: Node, i: number, htmlNodes: any) => {
-          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-          if (this.isQuantitative(varName)) {
-            return this.attributeScales[varName](d[varName]);
-          }
-          return this.colWidth;
-        })
-        .attr('fill', (d: Node, i: number, htmlNodes: any) => {
-          const varName = htmlNodes[i].parentElement.parentElement.classList[1];
-          if (this.isQuantitative(varName)) {
-            return '#82b1ff';
-          }
-          if (d.type === 'supernode') {
-            return this.attributeScales[varName](d.GROUP);
-          }
-          return this.attributeScales[varName](d[varName]);
-        })
-        .attr('cursor', 'pointer')
-        .on('mouseover', (event: MouseEvent, d: Node) => this.hoverNode(d._id))
-        .on('mouseout', (event: MouseEvent, d: Node) => this.unHoverNode(d._id))
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
-        });
-
-      const attributeVisEnter = attributeVis
-        .enter()
-        .append('g')
-        .attr('class', 'attrRow')
-        .attr(
-          'transform',
-          (d: AttrVis, i: number) => `translate(0,${this.orderingScale(i)})`,
-        );
-
-      attributeVisEnter.each((visElement: AttrVis, i: number, htmlNodes: any) => {
-        const toAppend = select<HTMLElement, any>(htmlNodes[i]);
-        const varName = htmlNodes[i].parentElement.classList[1];
-
-        if (this.combinedAttributes.includes(varName)) {
-          // Draw node attributes
-          if (this.visualizedAttributes.includes(varName)) {
-            toAppend
-              .append('rect')
-              .attr('height', this.orderingScale.bandwidth())
-              .attr('width', (d: Node) => {
-                if (this.isQuantitative(varName)) {
-                  return this.attributeScales[varName](d[varName]);
-                }
-                return this.colWidth;
-              })
-              .attr('fill', (d: Node) => {
-                if (this.isQuantitative(varName)) {
-                  return '#82b1ff';
-                }
-                return this.attributeScales[varName](d[varName]);
-              })
-              .attr('cursor', 'pointer')
-              .on('mouseover', (event: MouseEvent, d: Node) => this.hoverNode(d._id))
-              .on('mouseout', (event: MouseEvent, d: Node) => this.unHoverNode(d._id))
-              .on('click', (event: MouseEvent, matrixElement: Node) => {
-                store.commit.clickElement(matrixElement._id);
-              });
-          } else {
-            // Draw link attributes
-            // eslint-disable-next-line no-lonely-if
-            if (this.isQuantitative(varName)) {
-              // Draw box plot
-              const bScale = scaleLinear()
-                .domain(this.attributeLinksScales[varName].domain())
-                .range([0, this.colWidth]);
-
-              const bPlot = BoxPlot.boxplot()
-                .scale(bScale)
-                .showInnerDots(true)
-                .boxwidth(this.orderingScale.bandwidth() * 0.5)
-                .bandwidth(this.orderingScale.bandwidth())
-                .jitter(0)
-                .opacity(1);
-
-              if (visElement.values !== undefined) {
-                toAppend
-                  .datum((d: AttrVis) => BoxPlot.boxplotStats(d.values[varName]))
-                  .call(bPlot);
-              }
-            } else if (this.visualizedLinkAttributes.includes(varName)) {
-              // Draw stacked bar chart
-              const stackedBars = toAppend
-                .selectAll('.stackedBars')
-                .data((d: AttrVis) => d.series);
-
-              selectAll('.rowGroup').selectAll('.stackedBars').exit().remove();
-
-              const stackedBarsEnter = stackedBars
-                .enter()
-                .append('rect')
-                .attr('class', 'stackedBars')
-                .attr('x', (d: AttrVis['Series']) => this.stackedBarScale(d[0]))
-                .attr(
-                  'width',
-                  (d: AttrVis['Series']) => this.stackedBarScale(d[1]) - this.stackedBarScale(d[0]),
-                )
-                .attr('fill', (d: AttrVis['Series']) => this.stackedBarColorScale(seriesData)(d.key))
-                .attr('height', this.orderingScale.bandwidth())
-                .append('title')
-                .text(
-                  (d: AttrVis['Series']) => `${d.key} ${format('.1%')(d[1] - d[0])}`,
-                );
-
-              stackedBars.merge(stackedBarsEnter as any);
-            }
-          }
-        }
-      });
-
-      // Constants for count labels
-      const labelContainerHeight = 25;
-      const rowLabelContainerStart = 75;
-      const labelContainerWidth = rowLabelContainerStart;
-
-      // Draw Super Children Label Count
-      attributeVisEnter
-        .append('foreignObject')
-        .attr('x', () => 270)
-        .attr('y', -5)
-        .attr('width', () => labelContainerWidth - 50)
-        .attr('height', labelContainerHeight)
-        .classed('countForeign', true)
-        .append('xhtml:p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d.CHILD_COUNT;
-          }
-          return '--';
-        })
-        .style('color', () => 'black')
-        .style('opacity', 0)
-        .classed('countLabels', true);
-
-      if (this.aggregated) {
-        selectAll('.countLabels').style('opacity', 1);
-      }
-
-      attributeVis.merge(attributeVisEnter);
-    },
     isQuantitative(varName: string): boolean {
       const uniqueValues = [
         ...new Set(
@@ -1984,13 +1339,6 @@ export default Vue.extend({
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
         />
       </div>
-      <!-- <svg
-      id="attributes"
-      ref="attributes"
-      :width="attributesWidth"
-      :height="attributesHeight"
-      :viewbox="`0 0 ${attributesWidth} ${attributesHeight}`"
-    /> -->
       <line-up :data="network.nodes" />
     </v-container>
 
