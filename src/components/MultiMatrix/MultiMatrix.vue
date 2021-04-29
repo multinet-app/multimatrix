@@ -34,6 +34,7 @@ import {
 } from 'd3-array';
 import { select, selectAll } from 'd3-selection';
 import { transition } from 'd3-transition';
+import { format } from 'd3-format';
 import { schemeCategory10, schemeSpectral } from 'd3-scale-chromatic';
 import * as BoxPlot from 'd3-boxplot';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
@@ -41,7 +42,6 @@ import store from '@/store';
 
 import 'science';
 import 'reorder.js';
-import { format } from 'd3-format';
 
 declare const reorder: any;
 
@@ -1502,7 +1502,11 @@ export default Vue.extend({
             // Normalize values
             const sumVal = sum(Object.values(copyKeys));
             // eslint-disable-next-line no-return-assign, no-param-reassign
-            Object.entries(copyKeys).forEach((id, value) => value /= sumVal);
+            Object.keys(copyKeys).forEach((id) => {
+              if (id !== 'name') {
+                copyKeys[id] /= sumVal;
+              }
+            });
 
             data.push(copyKeys);
           });
@@ -1569,7 +1573,7 @@ export default Vue.extend({
           ) {
             return this.stackedBarScale(d[0]);
           }
-          return this.colWidth - 40;
+          return 0;
         });
 
       attributeVis.exit().remove();
@@ -1650,6 +1654,7 @@ export default Vue.extend({
               });
           } else {
             // Draw link attributes
+            // eslint-disable-next-line no-lonely-if
             if (this.isQuantitative(varName)) {
               // Draw box plot
               const bScale = scaleLinear()
@@ -1669,8 +1674,7 @@ export default Vue.extend({
                   .datum((d: AttrVis) => BoxPlot.boxplotStats(d.values[varName]))
                   .call(bPlot);
               }
-            }
-            if (this.visualizedLinkAttributes.includes(varName)) {
+            } else if (this.visualizedLinkAttributes.includes(varName)) {
               // Draw stacked bar chart
               const stackedBars = toAppend
                 .selectAll('.stackedBars')
