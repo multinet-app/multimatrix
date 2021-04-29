@@ -1,4 +1,6 @@
 <script lang="ts">
+import Alert from '@/components/Alert.vue';
+import { computed } from '@vue/composition-api';
 import Controls from './components/Controls.vue';
 import { getUrlVars } from './lib/utils';
 import store from './store';
@@ -7,21 +9,23 @@ export default {
   name: 'App',
 
   components: {
+    Alert,
     Controls,
   },
 
   setup() {
     const { workspace, graph: networkName } = getUrlVars();
-    if (!workspace || !networkName) {
-      throw new Error(
-        `Workspace and network must be set! workspace=${workspace} network=${networkName}`,
-      );
-    }
 
     store.dispatch.fetchNetwork({
       workspaceName: workspace,
       networkName,
     });
+
+    const loadError = computed(() => store.getters.loadError);
+
+    return {
+      loadError,
+    };
   },
 };
 </script>
@@ -30,6 +34,8 @@ export default {
   <v-app>
     <v-content>
       <controls />
+
+      <alert v-if="loadError.message !== ''" />
     </v-content>
   </v-app>
 </template>

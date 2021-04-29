@@ -299,7 +299,7 @@ export default Vue.extend({
     </v-navigation-drawer>
 
     <!-- MultiMatrix component -->
-    <v-col>
+    <v-col v-if="network !== null">
       <v-row class="ma-0">
         <multi-matrix
           v-if="network !== null"
@@ -321,6 +321,7 @@ export default Vue.extend({
           @updateChildMatrixLegendScale="createLegend"
           @updateMatrixLegends="updateMatrixLegends"
         />
+
       </v-row>
     </v-col>
   </div>
