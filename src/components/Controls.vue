@@ -66,9 +66,9 @@ export default Vue.extend({
   watch: {
     showGridLines() {
       if (this.showGridLines) {
-        selectAll('.gridLines').attr('opacity', 1);
+        selectAll('.gridLines').style('opacity', 0.3);
       } else {
-        selectAll('.gridLines').attr('opacity', 0);
+        selectAll('.gridLines').style('opacity', 0);
       }
     },
   },
