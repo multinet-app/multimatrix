@@ -28,6 +28,7 @@ export default Vue.extend({
     showChildLegend: boolean;
     directional: boolean;
     visualizedAttributes: string[];
+    visualizedLinkAttributes: string[];
     } {
     return {
       selectNeighbors: true,
@@ -37,13 +38,26 @@ export default Vue.extend({
       showChildLegend: false,
       directional: false,
       visualizedAttributes: [],
+      visualizedLinkAttributes: [],
     };
   },
 
   computed: {
-    attributeList(): string[] {
-      if (this.network !== null && typeof this.network.nodes[0] !== 'undefined') {
-        return Object.keys(this.network.nodes[0]);
+    attributeList(this: any) {
+      if (
+        this.network !== null
+        && typeof this.network.nodes[0] !== 'undefined'
+      ) {
+        return Object.keys(this.network.nodes[0]).filter((k: string) => k !== '_key' && k !== '_rev' && k !== 'id');
+      }
+      return [];
+    },
+    linkAttributeList(this: any) {
+      if (
+        this.network !== null
+        && typeof this.network.nodes[0] !== 'undefined'
+      ) {
+        return Object.keys(this.network.edges[0]).filter((k: string) => k !== '_key' && k !== '_rev' && k !== 'id');
       }
       return [];
     },
@@ -56,9 +70,9 @@ export default Vue.extend({
   watch: {
     showGridLines() {
       if (this.showGridLines) {
-        selectAll('.gridLines').attr('opacity', 1);
+        selectAll('.gridLines').style('opacity', 0.3);
       } else {
-        selectAll('.gridLines').attr('opacity', 0);
+        selectAll('.gridLines').style('opacity', 0);
       }
     },
   },
@@ -182,6 +196,22 @@ export default Vue.extend({
             />
           </v-list-item>
 
+          <v-list-item class="px-0">
+            <v-select
+              v-model="visualizedLinkAttributes"
+              :items="linkAttributeList"
+              label="Link Attributes"
+              multiple
+              outlined
+              chips
+              dense
+              deletable-chips
+              small-chips
+              hint="Choose the edge attributes to visualize"
+              persistent-hint
+            />
+          </v-list-item>
+
           <!-- Auto-Select Neighbors List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
@@ -297,6 +327,7 @@ export default Vue.extend({
             showAggrLegend,
             showChildLegend,
             visualizedAttributes,
+            visualizedLinkAttributes,
             directional,
           }"
           @restart-simulation="hello()"
