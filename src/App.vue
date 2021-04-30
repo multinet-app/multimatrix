@@ -2,6 +2,7 @@
 import Alert from '@/components/Alert.vue';
 import { computed } from '@vue/composition-api';
 import Controls from './components/Controls.vue';
+import MultiMatrix from './components/MultiMatrix/MultiMatrix.vue';
 import { getUrlVars } from './lib/utils';
 import store from './store';
 
@@ -11,6 +12,7 @@ export default {
   components: {
     Alert,
     Controls,
+    MultiMatrix,
   },
 
   setup() {
@@ -34,6 +36,8 @@ export default {
   <v-app>
     <v-content>
       <controls />
+
+      <multi-matrix />
 
       <alert v-if="loadError.message !== ''" />
     </v-content>

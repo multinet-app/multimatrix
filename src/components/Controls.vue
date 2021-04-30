@@ -1,6 +1,5 @@
 <script lang="ts">
 import Vue from 'vue';
-import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
 import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -13,7 +12,6 @@ export default Vue.extend({
   components: {
     AboutDialog,
     LoginMenu,
-    MultiMatrix,
   },
 
   computed: {
@@ -347,19 +345,6 @@ export default Vue.extend({
         </div>
       </v-list>
     </v-navigation-drawer>
-
-    <!-- MultiMatrix component -->
-    <v-col v-if="network !== null">
-      <v-row class="ma-0">
-        <multi-matrix
-          v-if="network !== null"
-          ref="multimatrix"
-          @updateMatrixLegendScale="createLegend"
-          @updateAggrMatrixLegendScale="createLegend"
-          @updateChildMatrixLegendScale="createLegend"
-        />
-      </v-row>
-    </v-col>
   </div>
 </template>
 
