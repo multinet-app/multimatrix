@@ -3,9 +3,6 @@
 import Vue, { PropType } from 'vue';
 
 import {
-  superGraph,
-  processChildNodes,
-  processChildLinks,
   expandSuperNetwork,
   retractSuperNetwork,
   nonAggrNetwork,
@@ -17,26 +14,18 @@ import {
   Network,
   Node,
   ProvenanceState,
-  AttrVis,
 } from '@/types';
 import {
   ScaleBand,
   scaleBand,
   ScaleLinear,
   scaleLinear,
-  scaleOrdinal,
 } from 'd3-scale';
-import { nest } from 'd3-collection';
-import { Series, stack } from 'd3-shape';
-import { axisTop } from 'd3-axis';
 import {
-  max, min, range, sum,
+  range,
 } from 'd3-array';
 import { select, selectAll } from 'd3-selection';
 import { transition } from 'd3-transition';
-import { format } from 'd3-format';
-import { schemeCategory10, schemeSpectral } from 'd3-scale-chromatic';
-import * as BoxPlot from 'd3-boxplot';
 import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import store from '@/store';
 import LineUp from '@/components/LineUp.vue';
@@ -290,14 +279,15 @@ export default Vue.extend({
           return false;
         });
     },
+
     network() {
       this.processData();
-      this.changeMatrix();
+      this.initializeEdges();
     },
 
     directional() {
       this.processData();
-      this.changeMatrix();
+      this.initializeEdges();
     },
 
     enableGraffinity() {
@@ -355,9 +345,11 @@ export default Vue.extend({
         this.aggregated = false;
       }
     },
+
     colorScale() {
       this.$emit('updateMatrixLegendScale', this.colorScale);
     },
+
     aggrColorScale() {
       this.$emit(
         'updateAggrMatrixLegendScale',
@@ -365,6 +357,7 @@ export default Vue.extend({
         'aggregate',
       );
     },
+
     childColorScale() {
       this.$emit('updateChildMatrixLegendScale', this.childColorScale, 'child');
     },
@@ -434,9 +427,6 @@ export default Vue.extend({
   },
 
   methods: {
-    changeMatrix(this: any) {
-      this.initializeEdges();
-    },
     processData(): void {
       // Reset some values that will be re-calcuated
       this.maxNumConnections = 0;

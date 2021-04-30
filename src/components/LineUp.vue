@@ -64,6 +64,13 @@ export default {
       }
     });
 
+    watchEffect(() => {
+      if (lineup.value !== null) {
+        console.log(lineup.value);
+        console.log(lineup.value.data.rankings[0].order);
+      }
+    });
+
     return {};
   },
 };

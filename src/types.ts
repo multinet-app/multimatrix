@@ -47,6 +47,7 @@ export interface State {
   cellSize: number;
   selectedNodes: string[];
   selectedCells: Cell[];
+  sortOrder: number[];
 }
 
 export interface ProvenanceState {

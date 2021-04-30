@@ -2,6 +2,8 @@ import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
+import { range } from 'd3-array';
+
 import api from '@/api';
 import {
   GraphSpec, RowsSpec, TableRow, UserSpec,
@@ -33,6 +35,7 @@ const {
     cellSize: 15,
     selectedNodes: [],
     selectedCells: [],
+    sortOrder: [],
   } as State,
 
   getters: {
@@ -99,6 +102,10 @@ const {
       } else {
         state.selectedCells = state.selectedCells.filter((arrayElement) => arrayElement.cellName !== cell.cellName);
       }
+    },
+
+    setSortOrder(state, sortOrder: number[]) {
+      state.sortOrder = sortOrder;
     },
   },
   actions: {
@@ -176,6 +183,7 @@ const {
         edges: edges as Link[],
       };
       commit.setNetwork(network);
+      commit.setSortOrder(range(0, network.nodes.length));
     },
 
     async fetchUserInfo(context) {
