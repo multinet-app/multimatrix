@@ -366,6 +366,24 @@ export default Vue.extend({
         .domain([0, this.maxChildConnections])
         .range(['#f79d97', '#c0362c']);
     },
+
+    reorderLinks(): Link[] | null {
+      if (this.network !== null) {
+        return this.network.edges.map((edge: Link) => {
+          const newLink: Link = {
+            ...JSON.parse(JSON.stringify(edge)),
+            source: this.network.nodes.find(
+              (node: Node) => node._id === edge._from,
+            ),
+            target: this.network.nodes.find(
+              (node: Node) => node._id === edge._to,
+            ),
+          };
+          return newLink;
+        });
+      }
+      return null;
+    },
   },
 
   watch: {
@@ -1937,24 +1955,10 @@ export default Vue.extend({
         || type === 'clusterBary'
         || type === 'clusterLeaf'
       ) {
-        const edges: any[] = Array(this.network.edges.length);
-
-        // Generate links that are compatible with reorder.js
-        this.network.edges.forEach((edge: Link, index: number) => {
-          edges[index] = {
-            source: this.network.nodes.find(
-              (node: Node) => node._id === edge._from,
-            ),
-            target: this.network.nodes.find(
-              (node: Node) => node._id === edge._to,
-            ),
-          };
-        });
-
         const sortableNetwork = reorder
           .graph()
           .nodes(this.network.nodes)
-          .links(edges)
+          .links(this.reorderLinks)
           .init();
 
         if (type === 'clusterBary') {
