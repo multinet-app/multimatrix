@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
-import { select, selectAll } from 'd3-selection';
+import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
@@ -17,8 +17,6 @@ export default Vue.extend({
   },
 
   data(): {
-    selectNeighbors: boolean;
-    showGridLines: boolean;
     enableGraffinity: boolean;
     showAggrLegend: boolean;
     showChildLegend: boolean;
@@ -26,8 +24,6 @@ export default Vue.extend({
     visualizedLinkAttributes: string[];
     } {
     return {
-      selectNeighbors: true,
-      showGridLines: true,
       enableGraffinity: false,
       showAggrLegend: false,
       showChildLegend: false,
@@ -50,6 +46,24 @@ export default Vue.extend({
       },
     },
 
+    selectNeighbors: {
+      get() {
+        return store.state.selectNeighbors;
+      },
+      set(value: boolean) {
+        store.commit.setSelectNeighbors(value);
+      },
+    },
+
+    showGridLines: {
+      get() {
+        return store.state.showGridLines;
+      },
+      set(value: boolean) {
+        store.commit.setShowGridlines(value);
+      },
+    },
+
     attributeList(): string[] {
       if (
         this.network !== null
@@ -68,16 +82,6 @@ export default Vue.extend({
         return Object.keys(this.network.edges[0]).filter((k: string) => k !== '_key' && k !== '_rev' && k !== 'id');
       }
       return [];
-    },
-  },
-
-  watch: {
-    showGridLines() {
-      if (this.showGridLines) {
-        selectAll('.gridLines').style('opacity', 0.3);
-      } else {
-        selectAll('.gridLines').style('opacity', 0);
-      }
     },
   },
 
@@ -311,8 +315,6 @@ export default Vue.extend({
           v-if="network !== null"
           ref="multimatrix"
           v-bind="{
-            selectNeighbors,
-            showGridLines,
             enableGraffinity,
             showAggrLegend,
             showChildLegend,

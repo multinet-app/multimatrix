@@ -45,6 +45,8 @@ export interface State {
   loadError: LoadError;
   userInfo: UserSpec | null;
   directionalEdges: boolean;
+  selectNeighbors: boolean;
+  showGridLines: boolean;
 }
 
 export interface ProvenanceState {

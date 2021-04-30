@@ -47,10 +47,6 @@ declare const reorder: any;
 
 export default Vue.extend({
   props: {
-    selectNeighbors: {
-      type: Boolean,
-      default: true,
-    },
     enableGraffinity: {
       type: Boolean,
       required: true,
@@ -399,15 +395,33 @@ export default Vue.extend({
     directionalEdges() {
       return store.state.directionalEdges;
     },
+
+    selectNeighbors() {
+      return store.state.selectNeighbors;
+    },
+
+    showGridLines() {
+      return store.state.showGridLines;
+    },
   },
 
   watch: {
     visualizedAttributes() {
       this.combineNodeAttributes();
     },
+
     visualizedLinkAttributes() {
       this.combineLinkAttributes();
     },
+
+    showGridLines() {
+      if (this.showGridLines) {
+        selectAll('.gridLines').style('opacity', 0.3);
+      } else {
+        selectAll('.gridLines').style('opacity', 0);
+      }
+    },
+
     network() {
       this.processData();
       this.changeMatrix();

@@ -30,6 +30,8 @@ const {
     },
     userInfo: null,
     directionalEdges: false,
+    selectNeighbors: true,
+    showGridLines: true,
   } as State,
 
   getters: {
@@ -61,6 +63,14 @@ const {
 
     setDirectionalEdges(state, directionalEdges: boolean) {
       state.directionalEdges = directionalEdges;
+    },
+
+    setSelectNeighbors(state, selectNeighbors: boolean) {
+      state.selectNeighbors = selectNeighbors;
+    },
+
+    setShowGridlines(state, showGridLines: boolean) {
+      state.showGridLines = showGridLines;
     },
   },
   actions: {
