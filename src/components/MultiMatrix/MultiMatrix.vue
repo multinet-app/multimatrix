@@ -71,10 +71,6 @@ export default Vue.extend({
       type: Array as PropType<string[]>,
       default: () => [],
     },
-    directional: {
-      type: Boolean,
-      default: false,
-    },
   },
 
   data(): {
@@ -399,6 +395,10 @@ export default Vue.extend({
       }
       return null;
     },
+
+    directionalEdges() {
+      return store.state.directionalEdges;
+    },
   },
 
   watch: {
@@ -413,7 +413,7 @@ export default Vue.extend({
       this.changeMatrix();
     },
 
-    directional() {
+    directionalEdges() {
       this.processData();
       this.changeMatrix();
     },
@@ -639,7 +639,7 @@ export default Vue.extend({
         this.network.edges.forEach((edge: Link) => {
           this.matrix[this.idMap[edge._from]][this.idMap[edge._to]].z += 1;
 
-          if (!this.directional) {
+          if (!this.directionalEdges) {
             this.matrix[this.idMap[edge._to]][this.idMap[edge._from]].z += 1;
           }
         });

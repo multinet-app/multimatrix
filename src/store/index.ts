@@ -29,7 +29,7 @@ const {
       href: '',
     },
     userInfo: null,
-    directionalEdges: true,
+    directionalEdges: false,
   } as State,
 
   getters: {
@@ -57,6 +57,10 @@ const {
 
     setUserInfo(state, userInfo: UserSpec | null) {
       state.userInfo = userInfo;
+    },
+
+    setDirectionalEdges(state, directionalEdges: boolean) {
+      state.directionalEdges = directionalEdges;
     },
   },
   actions: {

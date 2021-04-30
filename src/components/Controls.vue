@@ -22,7 +22,6 @@ export default Vue.extend({
     enableGraffinity: boolean;
     showAggrLegend: boolean;
     showChildLegend: boolean;
-    directional: boolean;
     visualizedAttributes: string[];
     visualizedLinkAttributes: string[];
     } {
@@ -32,7 +31,6 @@ export default Vue.extend({
       enableGraffinity: false,
       showAggrLegend: false,
       showChildLegend: false,
-      directional: false,
       visualizedAttributes: [],
       visualizedLinkAttributes: [],
     };
@@ -41,6 +39,15 @@ export default Vue.extend({
   computed: {
     network() {
       return store.state.network;
+    },
+
+    directionalEdges: {
+      get() {
+        return store.state.directionalEdges;
+      },
+      set(value: boolean) {
+        store.commit.setDirectionalEdges(value);
+      },
     },
 
     attributeList(): string[] {
@@ -224,7 +231,7 @@ export default Vue.extend({
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
               <v-switch
-                v-model="directional"
+                v-model="directionalEdges"
                 class="ma-0"
                 hide-details
               />
@@ -311,7 +318,6 @@ export default Vue.extend({
             showChildLegend,
             visualizedAttributes,
             visualizedLinkAttributes,
-            directional,
           }"
           @restart-simulation="hello()"
           @updateMatrixLegendScale="createLegend"
