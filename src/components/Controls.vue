@@ -102,6 +102,32 @@ export default Vue.extend({
       }
       return [];
     },
+
+    cellColorScale() {
+      return store.getters.cellColorScale;
+    },
+
+    parentColorScale() {
+      return store.getters.parentColorScale;
+    },
+
+    childColorScale() {
+      return store.getters.childColorScale;
+    },
+  },
+
+  watch: {
+    cellColorScale() {
+      this.updateLegend(this.cellColorScale, 'unAggr');
+    },
+
+    parentColorScale() {
+      this.updateLegend(this.parentColorScale, 'parent');
+    },
+
+    childColorScale() {
+      this.updateLegend(this.childColorScale, 'child');
+    },
   },
 
   methods: {
@@ -116,10 +142,10 @@ export default Vue.extend({
       a.click();
     },
 
-    createLegend(colorScale: ScaleLinear<string, number>, legendName: string) {
+    updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'child' | 'unAggr') {
       let legendSVG;
-      if (legendName === 'aggregate') {
-        legendSVG = select('#aggr-matrix-legend');
+      if (legendName === 'parent') {
+        legendSVG = select('#parent-matrix-legend');
       } else if (legendName === 'child') {
         legendSVG = select('#child-matrix-legend');
       } else {
@@ -296,7 +322,7 @@ export default Vue.extend({
             style="display: flex; max-height: 50px"
           >
             Aggregate Legend
-            <svg id="aggr-matrix-legend" />
+            <svg id="parent-matrix-legend" />
           </v-list-item>
 
           <!-- Matrix Legend -->

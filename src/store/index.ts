@@ -2,6 +2,8 @@ import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
+import { scaleLinear, ScaleLinear } from 'd3-scale';
+
 import api from '@/api';
 import {
   GraphSpec, RowsSpec, TableRow, UserSpec,
@@ -37,10 +39,31 @@ const {
     showChildLegend: false,
     visualizedNodeAttributes: [],
     visualizedLinkAttributes: [],
+    maxConnections: {
+      unAggr: 0,
+      parent: 0,
+      child: 0,
+    },
   } as State,
 
   getters: {
+    cellColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.unAggr])
+        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+    },
 
+    parentColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.parent])
+        .range(['#dcedfa', '#0066cc']);
+    },
+
+    childColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.child])
+        .range(['#f79d97', '#c0362c']);
+    },
   },
   mutations: {
     setWorkspaceName(state, workspaceName: string) {
@@ -96,6 +119,14 @@ const {
 
     setVisualizedLinkAttributes(state, visualizedLinkAttributes: string[]) {
       state.visualizedLinkAttributes = visualizedLinkAttributes;
+    },
+
+    setMaxConnections(state, maxConnections: {
+      unAggr: number;
+      parent: number;
+      child: number;
+    }) {
+      state.maxConnections = maxConnections;
     },
   },
   actions: {

@@ -52,6 +52,11 @@ export interface State {
     showChildLegend: boolean;
   visualizedNodeAttributes: string[];
   visualizedLinkAttributes: string[];
+  maxConnections: {
+    unAggr: number;
+    parent: number;
+    child: number;
+  };
 }
 
 export interface ProvenanceState {

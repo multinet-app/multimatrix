@@ -52,9 +52,6 @@ export default Vue.extend({
     matrixSVG: any;
     attributesSVG: any;
     cellSize: number;
-    maxNumConnections: number;
-    maxAggrConnections: number;
-    maxChildConnections: number;
     matrix: Cell[][];
     attributes: any;
     attributeRows: any;
@@ -93,9 +90,6 @@ export default Vue.extend({
       matrixSVG: undefined,
       attributesSVG: undefined,
       cellSize: 15,
-      maxNumConnections: -Infinity,
-      maxAggrConnections: -Infinity,
-      maxChildConnections: -Infinity,
       matrix: [],
       attributes: undefined,
       attributeRows: undefined,
@@ -311,24 +305,6 @@ export default Vue.extend({
       return scaleLinear<number, number>().range([0, this.colWidth]);
     },
 
-    colorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxNumConnections])
-        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
-    },
-
-    aggrColorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxAggrConnections])
-        .range(['#dcedfa', '#0066cc']);
-    },
-
-    childColorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxChildConnections])
-        .range(['#f79d97', '#c0362c']);
-    },
-
     reorderLinks(): Link[] | null {
       if (this.network !== null) {
         return this.network.edges.map((edge: Link) => {
@@ -376,6 +352,18 @@ export default Vue.extend({
 
     aggregated() {
       return store.state.aggregated;
+    },
+
+    cellColorScale() {
+      return store.getters.cellColorScale;
+    },
+
+    parentColorScale() {
+      return store.getters.parentColorScale;
+    },
+
+    childColorScale() {
+      return store.getters.childColorScale;
     },
   },
 
@@ -460,19 +448,6 @@ export default Vue.extend({
         // Reset aggregated state
         store.commit.setAggregated(false);
       }
-    },
-    colorScale() {
-      this.$emit('updateMatrixLegendScale', this.colorScale);
-    },
-    aggrColorScale() {
-      this.$emit(
-        'updateAggrMatrixLegendScale',
-        this.aggrColorScale,
-        'aggregate',
-      );
-    },
-    childColorScale() {
-      this.$emit('updateChildMatrixLegendScale', this.childColorScale, 'child');
     },
   },
 
@@ -601,9 +576,9 @@ export default Vue.extend({
     },
     processData(): void {
       // Reset some values that will be re-calcuated
-      this.maxNumConnections = 0;
-      this.maxAggrConnections = 0;
-      this.maxChildConnections = 0;
+      let maxNumConnections = 0;
+      let maxAggrConnections = 0;
+      let maxChildConnections = 0;
       this.matrix = [];
 
       if (this.network !== null) {
@@ -640,27 +615,33 @@ export default Vue.extend({
             cell.rowCellType === undefined
             || cell.colCellType === undefined
           ) {
-            if (cell.z > this.maxNumConnections) {
-              this.maxNumConnections = cell.z;
+            if (cell.z > maxNumConnections) {
+              maxNumConnections = cell.z;
             }
           }
           if (
             cell.rowCellType === 'supernode'
             && cell.colCellType === 'supernode'
           ) {
-            if (cell.z > this.maxAggrConnections) {
-              this.maxAggrConnections = cell.z;
+            if (cell.z > maxAggrConnections) {
+              maxAggrConnections = cell.z;
             }
           }
           if (
             cell.rowCellType === 'childnode'
             || cell.colCellType === 'childnode'
           ) {
-            if (cell.z > this.maxChildConnections) {
-              this.maxChildConnections = cell.z;
+            if (cell.z > maxChildConnections) {
+              maxChildConnections = cell.z;
             }
           }
         });
+      });
+
+      store.commit.setMaxConnections({
+        unAggr: maxNumConnections,
+        parent: maxAggrConnections,
+        child: maxChildConnections,
       });
     },
 
@@ -1074,12 +1055,12 @@ export default Vue.extend({
         .attr('rx', cellRadius)
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
-            return this.aggrColorScale(d.z);
+            return this.parentColorScale(d.z);
           }
           if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
-          return this.colorScale(d.z);
+          return this.cellColorScale(d.z);
         })
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
@@ -1111,12 +1092,12 @@ export default Vue.extend({
         .attr('rx', cellRadius)
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
-            return this.aggrColorScale(d.z);
+            return this.parentColorScale(d.z);
           }
           if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
-          return this.colorScale(d.z);
+          return this.cellColorScale(d.z);
         })
 
         .style('fill-opacity', (d: Cell) => d.z)
