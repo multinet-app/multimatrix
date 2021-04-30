@@ -47,6 +47,9 @@ export interface State {
   directionalEdges: boolean;
   selectNeighbors: boolean;
   showGridLines: boolean;
+  enableGraffinity: boolean;
+  visualizedNodeAttributes: string[];
+  visualizedLinkAttributes: string[];
 }
 
 export interface ProvenanceState {

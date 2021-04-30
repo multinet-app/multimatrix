@@ -46,29 +46,6 @@ import 'reorder.js';
 declare const reorder: any;
 
 export default Vue.extend({
-  props: {
-    enableGraffinity: {
-      type: Boolean,
-      required: true,
-    },
-    showAggrLegend: {
-      type: Boolean,
-      required: true,
-    },
-    showChildLegend: {
-      type: Boolean,
-      required: true,
-    },
-    visualizedAttributes: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-    visualizedLinkAttributes: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-  },
-
   data(): {
     browser: Dimensions;
     visMargins: any;
@@ -174,23 +151,6 @@ export default Vue.extend({
   },
 
   computed: {
-    properties(this: any) {
-      const {
-        visualizedAttributes,
-        visualizedLinkAttributes,
-        enableGraffinity,
-        showAggrLegend,
-        showChildLegend,
-      } = this;
-      return {
-        visualizedAttributes,
-        visualizedLinkAttributes,
-        enableGraffinity,
-        showAggrLegend,
-        showChildLegend,
-      };
-    },
-
     network() {
       return store.state.network;
     },
@@ -287,7 +247,7 @@ export default Vue.extend({
       const scales: { [key: string]: any } = {};
 
       // Calculate the attribute scales
-      this.visualizedAttributes.forEach((col: string) => {
+      this.visualizedNodeAttributes.forEach((col: string) => {
         if (this.network !== null) {
           if (this.isQuantitative(col)) {
             const minimum = min(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
@@ -344,7 +304,7 @@ export default Vue.extend({
       const attrWidth = parseFloat(select('#attributes').attr('width'));
       return (
         (attrWidth - 40)
-          / (this.visualizedAttributes.length
+          / (this.visualizedNodeAttributes.length
             + this.visualizedLinkAttributes.length)
         - this.colMargin // 40 for children count
       );
@@ -403,10 +363,22 @@ export default Vue.extend({
     showGridLines() {
       return store.state.showGridLines;
     },
+
+    enableGraffinity() {
+      return store.state.enableGraffinity;
+    },
+
+    visualizedNodeAttributes() {
+      return store.state.visualizedNodeAttributes;
+    },
+
+    visualizedLinkAttributes() {
+      return store.state.visualizedLinkAttributes;
+    },
   },
 
   watch: {
-    visualizedAttributes() {
+    visualizedNodeAttributes() {
       this.combineNodeAttributes();
     },
 
@@ -580,9 +552,9 @@ export default Vue.extend({
     combineNodeAttributes() {
       // Add attributes in order of selection across both nodes and links
       let nodeDifference = this.combinedAttributes
-        .filter((x) => !this.visualizedAttributes.includes(x))
+        .filter((x) => !this.visualizedNodeAttributes.includes(x))
         .concat(
-          this.visualizedAttributes.filter(
+          this.visualizedNodeAttributes.filter(
             (x) => !this.combinedAttributes.includes(x),
           ),
         );
@@ -612,9 +584,9 @@ export default Vue.extend({
           ),
         );
       linkDifference = linkDifference
-        .filter((x) => !this.visualizedAttributes.includes(x))
+        .filter((x) => !this.visualizedNodeAttributes.includes(x))
         .concat(
-          this.visualizedAttributes.filter((x) => !linkDifference.includes(x)),
+          this.visualizedNodeAttributes.filter((x) => !linkDifference.includes(x)),
         );
       if (this.combinedAttributes.includes(linkDifference[0])) {
         this.combinedAttributes = this.combinedAttributes.filter(
@@ -1437,7 +1409,7 @@ export default Vue.extend({
         .text((d: string) => d)
         .attr('width', this.colWidth)
         .on('click', (event: MouseEvent, header: string) => {
-          if (this.visualizedAttributes.includes(header) && this.enableGraffinity) {
+          if (this.visualizedNodeAttributes.includes(header) && this.enableGraffinity) {
             if (this.network !== null) {
               this.nonAggrNodes = processChildNodes(this.network.nodes);
               this.nonAggrLinks = processChildLinks(this.network.edges);
@@ -1491,7 +1463,7 @@ export default Vue.extend({
 
       // Add the scale bar at the top of the quant attr column
       this.combinedAttributes.forEach((col: string, index: number) => {
-        if (this.visualizedAttributes.includes(col)) {
+        if (this.visualizedNodeAttributes.includes(col)) {
           if (this.isQuantitative(col)) {
             this.attributes
               .append('g')
@@ -1612,7 +1584,7 @@ export default Vue.extend({
 
           if (this.isQuantitative(varName)) {
             // Resize quant node attr
-            if (this.visualizedAttributes.includes(varName)) {
+            if (this.visualizedNodeAttributes.includes(varName)) {
               return this.attributeScales[varName](d[varName]);
             }
             // Resize quant link attr
@@ -1621,7 +1593,7 @@ export default Vue.extend({
             }
           } else {
             // Resize qual node attr
-            if (this.visualizedAttributes.includes(varName)) {
+            if (this.visualizedNodeAttributes.includes(varName)) {
               return this.colWidth;
             }
             // Resize qual link attr
@@ -1695,7 +1667,7 @@ export default Vue.extend({
 
         if (this.combinedAttributes.includes(varName)) {
           // Draw node attributes
-          if (this.visualizedAttributes.includes(varName)) {
+          if (this.visualizedNodeAttributes.includes(varName)) {
             toAppend
               .append('rect')
               .attr('height', this.orderingScale.bandwidth())

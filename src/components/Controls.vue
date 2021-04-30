@@ -16,19 +16,10 @@ export default Vue.extend({
     MultiMatrix,
   },
 
-  data(): {
-    enableGraffinity: boolean;
-    showAggrLegend: boolean;
-    showChildLegend: boolean;
-    visualizedAttributes: string[];
-    visualizedLinkAttributes: string[];
-    } {
+  data() {
     return {
-      enableGraffinity: false,
       showAggrLegend: false,
       showChildLegend: false,
-      visualizedAttributes: [],
-      visualizedLinkAttributes: [],
     };
   },
 
@@ -61,6 +52,33 @@ export default Vue.extend({
       },
       set(value: boolean) {
         store.commit.setShowGridlines(value);
+      },
+    },
+
+    enableGraffinity: {
+      get() {
+        return store.state.enableGraffinity;
+      },
+      set(value: boolean) {
+        store.commit.setEnableGraffinity(value);
+      },
+    },
+
+    visualizedNodeAttributes: {
+      get() {
+        return store.state.visualizedNodeAttributes;
+      },
+      set(value: string[]) {
+        store.commit.setVisualizedNodeAttributes(value);
+      },
+    },
+
+    visualizedLinkAttributes: {
+      get() {
+        return store.state.visualizedLinkAttributes;
+      },
+      set(value: string[]) {
+        store.commit.setVisualizedLinkAttributes(value);
       },
     },
 
@@ -177,7 +195,7 @@ export default Vue.extend({
         <div class="pa-4">
           <v-list-item class="px-0">
             <v-select
-              v-model="visualizedAttributes"
+              v-model="visualizedNodeAttributes"
               :items="attributeList"
               label="Node Attributes"
               multiple
@@ -314,13 +332,6 @@ export default Vue.extend({
         <multi-matrix
           v-if="network !== null"
           ref="multimatrix"
-          v-bind="{
-            enableGraffinity,
-            showAggrLegend,
-            showChildLegend,
-            visualizedAttributes,
-            visualizedLinkAttributes,
-          }"
           @updateMatrixLegendScale="createLegend"
           @updateAggrMatrixLegendScale="createLegend"
           @updateChildMatrixLegendScale="createLegend"

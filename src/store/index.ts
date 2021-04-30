@@ -32,6 +32,9 @@ const {
     directionalEdges: false,
     selectNeighbors: true,
     showGridLines: true,
+    enableGraffinity: false,
+    visualizedNodeAttributes: [],
+    visualizedLinkAttributes: [],
   } as State,
 
   getters: {
@@ -71,6 +74,18 @@ const {
 
     setShowGridlines(state, showGridLines: boolean) {
       state.showGridLines = showGridLines;
+    },
+
+    setEnableGraffinity(state, enableGraffinity: boolean) {
+      state.enableGraffinity = enableGraffinity;
+    },
+
+    setVisualizedNodeAttributes(state, visualizedNodeAttributes: string[]) {
+      state.visualizedNodeAttributes = visualizedNodeAttributes;
+    },
+
+    setVisualizedLinkAttributes(state, visualizedLinkAttributes: string[]) {
+      state.visualizedLinkAttributes = visualizedLinkAttributes;
     },
   },
   actions: {
