@@ -9,9 +9,6 @@ import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 
-// This is to be removed (stop-gap solution to superGraph network update)
-export const eventBus = new Vue();
-
 export default Vue.extend({
   components: {
     AboutDialog,
