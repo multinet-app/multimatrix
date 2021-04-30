@@ -1838,7 +1838,7 @@ export default Vue.extend({
         });
       });
 
-      if (selections.length > 0) {
+      if (selections.length > 0 && this.selectNeighbors) {
         selectAll(selections.join(',')).classed('neighbor', true);
       }
     },
