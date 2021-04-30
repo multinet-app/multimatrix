@@ -47,10 +47,6 @@ declare const reorder: any;
 
 export default Vue.extend({
   props: {
-    network: {
-      type: Object as PropType<Network>,
-      required: true,
-    },
     selectNeighbors: {
       type: Boolean,
       default: true,
@@ -188,7 +184,6 @@ export default Vue.extend({
   computed: {
     properties(this: any) {
       const {
-        network,
         visualizedAttributes,
         visualizedLinkAttributes,
         enableGraffinity,
@@ -196,7 +191,6 @@ export default Vue.extend({
         showChildLegend,
       } = this;
       return {
-        network,
         visualizedAttributes,
         visualizedLinkAttributes,
         enableGraffinity,
@@ -205,8 +199,15 @@ export default Vue.extend({
       };
     },
 
+    network() {
+      return store.getters.network;
+    },
+
     matrixNodeLength(): number {
-      return this.network.nodes.length;
+      if (this.network !== null) {
+        return this.network.nodes.length;
+      }
+      return 0;
     },
 
     matrixWidth(): number {
@@ -245,14 +246,21 @@ export default Vue.extend({
 
     idMap() {
       const computedIdMap: { [key: string]: number } = {};
-      this.network.nodes.forEach((node: Node, index: number) => {
-        computedIdMap[node._id] = index;
-      });
+
+      if (this.network !== null) {
+        this.network.nodes.forEach((node: Node, index: number) => {
+          computedIdMap[node._id] = index;
+        });
+      }
 
       return computedIdMap;
     },
 
     rowNest(): any {
+      if (this.network === null) {
+        return null;
+      }
+
       const rowNest = nest()
         .key((d: any) => d._from)
         .entries(this.network.edges);
@@ -269,12 +277,14 @@ export default Vue.extend({
           rowAttrs[attr] = attrList;
         });
 
-        const nodeToUpdate = this.network.nodes.find(
-          (node) => node._id === d.key,
-        );
-        if (nodeToUpdate !== undefined) {
-          nodeToUpdate.values = rowAttrs;
-          nodeToUpdate.series = [];
+        if (this.network !== null) {
+          const nodeToUpdate = this.network.nodes.find(
+            (node) => node._id === d.key,
+          );
+          if (nodeToUpdate !== undefined) {
+            nodeToUpdate.values = rowAttrs;
+            nodeToUpdate.series = [];
+          }
         }
       });
 
@@ -286,25 +296,27 @@ export default Vue.extend({
 
       // Calculate the attribute scales
       this.visualizedAttributes.forEach((col: string) => {
-        if (this.isQuantitative(col)) {
-          const minimum = min(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
-          const maximum = max(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
-          const domain = [minimum, maximum];
+        if (this.network !== null) {
+          if (this.isQuantitative(col)) {
+            const minimum = min(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
+            const maximum = max(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
+            const domain = [minimum, maximum];
 
-          const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
-          scale.clamp(true);
-          scales[col] = scale;
-        } else {
-          const values: string[] = this.network.nodes.map((node: Node) => {
-            if (node.type === 'supernode') {
-              return node.GROUP as string;
-            }
-            return node[col] as string;
-          });
-          const domain = [...new Set(values)];
-          const scale = scaleOrdinal(schemeCategory10).domain(domain);
+            const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
+            scale.clamp(true);
+            scales[col] = scale;
+          } else {
+            const values: string[] = this.network.nodes.map((node: Node) => {
+              if (node.type === 'supernode') {
+                return node.GROUP as string;
+              }
+              return node[col] as string;
+            });
+            const domain = [...new Set(values)];
+            const scale = scaleOrdinal(schemeCategory10).domain(domain);
 
-          scales[col] = scale;
+            scales[col] = scale;
+          }
         }
       });
 
@@ -370,16 +382,19 @@ export default Vue.extend({
     reorderLinks(): Link[] | null {
       if (this.network !== null) {
         return this.network.edges.map((edge: Link) => {
-          const newLink: Link = {
-            ...JSON.parse(JSON.stringify(edge)),
-            source: this.network.nodes.find(
-              (node: Node) => node._id === edge._from,
-            ),
-            target: this.network.nodes.find(
-              (node: Node) => node._id === edge._to,
-            ),
-          };
-          return newLink;
+          if (this.network !== null) {
+            const newLink: Link = {
+              ...JSON.parse(JSON.stringify(edge)),
+              source: this.network.nodes.find(
+                (node: Node) => node._id === edge._from,
+              ),
+              target: this.network.nodes.find(
+                (node: Node) => node._id === edge._to,
+              ),
+            };
+            return newLink;
+          }
+          return edge;
         });
       }
       return null;
@@ -404,7 +419,7 @@ export default Vue.extend({
     },
 
     enableGraffinity() {
-      if (!this.enableGraffinity && this.aggregated === true) {
+      if (!this.enableGraffinity && this.aggregated === true && this.network !== null) {
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
 
@@ -603,28 +618,32 @@ export default Vue.extend({
       this.maxChildConnections = 0;
       this.matrix = [];
 
-      this.network.nodes.forEach((rowNode: Node, i: number) => {
-        this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => ({
-          cellName: `${rowNode._id}_${colNode._id}`,
-          rowCellType: rowNode.type,
-          colCellType: colNode.type,
-          correspondingCell: `${colNode._id}_${rowNode._id}`,
-          rowID: rowNode._id,
-          colID: colNode._id,
-          x: j,
-          y: i,
-          z: 0,
-        }));
-      });
+      if (this.network !== null) {
+        this.network.nodes.forEach((rowNode: Node, i: number) => {
+          if (this.network !== null) {
+            this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => ({
+              cellName: `${rowNode._id}_${colNode._id}`,
+              rowCellType: rowNode.type,
+              colCellType: colNode.type,
+              correspondingCell: `${colNode._id}_${rowNode._id}`,
+              rowID: rowNode._id,
+              colID: colNode._id,
+              x: j,
+              y: i,
+              z: 0,
+            }));
+          }
+        });
 
-      // Count occurrences of edges and store it in the matrix
-      this.network.edges.forEach((edge: Link) => {
-        this.matrix[this.idMap[edge._from]][this.idMap[edge._to]].z += 1;
+        // Count occurrences of edges and store it in the matrix
+        this.network.edges.forEach((edge: Link) => {
+          this.matrix[this.idMap[edge._from]][this.idMap[edge._to]].z += 1;
 
-        if (!this.directional) {
-          this.matrix[this.idMap[edge._to]][this.idMap[edge._from]].z += 1;
-        }
-      });
+          if (!this.directional) {
+            this.matrix[this.idMap[edge._to]][this.idMap[edge._from]].z += 1;
+          }
+        });
+      }
 
       // Find max value of z
       this.matrix.forEach((row: Cell[]) => {
@@ -686,6 +705,9 @@ export default Vue.extend({
     },
 
     initializeEdges(): void {
+      if (this.network === null) {
+        return;
+      }
       // set the radius for cells
       const cellRadius = 3;
 
@@ -998,15 +1020,17 @@ export default Vue.extend({
               const supernode = node;
               // expand and retract the supernode aggregation based on user selection
               if (this.clickMap.get(supernode._id)) {
-                store.commit.setNetwork(
-                  retractSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.edges,
-                    supernode,
-                  ),
-                );
+                if (this.network !== null) {
+                  store.commit.setNetwork(
+                    retractSuperNetwork(
+                      this.nonAggrNodes,
+                      this.nonAggrLinks,
+                      this.network.nodes,
+                      this.network.edges,
+                      supernode,
+                    ),
+                  );
+                }
                 this.clickMap.set(supernode._id, false);
 
                 // Hide Child Legend
@@ -1015,15 +1039,17 @@ export default Vue.extend({
                   this.$emit('updateMatrixLegends', true, false);
                 }
               } else {
-                store.commit.setNetwork(
-                  expandSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.edges,
-                    supernode,
-                  ),
-                );
+                if (this.network !== null) {
+                  store.commit.setNetwork(
+                    expandSuperNetwork(
+                      this.nonAggrNodes,
+                      this.nonAggrLinks,
+                      this.network.nodes,
+                      this.network.edges,
+                      supernode,
+                    ),
+                  );
+                }
                 this.clickMap.set(supernode._id, true);
 
                 // Display Child Legend
@@ -1251,6 +1277,9 @@ export default Vue.extend({
     },
 
     sort(order: string): void {
+      if (this.network === null) {
+        return;
+      }
       const nodeIDs = this.network.nodes.map((node: Node) => node._id);
 
       this.order = this.changeOrder(order, nodeIDs.includes(order));
@@ -1309,6 +1338,9 @@ export default Vue.extend({
       return color;
     },
     renderAttributeVis(): void {
+      if (this.network === null) {
+        return;
+      }
       // Just has to be larger than the attributes panel (so that we render to the edge)
       const attributeWidth = 1000;
 
@@ -1392,11 +1424,13 @@ export default Vue.extend({
         .attr('width', this.colWidth)
         .on('click', (event: MouseEvent, header: string) => {
           if (this.visualizedAttributes.includes(header) && this.enableGraffinity) {
-            this.nonAggrNodes = processChildNodes(this.network.nodes);
-            this.nonAggrLinks = processChildLinks(this.network.edges);
-            store.commit.setNetwork(
-              superGraph(this.network.nodes, this.network.edges, header),
-            );
+            if (this.network !== null) {
+              this.nonAggrNodes = processChildNodes(this.network.nodes);
+              this.nonAggrLinks = processChildLinks(this.network.edges);
+              store.commit.setNetwork(
+                superGraph(this.network.nodes, this.network.edges, header),
+              );
+            }
 
             // Turn on the disable aggregation
             this.aggregated = true;
@@ -1752,13 +1786,18 @@ export default Vue.extend({
 
       attributeVis.merge(attributeVisEnter);
     },
+
     isQuantitative(varName: string): boolean {
-      const uniqueValues = [
-        ...new Set(
-          this.network.edges.map((link: Link) => parseFloat(link[varName])),
-        ),
-      ];
-      return uniqueValues.length > 15;
+      if (this.network !== null) {
+        const uniqueValues = [
+          ...new Set(
+            this.network.edges.map((link: Link) => parseFloat(link[varName])),
+          ),
+
+        ];
+        return uniqueValues.length > 15;
+      }
+      return false;
     },
 
     isString(element: unknown): element is string {
@@ -1950,6 +1989,11 @@ export default Vue.extend({
     sortObserver(type: string, isNode = false): number[] {
       let order;
       this.sortKey = type;
+
+      if (this.network === null) {
+        return [];
+      }
+
       if (
         type === 'clusterSpectral'
         || type === 'clusterBary'
@@ -1977,25 +2021,44 @@ export default Vue.extend({
         }
       } else if (this.sortKey === 'edges') {
         order = range(this.network.nodes.length).sort((a, b) => {
-          const firstValue = this.network.nodes[b][type] as number;
-          const secondValue = this.network.nodes[a][type] as number;
+          if (this.network !== null) {
+            const firstValue = this.network.nodes[b][type] as number;
+            const secondValue = this.network.nodes[a][type] as number;
 
-          return firstValue - secondValue;
+            return firstValue - secondValue;
+          }
+          return 0;
         });
       } else if (isNode === true) {
-        order = range(this.network.nodes.length).sort((a, b) => this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id));
-        order = range(this.network.nodes.length).sort(
-          (a, b) => Number(this.network.nodes[b].neighbors.includes(type))
-            - Number(this.network.nodes[a].neighbors.includes(type)),
-        );
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network !== null) {
+            this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+          }
+          return 0;
+        });
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network !== null) {
+            return Number(this.network.nodes[b].neighbors.includes(type))
+            - Number(this.network.nodes[a].neighbors.includes(type));
+          }
+          return 0;
+        });
       } else if (this.sortKey === 'shortName') {
-        order = range(this.network.nodes.length).sort((a, b) => this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id));
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network !== null) {
+            return this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+          }
+          return 0;
+        });
       } else {
         order = range(this.network.nodes.length).sort((a, b) => {
-          const firstValue = this.network.nodes[b][type] as number;
-          const secondValue = this.network.nodes[a][type] as number;
+          if (this.network !== null) {
+            const firstValue = this.network.nodes[b][type] as number;
+            const secondValue = this.network.nodes[a][type] as number;
 
-          return firstValue - secondValue;
+            return firstValue - secondValue;
+          }
+          return 0;
         });
       }
       this.order = order;

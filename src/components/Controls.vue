@@ -39,7 +39,11 @@ export default Vue.extend({
   },
 
   computed: {
-    attributeList(this: any) {
+    network() {
+      return store.getters.network;
+    },
+
+    attributeList(): string[] {
       if (
         this.network !== null
         && typeof this.network.nodes[0] !== 'undefined'
@@ -48,7 +52,8 @@ export default Vue.extend({
       }
       return [];
     },
-    linkAttributeList(this: any) {
+
+    linkAttributeList(): string[] {
       if (
         this.network !== null
         && typeof this.network.nodes[0] !== 'undefined'
@@ -56,10 +61,6 @@ export default Vue.extend({
         return Object.keys(this.network.edges[0]).filter((k: string) => k !== '_key' && k !== '_rev' && k !== 'id');
       }
       return [];
-    },
-
-    network() {
-      return store.getters.network;
     },
   },
 
@@ -84,6 +85,7 @@ export default Vue.extend({
       a.download = `${store.getters.networkName}.json`;
       a.click();
     },
+
     createLegend(colorScale: ScaleLinear<string, number>, legendName: string) {
       let legendSVG;
       if (legendName === 'aggregate') {
@@ -302,7 +304,6 @@ export default Vue.extend({
           v-if="network !== null"
           ref="multimatrix"
           v-bind="{
-            network,
             selectNeighbors,
             showGridLines,
             enableGraffinity,
@@ -318,7 +319,6 @@ export default Vue.extend({
           @updateChildMatrixLegendScale="createLegend"
           @updateMatrixLegends="updateMatrixLegends"
         />
-
       </v-row>
     </v-col>
   </div>
