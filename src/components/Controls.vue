@@ -321,7 +321,6 @@ export default Vue.extend({
             visualizedAttributes,
             visualizedLinkAttributes,
           }"
-          @restart-simulation="hello()"
           @updateMatrixLegendScale="createLegend"
           @updateAggrMatrixLegendScale="createLegend"
           @updateChildMatrixLegendScale="createLegend"
