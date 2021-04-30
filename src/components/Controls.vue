@@ -16,13 +16,6 @@ export default Vue.extend({
     MultiMatrix,
   },
 
-  data() {
-    return {
-      showAggrLegend: false,
-      showChildLegend: false,
-    };
-  },
-
   computed: {
     network() {
       return store.state.network;
@@ -62,6 +55,14 @@ export default Vue.extend({
       set(value: boolean) {
         store.commit.setEnableGraffinity(value);
       },
+    },
+
+    aggregated() {
+      return store.state.aggregated;
+    },
+
+    showChildLegend() {
+      return store.state.showChildLegend;
     },
 
     visualizedNodeAttributes: {
@@ -139,11 +140,6 @@ export default Vue.extend({
         .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);
-    },
-
-    updateMatrixLegends(showAggrLegend: boolean, showChildLegend: boolean) {
-      this.showAggrLegend = showAggrLegend;
-      this.showChildLegend = showChildLegend;
     },
   },
 });
@@ -293,24 +289,24 @@ export default Vue.extend({
         </v-subheader>
 
         <div class="pa-4">
-          <!-- Matrix Legend -->
-          <v-list-item
-            v-if="!showAggrLegend"
-            class="pb-0 px-0"
-            style="display: flex; max-height: 50px"
-          >
-            Matrix Legend
-            <svg id="matrix-legend" />
-          </v-list-item>
-
           <!-- Aggregated Matrix Legend -->
           <v-list-item
-            v-if="showAggrLegend"
+            v-if="aggregated"
             class="pb-0 px-0"
             style="display: flex; max-height: 50px"
           >
             Aggregate Legend
             <svg id="aggr-matrix-legend" />
+          </v-list-item>
+
+          <!-- Matrix Legend -->
+          <v-list-item
+            v-else
+            class="pb-0 px-0"
+            style="display: flex; max-height: 50px"
+          >
+            Matrix Legend
+            <svg id="matrix-legend" />
           </v-list-item>
 
           <!-- Child Matrix Legend -->
@@ -335,7 +331,6 @@ export default Vue.extend({
           @updateMatrixLegendScale="createLegend"
           @updateAggrMatrixLegendScale="createLegend"
           @updateChildMatrixLegendScale="createLegend"
-          @updateMatrixLegends="updateMatrixLegends"
         />
       </v-row>
     </v-col>

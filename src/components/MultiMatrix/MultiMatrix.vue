@@ -1,6 +1,6 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Vue, { PropType } from 'vue';
+import Vue from 'vue';
 
 import {
   superGraph,
@@ -80,7 +80,6 @@ export default Vue.extend({
     linkAttributeRows: any;
     combinedAttributes: string[];
     showIcon: boolean;
-    aggregated: boolean;
     sidebarWidth: number;
     } {
     return {
@@ -145,7 +144,6 @@ export default Vue.extend({
       linkAttributeRows: undefined,
       combinedAttributes: [],
       showIcon: false,
-      aggregated: false,
       sidebarWidth: 256,
     };
   },
@@ -375,6 +373,10 @@ export default Vue.extend({
     visualizedLinkAttributes() {
       return store.state.visualizedLinkAttributes;
     },
+
+    aggregated() {
+      return store.state.aggregated;
+    },
   },
 
   watch: {
@@ -453,10 +455,10 @@ export default Vue.extend({
         (selectAll('.countLabels') as any).style('opacity', 0);
 
         // Update the legend
-        this.$emit('updateMatrixLegends', false, false);
+        store.commit.setShowChildLegend(false);
 
         // Reset aggregated state
-        this.aggregated = false;
+        store.commit.setAggregated(false);
       }
     },
     colorScale() {
@@ -1022,7 +1024,7 @@ export default Vue.extend({
                 // Hide Child Legend
                 const values = [...this.clickMap.values()];
                 if (!values.includes(true)) {
-                  this.$emit('updateMatrixLegends', true, false);
+                  store.commit.setShowChildLegend(false);
                 }
               } else {
                 if (this.network !== null) {
@@ -1039,7 +1041,7 @@ export default Vue.extend({
                 this.clickMap.set(supernode._id, true);
 
                 // Display Child Legend
-                this.$emit('updateMatrixLegends', true, true);
+                store.commit.setShowChildLegend(true);
               }
             } else {
               this.selectElement(node);
@@ -1419,10 +1421,10 @@ export default Vue.extend({
             }
 
             // Turn on the disable aggregation
-            this.aggregated = true;
+            store.commit.setAggregated(true);
 
             // View/Hide Matrix Legends
-            this.$emit('updateMatrixLegends', true, false);
+            store.commit.setShowChildLegend(false);
 
             // Show the icons
             this.showIcon = true;

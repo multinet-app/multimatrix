@@ -33,6 +33,8 @@ const {
     selectNeighbors: true,
     showGridLines: true,
     enableGraffinity: false,
+    aggregated: false,
+    showChildLegend: false,
     visualizedNodeAttributes: [],
     visualizedLinkAttributes: [],
   } as State,
@@ -78,6 +80,14 @@ const {
 
     setEnableGraffinity(state, enableGraffinity: boolean) {
       state.enableGraffinity = enableGraffinity;
+    },
+
+    setAggregated(state, aggregated: boolean) {
+      state.aggregated = aggregated;
+    },
+
+    setShowChildLegend(state, showChildLegend: boolean) {
+      state.showChildLegend = showChildLegend;
     },
 
     setVisualizedNodeAttributes(state, visualizedNodeAttributes: string[]) {

@@ -48,6 +48,8 @@ export interface State {
   selectNeighbors: boolean;
   showGridLines: boolean;
   enableGraffinity: boolean;
+  aggregated: boolean;
+    showChildLegend: boolean;
   visualizedNodeAttributes: string[];
   visualizedLinkAttributes: string[];
 }
