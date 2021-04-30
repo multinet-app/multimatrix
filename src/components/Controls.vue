@@ -40,7 +40,7 @@ export default Vue.extend({
 
   computed: {
     network() {
-      return store.getters.network;
+      return store.state.network;
     },
 
     attributeList(): string[] {
@@ -82,7 +82,7 @@ export default Vue.extend({
           type: 'text/json',
         }),
       );
-      a.download = `${store.getters.networkName}.json`;
+      a.download = `${store.state.networkName}.json`;
       a.click();
     },
 

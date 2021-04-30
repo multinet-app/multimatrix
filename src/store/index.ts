@@ -29,24 +29,11 @@ const {
       href: '',
     },
     userInfo: null,
+    directionalEdges: true,
   } as State,
 
   getters: {
-    workspaceName(state: State) {
-      return state.workspaceName;
-    },
 
-    networkName(state: State) {
-      return state.networkName;
-    },
-
-    network(state: State) {
-      return state.network;
-    },
-
-    loadError(state) {
-      return state.loadError;
-    },
   },
   mutations: {
     setWorkspaceName(state, workspaceName: string) {
@@ -108,7 +95,7 @@ const {
           });
         }
       } finally {
-        if (store.getters.loadError.message === '' && typeof networkTables === 'undefined') {
+        if (store.state.loadError.message === '' && typeof networkTables === 'undefined') {
           // Catches CORS errors, issues when DB/API are down, etc.
           commit.setLoadError({
             message: 'There was a network issue when getting data',

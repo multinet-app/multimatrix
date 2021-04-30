@@ -21,7 +21,7 @@ export default {
       networkName,
     });
 
-    const loadError = computed(() => store.getters.loadError);
+    const loadError = computed(() => store.state.loadError);
 
     return {
       loadError,
