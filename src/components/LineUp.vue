@@ -11,6 +11,7 @@ export default {
   setup() {
     const network = computed(() => store.state.network);
     const selectedNodes = computed(() => store.state.selectedNodes);
+    const hoveredNodes = computed(() => store.state.hoveredNodes);
 
     const lineup: Ref<LineUp | null> = ref(null);
     const builder: Ref<DataBuilder | null> = ref(null);
@@ -55,19 +56,41 @@ export default {
 
           // Find the symmetric difference between the ids here and those in the store
           function diffFunction<T>(arr1: Array<T>, arr2: Array<T>): Array<T> { return arr1.filter((x) => arr2.indexOf(x) === -1); }
-          const differentIDs = diffFunction<string>(clickedIDs, selectedNodes.value)
+          let differentIDs = diffFunction<string>(clickedIDs, selectedNodes.value)
             .concat(diffFunction(selectedNodes.value, clickedIDs));
+
+          // Filter out only the hovered nodes
+          differentIDs = differentIDs.filter((ID) => hoveredNodes.value.indexOf(ID) === -1);
 
           // Click on the elements that are different to add/remove them from the store
           differentIDs.forEach((nodeID) => store.commit.clickElement(nodeID));
         });
+
+        let lastHovered = '';
+
+        // Add an event watcher to update highlighted nodes
+        lineup.value.on('highlightChanged', (dataindex: number) => {
+          if (dataindex === -1) {
+            return;
+          }
+
+          // Transform data indices to multinet `_id`s
+          const hoveredIDs: string[] = indicesToIDs([dataindex]);
+
+          // Hover the elements that are different to add/remove them from the store
+          hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
+
+          // Remove previously hovered node and track what is now hovered
+          store.commit.removeHoveredNode(lastHovered);
+          [lastHovered] = hoveredIDs;
+        });
       }
     });
 
-    // Update selection from matrix
+    // Update selection/hover from matrix
     watchEffect(() => {
       // Convert the ids to indices
-      const indices = idsToIndices(selectedNodes.value);
+      const indices = idsToIndices([...selectedNodes.value, ...hoveredNodes.value]);
 
       if (lineup.value !== null) {
         lineup.value.setSelection(indices);
@@ -82,14 +105,13 @@ export default {
         const lineupOrder = [...lineup.value.data.getFirstRanking().getOrder()];
         const storeOrder = store.state.sortOrder;
 
-        console.log(lineupOrder, lineup.value.data.getFirstRanking());
-
         if (JSON.stringify(currentLineupSortOrder) !== JSON.stringify(lineupOrder)) {
           // If lineup order has changed, update the store
           store.commit.setSortOrder(lineupOrder);
           currentLineupSortOrder = lineupOrder;
         } else if (JSON.stringify(currentLineupSortOrder) !== JSON.stringify(storeOrder)) {
           // If store order has changed, update lineup
+          console.log(lineup.value);
         }
       }
     });

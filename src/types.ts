@@ -47,6 +47,7 @@ export interface State {
   cellSize: number;
   selectedNodes: string[];
   selectedCells: Cell[];
+  hoveredNodes: string[];
   sortOrder: number[];
 }
 

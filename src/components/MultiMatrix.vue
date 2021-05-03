@@ -222,6 +222,10 @@ export default Vue.extend({
         .range([0, this.matrixHighlightLength]);
     },
 
+    hoveredNodes() {
+      return store.state.hoveredNodes;
+    },
+
     matrixHighlightLength(): number {
       return this.matrix.length * this.cellSize;
     },
@@ -287,6 +291,18 @@ export default Vue.extend({
           }
           return false;
         });
+    },
+
+    hoveredNodes() {
+      // Apply column highlight
+      selectAll('.topoCol')
+        .data(this.network.nodes)
+        .classed('hovered', (node) => this.hoveredNodes.indexOf(node._id) !== -1);
+
+      // Apply row highlight
+      selectAll('.topoRow')
+        .data(this.network.nodes)
+        .classed('hovered', (node) => this.hoveredNodes.indexOf(node._id) !== -1);
     },
 
     orderingScale() {
@@ -1275,22 +1291,20 @@ export default Vue.extend({
       return word[0].toUpperCase() + word.slice(1);
     },
 
-    hoverNode(nodeID: string): void {
-      const cssSelector = `[id="highlightRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
-      selectAll(cssSelector).classed('hovered', true);
+    hoverNode(nodeID: string) {
+      store.commit.pushHoveredNode(nodeID);
     },
 
-    unHoverNode(nodeID: string): void {
-      const cssSelector = `[id="highlightRow${nodeID}"],[id="topoRow${nodeID}"],[id="topoCol${nodeID}"]`;
-      selectAll(cssSelector).classed('hovered', false);
+    unHoverNode(nodeID: string) {
+      store.commit.removeHoveredNode(nodeID);
     },
 
-    hoverEdge(cell: Cell): void {
+    hoverEdge(cell: Cell) {
       this.hoverNode(cell.rowID);
       this.hoverNode(cell.colID);
     },
 
-    unHoverEdge(cell: Cell): void {
+    unHoverEdge(cell: Cell) {
       this.unHoverNode(cell.rowID);
       this.unHoverNode(cell.colID);
     },

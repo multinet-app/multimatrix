@@ -35,6 +35,7 @@ const {
     cellSize: 15,
     selectedNodes: [],
     selectedCells: [],
+    hoveredNodes: [],
     sortOrder: [],
   } as State,
 
@@ -85,6 +86,16 @@ const {
 
     setSortOrder(state, sortOrder: number[]) {
       state.sortOrder = sortOrder;
+    },
+
+    pushHoveredNode(state, nodeID: string) {
+      if (state.hoveredNodes.indexOf(nodeID) === -1) {
+        state.hoveredNodes.push(nodeID);
+      }
+    },
+
+    removeHoveredNode(state, nodeID: string) {
+      state.hoveredNodes = state.hoveredNodes.filter((hoveredNode) => hoveredNode !== nodeID);
     },
   },
   actions: {
