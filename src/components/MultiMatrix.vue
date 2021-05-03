@@ -207,9 +207,18 @@ export default Vue.extend({
       );
     },
 
+    sortOrder: {
+      get() {
+        return store.state.sortOrder;
+      },
+      set(value: number[]) {
+        store.commit.setSortOrder(value);
+      },
+    },
+
     orderingScale(): ScaleBand<number> {
       return scaleBand<number>()
-        .domain(range(0, this.matrix.length, 1))
+        .domain(this.sortOrder)
         .range([0, this.matrixHighlightLength]);
     },
 
@@ -278,6 +287,10 @@ export default Vue.extend({
           }
           return false;
         });
+    },
+
+    orderingScale() {
+      this.initializeEdges();
     },
 
     network() {
@@ -1080,38 +1093,7 @@ export default Vue.extend({
     sort(order: string): void {
       const nodeIDs = this.network.nodes.map((node: Node) => node._id);
 
-      this.order = this.changeOrder(order, nodeIDs.includes(order));
-      this.orderingScale.domain(this.order);
-
-      const transitionTime = 500;
-
-      (selectAll('.rowContainer') as any)
-        .transition(transition().duration(transitionTime))
-        .attr(
-          'transform',
-          (d: Node, i: number) => `translate(0,${this.orderingScale(i)})`,
-        );
-
-      // if any other method other than neighbors sort, sort the columns too
-      if (!nodeIDs.includes(order)) {
-        this.edges
-          .selectAll('.column')
-          .transition(transition().duration(transitionTime))
-          .attr(
-            'transform',
-            (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`,
-          );
-
-        (selectAll('.rowContainer') as any)
-          .selectAll('.cell')
-          .transition(transition().duration(transitionTime))
-          .attr('x', (d: Node, i: number) => this.orderingScale(i));
-      }
-
-      selectAll('.sortIcon')
-        .style('fill', '#8B8B8B')
-        .filter((d: any) => d._id === order)
-        .style('fill', '#EBB769');
+      this.changeOrder(order, nodeIDs.includes(order));
     },
 
     isQuantitative(varName: string): boolean {
@@ -1184,10 +1166,10 @@ export default Vue.extend({
         .style('opacity', 0);
     },
 
-    changeOrder(type: string, node: boolean): number[] {
+    changeOrder(type: string, node: boolean) {
       const action = this.generateSortAction(type);
       this.provenance.applyAction(action);
-      return this.sortObserver(type, node);
+      this.sortObserver(type, node);
     },
 
     generateSortAction(
@@ -1213,7 +1195,7 @@ export default Vue.extend({
       };
     },
 
-    sortObserver(type: string, isNode = false): number[] {
+    sortObserver(type: string, isNode = false) {
       let order;
       this.sortKey = type;
       if (
@@ -1278,8 +1260,7 @@ export default Vue.extend({
           return firstValue - secondValue;
         });
       }
-      this.order = order;
-      return order;
+      this.sortOrder = order;
     },
 
     getApplicationState(): ProvenanceState {
