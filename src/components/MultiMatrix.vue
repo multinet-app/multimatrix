@@ -180,11 +180,11 @@ export default Vue.extend({
     },
 
     selectedNodes() {
-      return store.getters.selectedNodes;
+      return store.state.selectedNodes;
     },
 
     selectedCells() {
-      return store.getters.selectedCells;
+      return store.state.selectedCells;
     },
 
     matrixNodeLength(): number {

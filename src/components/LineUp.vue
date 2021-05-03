@@ -9,8 +9,8 @@ export default {
   name: 'LineUp',
 
   setup() {
-    const network = computed(() => store.getters.network);
-    const selectedNodes = computed(() => store.getters.selectedNodes);
+    const network = computed(() => store.state.network);
+    const selectedNodes = computed(() => store.state.selectedNodes);
 
     const lineup: Ref<LineUp | null> = ref(null);
     const builder: Ref<DataBuilder | null> = ref(null);

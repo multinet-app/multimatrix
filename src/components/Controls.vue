@@ -39,7 +39,7 @@ export default Vue.extend({
 
   computed: {
     network() {
-      return store.getters.network;
+      return store.state.network;
     },
   },
 
@@ -61,7 +61,7 @@ export default Vue.extend({
           type: 'text/json',
         }),
       );
-      a.download = `${store.getters.networkName}.json`;
+      a.download = `${store.state.networkName}.json`;
       a.click();
     },
     createLegend(colorScale: ScaleLinear<string, number>, legendName: string) {

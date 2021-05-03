@@ -39,30 +39,9 @@ const {
   } as State,
 
   getters: {
-    workspaceName(state) {
-      return state.workspaceName;
-    },
 
-    networkName(state) {
-      return state.networkName;
-    },
-
-    network(state) {
-      return state.network;
-    },
-
-    loadError(state) {
-      return state.loadError;
-    },
-
-    selectedNodes(state) {
-      return state.selectedNodes;
-    },
-
-    selectedCells(state) {
-      return state.selectedCells;
-    },
   },
+
   mutations: {
     setWorkspaceName(state, workspaceName: string) {
       state.workspaceName = workspaceName;
@@ -144,7 +123,7 @@ const {
           });
         }
       } finally {
-        if (store.getters.loadError.message === '' && typeof networkTables === 'undefined') {
+        if (store.state.loadError.message === '' && typeof networkTables === 'undefined') {
           // Catches CORS errors, issues when DB/API are down, etc.
           commit.setLoadError({
             message: 'There was a network issue when getting data',
