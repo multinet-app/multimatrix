@@ -579,6 +579,7 @@ export default Vue.extend({
       this.renderAttributeVis();
     },
     processData(): void {
+      console.log(this.network);
       // Reset some values that will be re-calcuated
       this.maxNumConnections = 0;
       this.maxAggrConnections = 0;
