@@ -30,13 +30,23 @@ export default {
 
     const buttonHref: Ref<string> = ref(loadError.value.href);
     const buttonText: Ref<string> = ref('');
+    // Add button
     watchEffect(async () => {
       if (workspace.value !== null && network.value !== null) {
         buttonHref.value = `./?workspace=${workspace.value}&graph=${network.value}`;
         buttonText.value = 'Go To Network';
-      } else if (loadError.value.message === 'There was a network issue when getting data') {
+      } else if (
+        loadError.value.message
+        === 'There was a network issue when getting data'
+      ) {
         buttonHref.value = loadError.value.href;
         buttonText.value = 'Refresh the page';
+      } else if (
+        loadError.value.message
+        === 'The network you are loading is too large'
+      ) {
+        buttonHref.value = loadError.value.href;
+        buttonText.value = 'Subset the network';
       } else {
         buttonHref.value = loadError.value.href;
         buttonText.value = 'Back to MultiNet';
@@ -70,8 +80,23 @@ export default {
 
           <br>
 
-          <small v-if="loadError.message === 'You are not authorized to view this workspace'">
-            If you are already logged in, please check with the workspace owner to verify your permissions.
+          <small
+            v-if="
+              loadError.message ===
+                'You are not authorized to view this workspace'
+            "
+          >
+            If you are already logged in, please check with the workspace owner
+            to verify your permissions.
+          </small>
+
+          <small
+            v-else-if="
+              loadError.message ===
+                'The network you are loading is too large'
+            "
+          >
+            The network you are loading is too large and additional parameters are required to visualize.
           </small>
 
           <small v-else>

@@ -120,7 +120,20 @@ const {
       if (networkTables === undefined) {
         return;
       }
-
+      // Check node and table size
+      let tableLength = -1;
+      networkTables.nodeTables.forEach((table) => {
+        const tableData = api.aql(workspaceName, `FOR doc IN ${table} RETURN doc`);
+        tableData.then((data: unknown[]) => {
+          if (data.length > 500) {
+            commit.setLoadError({
+              message: 'The network you are loading is too large',
+              href: 'https://multinet.app',
+            });
+            tableLength = data.length;
+          }
+        });
+      });
       // Generate all node table promises
       const nodePromises: Promise<RowsSpec>[] = [];
       networkTables.nodeTables.forEach((table) => {
