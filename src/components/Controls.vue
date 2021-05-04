@@ -1,7 +1,6 @@
 <script lang="ts">
 import Vue from 'vue';
-import MultiMatrix from '@/components/MultiMatrix/MultiMatrix.vue';
-import { select, selectAll } from 'd3-selection';
+import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
@@ -9,40 +8,80 @@ import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 
-// This is to be removed (stop-gap solution to superGraph network update)
-export const eventBus = new Vue();
-
 export default Vue.extend({
   components: {
     AboutDialog,
     LoginMenu,
-    MultiMatrix,
-  },
-
-  data(): {
-    selectNeighbors: boolean;
-    showGridLines: boolean;
-    enableGraffinity: boolean;
-    showAggrLegend: boolean;
-    showChildLegend: boolean;
-    directional: boolean;
-    visualizedAttributes: string[];
-    visualizedLinkAttributes: string[];
-    } {
-    return {
-      selectNeighbors: true,
-      showGridLines: true,
-      enableGraffinity: false,
-      showAggrLegend: false,
-      showChildLegend: false,
-      directional: false,
-      visualizedAttributes: [],
-      visualizedLinkAttributes: [],
-    };
   },
 
   computed: {
-    attributeList(this: any) {
+    network() {
+      return store.state.network;
+    },
+
+    directionalEdges: {
+      get() {
+        return store.state.directionalEdges;
+      },
+      set(value: boolean) {
+        store.commit.setDirectionalEdges(value);
+      },
+    },
+
+    selectNeighbors: {
+      get() {
+        return store.state.selectNeighbors;
+      },
+      set(value: boolean) {
+        store.commit.setSelectNeighbors(value);
+      },
+    },
+
+    showGridLines: {
+      get() {
+        return store.state.showGridLines;
+      },
+      set(value: boolean) {
+        store.commit.setShowGridlines(value);
+      },
+    },
+
+    enableGraffinity: {
+      get() {
+        return store.state.enableGraffinity;
+      },
+      set(value: boolean) {
+        store.commit.setEnableGraffinity(value);
+      },
+    },
+
+    aggregated() {
+      return store.state.aggregated;
+    },
+
+    showChildLegend() {
+      return store.state.showChildLegend;
+    },
+
+    visualizedNodeAttributes: {
+      get() {
+        return store.state.visualizedNodeAttributes;
+      },
+      set(value: string[]) {
+        store.commit.setVisualizedNodeAttributes(value);
+      },
+    },
+
+    visualizedLinkAttributes: {
+      get() {
+        return store.state.visualizedLinkAttributes;
+      },
+      set(value: string[]) {
+        store.commit.setVisualizedLinkAttributes(value);
+      },
+    },
+
+    attributeList(): string[] {
       if (
         this.network !== null
         && typeof this.network.nodes[0] !== 'undefined'
@@ -51,7 +90,8 @@ export default Vue.extend({
       }
       return [];
     },
-    linkAttributeList(this: any) {
+
+    linkAttributeList(): string[] {
       if (
         this.network !== null
         && typeof this.network.nodes[0] !== 'undefined'
@@ -61,18 +101,30 @@ export default Vue.extend({
       return [];
     },
 
-    network() {
-      return store.getters.network;
+    cellColorScale() {
+      return store.getters.cellColorScale;
+    },
+
+    parentColorScale() {
+      return store.getters.parentColorScale;
+    },
+
+    childColorScale() {
+      return store.getters.childColorScale;
     },
   },
 
   watch: {
-    showGridLines() {
-      if (this.showGridLines) {
-        selectAll('.gridLines').style('opacity', 0.3);
-      } else {
-        selectAll('.gridLines').style('opacity', 0);
-      }
+    cellColorScale() {
+      this.updateLegend(this.cellColorScale, 'unAggr');
+    },
+
+    parentColorScale() {
+      this.updateLegend(this.parentColorScale, 'parent');
+    },
+
+    childColorScale() {
+      this.updateLegend(this.childColorScale, 'child');
     },
   },
 
@@ -84,13 +136,14 @@ export default Vue.extend({
           type: 'text/json',
         }),
       );
-      a.download = `${store.getters.networkName}.json`;
+      a.download = `${store.state.networkName}.json`;
       a.click();
     },
-    createLegend(colorScale: ScaleLinear<string, number>, legendName: string) {
+
+    updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'child' | 'unAggr') {
       let legendSVG;
-      if (legendName === 'aggregate') {
-        legendSVG = select('#aggr-matrix-legend');
+      if (legendName === 'parent') {
+        legendSVG = select('#parent-matrix-legend');
       } else if (legendName === 'child') {
         legendSVG = select('#child-matrix-legend');
       } else {
@@ -111,11 +164,6 @@ export default Vue.extend({
         .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);
-    },
-
-    updateMatrixLegends(showAggrLegend: boolean, showChildLegend: boolean) {
-      this.showAggrLegend = showAggrLegend;
-      this.showChildLegend = showChildLegend;
     },
   },
 });
@@ -167,7 +215,7 @@ export default Vue.extend({
         <div class="pa-4">
           <v-list-item class="px-0">
             <v-select
-              v-model="visualizedAttributes"
+              v-model="visualizedNodeAttributes"
               :items="attributeList"
               label="Node Attributes"
               multiple
@@ -225,7 +273,7 @@ export default Vue.extend({
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
               <v-switch
-                v-model="directional"
+                v-model="directionalEdges"
                 class="ma-0"
                 hide-details
               />
@@ -265,24 +313,24 @@ export default Vue.extend({
         </v-subheader>
 
         <div class="pa-4">
+          <!-- Aggregated Matrix Legend -->
+          <v-list-item
+            v-if="aggregated"
+            class="pb-0 px-0"
+            style="display: flex; max-height: 50px"
+          >
+            Aggregate Legend
+            <svg id="parent-matrix-legend" />
+          </v-list-item>
+
           <!-- Matrix Legend -->
           <v-list-item
-            v-if="!showAggrLegend"
+            v-else
             class="pb-0 px-0"
             style="display: flex; max-height: 50px"
           >
             Matrix Legend
             <svg id="matrix-legend" />
-          </v-list-item>
-
-          <!-- Aggregated Matrix Legend -->
-          <v-list-item
-            v-if="showAggrLegend"
-            class="pb-0 px-0"
-            style="display: flex; max-height: 50px"
-          >
-            Aggregate Legend
-            <svg id="aggr-matrix-legend" />
           </v-list-item>
 
           <!-- Child Matrix Legend -->
@@ -297,33 +345,6 @@ export default Vue.extend({
         </div>
       </v-list>
     </v-navigation-drawer>
-
-    <!-- MultiMatrix component -->
-    <v-col v-if="network !== null">
-      <v-row class="ma-0">
-        <multi-matrix
-          v-if="network !== null"
-          ref="multimatrix"
-          v-bind="{
-            network,
-            selectNeighbors,
-            showGridLines,
-            enableGraffinity,
-            showAggrLegend,
-            showChildLegend,
-            visualizedAttributes,
-            visualizedLinkAttributes,
-            directional,
-          }"
-          @restart-simulation="hello()"
-          @updateMatrixLegendScale="createLegend"
-          @updateAggrMatrixLegendScale="createLegend"
-          @updateChildMatrixLegendScale="createLegend"
-          @updateMatrixLegends="updateMatrixLegends"
-        />
-
-      </v-row>
-    </v-col>
   </div>
 </template>
 

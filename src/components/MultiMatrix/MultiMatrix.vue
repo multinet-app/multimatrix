@@ -1,6 +1,6 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Vue, { PropType } from 'vue';
+import Vue from 'vue';
 
 import {
   superGraph,
@@ -46,50 +46,12 @@ import 'reorder.js';
 declare const reorder: any;
 
 export default Vue.extend({
-  props: {
-    network: {
-      type: Object as PropType<Network>,
-      required: true,
-    },
-    selectNeighbors: {
-      type: Boolean,
-      default: true,
-    },
-    enableGraffinity: {
-      type: Boolean,
-      required: true,
-    },
-    showAggrLegend: {
-      type: Boolean,
-      required: true,
-    },
-    showChildLegend: {
-      type: Boolean,
-      required: true,
-    },
-    visualizedAttributes: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-    visualizedLinkAttributes: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-    directional: {
-      type: Boolean,
-      default: false,
-    },
-  },
-
   data(): {
     browser: Dimensions;
     visMargins: any;
     matrixSVG: any;
     attributesSVG: any;
     cellSize: number;
-    maxNumConnections: number;
-    maxAggrConnections: number;
-    maxChildConnections: number;
     matrix: Cell[][];
     attributes: any;
     attributeRows: any;
@@ -115,7 +77,6 @@ export default Vue.extend({
     linkAttributeRows: any;
     combinedAttributes: string[];
     showIcon: boolean;
-    aggregated: boolean;
     sidebarWidth: number;
     } {
     return {
@@ -129,9 +90,6 @@ export default Vue.extend({
       matrixSVG: undefined,
       attributesSVG: undefined,
       cellSize: 15,
-      maxNumConnections: -Infinity,
-      maxAggrConnections: -Infinity,
-      maxChildConnections: -Infinity,
       matrix: [],
       attributes: undefined,
       attributeRows: undefined,
@@ -180,33 +138,20 @@ export default Vue.extend({
       linkAttributeRows: undefined,
       combinedAttributes: [],
       showIcon: false,
-      aggregated: false,
       sidebarWidth: 256,
     };
   },
 
   computed: {
-    properties(this: any) {
-      const {
-        network,
-        visualizedAttributes,
-        visualizedLinkAttributes,
-        enableGraffinity,
-        showAggrLegend,
-        showChildLegend,
-      } = this;
-      return {
-        network,
-        visualizedAttributes,
-        visualizedLinkAttributes,
-        enableGraffinity,
-        showAggrLegend,
-        showChildLegend,
-      };
+    network() {
+      return store.state.network;
     },
 
     matrixNodeLength(): number {
-      return this.network.nodes.length;
+      if (this.network !== null) {
+        return this.network.nodes.length;
+      }
+      return 0;
     },
 
     matrixWidth(): number {
@@ -245,14 +190,21 @@ export default Vue.extend({
 
     idMap() {
       const computedIdMap: { [key: string]: number } = {};
-      this.network.nodes.forEach((node: Node, index: number) => {
-        computedIdMap[node._id] = index;
-      });
+
+      if (this.network !== null) {
+        this.network.nodes.forEach((node: Node, index: number) => {
+          computedIdMap[node._id] = index;
+        });
+      }
 
       return computedIdMap;
     },
 
     rowNest(): any {
+      if (this.network === null) {
+        return null;
+      }
+
       const rowNest = nest()
         .key((d: any) => d._from)
         .entries(this.network.edges);
@@ -269,12 +221,14 @@ export default Vue.extend({
           rowAttrs[attr] = attrList;
         });
 
-        const nodeToUpdate = this.network.nodes.find(
-          (node) => node._id === d.key,
-        );
-        if (nodeToUpdate !== undefined) {
-          nodeToUpdate.values = rowAttrs;
-          nodeToUpdate.series = [];
+        if (this.network !== null) {
+          const nodeToUpdate = this.network.nodes.find(
+            (node) => node._id === d.key,
+          );
+          if (nodeToUpdate !== undefined) {
+            nodeToUpdate.values = rowAttrs;
+            nodeToUpdate.series = [];
+          }
         }
       });
 
@@ -285,26 +239,28 @@ export default Vue.extend({
       const scales: { [key: string]: any } = {};
 
       // Calculate the attribute scales
-      this.visualizedAttributes.forEach((col: string) => {
-        if (this.isQuantitative(col)) {
-          const minimum = min(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
-          const maximum = max(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
-          const domain = [minimum, maximum];
+      this.visualizedNodeAttributes.forEach((col: string) => {
+        if (this.network !== null) {
+          if (this.isQuantitative(col)) {
+            const minimum = min(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
+            const maximum = max(this.network.nodes.map((node: Node) => node[col] as number)) || 0;
+            const domain = [minimum, maximum];
 
-          const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
-          scale.clamp(true);
-          scales[col] = scale;
-        } else {
-          const values: string[] = this.network.nodes.map((node: Node) => {
-            if (node.type === 'supernode') {
-              return node.GROUP as string;
-            }
-            return node[col] as string;
-          });
-          const domain = [...new Set(values)];
-          const scale = scaleOrdinal(schemeCategory10).domain(domain);
+            const scale = scaleLinear().domain(domain).range([0, this.colWidth]);
+            scale.clamp(true);
+            scales[col] = scale;
+          } else {
+            const values: string[] = this.network.nodes.map((node: Node) => {
+              if (node.type === 'supernode') {
+                return node.GROUP as string;
+              }
+              return node[col] as string;
+            });
+            const domain = [...new Set(values)];
+            const scale = scaleOrdinal(schemeCategory10).domain(domain);
 
-          scales[col] = scale;
+            scales[col] = scale;
+          }
         }
       });
 
@@ -340,7 +296,7 @@ export default Vue.extend({
       const attrWidth = parseFloat(select('#attributes').attr('width'));
       return (
         (attrWidth - 40)
-          / (this.visualizedAttributes.length
+          / (this.visualizedNodeAttributes.length
             + this.visualizedLinkAttributes.length)
         - this.colMargin // 40 for children count
       );
@@ -349,62 +305,97 @@ export default Vue.extend({
       return scaleLinear<number, number>().range([0, this.colWidth]);
     },
 
-    colorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxNumConnections])
-        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
-    },
-
-    aggrColorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxAggrConnections])
-        .range(['#dcedfa', '#0066cc']);
-    },
-
-    childColorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxChildConnections])
-        .range(['#f79d97', '#c0362c']);
-    },
-
     reorderLinks(): Link[] | null {
       if (this.network !== null) {
         return this.network.edges.map((edge: Link) => {
-          const newLink: Link = {
-            ...JSON.parse(JSON.stringify(edge)),
-            source: this.network.nodes.find(
-              (node: Node) => node._id === edge._from,
-            ),
-            target: this.network.nodes.find(
-              (node: Node) => node._id === edge._to,
-            ),
-          };
-          return newLink;
+          if (this.network !== null) {
+            const newLink: Link = {
+              ...JSON.parse(JSON.stringify(edge)),
+              source: this.network.nodes.find(
+                (node: Node) => node._id === edge._from,
+              ),
+              target: this.network.nodes.find(
+                (node: Node) => node._id === edge._to,
+              ),
+            };
+            return newLink;
+          }
+          return edge;
         });
       }
       return null;
     },
+
+    directionalEdges() {
+      return store.state.directionalEdges;
+    },
+
+    selectNeighbors() {
+      return store.state.selectNeighbors;
+    },
+
+    showGridLines() {
+      return store.state.showGridLines;
+    },
+
+    enableGraffinity() {
+      return store.state.enableGraffinity;
+    },
+
+    visualizedNodeAttributes() {
+      return store.state.visualizedNodeAttributes;
+    },
+
+    visualizedLinkAttributes() {
+      return store.state.visualizedLinkAttributes;
+    },
+
+    aggregated() {
+      return store.state.aggregated;
+    },
+
+    cellColorScale() {
+      return store.getters.cellColorScale;
+    },
+
+    parentColorScale() {
+      return store.getters.parentColorScale;
+    },
+
+    childColorScale() {
+      return store.getters.childColorScale;
+    },
   },
 
   watch: {
-    visualizedAttributes() {
+    visualizedNodeAttributes() {
       this.combineNodeAttributes();
     },
+
     visualizedLinkAttributes() {
       this.combineLinkAttributes();
     },
+
+    showGridLines() {
+      if (this.showGridLines) {
+        selectAll('.gridLines').style('opacity', 0.3);
+      } else {
+        selectAll('.gridLines').style('opacity', 0);
+      }
+    },
+
     network() {
       this.processData();
       this.changeMatrix();
     },
 
-    directional() {
+    directionalEdges() {
       this.processData();
       this.changeMatrix();
     },
 
     enableGraffinity() {
-      if (!this.enableGraffinity && this.aggregated === true) {
+      if (!this.enableGraffinity && this.aggregated === true && this.network !== null) {
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
 
@@ -452,24 +443,11 @@ export default Vue.extend({
         (selectAll('.countLabels') as any).style('opacity', 0);
 
         // Update the legend
-        this.$emit('updateMatrixLegends', false, false);
+        store.commit.setShowChildLegend(false);
 
         // Reset aggregated state
-        this.aggregated = false;
+        store.commit.setAggregated(false);
       }
-    },
-    colorScale() {
-      this.$emit('updateMatrixLegendScale', this.colorScale);
-    },
-    aggrColorScale() {
-      this.$emit(
-        'updateAggrMatrixLegendScale',
-        this.aggrColorScale,
-        'aggregate',
-      );
-    },
-    childColorScale() {
-      this.$emit('updateChildMatrixLegendScale', this.childColorScale, 'child');
     },
   },
 
@@ -551,9 +529,9 @@ export default Vue.extend({
     combineNodeAttributes() {
       // Add attributes in order of selection across both nodes and links
       let nodeDifference = this.combinedAttributes
-        .filter((x) => !this.visualizedAttributes.includes(x))
+        .filter((x) => !this.visualizedNodeAttributes.includes(x))
         .concat(
-          this.visualizedAttributes.filter(
+          this.visualizedNodeAttributes.filter(
             (x) => !this.combinedAttributes.includes(x),
           ),
         );
@@ -583,9 +561,9 @@ export default Vue.extend({
           ),
         );
       linkDifference = linkDifference
-        .filter((x) => !this.visualizedAttributes.includes(x))
+        .filter((x) => !this.visualizedNodeAttributes.includes(x))
         .concat(
-          this.visualizedAttributes.filter((x) => !linkDifference.includes(x)),
+          this.visualizedNodeAttributes.filter((x) => !linkDifference.includes(x)),
         );
       if (this.combinedAttributes.includes(linkDifference[0])) {
         this.combinedAttributes = this.combinedAttributes.filter(
@@ -598,33 +576,37 @@ export default Vue.extend({
     },
     processData(): void {
       // Reset some values that will be re-calcuated
-      this.maxNumConnections = 0;
-      this.maxAggrConnections = 0;
-      this.maxChildConnections = 0;
+      let maxNumConnections = 0;
+      let maxAggrConnections = 0;
+      let maxChildConnections = 0;
       this.matrix = [];
 
-      this.network.nodes.forEach((rowNode: Node, i: number) => {
-        this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => ({
-          cellName: `${rowNode._id}_${colNode._id}`,
-          rowCellType: rowNode.type,
-          colCellType: colNode.type,
-          correspondingCell: `${colNode._id}_${rowNode._id}`,
-          rowID: rowNode._id,
-          colID: colNode._id,
-          x: j,
-          y: i,
-          z: 0,
-        }));
-      });
+      if (this.network !== null) {
+        this.network.nodes.forEach((rowNode: Node, i: number) => {
+          if (this.network !== null) {
+            this.matrix[i] = this.network.nodes.map((colNode: Node, j: number) => ({
+              cellName: `${rowNode._id}_${colNode._id}`,
+              rowCellType: rowNode.type,
+              colCellType: colNode.type,
+              correspondingCell: `${colNode._id}_${rowNode._id}`,
+              rowID: rowNode._id,
+              colID: colNode._id,
+              x: j,
+              y: i,
+              z: 0,
+            }));
+          }
+        });
 
-      // Count occurrences of edges and store it in the matrix
-      this.network.edges.forEach((edge: Link) => {
-        this.matrix[this.idMap[edge._from]][this.idMap[edge._to]].z += 1;
+        // Count occurrences of edges and store it in the matrix
+        this.network.edges.forEach((edge: Link) => {
+          this.matrix[this.idMap[edge._from]][this.idMap[edge._to]].z += 1;
 
-        if (!this.directional) {
-          this.matrix[this.idMap[edge._to]][this.idMap[edge._from]].z += 1;
-        }
-      });
+          if (!this.directionalEdges) {
+            this.matrix[this.idMap[edge._to]][this.idMap[edge._from]].z += 1;
+          }
+        });
+      }
 
       // Find max value of z
       this.matrix.forEach((row: Cell[]) => {
@@ -633,27 +615,33 @@ export default Vue.extend({
             cell.rowCellType === undefined
             || cell.colCellType === undefined
           ) {
-            if (cell.z > this.maxNumConnections) {
-              this.maxNumConnections = cell.z;
+            if (cell.z > maxNumConnections) {
+              maxNumConnections = cell.z;
             }
           }
           if (
             cell.rowCellType === 'supernode'
             && cell.colCellType === 'supernode'
           ) {
-            if (cell.z > this.maxAggrConnections) {
-              this.maxAggrConnections = cell.z;
+            if (cell.z > maxAggrConnections) {
+              maxAggrConnections = cell.z;
             }
           }
           if (
             cell.rowCellType === 'childnode'
             || cell.colCellType === 'childnode'
           ) {
-            if (cell.z > this.maxChildConnections) {
-              this.maxChildConnections = cell.z;
+            if (cell.z > maxChildConnections) {
+              maxChildConnections = cell.z;
             }
           }
         });
+      });
+
+      store.commit.setMaxConnections({
+        unAggr: maxNumConnections,
+        parent: maxAggrConnections,
+        child: maxChildConnections,
       });
     },
 
@@ -686,6 +674,9 @@ export default Vue.extend({
     },
 
     initializeEdges(): void {
+      if (this.network === null) {
+        return;
+      }
       // set the radius for cells
       const cellRadius = 3;
 
@@ -998,36 +989,40 @@ export default Vue.extend({
               const supernode = node;
               // expand and retract the supernode aggregation based on user selection
               if (this.clickMap.get(supernode._id)) {
-                store.commit.setNetwork(
-                  retractSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.edges,
-                    supernode,
-                  ),
-                );
+                if (this.network !== null) {
+                  store.commit.setNetwork(
+                    retractSuperNetwork(
+                      this.nonAggrNodes,
+                      this.nonAggrLinks,
+                      this.network.nodes,
+                      this.network.edges,
+                      supernode,
+                    ),
+                  );
+                }
                 this.clickMap.set(supernode._id, false);
 
                 // Hide Child Legend
                 const values = [...this.clickMap.values()];
                 if (!values.includes(true)) {
-                  this.$emit('updateMatrixLegends', true, false);
+                  store.commit.setShowChildLegend(false);
                 }
               } else {
-                store.commit.setNetwork(
-                  expandSuperNetwork(
-                    this.nonAggrNodes,
-                    this.nonAggrLinks,
-                    this.network.nodes,
-                    this.network.edges,
-                    supernode,
-                  ),
-                );
+                if (this.network !== null) {
+                  store.commit.setNetwork(
+                    expandSuperNetwork(
+                      this.nonAggrNodes,
+                      this.nonAggrLinks,
+                      this.network.nodes,
+                      this.network.edges,
+                      supernode,
+                    ),
+                  );
+                }
                 this.clickMap.set(supernode._id, true);
 
                 // Display Child Legend
-                this.$emit('updateMatrixLegends', true, true);
+                store.commit.setShowChildLegend(true);
               }
             } else {
               this.selectElement(node);
@@ -1060,12 +1055,12 @@ export default Vue.extend({
         .attr('rx', cellRadius)
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
-            return this.aggrColorScale(d.z);
+            return this.parentColorScale(d.z);
           }
           if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
-          return this.colorScale(d.z);
+          return this.cellColorScale(d.z);
         })
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
@@ -1097,12 +1092,12 @@ export default Vue.extend({
         .attr('rx', cellRadius)
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
-            return this.aggrColorScale(d.z);
+            return this.parentColorScale(d.z);
           }
           if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
             return this.childColorScale(d.z);
           }
-          return this.colorScale(d.z);
+          return this.cellColorScale(d.z);
         })
 
         .style('fill-opacity', (d: Cell) => d.z)
@@ -1251,6 +1246,9 @@ export default Vue.extend({
     },
 
     sort(order: string): void {
+      if (this.network === null) {
+        return;
+      }
       const nodeIDs = this.network.nodes.map((node: Node) => node._id);
 
       this.order = this.changeOrder(order, nodeIDs.includes(order));
@@ -1309,6 +1307,9 @@ export default Vue.extend({
       return color;
     },
     renderAttributeVis(): void {
+      if (this.network === null) {
+        return;
+      }
       // Just has to be larger than the attributes panel (so that we render to the edge)
       const attributeWidth = 1000;
 
@@ -1391,18 +1392,20 @@ export default Vue.extend({
         .text((d: string) => d)
         .attr('width', this.colWidth)
         .on('click', (event: MouseEvent, header: string) => {
-          if (this.visualizedAttributes.includes(header) && this.enableGraffinity) {
-            this.nonAggrNodes = processChildNodes(this.network.nodes);
-            this.nonAggrLinks = processChildLinks(this.network.edges);
-            store.commit.setNetwork(
-              superGraph(this.network.nodes, this.network.edges, header),
-            );
+          if (this.visualizedNodeAttributes.includes(header) && this.enableGraffinity) {
+            if (this.network !== null) {
+              this.nonAggrNodes = processChildNodes(this.network.nodes);
+              this.nonAggrLinks = processChildLinks(this.network.edges);
+              store.commit.setNetwork(
+                superGraph(this.network.nodes, this.network.edges, header),
+              );
+            }
 
             // Turn on the disable aggregation
-            this.aggregated = true;
+            store.commit.setAggregated(true);
 
             // View/Hide Matrix Legends
-            this.$emit('updateMatrixLegends', true, false);
+            store.commit.setShowChildLegend(false);
 
             // Show the icons
             this.showIcon = true;
@@ -1443,7 +1446,7 @@ export default Vue.extend({
 
       // Add the scale bar at the top of the quant attr column
       this.combinedAttributes.forEach((col: string, index: number) => {
-        if (this.visualizedAttributes.includes(col)) {
+        if (this.visualizedNodeAttributes.includes(col)) {
           if (this.isQuantitative(col)) {
             this.attributes
               .append('g')
@@ -1564,7 +1567,7 @@ export default Vue.extend({
 
           if (this.isQuantitative(varName)) {
             // Resize quant node attr
-            if (this.visualizedAttributes.includes(varName)) {
+            if (this.visualizedNodeAttributes.includes(varName)) {
               return this.attributeScales[varName](d[varName]);
             }
             // Resize quant link attr
@@ -1573,7 +1576,7 @@ export default Vue.extend({
             }
           } else {
             // Resize qual node attr
-            if (this.visualizedAttributes.includes(varName)) {
+            if (this.visualizedNodeAttributes.includes(varName)) {
               return this.colWidth;
             }
             // Resize qual link attr
@@ -1647,7 +1650,7 @@ export default Vue.extend({
 
         if (this.combinedAttributes.includes(varName)) {
           // Draw node attributes
-          if (this.visualizedAttributes.includes(varName)) {
+          if (this.visualizedNodeAttributes.includes(varName)) {
             toAppend
               .append('rect')
               .attr('height', this.orderingScale.bandwidth())
@@ -1752,13 +1755,18 @@ export default Vue.extend({
 
       attributeVis.merge(attributeVisEnter);
     },
+
     isQuantitative(varName: string): boolean {
-      const uniqueValues = [
-        ...new Set(
-          this.network.edges.map((link: Link) => parseFloat(link[varName])),
-        ),
-      ];
-      return uniqueValues.length > 15;
+      if (this.network !== null) {
+        const uniqueValues = [
+          ...new Set(
+            this.network.edges.map((link: Link) => parseFloat(link[varName])),
+          ),
+
+        ];
+        return uniqueValues.length > 15;
+      }
+      return false;
     },
 
     isString(element: unknown): element is string {
@@ -1950,6 +1958,11 @@ export default Vue.extend({
     sortObserver(type: string, isNode = false): number[] {
       let order;
       this.sortKey = type;
+
+      if (this.network === null) {
+        return [];
+      }
+
       if (
         type === 'clusterSpectral'
         || type === 'clusterBary'
@@ -1977,25 +1990,44 @@ export default Vue.extend({
         }
       } else if (this.sortKey === 'edges') {
         order = range(this.network.nodes.length).sort((a, b) => {
-          const firstValue = this.network.nodes[b][type] as number;
-          const secondValue = this.network.nodes[a][type] as number;
+          if (this.network !== null) {
+            const firstValue = this.network.nodes[b][type] as number;
+            const secondValue = this.network.nodes[a][type] as number;
 
-          return firstValue - secondValue;
+            return firstValue - secondValue;
+          }
+          return 0;
         });
       } else if (isNode === true) {
-        order = range(this.network.nodes.length).sort((a, b) => this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id));
-        order = range(this.network.nodes.length).sort(
-          (a, b) => Number(this.network.nodes[b].neighbors.includes(type))
-            - Number(this.network.nodes[a].neighbors.includes(type)),
-        );
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network !== null) {
+            this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+          }
+          return 0;
+        });
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network !== null) {
+            return Number(this.network.nodes[b].neighbors.includes(type))
+            - Number(this.network.nodes[a].neighbors.includes(type));
+          }
+          return 0;
+        });
       } else if (this.sortKey === 'shortName') {
-        order = range(this.network.nodes.length).sort((a, b) => this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id));
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network !== null) {
+            return this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+          }
+          return 0;
+        });
       } else {
         order = range(this.network.nodes.length).sort((a, b) => {
-          const firstValue = this.network.nodes[b][type] as number;
-          const secondValue = this.network.nodes[a][type] as number;
+          if (this.network !== null) {
+            const firstValue = this.network.nodes[b][type] as number;
+            const secondValue = this.network.nodes[a][type] as number;
 
-          return firstValue - secondValue;
+            return firstValue - secondValue;
+          }
+          return 0;
         });
       }
       this.order = order;
@@ -2061,6 +2093,10 @@ export default Vue.extend({
 </template>
 
 <style scoped>
+#matrix {
+  margin-left: 8px;
+}
+
 svg >>> .baseCell {
   fill-opacity: 0;
 }
