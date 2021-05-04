@@ -121,26 +121,18 @@ const {
         return;
       }
       // Check node and table size
-      await networkTables.nodeTables.forEach((table) => {
-        const tableData = api.aql(workspaceName, `FOR doc IN ${table} COLLECT WITH COUNT INTO length RETURN length`);
-        // if (tableData[0] > 500) {
-        //   commit.setLoadError({
-        //     message: 'The network you are loading is too large',
-        //     href: 'https://multinet.app',
-        //   });
-        // }
-        tableData.then((data: number[]) => {
-          if (data[0] > 500) {
-            console.log('Setting');
-            commit.setLoadError({
-              message: 'The network you are loading is too large',
-              href: 'https://multinet.app',
-            });
-          }
-        });
+      const sizePromises = networkTables.nodeTables.map((table) => api.aql(workspaceName, `FOR doc IN ${table} COLLECT WITH COUNT INTO length RETURN length`));
+
+      const resolvedSizePromises = await Promise.all(sizePromises);
+      resolvedSizePromises.forEach((promise) => {
+        if (promise[0] > 500) {
+          commit.setLoadError({
+            message: 'The network you are loading is too large',
+            href: 'https://multinet.app',
+          });
+        }
       });
 
-      console.log(store.state.loadError.message);
       if (store.state.loadError.message !== '') {
         return;
       }
