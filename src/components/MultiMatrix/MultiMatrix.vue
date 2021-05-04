@@ -2093,6 +2093,10 @@ export default Vue.extend({
 </template>
 
 <style scoped>
+#matrix {
+  margin-left: 8px;
+}
+
 svg >>> .baseCell {
   fill-opacity: 0;
 }
