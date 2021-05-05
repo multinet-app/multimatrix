@@ -1,12 +1,17 @@
 <script lang="ts">
+import Vue from 'vue';
 import store from '@/store';
 import {
   computed, Ref, ref, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
+import FilterOverlay from '@/components/FilterOverlay.vue';
 
-export default {
-  name: 'Alert',
+export default Vue.extend({
+  // name: 'Alert',
+  components: {
+    FilterOverlay,
+  },
 
   setup() {
     const loadError = computed(() => store.getters.loadError);
@@ -41,12 +46,6 @@ export default {
       ) {
         buttonHref.value = loadError.value.href;
         buttonText.value = 'Refresh the page';
-      } else if (
-        loadError.value.message
-        === 'The network you are loading is too large'
-      ) {
-        buttonHref.value = loadError.value.href;
-        buttonText.value = 'Subset the network';
       } else {
         buttonHref.value = loadError.value.href;
         buttonText.value = 'Back to MultiNet';
@@ -63,12 +62,16 @@ export default {
       workspaceOptions,
     };
   },
-};
+});
 </script>
 
 <template>
   <div>
     <v-alert
+      v-if="
+        loadError.message !==
+          'The network you are loading is too large'
+      "
       type="warning"
       border="left"
       prominent
@@ -90,22 +93,13 @@ export default {
             to verify your permissions.
           </small>
 
-          <small
-            v-else-if="
-              loadError.message ===
-                'The network you are loading is too large'
-            "
-          >
-            The network you are loading is too large and additional parameters are required to visualize.
-          </small>
-
           <small v-else>
             Select a workspace and network you'd like to view.
           </small>
         </v-col>
 
         <v-col
-          v-if="buttonText !== 'Refresh the page'"
+          v-if="buttonText !== 'Refresh the page' && buttonText !=='Subset the network'"
           class="grow, py-0"
         >
           <v-row>
@@ -139,6 +133,15 @@ export default {
         </v-col>
       </v-row>
     </v-alert>
+
+    <filter-overlay
+      v-if="
+        loadError.message ===
+          'The network you are loading is too large'
+      "
+    />
+    <!--
+          <filter-network /> -->
   </div>
 </template>
 
