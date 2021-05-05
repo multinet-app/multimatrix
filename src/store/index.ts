@@ -29,6 +29,7 @@ const {
       href: '',
     },
     userInfo: null,
+    nodeTableName: null,
   } as State,
 
   getters: {
@@ -46,6 +47,9 @@ const {
 
     loadError(state) {
       return state.loadError;
+    },
+    nodeTableName(state: State) {
+      return state.nodeTableName;
     },
   },
   mutations: {
@@ -70,6 +74,9 @@ const {
 
     setUserInfo(state, userInfo: UserSpec | null) {
       state.userInfo = userInfo;
+    },
+    setNodeTableName(state, nodeTableName: string | null) {
+      state.nodeTableName = nodeTableName;
     },
   },
   actions: {
@@ -132,7 +139,7 @@ const {
           });
         }
       });
-
+      commit.setNodeTableName(networkTables.nodeTables[0]);
       if (store.state.loadError.message !== '') {
         return;
       }

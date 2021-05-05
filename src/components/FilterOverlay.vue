@@ -56,7 +56,7 @@
             <v-btn
               class="white--text"
               color="teal"
-              @click="overlay = false"
+              @click="filterNetwork"
             >
               Filter Network
             </v-btn>
@@ -69,15 +69,29 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import store from '@/store';
+import { computed } from '@vue/composition-api';
 
 export default Vue.extend({
-  data() {
-    return {
-      overlay: true,
-      zIndex: 0,
-      min: 10,
-      max: 300,
-    };
+  data: () => ({
+    overlay: true,
+    zIndex: 0,
+    min: 10,
+    max: 300,
+    subsetAmount: 0,
+  }),
+
+  computed: {
+    nodeTable() { return store.getters.nodeTableName; },
+    workspace() { return store.getters.workspaceName; },
+  },
+
+  methods: {
+    filterNetwork() {
+      this.overlay = false;
+      const aqlQuery = `FOR nodes in ${this.nodeTable} LIMIT ${this.subsetAmount} FOR v, e, p in 1 ANY nodes GRAPH '${this.workspace}' LIMIT ${this.subsetAmount} RETURN p`;
+      console.log(aqlQuery);
+    },
   },
 });
 

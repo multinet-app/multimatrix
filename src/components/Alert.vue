@@ -8,7 +8,6 @@ import api from '@/api';
 import FilterOverlay from '@/components/FilterOverlay.vue';
 
 export default Vue.extend({
-  // name: 'Alert',
   components: {
     FilterOverlay,
   },
@@ -140,8 +139,6 @@ export default Vue.extend({
           'The network you are loading is too large'
       "
     />
-    <!--
-          <filter-network /> -->
   </div>
 </template>
 
