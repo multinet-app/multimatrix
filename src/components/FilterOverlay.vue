@@ -6,7 +6,7 @@
         justify="center"
       >
         <v-overlay
-          :absolute="absolute"
+          absolute
           :value="overlay"
         >
           <v-card>
@@ -21,36 +21,28 @@
               </v-list-item>
             </v-list>
             <v-card>
-              <v-radio-group v-model="radioOption">
-                <v-divider />
-                <v-card-text>
-                  <v-radio value="randomSubset">
-                    <template v-slot:label>
-                      <div>Choose a random subset of nodes</div>
-                      <v-slider
-                        v-model="subsetAmount"
-                        :max="max"
-                        :min="min"
-                        step="10"
-                        ticks="true"
-                        thumb-label
-                      >
-                        <template v-slot:append>
-                          <v-text-field
-                            v-model="subsetAmount"
-                            class="mt-0 pt-0"
-                            hide-details
-                            single-line
-                            type="number"
-                            style="width: 60px"
-                          />
-                        </template>
-                      </v-slider>
-                    </template>
-                  </v-radio>
-                </v-card-text>
-                <v-divider />
-              </v-radio-group>
+              <v-divider />
+              <v-card-text>
+                <div>Choose a random subset of edges</div>
+                <v-slider
+                  v-model="subsetAmount"
+                  :max="max"
+                  :min="min"
+                  step="10"
+                  :ticks="true"
+                  thumb-label
+                >
+                  <v-text-field
+                    v-model="subsetAmount"
+                    class="mt-0 pt-0"
+                    hide-details
+                    single-line
+                    type="number"
+                    style="width: 60px"
+                  />
+                </v-slider>
+              </v-card-text>
+              <v-divider />
             </v-card>
 
             <v-btn
@@ -68,9 +60,17 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable no-restricted-syntax */
 import Vue from 'vue';
+import Vuex, { Store } from 'vuex';
+import { createDirectStore } from 'direct-vuex';
+import api from '@/api';
+import {
+  Network, State, Link,
+} from '@/types';
 import store from '@/store';
-import { computed } from '@vue/composition-api';
+
+Vue.use(Vuex);
 
 export default Vue.extend({
   data: () => ({
@@ -82,15 +82,46 @@ export default Vue.extend({
   }),
 
   computed: {
-    nodeTable() { return store.getters.nodeTableName; },
-    workspace() { return store.getters.workspaceName; },
+    nodeTable() { return store.state.nodeTableName; },
+    workspace() { return store.state.workspaceName; },
   },
 
   methods: {
     filterNetwork() {
+      if (this.workspace === null) {
+        return;
+      }
+
       this.overlay = false;
-      const aqlQuery = `FOR nodes in ${this.nodeTable} LIMIT ${this.subsetAmount} FOR v, e, p in 1 ANY nodes GRAPH '${this.workspace}' LIMIT ${this.subsetAmount} RETURN p`;
-      console.log(aqlQuery);
+      const aqlQuery = `FOR nodes in ${this.nodeTable} LIMIT ${this.subsetAmount} FOR v,e,p in 1..4 ANY nodes GRAPH '${this.workspace}' LIMIT ${this.subsetAmount} RETURN p`;
+
+      const newTablePromise = api.aql(this.workspace, aqlQuery);
+
+      newTablePromise.then((promise) => {
+        const aqlNetwork: Network = { nodes: [], edges: [] };
+        // check for duplicates
+        const nodeChecker: string[] = [];
+        for (const path of promise) {
+          for (const arr of path.vertices) {
+            if (!nodeChecker.includes(arr._key)) {
+              nodeChecker.push(arr._key);
+            }
+          }
+        }
+        // create network in json format
+        for (const path of promise) {
+          for (const arr of path.vertices) {
+            if (nodeChecker.includes(arr._key)) {
+              arr.id = arr._id;
+              aqlNetwork.nodes.push(arr);
+              nodeChecker.splice(nodeChecker.indexOf(arr._key), 1);
+            }
+          }
+          path.edges.map((arr: Link) => aqlNetwork.edges.push(arr));
+        }
+        // Update state with new network
+        store.commit.setNetwork(aqlNetwork);
+      });
     },
   },
 });

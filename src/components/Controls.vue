@@ -62,7 +62,7 @@ export default Vue.extend({
     },
 
     network() {
-      return store.getters.network;
+      return store.state.network;
     },
   },
 
