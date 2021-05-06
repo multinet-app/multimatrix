@@ -2,6 +2,8 @@ import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
+import { scaleLinear, ScaleLinear } from 'd3-scale';
+
 import api from '@/api';
 import {
   GraphSpec, RowsSpec, TableRow, UserSpec,
@@ -29,24 +31,39 @@ const {
       href: '',
     },
     userInfo: null,
+    directionalEdges: false,
+    selectNeighbors: true,
+    showGridLines: true,
+    enableGraffinity: false,
+    aggregated: false,
+    showChildLegend: false,
+    visualizedNodeAttributes: [],
+    visualizedLinkAttributes: [],
+    maxConnections: {
+      unAggr: 0,
+      parent: 0,
+      child: 0,
+    },
     nodeTableName: null,
   } as State,
 
   getters: {
-    workspaceName(state: State) {
-      return state.workspaceName;
+    cellColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.unAggr])
+        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
     },
 
-    networkName(state: State) {
-      return state.networkName;
+    parentColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.parent])
+        .range(['#dcedfa', '#0066cc']);
     },
 
-    network(state: State) {
-      return state.network;
-    },
-
-    loadError(state) {
-      return state.loadError;
+    childColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.child])
+        .range(['#f79d97', '#c0362c']);
     },
     nodeTableName(state: State) {
       return state.nodeTableName;
@@ -77,6 +94,46 @@ const {
     },
     setNodeTableName(state, nodeTableName: string | null) {
       state.nodeTableName = nodeTableName;
+    },
+
+    setDirectionalEdges(state, directionalEdges: boolean) {
+      state.directionalEdges = directionalEdges;
+    },
+
+    setSelectNeighbors(state, selectNeighbors: boolean) {
+      state.selectNeighbors = selectNeighbors;
+    },
+
+    setShowGridlines(state, showGridLines: boolean) {
+      state.showGridLines = showGridLines;
+    },
+
+    setEnableGraffinity(state, enableGraffinity: boolean) {
+      state.enableGraffinity = enableGraffinity;
+    },
+
+    setAggregated(state, aggregated: boolean) {
+      state.aggregated = aggregated;
+    },
+
+    setShowChildLegend(state, showChildLegend: boolean) {
+      state.showChildLegend = showChildLegend;
+    },
+
+    setVisualizedNodeAttributes(state, visualizedNodeAttributes: string[]) {
+      state.visualizedNodeAttributes = visualizedNodeAttributes;
+    },
+
+    setVisualizedLinkAttributes(state, visualizedLinkAttributes: string[]) {
+      state.visualizedLinkAttributes = visualizedLinkAttributes;
+    },
+
+    setMaxConnections(state, maxConnections: {
+      unAggr: number;
+      parent: number;
+      child: number;
+    }) {
+      state.maxConnections = maxConnections;
     },
   },
   actions: {
@@ -115,7 +172,7 @@ const {
           });
         }
       } finally {
-        if (store.getters.loadError.message === '' && typeof networkTables === 'undefined') {
+        if (store.state.loadError.message === '' && typeof networkTables === 'undefined') {
           // Catches CORS errors, issues when DB/API are down, etc.
           commit.setLoadError({
             message: 'There was a network issue when getting data',

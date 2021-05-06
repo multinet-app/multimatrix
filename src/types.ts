@@ -44,6 +44,19 @@ export interface State {
   network: Network | null;
   loadError: LoadError;
   userInfo: UserSpec | null;
+  directionalEdges: boolean;
+  selectNeighbors: boolean;
+  showGridLines: boolean;
+  enableGraffinity: boolean;
+  aggregated: boolean;
+  showChildLegend: boolean;
+  visualizedNodeAttributes: string[];
+  visualizedLinkAttributes: string[];
+  maxConnections: {
+    unAggr: number;
+    parent: number;
+    child: number;
+  };
   nodeTableName: string | null;
 }
 

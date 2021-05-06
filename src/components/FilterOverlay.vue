@@ -62,11 +62,10 @@
 <script lang="ts">
 /* eslint-disable no-restricted-syntax */
 import Vue from 'vue';
-import Vuex, { Store } from 'vuex';
-import { createDirectStore } from 'direct-vuex';
+import Vuex from 'vuex';
 import api from '@/api';
 import {
-  Network, State, Link,
+  Network, Link,
 } from '@/types';
 import store from '@/store';
 
