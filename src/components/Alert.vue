@@ -40,9 +40,7 @@ export default Vue.extend({
         buttonHref.value = `./?workspace=${workspace.value}&graph=${network.value}`;
         buttonText.value = 'Go To Network';
       } else if (
-        loadError.value.message
-        === 'There was a network issue when getting data'
-      ) {
+        loadError.value.message === 'There was a network issue when getting data') {
         buttonHref.value = loadError.value.href;
         buttonText.value = 'Refresh the page';
       } else {
@@ -67,10 +65,7 @@ export default Vue.extend({
 <template>
   <div>
     <v-alert
-      v-if="
-        loadError.message !==
-          'The network you are loading is too large'
-      "
+      v-if="loadError.message !== 'The network you are loading is too large'"
       type="warning"
       border="left"
       prominent
@@ -79,22 +74,14 @@ export default Vue.extend({
       <v-row align="center">
         <v-col class="grow">
           {{ loadError.message }}
-
           <br>
 
-          <small
-            v-if="
-              loadError.message ===
-                'You are not authorized to view this workspace'
-            "
-          >
+          <small v-if="loadError.message === 'You are not authorized to view this workspace'">
             If you are already logged in, please check with the workspace owner
             to verify your permissions.
           </small>
 
-          <small v-else>
-            Select a workspace and network you'd like to view.
-          </small>
+          <small v-else>Select a workspace and network you'd like to view.</small>
         </v-col>
 
         <v-col
