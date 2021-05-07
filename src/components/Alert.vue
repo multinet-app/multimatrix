@@ -60,7 +60,7 @@ export default {
       workspaceOptions,
     };
   },
-});
+};
 </script>
 
 <template>
