@@ -1,6 +1,6 @@
 <template>
-  <div id="dialog">
-    <v-app id="filterOverlayDialog">
+  <div>
+    <v-app>
       <v-row
         align="center"
         justify="center"
@@ -29,8 +29,9 @@
                   :max="max"
                   :min="min"
                   step="10"
-                  :ticks="true"
+                  ticks
                   thumb-label
+                  thumb-color="primary"
                 >
                   <v-text-field
                     v-model="subsetAmount"
@@ -47,8 +48,9 @@
 
             <v-btn
               class="white--text"
-              color="teal"
+              color="primary"
               @click="filterNetwork"
+              tile
             >
               Filter Network
             </v-btn>
@@ -62,19 +64,14 @@
 <script lang="ts">
 /* eslint-disable no-restricted-syntax */
 import Vue from 'vue';
-import Vuex from 'vuex';
 import api from '@/api';
 import {
   Network, Link,
 } from '@/types';
 import store from '@/store';
-
-Vue.use(Vuex);
-
 export default Vue.extend({
   data: () => ({
     overlay: true,
-    zIndex: 0,
     min: 10,
     max: 300,
     subsetAmount: 0,

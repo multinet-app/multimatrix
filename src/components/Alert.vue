@@ -34,9 +34,9 @@ export default {
       }
     });
 
+    // Add button
     const buttonHref: Ref<string> = ref(loadError.value.href);
     const buttonText: Ref<string> = ref('');
-    // Add button
     watchEffect(async () => {
       if (workspace.value !== null && network.value !== null) {
         buttonHref.value = `./?workspace=${workspace.value}&graph=${network.value}`;
@@ -124,10 +124,7 @@ export default {
     </v-alert>
 
     <filter-overlay
-      v-if="
-        loadError.message ===
-          'The network you are loading is too large'
-      "
+      v-if="loadError.message === 'The network you are loading is too large'"
     />
   </div>
 </template>
