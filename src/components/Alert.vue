@@ -7,7 +7,9 @@ import {
 import api from '@/api';
 import FilterOverlay from '@/components/FilterOverlay.vue';
 
-export default Vue.extend({
+export default {
+  name: 'Alert',
+
   components: {
     FilterOverlay,
   },
