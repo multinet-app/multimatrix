@@ -65,9 +65,6 @@ const {
         .domain([0, state.maxConnections.child])
         .range(['#f79d97', '#c0362c']);
     },
-    nodeTableName(state: State) {
-      return state.nodeTableName;
-    },
   },
   mutations: {
     setWorkspaceName(state, workspaceName: string) {
