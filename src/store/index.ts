@@ -184,7 +184,7 @@ const {
       if (networkTables === undefined) {
         return;
       }
-     
+
       // Check node and table size
       const sizePromises = networkTables.nodeTables.map((table) => api.aql(workspaceName, `FOR doc IN ${table} COLLECT WITH COUNT INTO length RETURN length`));
       const resolvedSizePromises = await Promise.all(sizePromises);

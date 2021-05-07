@@ -26,8 +26,8 @@
                 <div>Choose a random subset of edges</div>
                 <v-slider
                   v-model="subsetAmount"
-                  :max="max"
-                  :min="min"
+                  :max="300"
+                  :min="100"
                   step="10"
                   ticks
                   thumb-label
@@ -50,7 +50,6 @@
               class="white--text"
               color="primary"
               @click="filterNetwork"
-              tile
             >
               Filter Network
             </v-btn>
@@ -69,11 +68,10 @@ import {
   Network, Link,
 } from '@/types';
 import store from '@/store';
+
 export default Vue.extend({
   data: () => ({
     overlay: true,
-    min: 10,
-    max: 300,
     subsetAmount: 0,
   }),
 
