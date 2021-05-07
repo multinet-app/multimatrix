@@ -61,14 +61,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
 import api from '@/api';
 import {
   Network, Link, Node,
 } from '@/types';
 import store from '@/store';
 
-export default Vue.extend({
+export default {
   data: () => ({
     overlay: true,
     subsetAmount: 0,
@@ -117,6 +116,6 @@ export default Vue.extend({
       });
     },
   },
-});
+};
 
 </script>
