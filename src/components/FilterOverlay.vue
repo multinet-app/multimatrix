@@ -61,11 +61,10 @@
 </template>
 
 <script lang="ts">
-/* eslint-disable no-restricted-syntax */
 import Vue from 'vue';
 import api from '@/api';
 import {
-  Network, Link,
+  Network, Link, Node,
 } from '@/types';
 import store from '@/store';
 
@@ -93,26 +92,26 @@ export default Vue.extend({
 
       newTablePromise.then((promise) => {
         const aqlNetwork: Network = { nodes: [], edges: [] };
+
         // check for duplicates
-        const nodeChecker: string[] = [];
-        for (const path of promise) {
-          for (const arr of path.vertices) {
-            if (!nodeChecker.includes(arr._key)) {
-              nodeChecker.push(arr._key);
-            }
-          }
-        }
+        const nodeChecker: Set<string> = new Set();
+        promise.forEach((path) => {
+          path.vertices.forEach((node: Node) => {
+            nodeChecker.add(node._id);
+          });
+        });
+
         // create network in json format
-        for (const path of promise) {
-          for (const arr of path.vertices) {
-            if (nodeChecker.includes(arr._key)) {
-              arr.id = arr._id;
-              aqlNetwork.nodes.push(arr);
-              nodeChecker.splice(nodeChecker.indexOf(arr._key), 1);
+        promise.forEach((path) => {
+          path.vertices.forEach((node: Node) => {
+            if (nodeChecker.has(node._id)) {
+              aqlNetwork.nodes.push(node);
+              nodeChecker.delete(node._id);
             }
-          }
-          path.edges.map((arr: Link) => aqlNetwork.edges.push(arr));
-        }
+          });
+          path.edges.map((edge: Link) => aqlNetwork.edges.push(edge));
+        });
+
         // Update state with new network
         store.commit.setNetwork(aqlNetwork);
       });
