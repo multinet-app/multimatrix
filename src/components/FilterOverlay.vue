@@ -102,7 +102,7 @@ export default Vue.extend({
               nodeChecker.delete(node._id);
             }
           });
-          path.edges.map((edge: Link) => aqlNetwork.edges.push(edge));
+          aqlNetwork.edges.push(...path.edges);
         });
         if (aqlNetwork.nodes.length !== 0) {
           // Update state with new network
