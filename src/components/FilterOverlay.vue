@@ -1,70 +1,61 @@
 <template>
   <div>
-    <v-app>
-      <v-row
-        align="center"
-        justify="center"
+    <v-row
+      align="center"
+      justify="center"
+    >
+      <v-overlay
+        absolute
       >
-        <v-overlay
-          absolute
-          :value="overlay"
-        >
+        <v-card>
+          <v-card-title>Action Needed</v-card-title>
+          <v-card-text>
+            The network you are loading is too large and additional
+            parameters are required to visualize. Consider one of the
+            following:
+          </v-card-text>
           <v-card>
-            <v-list>
-              <v-list-item>
-                <v-list-item-content>
-                  <v-list-item-title>Action Needed</v-list-item-title>
-                  The network you are loading is too large and additional
-                  parameters are required to visualize. Consider one of the
-                  following:
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-            <v-card>
-              <v-divider />
-              <v-card-text>
-                <div>Choose a random subset of edges</div>
-                <v-slider
+            <v-divider />
+            <v-card-text>
+              <div>Choose a random subset of edges</div>
+              <v-slider
+                v-model="subsetAmount"
+                :max="300"
+                :min="100"
+                step="10"
+                ticks
+                thumb-label
+                thumb-color="primary"
+              >
+                <v-text-field
                   v-model="subsetAmount"
-                  :max="300"
-                  :min="100"
-                  step="10"
-                  ticks
-                  thumb-label
-                  thumb-color="primary"
-                >
-                  <v-text-field
-                    v-model="subsetAmount"
-                    class="mt-0 pt-0"
-                    hide-details
-                    single-line
-                    type="number"
-                    style="width: 60px"
-                  />
-                </v-slider>
-              </v-card-text>
-              <v-divider />
-            </v-card>
-
-            <v-btn
-              class="white--text"
-              color="primary"
-              @click="filterNetwork"
-            >
-              Filter Network
-            </v-btn>
+                  class="mt-0 pt-0"
+                  hide-details
+                  single-line
+                  type="number"
+                  style="width: 60px"
+                />
+              </v-slider>
+            </v-card-text>
+            <v-divider />
           </v-card>
-        </v-overlay>
-      </v-row>
-    </v-app>
+
+          <v-btn
+            class="white--text"
+            color="primary"
+            @click="filterNetwork"
+          >
+            Filter Network
+          </v-btn>
+        </v-card>
+      </v-overlay>
+    </v-row>
   </div>
 </template>
 
 <script lang="ts">
 import api from '@/api';
-import {
-  Network, Link, Node,
-} from '@/types';
+import { Network, Link, Node } from '@/types';
 import store from '@/store';
 
 export default {
@@ -74,8 +65,12 @@ export default {
   }),
 
   computed: {
-    nodeTable() { return store.state.nodeTableName; },
-    workspace() { return store.state.workspaceName; },
+    nodeTable() {
+      return store.state.nodeTableName;
+    },
+    workspace() {
+      return store.state.workspaceName;
+    },
   },
 
   methods: {
@@ -117,5 +112,4 @@ export default {
     },
   },
 };
-
 </script>
