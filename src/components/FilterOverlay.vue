@@ -60,7 +60,6 @@ import store from '@/store';
 
 export default {
   data: () => ({
-    overlay: true,
     subsetAmount: 0,
   }),
 
@@ -79,8 +78,7 @@ export default {
         return;
       }
 
-      this.overlay = false;
-      const aqlQuery = `FOR nodes in ${this.nodeTable} LIMIT ${this.subsetAmount} FOR v,e,p in 1..4 ANY nodes GRAPH '${this.workspace}' LIMIT ${this.subsetAmount} RETURN p`;
+      const aqlQuery = `FOR nodes in ${this.nodeTable} LIMIT ${this.subsetAmount} FOR v,e,p in 1..4 ANY nodes GRAPH '${store.state.networkName}' LIMIT ${this.subsetAmount} RETURN p`;
 
       const newTablePromise = api.aql(this.workspace, aqlQuery);
 
@@ -105,9 +103,19 @@ export default {
           });
           path.edges.map((edge: Link) => aqlNetwork.edges.push(edge));
         });
-
-        // Update state with new network
-        store.commit.setNetwork(aqlNetwork);
+        if (aqlNetwork.nodes.length !== 0) {
+          // Update state with new network
+          store.commit.setNetwork(aqlNetwork);
+          store.commit.setLoadError({
+            message: '',
+            href: '',
+          });
+        } else {
+          store.commit.setLoadError({
+            message: 'An unexpected error ocurred',
+            href: 'https://multinet.app',
+          });
+        }
       });
     },
   },
