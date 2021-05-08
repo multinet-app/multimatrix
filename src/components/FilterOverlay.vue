@@ -54,11 +54,12 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
 import api from '@/api';
 import { Network, Link, Node } from '@/types';
 import store from '@/store';
 
-export default {
+export default Vue.extend({
   data: () => ({
     subsetAmount: 0,
   }),
@@ -119,5 +120,5 @@ export default {
       });
     },
   },
-};
+});
 </script>
