@@ -83,9 +83,28 @@ export default Vue.extend({
       const aqlQuery = `let nodes = (FOR n in ${store.state.nodeTableNames}[**] LIMIT ${this.subsetAmount} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
       RETURN {"nodes": nodes[**], edges}`;
 
-      const newTablePromise = api.aql(this.workspace, aqlQuery);
+      let newAQLNetwork: Promise<any[]> | undefined;
 
-      newTablePromise.then((promise) => {
+      try {
+        newAQLNetwork = api.aql(this.workspace, aqlQuery);
+      } catch (error) {
+        if (error.status === 400) {
+          store.commit.setLoadError({
+            message: error.statusText,
+            href: 'https://multinet.app',
+          });
+        }
+      } finally {
+        if (store.state.loadError.message === '' && typeof newAQLNetwork === 'undefined') {
+          // Catches CORS errors, issues when DB/API are down, etc.
+          store.commit.setLoadError({
+            message: 'There was a network issue when getting data',
+            href: `./?workspace=${store.state.workspaceName}&graph=${store.state.networkName}`,
+          });
+        }
+      }
+
+      newAQLNetwork.then((promise) => {
         const aqlNetwork: Network = Object.assign(promise)[0];
 
         if (aqlNetwork.nodes.length !== 0) {
@@ -94,11 +113,6 @@ export default Vue.extend({
           store.commit.setLoadError({
             message: '',
             href: '',
-          });
-        } else {
-          store.commit.setLoadError({
-            message: 'An unexpected error ocurred',
-            href: 'https://multinet.app',
           });
         }
       });
