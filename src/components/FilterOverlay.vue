@@ -43,6 +43,7 @@
           <v-btn
             class="white--text"
             color="primary"
+            tile
             @click="filterNetwork"
           >
             Filter Network
