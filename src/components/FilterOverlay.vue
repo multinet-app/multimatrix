@@ -103,19 +103,20 @@ export default Vue.extend({
           });
         }
       }
+      if (newAQLNetwork !== undefined) {
+        newAQLNetwork.then((promise) => {
+          const aqlNetwork: Network = Object.assign(promise)[0];
 
-      newAQLNetwork.then((promise) => {
-        const aqlNetwork: Network = Object.assign(promise)[0];
-
-        if (aqlNetwork.nodes.length !== 0) {
+          if (aqlNetwork.nodes.length !== 0) {
           // Update state with new network
-          store.commit.setNetwork(aqlNetwork);
-          store.commit.setLoadError({
-            message: '',
-            href: '',
-          });
-        }
-      });
+            store.commit.setNetwork(aqlNetwork);
+            store.commit.setLoadError({
+              message: '',
+              href: '',
+            });
+          }
+        });
+      }
     },
   },
 });
