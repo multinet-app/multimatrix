@@ -90,7 +90,7 @@ const {
     setUserInfo(state, userInfo: UserSpec | null) {
       state.userInfo = userInfo;
     },
-    setNodeTableNames(state, nodeTableNames: string[] | []) {
+    setNodeTableNames(state, nodeTableNames: string[]) {
       state.nodeTableNames = nodeTableNames;
     },
     setEdgeTableName(state, edgeTableName: string | null) {

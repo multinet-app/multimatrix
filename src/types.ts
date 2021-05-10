@@ -57,7 +57,7 @@ export interface State {
     parent: number;
     child: number;
   };
-  nodeTableNames: string[] | [];
+  nodeTableNames: string[];
   edgeTableName: string | null;
 }
 

@@ -66,9 +66,6 @@ export default Vue.extend({
   }),
 
   computed: {
-    nodeTables() {
-      return store.state.nodeTableNames;
-    },
     workspace() {
       return store.state.workspaceName;
     },
@@ -80,7 +77,7 @@ export default Vue.extend({
         return;
       }
 
-      const aqlQuery = `let nodes = (FOR n in ${store.state.nodeTableNames}[**] LIMIT ${this.subsetAmount} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
+      const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] LIMIT ${this.subsetAmount} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
       RETURN {"nodes": nodes[**], edges}`;
 
       let newAQLNetwork: Promise<any[]> | undefined;
@@ -103,9 +100,10 @@ export default Vue.extend({
           });
         }
       }
+
       if (newAQLNetwork !== undefined) {
         newAQLNetwork.then((promise) => {
-          const aqlNetwork: Network = Object.assign(promise)[0];
+          const aqlNetwork: Network = promise[0];
 
           if (aqlNetwork.nodes.length !== 0) {
           // Update state with new network
