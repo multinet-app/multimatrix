@@ -44,7 +44,7 @@ const {
       parent: 0,
       child: 0,
     },
-    nodeTableNames: null,
+    nodeTableNames: [],
   } as State,
 
   getters: {
