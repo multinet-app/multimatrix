@@ -58,6 +58,7 @@ export interface State {
     child: number;
   };
   nodeTableNames: string[] | [];
+  edgeTableName: string | null;
 }
 
 export interface ProvenanceState {

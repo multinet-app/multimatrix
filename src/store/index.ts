@@ -45,6 +45,7 @@ const {
       child: 0,
     },
     nodeTableNames: [],
+    edgeTableName: null,
   } as State,
 
   getters: {
@@ -92,7 +93,9 @@ const {
     setNodeTableNames(state, nodeTableNames: string[] | []) {
       state.nodeTableNames = nodeTableNames;
     },
-
+    setEdgeTableName(state, edgeTableName: string | null) {
+      state.edgeTableName = edgeTableName;
+    },
     setDirectionalEdges(state, directionalEdges: boolean) {
       state.directionalEdges = directionalEdges;
     },
@@ -194,6 +197,7 @@ const {
         }
       });
       commit.setNodeTableNames(networkTables.nodeTables);
+      commit.setEdgeTableName(networkTables.edgeTable);
       if (store.state.loadError.message !== '') {
         return;
       }
