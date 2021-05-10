@@ -57,7 +57,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import api from '@/api';
-import { Network, Link, Node } from '@/types';
+import { Network, Node } from '@/types';
 import store from '@/store';
 
 export default Vue.extend({
@@ -80,7 +80,7 @@ export default Vue.extend({
         return;
       }
 
-      const aqlQuery = `FOR nodes in ${this.nodeTables[0]} LIMIT ${this.subsetAmount} FOR v,e,p in 1..4 ANY nodes GRAPH '${store.state.networkName}' LIMIT ${this.subsetAmount} RETURN p`;
+      const aqlQuery = `FOR nodes in ${this.nodeTables[0]} LIMIT ${this.subsetAmount} FOR v,e,p in 1..4 ANY nodes GRAPH '${store.state.networkName}' OPTIONS {uniqueEdges:'path'} LIMIT ${this.subsetAmount} RETURN p`;
 
       const newTablePromise = api.aql(this.workspace, aqlQuery);
 
