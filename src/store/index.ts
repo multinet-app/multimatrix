@@ -44,7 +44,7 @@ const {
       parent: 0,
       child: 0,
     },
-    nodeTableName: null,
+    nodeTableNames: null,
   } as State,
 
   getters: {
@@ -89,8 +89,8 @@ const {
     setUserInfo(state, userInfo: UserSpec | null) {
       state.userInfo = userInfo;
     },
-    setNodeTableName(state, nodeTableName: string | null) {
-      state.nodeTableName = nodeTableName;
+    setNodeTableNames(state, nodeTableNames: string[] | []) {
+      state.nodeTableNames = nodeTableNames;
     },
 
     setDirectionalEdges(state, directionalEdges: boolean) {
@@ -193,7 +193,7 @@ const {
           });
         }
       });
-      commit.setNodeTableName(networkTables.nodeTables[0]);
+      commit.setNodeTableNames(networkTables.nodeTables);
       if (store.state.loadError.message !== '') {
         return;
       }

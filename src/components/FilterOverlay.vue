@@ -66,8 +66,8 @@ export default Vue.extend({
   }),
 
   computed: {
-    nodeTable() {
-      return store.state.nodeTableName;
+    nodeTables() {
+      return store.state.nodeTableNames;
     },
     workspace() {
       return store.state.workspaceName;
@@ -80,7 +80,7 @@ export default Vue.extend({
         return;
       }
 
-      const aqlQuery = `FOR nodes in ${this.nodeTable} LIMIT ${this.subsetAmount} FOR v,e,p in 1..4 ANY nodes GRAPH '${store.state.networkName}' LIMIT ${this.subsetAmount} RETURN p`;
+      const aqlQuery = `FOR nodes in ${this.nodeTables[0]} LIMIT ${this.subsetAmount} FOR v,e,p in 1..4 ANY nodes GRAPH '${store.state.networkName}' LIMIT ${this.subsetAmount} RETURN p`;
 
       const newTablePromise = api.aql(this.workspace, aqlQuery);
 

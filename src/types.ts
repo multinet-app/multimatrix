@@ -57,7 +57,7 @@ export interface State {
     parent: number;
     child: number;
   };
-  nodeTableName: string | null;
+  nodeTableNames: string[] | [];
 }
 
 export interface ProvenanceState {
