@@ -90,9 +90,14 @@ export default Vue.extend({
             message: error.statusText,
             href: 'https://multinet.app',
           });
+        } else {
+          store.commit.setLoadError({
+            message: 'An unexpected error ocurred',
+            href: 'https://multinet.app',
+          });
         }
       } finally {
-        if (store.state.loadError.message === '' && typeof newAQLNetwork === 'undefined') {
+        if (store.state.loadError.message === 'The network you are loading is too large' && typeof newAQLNetwork === 'undefined') {
           // Catches CORS errors, issues when DB/API are down, etc.
           store.commit.setLoadError({
             message: 'There was a network issue when getting data',
