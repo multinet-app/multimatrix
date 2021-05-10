@@ -17,11 +17,11 @@
           <v-card>
             <v-divider />
             <v-card-text>
-              <div>Choose a random subset of edges</div>
+              <div>Choose a random subset of nodes</div>
               <v-slider
                 v-model="subsetAmount"
-                :max="300"
-                :min="100"
+                :max="100"
+                :min="10"
                 step="10"
                 ticks
                 thumb-label
@@ -80,31 +80,14 @@ export default Vue.extend({
         return;
       }
 
-      const aqlQuery = `FOR nodes in ${this.nodeTables[0]} LIMIT ${this.subsetAmount} FOR v,e,p in 1..4 ANY nodes GRAPH '${store.state.networkName}' OPTIONS {uniqueEdges:'path'} LIMIT ${this.subsetAmount} RETURN p`;
+      const aqlQuery = `let nodes = (FOR n in ${store.state.nodeTableNames}[**] LIMIT ${this.subsetAmount} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
+      RETURN {"nodes": nodes[**], edges}`;
 
       const newTablePromise = api.aql(this.workspace, aqlQuery);
 
       newTablePromise.then((promise) => {
-        const aqlNetwork: Network = { nodes: [], edges: [] };
+        const aqlNetwork: Network = Object.assign(promise)[0];
 
-        // check for duplicates
-        const nodeChecker: Set<string> = new Set();
-        promise.forEach((path) => {
-          path.vertices.forEach((node: Node) => {
-            nodeChecker.add(node._id);
-          });
-        });
-
-        // create network in json format
-        promise.forEach((path) => {
-          path.vertices.forEach((node: Node) => {
-            if (nodeChecker.has(node._id)) {
-              aqlNetwork.nodes.push(node);
-              nodeChecker.delete(node._id);
-            }
-          });
-          aqlNetwork.edges.push(...path.edges);
-        });
         if (aqlNetwork.nodes.length !== 0) {
           // Update state with new network
           store.commit.setNetwork(aqlNetwork);
