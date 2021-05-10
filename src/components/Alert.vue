@@ -1,5 +1,4 @@
 <script lang="ts">
-import Vue from 'vue';
 import store from '@/store';
 import {
   computed, Ref, ref, watchEffect,
