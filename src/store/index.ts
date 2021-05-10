@@ -90,12 +90,15 @@ const {
     setUserInfo(state, userInfo: UserSpec | null) {
       state.userInfo = userInfo;
     },
+
     setNodeTableNames(state, nodeTableNames: string[]) {
       state.nodeTableNames = nodeTableNames;
     },
+
     setEdgeTableName(state, edgeTableName: string | null) {
       state.edgeTableName = edgeTableName;
     },
+
     setDirectionalEdges(state, directionalEdges: boolean) {
       state.directionalEdges = directionalEdges;
     },

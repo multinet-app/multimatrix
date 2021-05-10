@@ -57,7 +57,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import api from '@/api';
-import { Network, Node } from '@/types';
+import { Network } from '@/types';
 import store from '@/store';
 
 export default Vue.extend({
@@ -80,6 +80,7 @@ export default Vue.extend({
       const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] LIMIT ${this.subsetAmount} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
       RETURN {"nodes": nodes[**], edges}`;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
 
       try {
