@@ -22,11 +22,13 @@ export default {
       workspaceName: workspace,
       networkName,
     });
+    const network = computed(() => store.state.network);
 
     const loadError = computed(() => store.state.loadError);
 
     return {
       loadError,
+      network,
     };
   },
 };
@@ -37,7 +39,7 @@ export default {
     <v-content>
       <controls />
 
-      <multi-matrix />
+      <multi-matrix v-if="network !== null" />
 
       <alert v-if="loadError.message !== ''" />
     </v-content>

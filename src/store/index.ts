@@ -44,6 +44,8 @@ const {
       parent: 0,
       child: 0,
     },
+    nodeTableNames: [],
+    edgeTableName: null,
   } as State,
 
   getters: {
@@ -87,6 +89,14 @@ const {
 
     setUserInfo(state, userInfo: UserSpec | null) {
       state.userInfo = userInfo;
+    },
+
+    setNodeTableNames(state, nodeTableNames: string[]) {
+      state.nodeTableNames = nodeTableNames;
+    },
+
+    setEdgeTableName(state, edgeTableName: string | null) {
+      state.edgeTableName = edgeTableName;
     },
 
     setDirectionalEdges(state, directionalEdges: boolean) {
@@ -175,6 +185,23 @@ const {
       }
 
       if (networkTables === undefined) {
+        return;
+      }
+
+      // Check node and table size
+      const sizePromises = networkTables.nodeTables.map((table) => api.aql(workspaceName, `FOR doc IN ${table} COLLECT WITH COUNT INTO length RETURN length`));
+      const resolvedSizePromises = await Promise.all(sizePromises);
+      resolvedSizePromises.forEach((promise) => {
+        if (promise[0] > 500) {
+          commit.setLoadError({
+            message: 'The network you are loading is too large',
+            href: 'https://multinet.app',
+          });
+        }
+      });
+      commit.setNodeTableNames(networkTables.nodeTables);
+      commit.setEdgeTableName(networkTables.edgeTable);
+      if (store.state.loadError.message !== '') {
         return;
       }
 
