@@ -4,9 +4,14 @@ import {
   computed, Ref, ref, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
+import FilterOverlay from '@/components/FilterOverlay.vue';
 
 export default {
   name: 'Alert',
+
+  components: {
+    FilterOverlay,
+  },
 
   setup() {
     const loadError = computed(() => store.state.loadError);
@@ -28,6 +33,7 @@ export default {
       }
     });
 
+    // Add button
     const buttonHref: Ref<string> = ref(loadError.value.href);
     const buttonText: Ref<string> = ref('');
     watchEffect(async () => {
@@ -59,6 +65,7 @@ export default {
 <template>
   <div>
     <v-alert
+      v-if="loadError.message !== 'The network you are loading is too large'"
       type="warning"
       border="left"
       prominent
@@ -80,7 +87,7 @@ export default {
         </v-col>
 
         <v-col
-          v-if="buttonText !== 'Refresh the page'"
+          v-if="buttonText !== 'Refresh the page' && buttonText !=='Subset the network'"
           class="grow, py-0"
         >
           <v-row>
@@ -114,6 +121,10 @@ export default {
         </v-col>
       </v-row>
     </v-alert>
+
+    <filter-overlay
+      v-if="loadError.message === 'The network you are loading is too large'"
+    />
   </div>
 </template>
 
