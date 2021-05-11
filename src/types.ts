@@ -49,7 +49,7 @@ export interface State {
   showGridLines: boolean;
   enableGraffinity: boolean;
   aggregated: boolean;
-    showChildLegend: boolean;
+  showChildLegend: boolean;
   visualizedNodeAttributes: string[];
   visualizedLinkAttributes: string[];
   maxConnections: {
@@ -57,6 +57,8 @@ export interface State {
     parent: number;
     child: number;
   };
+  nodeTableNames: string[];
+  edgeTableName: string | null;
 }
 
 export interface ProvenanceState {
