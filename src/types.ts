@@ -64,27 +64,6 @@ export interface State {
   edgeTableName: string | null;
 }
 
-export interface ProvenanceState {
-  workerID: number;
-  nodes: string;
-  search: string;
-  startTime: number;
-  endTime: string;
-  time: number;
-  event: string;
-  count: number;
-  clicked: never[];
-  sortKey: string;
-  selections: {
-    rowLabel: { [key: string]: unknown[] };
-    colLabel: { [key: string]: unknown[] };
-    neighborSelect: { [key: string]: unknown[] };
-    cellCol: { [key: string]: unknown[] };
-    cellRow: { [key: string]: unknown[] };
-    search: { [key: string]: unknown[] };
-  };
-}
-
 export interface AttrVis {
   _key: string;
   id: string;
