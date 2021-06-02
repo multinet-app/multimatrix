@@ -49,6 +49,19 @@ export interface State {
   selectedCells: Cell[];
   hoveredNodes: string[];
   sortOrder: number[];
+  directionalEdges: boolean;
+  selectNeighbors: boolean;
+  showGridLines: boolean;
+  enableGraffinity: boolean;
+  aggregated: boolean;
+  showChildLegend: boolean;
+  maxConnections: {
+    unAggr: number;
+    parent: number;
+    child: number;
+  };
+  nodeTableNames: string[];
+  edgeTableName: string | null;
 }
 
 export interface ProvenanceState {

@@ -3,6 +3,7 @@ import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
 import { range } from 'd3-array';
+import { scaleLinear, ScaleLinear } from 'd3-scale';
 
 import api from '@/api';
 import {
@@ -37,10 +38,41 @@ const {
     selectedCells: [],
     hoveredNodes: [],
     sortOrder: [],
+    directionalEdges: false,
+    selectNeighbors: true,
+    showGridLines: true,
+    enableGraffinity: false,
+    aggregated: false,
+    showChildLegend: false,
+    visualizedNodeAttributes: [],
+    visualizedLinkAttributes: [],
+    maxConnections: {
+      unAggr: 0,
+      parent: 0,
+      child: 0,
+    },
+    nodeTableNames: [],
+    edgeTableName: null,
   } as State,
 
   getters: {
+    cellColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.unAggr])
+        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
+    },
 
+    parentColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.parent])
+        .range(['#dcedfa', '#0066cc']);
+    },
+
+    childColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxConnections.child])
+        .range(['#f79d97', '#c0362c']);
+    },
   },
 
   mutations: {
@@ -97,6 +129,46 @@ const {
     removeHoveredNode(state, nodeID: string) {
       state.hoveredNodes = state.hoveredNodes.filter((hoveredNode) => hoveredNode !== nodeID);
     },
+
+    setNodeTableNames(state, nodeTableNames: string[]) {
+      state.nodeTableNames = nodeTableNames;
+    },
+
+    setEdgeTableName(state, edgeTableName: string | null) {
+      state.edgeTableName = edgeTableName;
+    },
+
+    setDirectionalEdges(state, directionalEdges: boolean) {
+      state.directionalEdges = directionalEdges;
+    },
+
+    setSelectNeighbors(state, selectNeighbors: boolean) {
+      state.selectNeighbors = selectNeighbors;
+    },
+
+    setShowGridlines(state, showGridLines: boolean) {
+      state.showGridLines = showGridLines;
+    },
+
+    setEnableGraffinity(state, enableGraffinity: boolean) {
+      state.enableGraffinity = enableGraffinity;
+    },
+
+    setAggregated(state, aggregated: boolean) {
+      state.aggregated = aggregated;
+    },
+
+    setShowChildLegend(state, showChildLegend: boolean) {
+      state.showChildLegend = showChildLegend;
+    },
+
+    setMaxConnections(state, maxConnections: {
+      unAggr: number;
+      parent: number;
+      child: number;
+    }) {
+      state.maxConnections = maxConnections;
+    },
   },
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
@@ -144,6 +216,23 @@ const {
       }
 
       if (networkTables === undefined) {
+        return;
+      }
+
+      // Check node and table size
+      const sizePromises = networkTables.nodeTables.map((table) => api.aql(workspaceName, `FOR doc IN ${table} COLLECT WITH COUNT INTO length RETURN length`));
+      const resolvedSizePromises = await Promise.all(sizePromises);
+      resolvedSizePromises.forEach((promise) => {
+        if (promise[0] > 500) {
+          commit.setLoadError({
+            message: 'The network you are loading is too large',
+            href: 'https://multinet.app',
+          });
+        }
+      });
+      commit.setNodeTableNames(networkTables.nodeTables);
+      commit.setEdgeTableName(networkTables.edgeTable);
+      if (store.state.loadError.message !== '') {
         return;
       }
 
