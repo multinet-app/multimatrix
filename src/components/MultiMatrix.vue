@@ -104,7 +104,7 @@ export default Vue.extend({
         width: 0,
       },
       visMargins: {
-        left: 75, top: 75, right: 0, bottom: 0,
+        left: 75, top: 79, right: 0, bottom: 0,
       },
       matrixSVG: undefined,
       maxNumConnections: -Infinity,
