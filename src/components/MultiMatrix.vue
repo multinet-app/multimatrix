@@ -97,6 +97,7 @@ export default Vue.extend({
     showIcon: boolean;
     aggregated: boolean;
     sidebarWidth: number;
+    finishedMounting: boolean;
     } {
     return {
       browser: {
@@ -156,6 +157,7 @@ export default Vue.extend({
       showIcon: false,
       aggregated: false,
       sidebarWidth: 256,
+      finishedMounting: false,
     };
   },
 
@@ -449,6 +451,7 @@ export default Vue.extend({
     this.provenance = this.setUpProvenance();
 
     this.initializeEdges();
+    this.finishedMounting = true;
   },
 
   methods: {
@@ -1320,7 +1323,7 @@ export default Vue.extend({
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
         />
       </div>
-      <line-up :data="network.nodes" />
+      <line-up v-if="finishedMounting" />
     </v-container>
 
     <div
