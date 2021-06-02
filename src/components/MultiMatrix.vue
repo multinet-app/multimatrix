@@ -231,6 +231,10 @@ export default Vue.extend({
 
   watch: {
     selectedNodes() {
+      if (this.network === null) {
+        return;
+      }
+
       // Apply column highlight
       selectAll('.topoCol')
         .data(this.network.nodes)
@@ -265,6 +269,10 @@ export default Vue.extend({
     },
 
     hoveredNodes() {
+      if (this.network === null) {
+        return;
+      }
+
       // Apply column highlight
       selectAll('.topoCol')
         .data(this.network.nodes)
