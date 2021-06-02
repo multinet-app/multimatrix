@@ -187,13 +187,9 @@ export default Vue.extend({
       return store.state.selectedCells;
     },
 
-    matrixNodeLength(): number {
-      return this.network.nodes.length;
-    },
-
     matrixWidth(): number {
       return (
-        this.matrixNodeLength * this.cellSize
+        this.network.nodes.length * this.cellSize
         + this.visMargins.left
         + this.visMargins.right
       );
@@ -201,7 +197,7 @@ export default Vue.extend({
 
     matrixHeight(): number {
       return (
-        this.matrixNodeLength * this.cellSize
+        this.network.nodes.length * this.cellSize
         + this.visMargins.top
         + this.visMargins.bottom
       );
