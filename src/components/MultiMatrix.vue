@@ -12,7 +12,6 @@ import {
   Cell,
   Link,
   Node,
-  ProvenanceState,
 } from '@/types';
 import {
   ScaleBand,
@@ -23,7 +22,6 @@ import {
 } from 'd3-array';
 import { select, selectAll } from 'd3-selection';
 import { transition } from 'd3-transition';
-import * as ProvenanceLibrary from 'provenance-lib-core/lib/src/provenance-core/Provenance';
 import store from '@/store';
 import LineUp from '@/components/LineUp.vue';
 
@@ -49,7 +47,6 @@ export default Vue.extend({
     nonAggrLinks: Link[];
     icons: { [key: string]: { [d: string]: string } };
     orderType: any;
-    provenance: any;
     sortKey: string;
     showIcon: boolean;
     finishedMounting: boolean;
@@ -85,7 +82,6 @@ export default Vue.extend({
         },
       },
       orderType: undefined,
-      provenance: undefined,
       sortKey: '',
       showIcon: false,
       finishedMounting: false,
@@ -380,8 +376,6 @@ export default Vue.extend({
       initialY += buttonHeight + 5;
     });
 
-    this.provenance = this.setUpProvenance();
-
     this.initializeEdges();
     this.finishedMounting = true;
   },
@@ -456,33 +450,6 @@ export default Vue.extend({
         parent: maxAggrConnections,
         child: maxChildConnections,
       });
-    },
-
-    setUpProvenance(): any {
-      const initialState = {
-        workerID: 1, // workerID is a global variable
-        nodes: '', // array of nodes that keep track of their position, whether they were softSelect or hardSelected;
-        search: '', // field to store the id of a searched node;
-        startTime: Date.now(), // time this provenance graph was created and the task initialized;
-        endTime: '', // time the submit button was pressed and the task ended;
-        time: Date.now(), // timestamp for the current state of the graph;
-        count: 0,
-        clicked: [],
-        sortKey: this.sortKey,
-        selections: {
-          rowLabel: {},
-          colLabel: {},
-          neighborSelect: {},
-          cellCol: {},
-          cellRow: {},
-          search: {},
-        },
-      };
-
-      const provenance = ProvenanceLibrary.initProvenance(initialState);
-      this.provenance = provenance;
-
-      return provenance;
     },
 
     initializeEdges(): void {
@@ -614,8 +581,6 @@ export default Vue.extend({
         )
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           this.sort(matrixElement._id);
-          const action = this.changeInteractionWrapper('neighborSelect');
-          this.provenance.applyAction(action);
         })
         .attr('cursor', 'pointer')
         .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
@@ -924,97 +889,6 @@ export default Vue.extend({
       this.cells.merge(cellsEnter);
     },
 
-    changeInteractionWrapper(interactionType: string, cell?: Cell): any {
-      return {
-        label: interactionType,
-        // eslint-disable-next-line consistent-return
-        action: (interactID: string) => {
-          const currentState = this.getApplicationState();
-          // add time stamp to the state graph
-          currentState.time = Date.now();
-          currentState.event = interactionType;
-          const interactionName = interactionType; // cell, search, etc
-          let interactedElement: string = interactionType;
-          if (interactionName === 'cell' && cell !== undefined) {
-            // eslint-disable-next-line no-param-reassign
-            interactID = cell.colID;
-            interactedElement = cell.cellName; // + cellData.rowID;
-
-            this.changeInteraction(
-              currentState,
-              interactID,
-              'cellCol',
-              interactedElement,
-            );
-            this.changeInteraction(
-              currentState,
-              interactID,
-              'cellRow',
-              interactedElement,
-            );
-            if (cell.cellName !== cell.correspondingCell) {
-              interactedElement = cell.correspondingCell; // + cellData.rowID;
-              // eslint-disable-next-line no-param-reassign
-              interactID = cell.rowID;
-
-              this.changeInteraction(
-                currentState,
-                interactID,
-                'cellCol',
-                interactedElement,
-              );
-              this.changeInteraction(
-                currentState,
-                interactID,
-                'cellRow',
-                interactedElement,
-              );
-            }
-            return currentState;
-
-            // interactID = cellData.rowID;
-            // interactionName = interactionName + 'row'
-          } if (interactionName === 'highlightRow') {
-            return interactionName;
-          }
-
-          if (interactionName === 'neighborSelect') {
-            this.changeInteraction(
-              currentState,
-              interactID,
-              interactionName,
-              interactedElement,
-            );
-            return currentState;
-          }
-        },
-      };
-    },
-
-    changeInteraction(
-      state: ProvenanceState,
-      nodeID: string,
-      interaction: keyof ProvenanceState['selections'],
-      interactionName: string = interaction,
-    ): void {
-      if (nodeID in state.selections[interaction]) {
-        // Remove element if in list, if list is empty, delete key
-        const currentIndex = state.selections[interaction][nodeID].indexOf(
-          interactionName,
-        );
-        if (currentIndex > -1) {
-          state.selections[interaction][nodeID].splice(currentIndex, 1);
-          if (state.selections[interaction][nodeID].length === 0) {
-            delete state.selections[interaction][nodeID];
-          }
-        } else {
-          state.selections[interaction][nodeID].push(interactionName);
-        }
-      } else {
-        state.selections[interaction][nodeID] = [interactionName];
-      }
-    },
-
     drawGridLines(): void {
       selectAll('.gridLines').remove();
       const gridLines = this.edges.append('g').attr('class', 'gridLines');
@@ -1138,32 +1012,7 @@ export default Vue.extend({
     },
 
     changeOrder(type: string, node: boolean) {
-      const action = this.generateSortAction(type);
-      this.provenance.applyAction(action);
       this.sortObserver(type, node);
-    },
-
-    generateSortAction(
-      sortKey: string,
-    ): {
-      label: string;
-      action: (key: string) => ProvenanceState;
-      args: any[];
-    } {
-      return {
-        label: 'sort',
-        action: (key: string) => {
-          const currentState = this.getApplicationState();
-          // add time stamp to the state graph
-          currentState.time = Date.now();
-          currentState.event = 'sort';
-
-          currentState.sortKey = key;
-
-          return currentState;
-        },
-        args: [sortKey],
-      };
     },
 
     sortObserver(type: string, isNode = false) {
@@ -1235,10 +1084,6 @@ export default Vue.extend({
         });
       }
       this.sortOrder = order;
-    },
-
-    getApplicationState(): ProvenanceState {
-      return this.provenance.graph().current.state;
     },
 
     isCell(element: unknown): element is Cell {
