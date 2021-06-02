@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
+import { range } from 'd3-array';
 import { scaleLinear, ScaleLinear } from 'd3-scale';
 
 import api from '@/api';
@@ -9,6 +10,7 @@ import {
   GraphSpec, RowsSpec, TableRow, UserSpec,
 } from 'multinet';
 import {
+  Cell,
   Link, LoadError, Network, Node, State,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
@@ -31,6 +33,11 @@ const {
       href: '',
     },
     userInfo: null,
+    cellSize: 15,
+    selectedNodes: [],
+    selectedCells: [],
+    hoveredNodes: [],
+    sortOrder: [],
     directionalEdges: false,
     selectNeighbors: true,
     showGridLines: true,
@@ -67,6 +74,7 @@ const {
         .range(['#f79d97', '#c0362c']);
     },
   },
+
   mutations: {
     setWorkspaceName(state, workspaceName: string) {
       state.workspaceName = workspaceName;
@@ -89,6 +97,37 @@ const {
 
     setUserInfo(state, userInfo: UserSpec | null) {
       state.userInfo = userInfo;
+    },
+
+    clickElement(state, elementID: string) {
+      if (state.selectedNodes.indexOf(elementID) === -1) {
+        state.selectedNodes.push(elementID);
+      } else {
+        state.selectedNodes = state.selectedNodes.filter((arrayElementID) => arrayElementID !== elementID);
+      }
+    },
+
+    clickCell(state, cell: Cell) {
+      // Add/remove cell from selectedCells. If adding make sure nodes are selected
+      if (state.selectedCells.findIndex((arrayElement) => arrayElement.cellName === cell.cellName) === -1) {
+        state.selectedCells.push(cell);
+      } else {
+        state.selectedCells = state.selectedCells.filter((arrayElement) => arrayElement.cellName !== cell.cellName);
+      }
+    },
+
+    setSortOrder(state, sortOrder: number[]) {
+      state.sortOrder = sortOrder;
+    },
+
+    pushHoveredNode(state, nodeID: string) {
+      if (state.hoveredNodes.indexOf(nodeID) === -1) {
+        state.hoveredNodes.push(nodeID);
+      }
+    },
+
+    removeHoveredNode(state, nodeID: string) {
+      state.hoveredNodes = state.hoveredNodes.filter((hoveredNode) => hoveredNode !== nodeID);
     },
 
     setNodeTableNames(state, nodeTableNames: string[]) {
@@ -121,14 +160,6 @@ const {
 
     setShowChildLegend(state, showChildLegend: boolean) {
       state.showChildLegend = showChildLegend;
-    },
-
-    setVisualizedNodeAttributes(state, visualizedNodeAttributes: string[]) {
-      state.visualizedNodeAttributes = visualizedNodeAttributes;
-    },
-
-    setVisualizedLinkAttributes(state, visualizedLinkAttributes: string[]) {
-      state.visualizedLinkAttributes = visualizedLinkAttributes;
     },
 
     setMaxConnections(state, maxConnections: {
@@ -231,6 +262,7 @@ const {
         edges: edges as Link[],
       };
       commit.setNetwork(network);
+      commit.setSortOrder(range(0, network.nodes.length));
     },
 
     async fetchUserInfo(context) {

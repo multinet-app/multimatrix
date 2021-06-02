@@ -44,14 +44,17 @@ export interface State {
   network: Network | null;
   loadError: LoadError;
   userInfo: UserSpec | null;
+  cellSize: number;
+  selectedNodes: string[];
+  selectedCells: Cell[];
+  hoveredNodes: string[];
+  sortOrder: number[];
   directionalEdges: boolean;
   selectNeighbors: boolean;
   showGridLines: boolean;
   enableGraffinity: boolean;
   aggregated: boolean;
   showChildLegend: boolean;
-  visualizedNodeAttributes: string[];
-  visualizedLinkAttributes: string[];
   maxConnections: {
     unAggr: number;
     parent: number;
@@ -73,7 +76,6 @@ export interface ProvenanceState {
   clicked: never[];
   sortKey: string;
   selections: {
-    attrRow: { [key: string]: unknown[] };
     rowLabel: { [key: string]: unknown[] };
     colLabel: { [key: string]: unknown[] };
     neighborSelect: { [key: string]: unknown[] };
