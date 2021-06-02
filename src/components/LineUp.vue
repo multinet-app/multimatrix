@@ -1,7 +1,7 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  computed, onMounted, Ref, ref, watchEffect,
+  computed, onMounted, Ref, ref, SetupContext, watchEffect,
 } from '@vue/composition-api';
 import LineUp, { DataBuilder } from 'lineupjs';
 import { select } from 'd3-selection';
@@ -9,7 +9,7 @@ import { select } from 'd3-selection';
 export default {
   name: 'LineUp',
 
-  setup(props, context) {
+  setup(props: unknown, context: SetupContext) {
     const network = computed(() => store.state.network);
     const selectedNodes = computed(() => store.state.selectedNodes);
     const hoveredNodes = computed(() => store.state.hoveredNodes);
@@ -124,7 +124,8 @@ export default {
           currentLineupSortOrder = lineupOrder;
         } else if (JSON.stringify(currentLineupSortOrder) !== JSON.stringify(storeOrder)) {
           // If store order has changed, update lineup
-          console.log(lineup.value);
+          // lineup.value.data.getFirstRanking().order = storeOrder;
+          currentLineupSortOrder = storeOrder;
         }
       }
     });

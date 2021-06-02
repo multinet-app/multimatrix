@@ -24,7 +24,8 @@
       "dom",
       "dom.iterable",
       "scripthost"
-    ]
+    ],
+    "skipLibCheck": true // Stops compilation errors that arise from node_modules (lineupjs)
   },
   "include": [
     "src/**/*.ts",
