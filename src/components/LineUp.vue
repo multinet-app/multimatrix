@@ -4,17 +4,30 @@ import {
   computed, nextTick, Ref, ref, watchEffect,
 } from '@vue/composition-api';
 import LineUp, { DataBuilder } from 'lineupjs';
+import { select } from 'd3-selection';
 
 export default {
   name: 'LineUp',
 
-  setup() {
+  setup(props, context) {
     const network = computed(() => store.state.network);
     const selectedNodes = computed(() => store.state.selectedNodes);
     const hoveredNodes = computed(() => store.state.hoveredNodes);
 
     const lineup: Ref<LineUp | null> = ref(null);
     const builder: Ref<DataBuilder | null> = ref(null);
+
+    const lineupWidth = computed(() => {
+      const controlsElement = select<Element, Element>('.app-sidebar').node();
+      const matrixElement = select<Element, Element>('#matrix').node();
+
+      if (controlsElement !== null && matrixElement !== null) {
+        const availableSpace = context.root.$vuetify.breakpoint.width - controlsElement.clientWidth - matrixElement.clientWidth - 12; // 12 from the svg container padding
+        return availableSpace < 330 ? 330 : availableSpace;
+      }
+
+      return 330;
+    });
 
     // Helper functions
     function idsToIndices(ids: string[]) {
@@ -116,19 +129,24 @@ export default {
       }
     });
 
-    return {};
+    return {
+      lineupWidth,
+    };
   },
 };
 </script>
 
 <template>
-  <div id="lineup" />
+  <div
+    id="lineup"
+    :style="`width: ${lineupWidth}px;`"
+  />
 </template>
 
 <style>
 #lineup {
   z-index: 10;
-  height: 1000px;
+  height: 10000px; /* big enough to show all rows */
 }
 
 .le-th {
