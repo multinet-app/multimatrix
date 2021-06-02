@@ -1,7 +1,7 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  computed, nextTick, Ref, ref, watchEffect,
+  computed, onMounted, Ref, ref, watchEffect,
 } from '@vue/composition-api';
 import LineUp, { DataBuilder } from 'lineupjs';
 import { select } from 'd3-selection';
@@ -48,7 +48,7 @@ export default {
     }
 
     // We have to use nextTick so that the component is rendered
-    nextTick(() => {
+    onMounted(() => {
       const lineupDiv = document.getElementById('lineup');
 
       if (network.value !== null && lineupDiv !== null) {
