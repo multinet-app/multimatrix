@@ -10,9 +10,7 @@ import {
 } from '@/lib/aggregation';
 import {
   Cell,
-  Dimensions,
   Link,
-  Network,
   Node,
   ProvenanceState,
 } from '@/types';
@@ -40,11 +38,8 @@ export default Vue.extend({
   },
 
   data(): {
-    browser: Dimensions;
     visMargins: any;
-    matrixSVG: any;
     matrix: Cell[][];
-    columnHeaders: any;
     edges: any;
     edgeColumns: any;
     edgeRows: any;
@@ -52,32 +47,18 @@ export default Vue.extend({
     clickMap: Map<string, boolean>; // variable for keeping track of whether a label has been clicked or not
     nonAggrNodes: Node[];
     nonAggrLinks: Link[];
-    expandRetractAggrVisNodes: Network; // variable for keeping track of the current nodes being visualized
-    expandRetractAggrVisEdges: Network; // variable for keeping track of the current links being visualized
     icons: { [key: string]: { [d: string]: string } };
-    selectedNodesAndNeighbors: { [key: string]: string[] };
-    order: any;
     orderType: any;
     provenance: any;
     sortKey: string;
-    colMargin: number;
-    linkAttributeRows: any;
-    combinedAttributes: string[];
     showIcon: boolean;
-    sidebarWidth: number;
     finishedMounting: boolean;
     } {
     return {
-      browser: {
-        height: 0,
-        width: 0,
-      },
       visMargins: {
         left: 75, top: 79, right: 0, bottom: 0,
       },
-      matrixSVG: undefined,
       matrix: [],
-      columnHeaders: undefined,
       edges: undefined,
       edgeColumns: undefined,
       edgeRows: undefined,
@@ -85,14 +66,6 @@ export default Vue.extend({
       clickMap: new Map<string, boolean>(),
       nonAggrNodes: [],
       nonAggrLinks: [],
-      expandRetractAggrVisNodes: {
-        nodes: [],
-        edges: [],
-      },
-      expandRetractAggrVisEdges: {
-        nodes: [],
-        edges: [],
-      },
       icons: {
         quant: {
           d:
@@ -111,16 +84,10 @@ export default Vue.extend({
             'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
         },
       },
-      selectedNodesAndNeighbors: {},
-      order: undefined,
       orderType: undefined,
       provenance: undefined,
       sortKey: '',
-      colMargin: 5,
-      linkAttributeRows: undefined,
-      combinedAttributes: [],
       showIcon: false,
-      sidebarWidth: 256,
       finishedMounting: false,
     };
   },
@@ -364,14 +331,6 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    this.browser.width = window.innerWidth
-      || document.documentElement.clientWidth
-      || document.body.clientWidth;
-
-    this.browser.height = window.innerHeight
-      || document.documentElement.clientHeight
-      || document.body.clientHeight;
-
     // Run process data to convert links to cells
     this.processData();
 
