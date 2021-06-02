@@ -103,7 +103,7 @@ export default {
     // Update selection/hover from matrix
     watchEffect(() => {
       // Convert the ids to indices
-      const indices = idsToIndices([...selectedNodes.value, ...hoveredNodes.value]);
+      const indices = [...new Set(idsToIndices([...selectedNodes.value, ...hoveredNodes.value]))];
 
       if (lineup.value !== null) {
         lineup.value.setSelection(indices);
