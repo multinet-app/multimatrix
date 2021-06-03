@@ -148,6 +148,10 @@ const {
 
     setSelectNeighbors(state, selectNeighbors: boolean) {
       state.selectNeighbors = selectNeighbors;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Select Neighbors');
+      }
     },
 
     setShowGridlines(state, showGridLines: boolean) {
