@@ -1,4 +1,5 @@
 import { TableRow, UserSpec } from 'multinet';
+import { Provenance } from '@visdesignlab/trrack';
 
 export interface Dimensions {
   height: number;
