@@ -62,7 +62,12 @@ export interface State {
   };
   nodeTableNames: string[];
   edgeTableName: string | null;
+  provenance: Provenance<State, ProvenanceEventTypes, unknown> | null;
+  showProvenanceVis: boolean;
 }
+
+export type ProvenanceEventTypes =
+  'Set Select Neighbors';
 
 export interface AttrVis {
   _key: string;
