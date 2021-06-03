@@ -4,6 +4,7 @@ import { createDirectStore } from 'direct-vuex';
 
 import { range } from 'd3-array';
 import { scaleLinear, ScaleLinear } from 'd3-scale';
+import { initProvenance, Provenance } from '@visdesignlab/trrack';
 
 import api from '@/api';
 import {
@@ -11,9 +12,10 @@ import {
 } from 'multinet';
 import {
   Cell,
-  Link, LoadError, Network, Node, State,
+  Link, LoadError, Network, Node, ProvenanceEventTypes, State,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
+import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
 
 Vue.use(Vuex);
 
@@ -53,6 +55,8 @@ const {
     },
     nodeTableNames: [],
     edgeTableName: null,
+    provenance: null,
+    showProvenanceVis: false,
   } as State,
 
   getters: {
@@ -144,6 +148,10 @@ const {
 
     setSelectNeighbors(state, selectNeighbors: boolean) {
       state.selectNeighbors = selectNeighbors;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Select Neighbors');
+      }
     },
 
     setShowGridlines(state, showGridLines: boolean) {
@@ -168,6 +176,20 @@ const {
       child: number;
     }) {
       state.maxConnections = maxConnections;
+    },
+
+    setProvenance(state, provenance: Provenance<State, ProvenanceEventTypes, unknown>) {
+      state.provenance = provenance;
+    },
+
+    goToProvenanceNode(state, node: string) {
+      if (state.provenance !== null) {
+        state.provenance.goToNode(node);
+      }
+    },
+
+    toggleShowProvenanceVis(state) {
+      state.showProvenanceVis = !state.showProvenanceVis;
     },
   },
   actions: {
@@ -278,6 +300,53 @@ const {
       // Perform the server logout.
       await api.logout();
       commit.setUserInfo(null);
+    },
+
+    createProvenance(context) {
+      const { commit } = rootActionContext(context);
+
+      const storeState = context.state;
+
+      const stateForProv = JSON.parse(JSON.stringify(context.state));
+      stateForProv.selectedNodes = new Set<string>();
+
+      commit.setProvenance(initProvenance<State, ProvenanceEventTypes, unknown>(
+        stateForProv,
+        { loadFromUrl: false },
+      ));
+
+      // Add a global observer to watch the state and update the tracked elements in the store
+      // enables undo/redo + navigating around provenance graph
+      storeState.provenance.addGlobalObserver(
+        () => {
+          const provenanceState = context.state.provenance.state;
+
+          const { selectedNodes } = provenanceState;
+
+          // Helper function
+          const setsAreEqual = (a: Set<unknown>, b: Set<unknown>) => a.size === b.size && [...a].every((value) => b.has(value));
+
+          // If the sets are not equal (happens when provenance is updated through provenance vis),
+          // update the store's selectedNodes to match the provenance state
+          if (!setsAreEqual(selectedNodes, storeState.selectedNodes)) {
+            storeState.selectedNodes = selectedNodes;
+          }
+
+          // Iterate through vars with primitive data types
+          [
+            'selectNeighbors',
+          ].forEach((primitiveVariable) => {
+            if (storeState[primitiveVariable] !== provenanceState[primitiveVariable]) {
+              storeState[primitiveVariable] = provenanceState[primitiveVariable];
+            }
+          });
+        },
+      );
+
+      storeState.provenance.done();
+
+      // Add keydown listener for undo/redo
+      document.addEventListener('keydown', (event) => undoRedoKeyHandler(event, storeState));
     },
   },
 });
