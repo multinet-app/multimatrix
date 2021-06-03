@@ -150,6 +150,10 @@ export default {
   height: 10000px; /* big enough to show all rows */
 }
 
+.le-td {
+  overflow-x: unset !important;
+}
+
 .le-th {
   margin-bottom: 0 !important;
 }
