@@ -127,6 +127,10 @@ export default Vue.extend({
 
       legendSVG.select('.legendLinear').call(legendLinear);
     },
+
+    toggleProvVis() {
+      store.commit.toggleShowProvenanceVis();
+    },
   },
 });
 </script>
@@ -234,6 +238,18 @@ export default Vue.extend({
               @click="exportNetwork"
             >
               Export Network
+            </v-btn>
+          </v-list-item>
+
+          <v-list-item class="px-0">
+            <v-btn
+              block
+              class="ml-0 mt-4"
+              color="primary"
+              depressed
+              @click="toggleProvVis"
+            >
+              Provenance Vis
             </v-btn>
           </v-list-item>
         </div>
