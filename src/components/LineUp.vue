@@ -146,7 +146,7 @@ export default {
 
 <style>
 #lineup {
-  z-index: 10;
+  z-index: 1;
   height: 10000px; /* big enough to show all rows */
 }
 
