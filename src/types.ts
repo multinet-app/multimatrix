@@ -7,8 +7,9 @@ export interface Dimensions {
 }
 
 export interface Link extends TableRow {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [propName: string]: any;
+  _from: string;
+  _to: string;
+  [propName: string]: unknown;
 }
 
 export interface Network {
