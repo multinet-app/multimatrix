@@ -6,7 +6,13 @@ export interface Dimensions {
   width: number;
 }
 
-export interface Link extends TableRow {
+export interface Node extends TableRow {
+  type: string;
+  neighbors: string[];
+  [propName: string]: unknown;
+}
+
+export interface Edge extends TableRow {
   _from: string;
   _to: string;
   [propName: string]: unknown;
@@ -14,13 +20,7 @@ export interface Link extends TableRow {
 
 export interface Network {
   nodes: Node[];
-  edges: Link[];
-}
-
-export interface Node extends TableRow {
-  type: string;
-  neighbors: string[];
-  [propName: string]: unknown;
+  edges: Edge[];
 }
 
 export interface Cell {

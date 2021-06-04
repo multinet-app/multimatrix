@@ -12,7 +12,7 @@ import {
 } from 'multinet';
 import {
   Cell,
-  Link, LoadError, Network, Node, ProvenanceEventTypes, State,
+  Edge, LoadError, Network, Node, ProvenanceEventTypes, State,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
 import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
@@ -47,7 +47,7 @@ const {
     aggregated: false,
     showChildLegend: false,
     visualizedNodeAttributes: [],
-    visualizedLinkAttributes: [],
+    visualizedEdgeAttributes: [],
     maxConnections: {
       unAggr: 0,
       parent: 0,
@@ -273,7 +273,7 @@ const {
 
       // Generate and resolve edge table promise and extract rows
       const edgePromise = await api.table(workspaceName, networkTables.edgeTable, { offset: 0, limit: 1000 });
-      const edges = edgePromise.rows;
+      const edges = edgePromise.rows as Edge[];
 
       // Add neighbor definition to nodes
       nodes = defineNeighbors(nodes, edges);
@@ -281,7 +281,7 @@ const {
       // Build the network object and set it as the network in the store
       const network = {
         nodes: nodes as Node[],
-        edges: edges as Link[],
+        edges: edges as Edge[],
       };
       commit.setNetwork(network);
       commit.setSortOrder(range(0, network.nodes.length));

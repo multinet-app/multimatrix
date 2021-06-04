@@ -10,7 +10,7 @@ import {
 } from '@/lib/aggregation';
 import {
   Cell,
-  Link,
+  Edge,
   Node,
 } from '@/types';
 import {
@@ -44,7 +44,7 @@ export default Vue.extend({
     cells: any;
     clickMap: Map<string, boolean>; // variable for keeping track of whether a label has been clicked or not
     nonAggrNodes: Node[];
-    nonAggrLinks: Link[];
+    nonAggrEdges: Edge[];
     icons: { [key: string]: { [d: string]: string } };
     orderType: any;
     sortKey: string;
@@ -62,7 +62,7 @@ export default Vue.extend({
       cells: undefined,
       clickMap: new Map<string, boolean>(),
       nonAggrNodes: [],
-      nonAggrLinks: [],
+      nonAggrEdges: [],
       icons: {
         quant: {
           d:
@@ -275,7 +275,7 @@ export default Vue.extend({
         this.clickMap.clear();
 
         store.commit.setNetwork(
-          nonAggrNetwork(this.nonAggrNodes, this.nonAggrLinks),
+          nonAggrNetwork(this.nonAggrNodes, this.nonAggrEdges),
         );
 
         // Update everything on the screen
@@ -327,7 +327,7 @@ export default Vue.extend({
   },
 
   async mounted(this: any) {
-    // Run process data to convert links to cells
+    // Run process data to convert edges to cells
     this.processData();
 
     this.edges = select('#matrix')
@@ -406,7 +406,7 @@ export default Vue.extend({
         });
 
         // Count occurrences of edges and store it in the matrix
-        this.network.edges.forEach((edge: Link) => {
+        this.network.edges.forEach((edge: Edge) => {
           this.matrix[this.idMap[edge._from]][this.idMap[edge._to]].z += 1;
 
           if (!this.directionalEdges) {
@@ -768,7 +768,7 @@ export default Vue.extend({
                   store.commit.setNetwork(
                     retractSuperNetwork(
                       this.nonAggrNodes,
-                      this.nonAggrLinks,
+                      this.nonAggrEdges,
                       this.network.nodes,
                       this.network.edges,
                       supernode,
@@ -787,7 +787,7 @@ export default Vue.extend({
                   store.commit.setNetwork(
                     expandSuperNetwork(
                       this.nonAggrNodes,
-                      this.nonAggrLinks,
+                      this.nonAggrEdges,
                       this.network.nodes,
                       this.network.edges,
                       supernode,
@@ -941,7 +941,7 @@ export default Vue.extend({
       if (this.network !== null) {
         const uniqueValues = [
           ...new Set(
-            this.network.edges.map((link: Link) => parseFloat(link[varName])),
+            this.network.edges.map((edge: Edge) => parseFloat(`${edge[varName]}`)),
           ),
 
         ];
@@ -977,7 +977,7 @@ export default Vue.extend({
       let message = '';
 
       if (this.isCell(networkElement)) {
-        // Get link source and target
+        // Get edge source and target
         message = `
           Row ID: ${networkElement.rowID} <br/>
           Col ID: ${networkElement.colID} <br/>
@@ -1028,8 +1028,8 @@ export default Vue.extend({
         }
         const edges: any[] = Array(this.network.edges.length);
 
-        // Generate links that are compatible with reorder.js
-        this.network.edges.forEach((edge: Link, index: number) => {
+        // Generate edges that are compatible with reorder.js
+        this.network.edges.forEach((edge: Edge, index: number) => {
           edges[index] = {
             source: this.network!.nodes.find(
               (node: Node) => node._id === edge._from,
