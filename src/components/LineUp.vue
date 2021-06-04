@@ -130,8 +130,13 @@ export default {
       }
     });
 
+    function removeHighlight() {
+      store.commit.clearHoveredNodes();
+    }
+
     return {
       lineupWidth,
+      removeHighlight,
     };
   },
 };
@@ -141,6 +146,7 @@ export default {
   <div
     id="lineup"
     :style="`width: ${lineupWidth}px;`"
+    @mouseleave="removeHighlight"
   />
 </template>
 

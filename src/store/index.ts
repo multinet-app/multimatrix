@@ -134,6 +134,10 @@ const {
       state.hoveredNodes = state.hoveredNodes.filter((hoveredNode) => hoveredNode !== nodeID);
     },
 
+    clearHoveredNodes(state) {
+      state.hoveredNodes = [];
+    },
+
     setNodeTableNames(state, nodeTableNames: string[]) {
       state.nodeTableNames = nodeTableNames;
     },
