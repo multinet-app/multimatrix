@@ -252,11 +252,7 @@ export default Vue.extend({
     },
 
     showGridLines() {
-      if (this.showGridLines) {
-        selectAll('.gridLines').style('opacity', 0.3);
-      } else {
-        selectAll('.gridLines').style('opacity', 0);
-      }
+      this.drawGridLines();
     },
 
     network() {
@@ -891,9 +887,15 @@ export default Vue.extend({
 
     drawGridLines(): void {
       selectAll('.gridLines').remove();
-      const gridLines = this.edges.append('g').attr('class', 'gridLines');
+      const gridLines = this.edges
+        .append('g')
+        .attr('class', 'gridLines')
+        .style('opacity', this.showGridLines ? 0.3 : 0);
 
-      const lines = gridLines.selectAll('line').data(this.matrix).enter();
+      const lines = gridLines
+        .selectAll('line')
+        .data(this.matrix)
+        .enter();
 
       // vertical grid lines
       lines
@@ -914,8 +916,7 @@ export default Vue.extend({
         .attr('x2', this.orderingScale.range()[1])
         .attr('y1', 0)
         .attr('y2', this.orderingScale.range()[1])
-        .style('stroke', '#aaa')
-        .style('opacity', 0.3);
+        .style('stroke', '#aaa');
 
       // horizontal grid line edges
       gridLines
@@ -924,8 +925,7 @@ export default Vue.extend({
         .attr('x2', this.orderingScale.range()[1])
         .attr('y1', this.orderingScale.range()[1])
         .attr('y2', this.orderingScale.range()[1])
-        .style('stroke', '#aaa')
-        .style('opacity', 0.3);
+        .style('stroke', '#aaa');
     },
 
     sort(order: string): void {
