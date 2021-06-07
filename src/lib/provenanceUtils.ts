@@ -7,6 +7,16 @@ export function updateProvenanceState(vuexState: State, label: ProvenanceEventTy
   const stateUpdateActions = createAction<State, State[], ProvenanceEventTypes>((provState, newProvState) => {
     if (label === 'Set Select Neighbors') {
       provState.selectNeighbors = newProvState.selectNeighbors;
+    } else if (label === 'Set Show Grid Lines') {
+      provState.showGridLines = newProvState.showGridLines;
+    } else if (label === 'Set Directional Edges') {
+      provState.directionalEdges = newProvState.directionalEdges;
+    } else if (label === 'Set Enable Aggregation') {
+      provState.enableAggregation = newProvState.enableAggregation;
+    } else if (label === 'Select Cell' || label === 'De-Select Cell') {
+      provState.selectedCells = newProvState.selectedCells;
+    } else if (label === 'Select Node' || label === 'De-Select Node') {
+      provState.selectedNodes = newProvState.selectedNodes;
     }
 
     /* eslint-enable no-param-reassign */

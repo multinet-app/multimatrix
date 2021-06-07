@@ -43,7 +43,7 @@ const {
     directionalEdges: false,
     selectNeighbors: true,
     showGridLines: true,
-    enableGraffinity: false,
+    enableAggregation: false,
     aggregated: false,
     showChildLegend: false,
     visualizedNodeAttributes: [],
@@ -106,8 +106,16 @@ const {
     clickElement(state, elementID: string) {
       if (state.selectedNodes.indexOf(elementID) === -1) {
         state.selectedNodes.push(elementID);
+
+        if (state.provenance !== null) {
+          updateProvenanceState(state, 'Select Node');
+        }
       } else {
         state.selectedNodes = state.selectedNodes.filter((arrayElementID) => arrayElementID !== elementID);
+
+        if (state.provenance !== null) {
+          updateProvenanceState(state, 'De-Select Node');
+        }
       }
     },
 
@@ -115,8 +123,16 @@ const {
       // Add/remove cell from selectedCells. If adding make sure nodes are selected
       if (state.selectedCells.findIndex((arrayElement) => arrayElement.cellName === cell.cellName) === -1) {
         state.selectedCells.push(cell);
+
+        if (state.provenance !== null) {
+          updateProvenanceState(state, 'Select Cell');
+        }
       } else {
         state.selectedCells = state.selectedCells.filter((arrayElement) => arrayElement.cellName !== cell.cellName);
+
+        if (state.provenance !== null) {
+          updateProvenanceState(state, 'De-Select Cell');
+        }
       }
     },
 
@@ -148,6 +164,10 @@ const {
 
     setDirectionalEdges(state, directionalEdges: boolean) {
       state.directionalEdges = directionalEdges;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Directional Edges');
+      }
     },
 
     setSelectNeighbors(state, selectNeighbors: boolean) {
@@ -160,10 +180,18 @@ const {
 
     setShowGridlines(state, showGridLines: boolean) {
       state.showGridLines = showGridLines;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Show Grid Lines');
+      }
     },
 
-    setEnableGraffinity(state, enableGraffinity: boolean) {
-      state.enableGraffinity = enableGraffinity;
+    setEnableAggregation(state, enableAggregation: boolean) {
+      state.enableAggregation = enableAggregation;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Enable Aggregation');
+      }
     },
 
     setAggregated(state, aggregated: boolean) {
@@ -325,20 +353,25 @@ const {
         () => {
           const provenanceState = context.state.provenance.state;
 
-          const { selectedNodes } = provenanceState;
+          const { selectedNodes, selectedCells } = provenanceState;
 
           // Helper function
           const setsAreEqual = (a: Set<unknown>, b: Set<unknown>) => a.size === b.size && [...a].every((value) => b.has(value));
 
           // If the sets are not equal (happens when provenance is updated through provenance vis),
           // update the store's selectedNodes to match the provenance state
-          if (!setsAreEqual(selectedNodes, storeState.selectedNodes)) {
-            storeState.selectedNodes = selectedNodes;
+          if (!setsAreEqual(new Set(selectedNodes), new Set(storeState.selectedNodes))) {
+            storeState.selectedNodes = selectedNodes instanceof Array ? selectedNodes : [];
+          } else if (!setsAreEqual(new Set(selectedCells), new Set(storeState.selectedCells))) {
+            storeState.selectedCells = selectedCells instanceof Array ? selectedCells : [];
           }
 
           // Iterate through vars with primitive data types
           [
             'selectNeighbors',
+            'showGridLines',
+            'directionalEdges',
+            'enableAggregation',
           ].forEach((primitiveVariable) => {
             if (storeState[primitiveVariable] !== provenanceState[primitiveVariable]) {
               storeState[primitiveVariable] = provenanceState[primitiveVariable];

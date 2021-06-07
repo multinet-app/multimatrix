@@ -171,8 +171,8 @@ export default Vue.extend({
       return store.state.showGridLines;
     },
 
-    enableGraffinity() {
-      return store.state.enableGraffinity;
+    enableAggregation() {
+      return store.state.enableAggregation;
     },
 
     aggregated() {
@@ -252,11 +252,7 @@ export default Vue.extend({
     },
 
     showGridLines() {
-      if (this.showGridLines) {
-        selectAll('.gridLines').style('opacity', 0.3);
-      } else {
-        selectAll('.gridLines').style('opacity', 0);
-      }
+      this.drawGridLines();
     },
 
     network() {
@@ -269,8 +265,8 @@ export default Vue.extend({
       this.initializeEdges();
     },
 
-    enableGraffinity() {
-      if (!this.enableGraffinity && this.aggregated === true && this.network !== null) {
+    enableAggregation() {
+      if (!this.enableAggregation && this.aggregated === true && this.network !== null) {
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
 
@@ -756,8 +752,8 @@ export default Vue.extend({
             return '';
           })
           .on('click', (event: MouseEvent, node: Node) => {
-            // allow expanding the vis if graffinity features are turned on
-            if (this.enableGraffinity) {
+            // allow expanding the vis if aggregation is turned on
+            if (this.enableAggregation) {
               if (node.type === 'childnode') {
                 return;
               }
@@ -891,9 +887,15 @@ export default Vue.extend({
 
     drawGridLines(): void {
       selectAll('.gridLines').remove();
-      const gridLines = this.edges.append('g').attr('class', 'gridLines');
+      const gridLines = this.edges
+        .append('g')
+        .attr('class', 'gridLines')
+        .style('opacity', this.showGridLines ? 0.3 : 0);
 
-      const lines = gridLines.selectAll('line').data(this.matrix).enter();
+      const lines = gridLines
+        .selectAll('line')
+        .data(this.matrix)
+        .enter();
 
       // vertical grid lines
       lines
@@ -914,8 +916,7 @@ export default Vue.extend({
         .attr('x2', this.orderingScale.range()[1])
         .attr('y1', 0)
         .attr('y2', this.orderingScale.range()[1])
-        .style('stroke', '#aaa')
-        .style('opacity', 0.3);
+        .style('stroke', '#aaa');
 
       // horizontal grid line edges
       gridLines
@@ -924,8 +925,7 @@ export default Vue.extend({
         .attr('x2', this.orderingScale.range()[1])
         .attr('y1', this.orderingScale.range()[1])
         .attr('y2', this.orderingScale.range()[1])
-        .style('stroke', '#aaa')
-        .style('opacity', 0.3);
+        .style('stroke', '#aaa');
     },
 
     sort(order: string): void {

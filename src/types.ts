@@ -54,7 +54,7 @@ export interface State {
   directionalEdges: boolean;
   selectNeighbors: boolean;
   showGridLines: boolean;
-  enableGraffinity: boolean;
+  enableAggregation: boolean;
   aggregated: boolean;
   showChildLegend: boolean;
   maxConnections: {
@@ -69,4 +69,11 @@ export interface State {
 }
 
 export type ProvenanceEventTypes =
-  'Set Select Neighbors';
+  'Set Select Neighbors' |
+  'Set Show Grid Lines' |
+  'Set Directional Edges' |
+  'Set Enable Aggregation' |
+  'Select Cell' |
+  'De-Select Cell' |
+  'Select Node' |
+  'De-Select Node';

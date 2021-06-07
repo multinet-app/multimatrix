@@ -46,12 +46,12 @@ export default Vue.extend({
       },
     },
 
-    enableGraffinity: {
+    enableAggregation: {
       get() {
-        return store.state.enableGraffinity;
+        return store.state.enableAggregation;
       },
       set(value: boolean) {
-        store.commit.setEnableGraffinity(value);
+        store.commit.setEnableAggregation(value);
       },
     },
 
@@ -215,17 +215,17 @@ export default Vue.extend({
             <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
-          <!-- Graffinity Toggle List Item -->
+          <!-- Aggregation Toggle List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
               <v-switch
-                v-model="enableGraffinity"
+                v-model="enableAggregation"
                 class="ma-0"
                 hide-details
               />
             </v-list-item-action>
             <v-list-item-content>
-              Enable Graffinity Features
+              Enable Aggregation
             </v-list-item-content>
           </v-list-item>
 
