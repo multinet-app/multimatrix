@@ -51,7 +51,7 @@ export default Vue.extend({
         return store.state.enableAggregation;
       },
       set(value: boolean) {
-        store.commit.setenableAggregation(value);
+        store.commit.setEnableAggregation(value);
       },
     },
 

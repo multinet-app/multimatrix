@@ -170,7 +170,7 @@ const {
       }
     },
 
-    setenableAggregation(state, enableAggregation: boolean) {
+    setEnableAggregation(state, enableAggregation: boolean) {
       state.enableAggregation = enableAggregation;
 
       if (state.provenance !== null) {
