@@ -148,6 +148,10 @@ const {
 
     setDirectionalEdges(state, directionalEdges: boolean) {
       state.directionalEdges = directionalEdges;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Directional Edges');
+      }
     },
 
     setSelectNeighbors(state, selectNeighbors: boolean) {
@@ -160,10 +164,18 @@ const {
 
     setShowGridlines(state, showGridLines: boolean) {
       state.showGridLines = showGridLines;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Show Grid Lines');
+      }
     },
 
     setenableAggregation(state, enableAggregation: boolean) {
       state.enableAggregation = enableAggregation;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Enable Aggregation');
+      }
     },
 
     setAggregated(state, aggregated: boolean) {
@@ -339,6 +351,9 @@ const {
           // Iterate through vars with primitive data types
           [
             'selectNeighbors',
+            'showGridLines',
+            'directionalEdges',
+            'enableAggregation',
           ].forEach((primitiveVariable) => {
             if (storeState[primitiveVariable] !== provenanceState[primitiveVariable]) {
               storeState[primitiveVariable] = provenanceState[primitiveVariable];

@@ -69,4 +69,7 @@ export interface State {
 }
 
 export type ProvenanceEventTypes =
-  'Set Select Neighbors';
+  'Set Select Neighbors' |
+  'Set Show Grid Lines' |
+  'Set Directional Edges' |
+  'Set Enable Aggregation';
