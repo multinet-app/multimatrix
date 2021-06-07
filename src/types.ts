@@ -72,4 +72,8 @@ export type ProvenanceEventTypes =
   'Set Select Neighbors' |
   'Set Show Grid Lines' |
   'Set Directional Edges' |
-  'Set Enable Aggregation';
+  'Set Enable Aggregation' |
+  'Select Cell' |
+  'De-Select Cell' |
+  'Select Node' |
+  'De-Select Node';

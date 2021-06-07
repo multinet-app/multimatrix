@@ -13,6 +13,10 @@ export function updateProvenanceState(vuexState: State, label: ProvenanceEventTy
       provState.directionalEdges = newProvState.directionalEdges;
     } else if (label === 'Set Enable Aggregation') {
       provState.enableAggregation = newProvState.enableAggregation;
+    } else if (label === 'Select Cell' || label === 'De-Select Cell') {
+      provState.selectedCells = newProvState.selectedCells;
+    } else if (label === 'Select Node' || label === 'De-Select Node') {
+      provState.selectedNodes = newProvState.selectedNodes;
     }
 
     /* eslint-enable no-param-reassign */
