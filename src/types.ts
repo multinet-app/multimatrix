@@ -6,20 +6,21 @@ export interface Dimensions {
   width: number;
 }
 
-export interface Link extends TableRow {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [propName: string]: any;
-}
-
-export interface Network {
-  nodes: Node[];
-  edges: Link[];
-}
-
 export interface Node extends TableRow {
   type: string;
   neighbors: string[];
   [propName: string]: unknown;
+}
+
+export interface Edge extends TableRow {
+  _from: string;
+  _to: string;
+  [propName: string]: unknown;
+}
+
+export interface Network {
+  nodes: Node[];
+  edges: Edge[];
 }
 
 export interface Cell {
@@ -69,11 +70,3 @@ export interface State {
 
 export type ProvenanceEventTypes =
   'Set Select Neighbors';
-
-export interface AttrVis {
-  _key: string;
-  id: string;
-  [propName: string]: any;
-  series: [number, number, { [key: string]: any }, string][];
-  values: { [key: string]: any };
-}

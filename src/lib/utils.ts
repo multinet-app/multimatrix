@@ -1,4 +1,4 @@
-import { Link } from '@/types';
+import { Edge } from '@/types';
 
 // Get the url querystring variables
 export function getUrlVars() {
@@ -13,16 +13,16 @@ export function getUrlVars() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function defineNeighbors(nodes: any[], links: Link[]) {
+export function defineNeighbors(nodes: any[], edges: Edge[]) {
   // eslint-disable-next-line no-return-assign, no-param-reassign
   nodes.forEach((d) => (d.neighbors = []));
-  links.forEach((link) => {
-    const findNodeFrom = nodes.find((node) => node._id === link._from);
-    const findNodeTo = nodes.find((node) => node._id === link._to);
+  edges.forEach((edge) => {
+    const findNodeFrom = nodes.find((node) => node._id === edge._from);
+    const findNodeTo = nodes.find((node) => node._id === edge._to);
 
     if (findNodeFrom !== undefined && findNodeTo !== undefined) {
-      findNodeFrom.neighbors.push(link._to);
-      findNodeTo.neighbors.push(link._from);
+      findNodeFrom.neighbors.push(edge._to);
+      findNodeTo.neighbors.push(edge._from);
     }
   });
 
