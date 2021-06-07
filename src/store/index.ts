@@ -43,7 +43,7 @@ const {
     directionalEdges: false,
     selectNeighbors: true,
     showGridLines: true,
-    enableGraffinity: false,
+    enableAggregation: false,
     aggregated: false,
     showChildLegend: false,
     visualizedNodeAttributes: [],
@@ -162,8 +162,8 @@ const {
       state.showGridLines = showGridLines;
     },
 
-    setEnableGraffinity(state, enableGraffinity: boolean) {
-      state.enableGraffinity = enableGraffinity;
+    setenableAggregation(state, enableAggregation: boolean) {
+      state.enableAggregation = enableAggregation;
     },
 
     setAggregated(state, aggregated: boolean) {

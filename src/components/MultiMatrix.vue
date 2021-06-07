@@ -171,8 +171,8 @@ export default Vue.extend({
       return store.state.showGridLines;
     },
 
-    enableGraffinity() {
-      return store.state.enableGraffinity;
+    enableAggregation() {
+      return store.state.enableAggregation;
     },
 
     aggregated() {
@@ -269,8 +269,8 @@ export default Vue.extend({
       this.initializeEdges();
     },
 
-    enableGraffinity() {
-      if (!this.enableGraffinity && this.aggregated === true && this.network !== null) {
+    enableAggregation() {
+      if (!this.enableAggregation && this.aggregated === true && this.network !== null) {
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
 
@@ -756,8 +756,8 @@ export default Vue.extend({
             return '';
           })
           .on('click', (event: MouseEvent, node: Node) => {
-            // allow expanding the vis if graffinity features are turned on
-            if (this.enableGraffinity) {
+            // allow expanding the vis if aggregation is turned on
+            if (this.enableAggregation) {
               if (node.type === 'childnode') {
                 return;
               }

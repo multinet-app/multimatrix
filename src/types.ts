@@ -54,7 +54,7 @@ export interface State {
   directionalEdges: boolean;
   selectNeighbors: boolean;
   showGridLines: boolean;
-  enableGraffinity: boolean;
+  enableAggregation: boolean;
   aggregated: boolean;
   showChildLegend: boolean;
   maxConnections: {
