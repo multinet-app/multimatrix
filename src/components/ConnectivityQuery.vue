@@ -39,6 +39,15 @@
             >
               Edge
             </v-list-item-title>
+            <v-autocomplete
+              v-model="edgeCategory"
+              :items="edgeCategories"
+              dense
+            />
+            <v-autocomplete
+              :items="edgeCategoryOptions"
+              dense
+            />
           </v-list-item-content>
         </v-list-item>
       </v-list-item-group>
@@ -49,14 +58,22 @@
 <script lang="ts">
 import Vue from 'vue';
 import store from '@/store';
-import { Node } from '@/types';
+import { Node, Edge } from '@/types';
 
 export default Vue.extend({
-  data() {
+  data(): {
+      hopsSelection: number[];
+      nodeQueryOptions: string[];
+      nodeCategory: string | null;
+      edgeQueryOptions: string[];
+      edgeCategory: string | null;
+      } {
     return {
       hopsSelection: [1, 2, 3, 4, 5],
-      nodeQueryOptions: ['contains', 'matches exactly'],
+      nodeQueryOptions: [],
       nodeCategory: '',
+      edgeQueryOptions: [],
+      edgeCategory: '',
     };
   },
   computed: {
@@ -75,7 +92,19 @@ export default Vue.extend({
       if (store.state.network) { return Object.keys(store.state.network.nodes[0]); } return 'No network';
     },
     nodeCategoryOptions() {
-      if (store.state.network) { return store.state.network.nodes.map((n: Node) => n.nodeCategory); } return 'No network';
+      if (store.state.network && this.nodeCategory) {
+        const attr: string = this.nodeCategory;
+        return store.state.network.nodes.map((n: Node) => n[attr]).sort();
+      } return 'No network';
+    },
+    edgeCategories() {
+      if (store.state.network) { return Object.keys(store.state.network.edges[0]); } return 'No network';
+    },
+    edgeCategoryOptions() {
+      if (store.state.network && this.edgeCategory) {
+        const edgeAttr: string = this.edgeCategory;
+        return store.state.network.edges.map((n: Edge) => n[edgeAttr]).sort();
+      } return 'No network';
     },
   },
 
