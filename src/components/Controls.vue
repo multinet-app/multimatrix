@@ -7,11 +7,13 @@ import { ScaleLinear } from 'd3-scale';
 import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
+import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 
 export default Vue.extend({
   components: {
     AboutDialog,
     LoginMenu,
+    ConnectivityQuery,
   },
 
   computed: {
@@ -290,6 +292,13 @@ export default Vue.extend({
           </v-list-item>
         </div>
       </v-list>
+      <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+        Connectivity Query
+      </v-subheader>
+
+      <div class="pa-4">
+        <connectivity-query />
+      </div>
     </v-navigation-drawer>
   </div>
 </template>

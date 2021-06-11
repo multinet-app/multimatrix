@@ -66,6 +66,7 @@ export interface State {
   edgeTableName: string | null;
   provenance: Provenance<State, ProvenanceEventTypes, unknown> | null;
   showProvenanceVis: boolean;
+  selectedHops: number;
 }
 
 export type ProvenanceEventTypes =
