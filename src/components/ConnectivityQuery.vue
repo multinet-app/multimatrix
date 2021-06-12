@@ -21,36 +21,48 @@
             v-if="i % 2 !== 0"
           >
             <v-row>
-              <v-list-item-title>
-                Node
-              </v-list-item-title>
-              <v-autocomplete
-                v-model="nodeCategory"
-                :items="nodeCategories"
-                dense
-              />
-              <v-autocomplete
-                :items="nodeCategoryOptions"
-                dense
-              />
+              <v-col>
+                <v-list-item-title>
+                  Node
+                </v-list-item-title>
+              </v-col>
+              <v-col>
+                <v-autocomplete
+                  v-model="nodeCategory"
+                  :items="nodeCategories"
+                  dense
+                />
+              </v-col>
+              <v-col>
+                <v-autocomplete
+                  :items="nodeCategoryOptions"
+                  dense
+                />
+              </v-col>
             </v-row>
           </v-list-item-content>
           <v-list-item-content
             v-else
           >
             <v-row>
-              <v-list-item-title>
-                Edge
-              </v-list-item-title>
-              <v-autocomplete
-                v-model="edgeCategory"
-                :items="edgeCategories"
-                dense
-              />
-              <v-autocomplete
-                :items="edgeCategoryOptions"
-                dense
-              />
+              <v-col>
+                <v-list-item-title>
+                  Edge
+                </v-list-item-title>
+              </v-col>
+              <v-col>
+                <v-autocomplete
+                  v-model="edgeCategory"
+                  :items="edgeCategories"
+                  dense
+                />
+              </v-col>
+              <v-col>
+                <v-autocomplete
+                  :items="edgeCategoryOptions"
+                  dense
+                />
+              </v-col>
             </v-row>
           </v-list-item-content>
         </v-list-item>
