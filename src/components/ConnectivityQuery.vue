@@ -60,7 +60,6 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
 import store from '@/store';
 import { Node, Edge } from '@/types';
 import { computed, ref, Ref } from '@vue/composition-api';
