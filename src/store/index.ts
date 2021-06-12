@@ -57,7 +57,6 @@ const {
     edgeTableName: null,
     provenance: null,
     showProvenanceVis: false,
-    selectedHops: 1,
   } as State,
 
   getters: {
@@ -223,10 +222,6 @@ const {
 
     toggleShowProvenanceVis(state) {
       state.showProvenanceVis = !state.showProvenanceVis;
-    },
-
-    setSelectedHops(state, selectedHops: number) {
-      state.selectedHops = selectedHops;
     },
   },
   actions: {
