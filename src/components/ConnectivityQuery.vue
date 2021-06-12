@@ -1,7 +1,7 @@
 <template>
-  <div class="pa-4">
+  <div class="pa-0">
     <v-row>
-      <v-col>
+      <v-col class="pa-0">
         <v-subheader> Hops</v-subheader>
       </v-col>
       <v-col>
@@ -20,20 +20,20 @@
           <v-list-item-content
             v-if="i % 2 !== 0"
           >
-            <v-row>
+            <v-row class="pa-0">
               <v-col>
                 <v-list-item-title>
                   Node
                 </v-list-item-title>
               </v-col>
-              <v-col>
+              <v-col class="pa-2">
                 <v-autocomplete
                   v-model="nodeCategory"
                   :items="nodeCategories"
                   dense
                 />
               </v-col>
-              <v-col>
+              <v-col class="pa-2">
                 <v-autocomplete
                   :items="nodeCategoryOptions"
                   dense
@@ -44,20 +44,20 @@
           <v-list-item-content
             v-else
           >
-            <v-row>
+            <v-row class="pa-2">
               <v-col>
                 <v-list-item-title>
                   Edge
                 </v-list-item-title>
               </v-col>
-              <v-col>
+              <v-col class="pa-2">
                 <v-autocomplete
                   v-model="edgeCategory"
                   :items="edgeCategories"
                   dense
                 />
               </v-col>
-              <v-col>
+              <v-col class="pa-2">
                 <v-autocomplete
                   :items="edgeCategoryOptions"
                   dense
@@ -67,6 +67,17 @@
           </v-list-item-content>
         </v-list-item>
       </v-list-item-group>
+      <v-list-item class="px-0">
+        <v-btn
+          block
+          class="ml-0 mt-4"
+          color="primary"
+          depressed
+          @click="submitQuery"
+        >
+          Submit Query
+        </v-btn>
+      </v-list-item>
     </v-list>
   </div>
 </template>
@@ -88,23 +99,28 @@ export default {
     const selectedHops: Ref<number> = ref(1);
     const displayedHops = computed(() => (selectedHops.value % 2 !== 0 ? selectedHops.value + 2 : selectedHops.value + 3));
 
-    const nodeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : 'No attribute selected'));
-    const nodeCategoryOptions = computed(() => ((store.state.network && nodeCategory.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory.value]).sort() : 'No network'));
+    const nodeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No attribute selected']));
+    const nodeCategoryOptions = computed(() => ((store.state.network && nodeCategory.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory.value]).sort() : ['No network']));
 
-    const edgeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : 'No attribute selected'));
-    const edgeCategoryOptions = computed(() => ((store.state.network && edgeCategory.value) ? store.state.network.edges.map((n: Edge) => n[edgeCategory.value]).sort() : 'No network'));
+    const edgeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : ['No attribute selected']));
+    const edgeCategoryOptions = computed(() => ((store.state.network && edgeCategory.value) ? store.state.network.edges.map((n: Edge) => n[edgeCategory.value]).sort() : ['No network']));
 
+    function submitQuery() {
+      console.log(selectedHops.value);
+    }
     return {
       hopsSelection,
       nodeQueryOptions,
       edgeQueryOptions,
       nodeCategory,
       edgeCategory,
+      selectedHops,
       displayedHops,
       nodeCategories,
       nodeCategoryOptions,
       edgeCategories,
       edgeCategoryOptions,
+      submitQuery,
     };
   },
 };
