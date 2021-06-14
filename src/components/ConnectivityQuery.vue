@@ -35,6 +35,7 @@
               </v-col>
               <v-col class="pa-2">
                 <v-autocomplete
+                  v-model="nodeCategorySelection"
                   :items="nodeCategoryOptions"
                   dense
                 />
@@ -84,8 +85,9 @@
 
 <script lang="ts">
 import store from '@/store';
-import { Node, Edge } from '@/types';
+import { Node, Edge, Network } from '@/types';
 import { computed, ref, Ref } from '@vue/composition-api';
+import api from '@/api';
 
 export default {
   name: 'ConnectivityQuery',
@@ -96,6 +98,7 @@ export default {
     const edgeQueryOptions: Ref<string[]> = ref([]);
     const nodeCategory: Ref<string> = ref('');
     const edgeCategory: Ref<string> = ref('');
+    const nodeCategorySelection: Ref<string> = ref('');
     const selectedHops: Ref<number> = ref(1);
     const displayedHops = computed(() => (selectedHops.value % 2 !== 0 ? selectedHops.value + 2 : selectedHops.value + 3));
 
@@ -106,7 +109,38 @@ export default {
     const edgeCategoryOptions = computed(() => ((store.state.network && edgeCategory.value) ? store.state.network.edges.map((n: Edge) => n[edgeCategory.value]).sort() : ['No network']));
 
     function submitQuery() {
-      console.log(selectedHops.value);
+      // TODO: add ability to filter many nodes
+      // Subsets network based on known nodes...
+      const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory.value} == '${nodeCategorySelection.value}' RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
+      RETURN {"nodes": nodes[**], edges}`;
+      console.log(aqlQuery);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let newAQLNetwork: Promise<any[]> | undefined;
+      try {
+        newAQLNetwork = api.aql(store.state.workspaceName, aqlQuery);
+      } catch (error) {
+        if (error.status === 400) {
+          store.commit.setLoadError({
+            message: error.statusText,
+            href: 'https://multinet.app',
+          });
+        }
+      }
+      if (newAQLNetwork !== undefined) {
+        newAQLNetwork.then((promise) => {
+          const aqlNetwork: Network = promise[0];
+
+          if (aqlNetwork.nodes.length !== 0) {
+          // Update state with new network
+            store.commit.setNetwork(aqlNetwork);
+            store.commit.setLoadError({
+              message: '',
+              href: '',
+            });
+          }
+        });
+      }
     }
     return {
       hopsSelection,
@@ -115,6 +149,7 @@ export default {
       nodeCategory,
       edgeCategory,
       selectedHops,
+      nodeCategorySelection,
       displayedHops,
       nodeCategories,
       nodeCategoryOptions,
