@@ -29,8 +29,21 @@
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
+                v-model="nodeQuerySelection1"
+                :items="nodeQueryOptions"
+                dense
+              />
+            </v-col>
+            <v-col class="pa-2">
+              <v-autocomplete
+                v-if="nodeQuerySelection1 === 'is (exact)'"
                 v-model="nodeCategorySelection1"
                 :items="nodeCategoryOptions1"
+                dense
+              />
+              <v-text-field
+                v-else
+                v-model="nodeCategorySelection1"
                 dense
               />
             </v-col>
@@ -79,8 +92,21 @@
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
+                v-model="nodeQuerySelection2"
+                :items="nodeQueryOptions"
+                dense
+              />
+            </v-col>
+            <v-col class="pa-2">
+              <v-autocomplete
+                v-if="nodeQuerySelection2 === 'is (exact)'"
                 v-model="nodeCategorySelection2"
                 :items="nodeCategoryOptions2"
+                dense
+              />
+              <v-text-field
+                v-else
+                v-model="nodeCategorySelection2"
                 dense
               />
             </v-col>
@@ -164,13 +190,15 @@ export default {
 
   setup() {
     const hopsSelection = [1, 2, 3, 4, 5];
-    const nodeQueryOptions: Ref<string[]> = ref([]);
+    const nodeQueryOptions = ['is (exact)', 'contains'];
     const edgeQueryOptions: Ref<string[]> = ref([]);
     const nodeCategory1: Ref<string> = ref('');
     const nodeCategory2: Ref<string> = ref('');
     const edgeCategory1: Ref<string> = ref('');
     const nodeCategorySelection1: Ref<string> = ref('');
+    const nodeQuerySelection1: Ref<string> = ref('');
     const nodeCategorySelection2: Ref<string> = ref('');
+    const nodeQuerySelection2: Ref<string> = ref('');
     const edgeCategorySelection1: Ref<string> = ref('');
     const selectedHops: Ref<number> = ref(1);
     const displayedHops = computed(() => (selectedHops.value % 2 !== 0 ? selectedHops.value + 2 : selectedHops.value + 3));
@@ -222,7 +250,9 @@ export default {
       edgeCategory1,
       selectedHops,
       nodeCategorySelection1,
+      nodeQuerySelection1,
       nodeCategorySelection2,
+      nodeQuerySelection2,
       edgeCategorySelection1,
       displayedHops,
       nodeCategories,
