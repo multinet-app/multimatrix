@@ -17,7 +17,7 @@
           <v-row class="pa-0">
             <v-col>
               <v-list-item-title>
-                Node
+                Node 1
               </v-list-item-title>
             </v-col>
             <v-col class="pa-2">
@@ -42,7 +42,7 @@
           <v-row class="pa-2">
             <v-col>
               <v-list-item-title>
-                Edge
+                Edge 1
               </v-list-item-title>
             </v-col>
             <v-col class="pa-2">
@@ -67,7 +67,7 @@
           <v-row class="pa-0">
             <v-col>
               <v-list-item-title>
-                Node
+                Node 2
               </v-list-item-title>
             </v-col>
             <v-col class="pa-2">
@@ -81,6 +81,56 @@
               <v-autocomplete
                 v-model="nodeCategorySelection2"
                 :items="nodeCategoryOptions2"
+                dense
+              />
+            </v-col>
+          </v-row>
+        </v-list-item-content>
+      </v-list-item>
+      <v-list-item v-if="selectedHops > 1">
+        <v-list-item-content>
+          <v-row class="pa-2">
+            <v-col>
+              <v-list-item-title>
+                Edge 2
+              </v-list-item-title>
+            </v-col>
+            <v-col class="pa-2">
+              <v-autocomplete
+                v-model="edgeCategory2"
+                :items="edgeCategories"
+                dense
+              />
+            </v-col>
+            <v-col class="pa-2">
+              <v-autocomplete
+                v-model="edgeCategorySelection2"
+                :items="edgeCategoryOptions2"
+                dense
+              />
+            </v-col>
+          </v-row>
+        </v-list-item-content>
+      </v-list-item>
+      <v-list-item v-if="selectedHops > 1">
+        <v-list-item-content>
+          <v-row class="pa-0">
+            <v-col>
+              <v-list-item-title>
+                Node 3
+              </v-list-item-title>
+            </v-col>
+            <v-col class="pa-2">
+              <v-autocomplete
+                v-model="nodeCategory3"
+                :items="nodeCategories"
+                dense
+              />
+            </v-col>
+            <v-col class="pa-2">
+              <v-autocomplete
+                v-model="nodeCategorySelection3"
+                :items="nodeCategoryOptions3"
                 dense
               />
             </v-col>
@@ -136,7 +186,7 @@ export default {
       // TODO: add ability to filter many nodes
       // Subsets network based on known nodes...
       const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory1.value} == '${nodeCategorySelection1.value}'
-      || n.${nodeCategory2.value} == '${nodeCategorySelection2.value}' RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
+      || n.${nodeCategory2.value} == '${nodeCategorySelection2.value}' RETURN n) let edges = (FOR e in ${store.state.edgeTableName} FILTER e._from in nodes[**]._id && e._to in nodes[**]._id && e.${edgeCategory1.value} == '${edgeCategorySelection1.value}'  RETURN e) 
       RETURN {"nodes": nodes[**], edges}`;
       console.log(aqlQuery);
 
