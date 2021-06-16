@@ -1,10 +1,10 @@
 <template>
   <div class="pa-0">
     <v-row>
-      <v-col class="pa-0">
+      <v-col>
         <v-subheader> Hops</v-subheader>
       </v-col>
-      <v-col class="pa-0">
+      <v-col>
         <v-select
           v-model="selectedHops"
           :items="hopsSelection"
@@ -12,7 +12,7 @@
       </v-col>
     </v-row>
     <v-list dense>
-      <v-list-item>
+      <v-list-item class="pa-0">
         <v-list-item-content>
           <v-row class="pa-0">
             <v-col>
@@ -50,9 +50,9 @@
           </v-row>
         </v-list-item-content>
       </v-list-item>
-      <v-list-item>
+      <v-list-item class="pa-0">
         <v-list-item-content>
-          <v-row class="pa-2">
+          <v-row class="pa-0">
             <v-col>
               <v-list-item-title>
                 Edge 1
@@ -75,7 +75,7 @@
           </v-row>
         </v-list-item-content>
       </v-list-item>
-      <v-list-item>
+      <v-list-item class="pa-0">
         <v-list-item-content>
           <v-row class="pa-0">
             <v-col>
@@ -113,9 +113,12 @@
           </v-row>
         </v-list-item-content>
       </v-list-item>
-      <v-list-item v-if="selectedHops > 1">
+      <v-list-item
+        v-if="selectedHops > 1"
+        class="pa-0"
+      >
         <v-list-item-content>
-          <v-row class="pa-2">
+          <v-row class="pa-0">
             <v-col>
               <v-list-item-title>
                 Edge 2
@@ -138,7 +141,10 @@
           </v-row>
         </v-list-item-content>
       </v-list-item>
-      <v-list-item v-if="selectedHops > 1">
+      <v-list-item
+        v-if="selectedHops > 1"
+        class="pa-0"
+      >
         <v-list-item-content>
           <v-row class="pa-0">
             <v-col>
@@ -155,8 +161,21 @@
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
+                v-model="nodeQuerySelection3"
+                :items="nodeQueryOptions"
+                dense
+              />
+            </v-col>
+            <v-col class="pa-2">
+              <v-autocomplete
+                v-if="nodeQuerySelection3 === 'is (exact)'"
                 v-model="nodeCategorySelection3"
                 :items="nodeCategoryOptions3"
+                dense
+              />
+              <v-text-field
+                v-else
+                v-model="nodeCategorySelection3"
                 dense
               />
             </v-col>
@@ -189,16 +208,19 @@ export default {
   name: 'ConnectivityQuery',
 
   setup() {
-    const hopsSelection = [1, 2, 3, 4, 5];
+    const hopsSelection = [1, 2];
     const nodeQueryOptions = ['is (exact)', 'contains'];
     const edgeQueryOptions: Ref<string[]> = ref([]);
     const nodeCategory1: Ref<string> = ref('');
     const nodeCategory2: Ref<string> = ref('');
+    const nodeCategory3: Ref<string> = ref('');
     const edgeCategory1: Ref<string> = ref('');
     const nodeCategorySelection1: Ref<string> = ref('');
     const nodeQuerySelection1: Ref<string> = ref('');
     const nodeCategorySelection2: Ref<string> = ref('');
     const nodeQuerySelection2: Ref<string> = ref('');
+    const nodeCategorySelection3: Ref<string> = ref('');
+    const nodeQuerySelection3: Ref<string> = ref('');
     const edgeCategorySelection1: Ref<string> = ref('');
     const selectedHops: Ref<number> = ref(1);
     const displayedHops = computed(() => (selectedHops.value % 2 !== 0 ? selectedHops.value + 2 : selectedHops.value + 3));
@@ -206,6 +228,7 @@ export default {
     const nodeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
     const nodeCategoryOptions1 = computed(() => ((store.state.network && nodeCategory1.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory1.value]).sort() : ['No attribute selected']));
     const nodeCategoryOptions2 = computed(() => ((store.state.network && nodeCategory2.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory2.value]).sort() : ['No attribute selected']));
+    const nodeCategoryOptions3 = computed(() => ((store.state.network && nodeCategory3.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory3.value]).sort() : ['No attribute selected']));
 
     const edgeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']));
     const edgeCategoryOptions1 = computed(() => ((store.state.network && edgeCategory1.value) ? store.state.network.edges.map((n: Edge) => n[edgeCategory1.value]).sort() : ['No attribute selected']));
@@ -247,17 +270,21 @@ export default {
       edgeQueryOptions,
       nodeCategory1,
       nodeCategory2,
+      nodeCategory3,
       edgeCategory1,
       selectedHops,
       nodeCategorySelection1,
       nodeQuerySelection1,
       nodeCategorySelection2,
       nodeQuerySelection2,
+      nodeCategorySelection3,
+      nodeQuerySelection3,
       edgeCategorySelection1,
       displayedHops,
       nodeCategories,
       nodeCategoryOptions1,
       nodeCategoryOptions2,
+      nodeCategoryOptions3,
       edgeCategories,
       edgeCategoryOptions1,
       submitQuery,
