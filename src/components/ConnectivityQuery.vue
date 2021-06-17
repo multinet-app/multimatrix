@@ -211,9 +211,9 @@ export default {
     const hopsSelection = [1, 2];
     const nodeQueryOptions = ['is (exact)', 'contains'];
     const edgeQueryOptions: Ref<string[]> = ref([]);
-    const nodeCategory1: Ref<string> = ref('');
-    const nodeCategory2: Ref<string> = ref('');
-    const nodeCategory3: Ref<string> = ref('');
+    const nodeCategory1: Ref<string> = store.state.workspaceName === 'marclab' ? ref('Label') : ref('');
+    const nodeCategory2: Ref<string> = store.state.workspaceName === 'marclab' ? ref('Label') : ref('');
+    const nodeCategory3: Ref<string> = store.state.workspaceName === 'marclab' ? ref('Label') : ref('');
     const edgeCategory1: Ref<string> = ref('');
     const nodeCategorySelection1: Ref<string> = ref('');
     const nodeQuerySelection1: Ref<string> = ref('');
@@ -223,7 +223,6 @@ export default {
     const nodeQuerySelection3: Ref<string> = ref('');
     const edgeCategorySelection1: Ref<string> = ref('');
     const selectedHops: Ref<number> = ref(1);
-    const displayedHops = computed(() => (selectedHops.value % 2 !== 0 ? selectedHops.value + 2 : selectedHops.value + 3));
 
     const nodeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
     const nodeCategoryOptions1 = computed(() => ((store.state.network && nodeCategory1.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory1.value]).sort() : ['No attribute selected']));
@@ -234,12 +233,19 @@ export default {
     const edgeCategoryOptions1 = computed(() => ((store.state.network && edgeCategory1.value) ? store.state.network.edges.map((n: Edge) => n[edgeCategory1.value]).sort() : ['No attribute selected']));
 
     function submitQuery() {
-      // TODO: add ability to filter many nodes
-      // Subsets network based on known nodes...
-      const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory1.value} == '${nodeCategorySelection1.value}'
-      || n.${nodeCategory2.value} == '${nodeCategorySelection2.value}' RETURN n) let edges = (FOR e in ${store.state.edgeTableName} FILTER e._from in nodes[**]._id && e._to in nodes[**]._id && e.${edgeCategory1.value} == '${edgeCategorySelection1.value}'  RETURN e) 
-      RETURN {"nodes": nodes[**], edges}`;
-      console.log(aqlQuery);
+      const nodeCats = [nodeCategory1.value, nodeCategory2.value, nodeCategory3.value];
+      const nodeCatSels = [nodeCategorySelection1.value, nodeCategorySelection2.value, nodeCategorySelection3.value];
+
+      let pathQueryText = '';
+      for (let i = 0; i < selectedHops.value + 1; i += 1) {
+        if (i === 0) {
+          pathQueryText += `FILTER p.vertices[${i}].${nodeCats[i]} =~ '${nodeCatSels[i]}'`;
+        } else {
+          pathQueryText += ` AND p.vertices[${i}].${nodeCats[i]} =~ '${nodeCatSels[i]}'`;
+        }
+      }
+
+      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory1.value} =~ '${nodeCategorySelection1.value}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
@@ -280,7 +286,6 @@ export default {
       nodeCategorySelection3,
       nodeQuerySelection3,
       edgeCategorySelection1,
-      displayedHops,
       nodeCategories,
       nodeCategoryOptions1,
       nodeCategoryOptions2,
