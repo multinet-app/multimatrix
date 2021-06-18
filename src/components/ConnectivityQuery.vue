@@ -12,170 +12,65 @@
       </v-col>
     </v-row>
     <v-list dense>
-      <v-list-item class="pa-0">
-        <v-list-item-content>
+      <v-list-item
+        v-for="i in displayedHops"
+        :key="i"
+        class="pa-0"
+      >
+        <v-list-item-content v-if="i % 2 !== 0">
           <v-row class="pa-0">
             <v-col>
               <v-list-item-title>
-                Node 1
+                Node
               </v-list-item-title>
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="nodeCategory1"
+                v-model="nodeCategory[i]"
                 :items="nodeCategories"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="nodeQuerySelection1"
+                v-model="nodeQuerySelection[i]"
                 :items="nodeQueryOptions"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-if="nodeQuerySelection1 === 'is (exact)'"
-                v-model="nodeCategorySelection1"
-                :items="nodeCategoryOptions1"
+                v-if="nodeQuerySelection[i] === 'is (exact)'"
+                v-model="nodeCategorySelection[i]"
+                :items="nodeCategoryOptions[i]"
                 dense
               />
               <v-text-field
                 v-else
-                v-model="nodeCategorySelection1"
+                v-model="nodeCategorySelection[i]"
                 dense
               />
             </v-col>
           </v-row>
         </v-list-item-content>
-      </v-list-item>
-      <v-list-item class="pa-0">
-        <v-list-item-content>
+        <v-list-item-content v-else>
           <v-row class="pa-0">
             <v-col>
               <v-list-item-title>
-                Edge 1
+                Edge
               </v-list-item-title>
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="edgeCategory1"
+                v-model="edgeCategory[i]"
                 :items="edgeCategories"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="edgeCategorySelection1"
-                :items="edgeCategoryOptions1"
-                dense
-              />
-            </v-col>
-          </v-row>
-        </v-list-item-content>
-      </v-list-item>
-      <v-list-item class="pa-0">
-        <v-list-item-content>
-          <v-row class="pa-0">
-            <v-col>
-              <v-list-item-title>
-                Node 2
-              </v-list-item-title>
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-model="nodeCategory2"
-                :items="nodeCategories"
-                dense
-              />
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-model="nodeQuerySelection2"
-                :items="nodeQueryOptions"
-                dense
-              />
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-if="nodeQuerySelection2 === 'is (exact)'"
-                v-model="nodeCategorySelection2"
-                :items="nodeCategoryOptions2"
-                dense
-              />
-              <v-text-field
-                v-else
-                v-model="nodeCategorySelection2"
-                dense
-              />
-            </v-col>
-          </v-row>
-        </v-list-item-content>
-      </v-list-item>
-      <v-list-item
-        v-if="selectedHops > 1"
-        class="pa-0"
-      >
-        <v-list-item-content>
-          <v-row class="pa-0">
-            <v-col>
-              <v-list-item-title>
-                Edge 2
-              </v-list-item-title>
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-model="edgeCategory2"
-                :items="edgeCategories"
-                dense
-              />
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-model="edgeCategorySelection2"
-                :items="edgeCategoryOptions2"
-                dense
-              />
-            </v-col>
-          </v-row>
-        </v-list-item-content>
-      </v-list-item>
-      <v-list-item
-        v-if="selectedHops > 1"
-        class="pa-0"
-      >
-        <v-list-item-content>
-          <v-row class="pa-0">
-            <v-col>
-              <v-list-item-title>
-                Node 3
-              </v-list-item-title>
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-model="nodeCategory3"
-                :items="nodeCategories"
-                dense
-              />
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-model="nodeQuerySelection3"
-                :items="nodeQueryOptions"
-                dense
-              />
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-if="nodeQuerySelection3 === 'is (exact)'"
-                v-model="nodeCategorySelection3"
-                :items="nodeCategoryOptions3"
-                dense
-              />
-              <v-text-field
-                v-else
-                v-model="nodeCategorySelection3"
+                v-model="edgeCategorySelection[i]"
+                :items="edgeCategoryOptions[i]"
                 dense
               />
             </v-col>
@@ -201,51 +96,70 @@
 <script lang="ts">
 import store from '@/store';
 import { Node, Edge, Network } from '@/types';
-import { computed, ref, Ref } from '@vue/composition-api';
+import {
+  computed, ref, Ref, reactive,
+} from '@vue/composition-api';
 import api from '@/api';
 
 export default {
   name: 'ConnectivityQuery',
 
   setup() {
-    const hopsSelection = [1, 2];
+    const hopsSelection = [1, 2, 3, 4, 5];
+    const selectedHops: Ref<number> = ref(1);
+    const displayedHops = computed(() => ((selectedHops.value % 2 === 0) ? (selectedHops.value + 3) : (selectedHops.value + 2)));
     const nodeQueryOptions = ['is (exact)', 'contains'];
     const edgeQueryOptions: Ref<string[]> = ref([]);
-    const nodeCategory1: Ref<string> = store.state.workspaceName === 'marclab' ? ref('Label') : ref('');
-    const nodeCategory2: Ref<string> = store.state.workspaceName === 'marclab' ? ref('Label') : ref('');
-    const nodeCategory3: Ref<string> = store.state.workspaceName === 'marclab' ? ref('Label') : ref('');
-    const edgeCategory1: Ref<string> = ref('');
-    const nodeCategorySelection1: Ref<string> = ref('');
-    const nodeQuerySelection1: Ref<string> = ref('');
-    const nodeCategorySelection2: Ref<string> = ref('');
-    const nodeQuerySelection2: Ref<string> = ref('');
-    const nodeCategorySelection3: Ref<string> = ref('');
-    const nodeQuerySelection3: Ref<string> = ref('');
-    const edgeCategorySelection1: Ref<string> = ref('');
-    const selectedHops: Ref<number> = ref(1);
+    const nodeCategory = reactive({
+      1: store.state.workspaceName === 'marclab' ? 'Label' : '', 2: store.state.workspaceName === 'marclab' ? 'Label' : '', 3: store.state.workspaceName === 'marclab' ? 'Label' : '', 4: store.state.workspaceName === 'marclab' ? 'Label' : '', 5: store.state.workspaceName === 'marclab' ? 'Label' : '', 6: store.state.workspaceName === 'marclab' ? 'Label' : '',
+    });
+    const edgeCategory = reactive({
+      1: '', 2: '', 3: '', 4: '', 5: '',
+    });
+    const nodeCategorySelection = reactive({
+      1: '', 2: '', 3: '', 4: '', 5: '', 6: '',
+    });
+    const edgeCategorySelection = reactive({
+      1: '', 2: '', 3: '', 4: '', 5: '',
+    });
+    const nodeQuerySelection = reactive({
+      1: '', 2: '', 3: '', 4: '', 5: '', 6: '',
+    });
 
     const nodeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
-    const nodeCategoryOptions1 = computed(() => ((store.state.network && nodeCategory1.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory1.value]).sort() : ['No attribute selected']));
-    const nodeCategoryOptions2 = computed(() => ((store.state.network && nodeCategory2.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory2.value]).sort() : ['No attribute selected']));
-    const nodeCategoryOptions3 = computed(() => ((store.state.network && nodeCategory3.value) ? store.state.network.nodes.map((n: Node) => n[nodeCategory3.value]).sort() : ['No attribute selected']));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nodeCategoryOptions: any = reactive({
+      1: [], 2: [], 3: [], 4: [], 5: [], 6: [],
+    });
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [key, values] of Object.entries(nodeCategory)) {
+      nodeCategoryOptions[key] = computed(() => ((store.state.network && values) ? store.state.network.nodes.map((n: Node) => n[values]).sort() : ['No attribute selected']));
+    }
 
     const edgeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']));
-    const edgeCategoryOptions1 = computed(() => ((store.state.network && edgeCategory1.value) ? store.state.network.edges.map((n: Edge) => n[edgeCategory1.value]).sort() : ['No attribute selected']));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const edgeCategoryOptions: any = reactive({
+      1: [], 2: [], 3: [], 4: [], 5: [],
+    });
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [key, values] of Object.entries(edgeCategory)) {
+      edgeCategoryOptions[key] = computed(() => ((store.state.network && values) ? store.state.network.edges.map((n: Edge) => n[values]).sort() : ['No attribute selected']));
+    }
 
     function submitQuery() {
-      const nodeCats = [nodeCategory1.value, nodeCategory2.value, nodeCategory3.value];
-      const nodeCatSels = [nodeCategorySelection1.value, nodeCategorySelection2.value, nodeCategorySelection3.value];
-
       let pathQueryText = '';
       for (let i = 0; i < selectedHops.value + 1; i += 1) {
         if (i === 0) {
-          pathQueryText += `FILTER p.vertices[${i}].${nodeCats[i]} =~ '${nodeCatSels[i]}'`;
+          pathQueryText += `FILTER p.vertices[${i}].${nodeCategory[i + 1]} =~ '${nodeCategorySelection[i + 1]}'`;
         } else {
-          pathQueryText += ` AND p.vertices[${i}].${nodeCats[i]} =~ '${nodeCatSels[i]}'`;
+          pathQueryText += ` AND p.vertices[${i}].${nodeCategory[i + 1]} =~ '${nodeCategorySelection[i + 1]}'`;
         }
       }
 
-      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory1.value} =~ '${nodeCategorySelection1.value}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
+      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory[1]} =~ '${nodeCategory[1]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
+
+      console.log(aqlQuery);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
@@ -272,26 +186,19 @@ export default {
     }
     return {
       hopsSelection,
+      selectedHops,
+      displayedHops,
       nodeQueryOptions,
       edgeQueryOptions,
-      nodeCategory1,
-      nodeCategory2,
-      nodeCategory3,
-      edgeCategory1,
-      selectedHops,
-      nodeCategorySelection1,
-      nodeQuerySelection1,
-      nodeCategorySelection2,
-      nodeQuerySelection2,
-      nodeCategorySelection3,
-      nodeQuerySelection3,
-      edgeCategorySelection1,
+      nodeCategory,
+      edgeCategory,
+      nodeCategorySelection,
+      edgeCategorySelection,
+      nodeQuerySelection,
       nodeCategories,
-      nodeCategoryOptions1,
-      nodeCategoryOptions2,
-      nodeCategoryOptions3,
+      nodeCategoryOptions,
       edgeCategories,
-      edgeCategoryOptions1,
+      edgeCategoryOptions,
       submitQuery,
     };
   },
