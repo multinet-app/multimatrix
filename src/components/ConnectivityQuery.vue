@@ -123,7 +123,7 @@ export default {
       1: '', 2: '', 3: '', 4: '', 5: '',
     });
     const nodeQuerySelection = reactive({
-      1: '', 2: '', 3: '', 4: '', 5: '', 6: '',
+      1: 'contains', 2: 'contains', 3: 'contains', 4: 'contains', 5: 'contains', 6: 'contains',
     });
 
     const nodeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
@@ -150,14 +150,15 @@ export default {
     function submitQuery() {
       let pathQueryText = '';
       for (let i = 0; i < selectedHops.value + 1; i += 1) {
+        const queryOperator = nodeQuerySelection[i + 1] === 'is (exact)' ? '==' : '=~';
         if (i === 0) {
-          pathQueryText += `FILTER p.vertices[${i}].${nodeCategory[i + 1]} =~ '${nodeCategorySelection[i + 1]}'`;
+          pathQueryText += `FILTER p.vertices[${i}].${nodeCategory[i + 1]} ${queryOperator} '${nodeCategorySelection[i + 1]}'`;
         } else {
-          pathQueryText += ` AND p.vertices[${i}].${nodeCategory[i + 1]} =~ '${nodeCategorySelection[i + 1]}'`;
+          pathQueryText += ` AND p.vertices[${i}].${nodeCategory[i + 1]} ${queryOperator} '${nodeCategorySelection[i + 1]}'`;
         }
       }
-
-      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory[1]} =~ '${nodeCategory[1]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
+      const queryOperator = nodeQuerySelection[1] === 'is (exact)' ? '==' : '=~';
+      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory[1]} ${queryOperator} '${nodeCategory[1]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
 
       console.log(aqlQuery);
 
@@ -166,6 +167,7 @@ export default {
       try {
         newAQLNetwork = api.aql(store.state.workspaceName, aqlQuery);
       } catch (error) {
+        // Add error message for user
         if (error.status === 400) {
           store.commit.setLoadError({
             message: error.statusText,
