@@ -97,9 +97,10 @@
 import store from '@/store';
 import { Node, Edge, Network } from '@/types';
 import {
-  computed, ref, Ref, reactive,
+  computed, ref, Ref, reactive, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
+import { nonAggrNetwork } from '@/lib/aggregation';
 
 export default {
   name: 'ConnectivityQuery',
@@ -128,14 +129,12 @@ export default {
 
     const nodeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const nodeCategoryOptions: any = reactive({
-      1: [], 2: [], 3: [], 4: [], 5: [], 6: [],
+    const nodeCategoryOptions: string[][] = [];
+    watchEffect(() => {
+      Object.entries(nodeCategory).forEach(([key, value]) => {
+        nodeCategoryOptions[key] = store.state.network!.nodes.map((n: Node) => n[value]).sort();
+      });
     });
-    // eslint-disable-next-line no-restricted-syntax
-    for (const [key, values] of Object.entries(nodeCategory)) {
-      nodeCategoryOptions[key] = computed(() => ((store.state.network && values) ? store.state.network.nodes.map((n: Node) => n[values]).sort() : ['No attribute selected']));
-    }
 
     const edgeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
