@@ -160,8 +160,6 @@ export default {
       const queryOperator = nodeQuerySelection[1] === 'is (exact)' ? '==' : '=~';
       const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory[1]} ${queryOperator} '${nodeCategory[1]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
 
-      console.log(aqlQuery);
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
       try {
@@ -178,7 +176,6 @@ export default {
       if (newAQLNetwork !== undefined) {
         newAQLNetwork.then((promise) => {
           const aqlNetwork: Network = promise[0];
-          console.log(aqlNetwork);
           if (aqlNetwork.nodes.length !== 0) {
           // Update state with new network
             store.commit.setNetwork(aqlNetwork);
