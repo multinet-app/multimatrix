@@ -97,7 +97,7 @@
 import store from '@/store';
 import { Node, Edge, Network } from '@/types';
 import {
-  computed, ref, Ref, reactive,
+  computed, ref, Ref, reactive, ComputedRef,
 } from '@vue/composition-api';
 import api from '@/api';
 
@@ -110,28 +110,28 @@ export default {
     const displayedHops = computed(() => ((selectedHops.value % 2 === 0) ? (selectedHops.value + 3) : (selectedHops.value + 2)));
     const nodeQueryOptions = ['is (exact)', 'contains'];
     const edgeQueryOptions: Ref<string[]> = ref([]);
-    const nodeCategory = reactive({
+    const nodeCategory: { [key: number]: string } = reactive({
       1: store.state.workspaceName === 'marclab' ? 'Label' : '', 2: store.state.workspaceName === 'marclab' ? 'Label' : '', 3: store.state.workspaceName === 'marclab' ? 'Label' : '', 4: store.state.workspaceName === 'marclab' ? 'Label' : '', 5: store.state.workspaceName === 'marclab' ? 'Label' : '', 6: store.state.workspaceName === 'marclab' ? 'Label' : '',
     });
-    const edgeCategory = reactive({
+    const edgeCategory: { [key: number]: string } = reactive({
       1: '', 2: '', 3: '', 4: '', 5: '',
     });
-    const nodeCategorySelection = reactive({
+    const nodeCategorySelection: { [key: number]: string } = reactive({
       1: '', 2: '', 3: '', 4: '', 5: '', 6: '',
     });
-    const edgeCategorySelection = reactive({
+    const edgeCategorySelection: { [key: number]: string } = reactive({
       1: '', 2: '', 3: '', 4: '', 5: '',
     });
-    const nodeQuerySelection = reactive({
+    const nodeQuerySelection: { [key: number]: string } = reactive({
       1: 'contains', 2: 'contains', 3: 'contains', 4: 'contains', 5: 'contains', 6: 'contains',
     });
 
-    const nodeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
+    const nodeCategories: ComputedRef<string[]> = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const nodeCategoryOptions: any = reactive({
+    const nodeCategoryOptions: { [key: number]: string[] } = reactive({
       1: [], 2: [], 3: [], 4: [], 5: [], 6: [],
     });
+
     // eslint-disable-next-line no-restricted-syntax
     for (const [key, values] of Object.entries(nodeCategory)) {
       nodeCategoryOptions[key] = computed(() => ((store.state.network && values) ? store.state.network.nodes.map((n: Node) => n[values]).sort() : ['No attribute selected']));
