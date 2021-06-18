@@ -107,7 +107,7 @@ export default {
   setup() {
     const hopsSelection = [1, 2, 3, 4, 5];
     const selectedHops: Ref<number> = ref(1);
-    const displayedHops = computed(() => ((selectedHops.value % 2 === 0) ? (selectedHops.value + 3) : (selectedHops.value + 2)));
+    const displayedHops = computed(() => 2 * selectedHops.value + 1);
     const nodeQueryOptions = ['is (exact)', 'contains'];
     const edgeQueryOptions: Ref<string[]> = ref([]);
     const nodeCategory = reactive({
