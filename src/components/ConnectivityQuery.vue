@@ -26,28 +26,28 @@
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="nodeCategory[i]"
-                :items="nodeCategories"
+                v-model="nodeCategory[(i-1)/2]"
+                :items="nodeCategories[(i-1)/2]"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="nodeQuerySelection[i]"
+                v-model="nodeQuerySelection[(i-1)/2]"
                 :items="nodeQueryOptions"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-if="nodeQuerySelection[i] === 'is (exact)'"
-                v-model="nodeCategorySelection[i]"
-                :items="nodeCategoryOptions[i]"
+                v-if="nodeQuerySelection[(i-1)/2] === 'is (exact)'"
+                v-model="nodeCategorySelection[(i-1)/2]"
+                :items="nodeCategoryOptions[(i-1)/2]"
                 dense
               />
               <v-text-field
                 v-else
-                v-model="nodeCategorySelection[i]"
+                v-model="nodeCategorySelection[(i-1)/2]"
                 dense
               />
             </v-col>
@@ -62,15 +62,15 @@
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="edgeCategory[i]"
-                :items="edgeCategories"
+                v-model="edgeCategory[i/2]"
+                :items="edgeCategories[i/2]"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="edgeCategorySelection[i]"
-                :items="edgeCategoryOptions[i]"
+                v-model="edgeCategorySelection[i/2]"
+                :items="edgeCategoryOptions[i/2]"
                 dense
               />
             </v-col>
@@ -97,7 +97,7 @@
 import store from '@/store';
 import { Node, Edge, Network } from '@/types';
 import {
-  computed, ref, Ref, reactive, ComputedRef,
+  computed, ref, Ref, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
 
@@ -110,55 +110,52 @@ export default {
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
     const nodeQueryOptions = ['is (exact)', 'contains'];
     const edgeQueryOptions: Ref<string[]> = ref([]);
-    const nodeCategory: { [key: number]: string } = reactive({
-      1: store.state.workspaceName === 'marclab' ? 'Label' : '', 2: store.state.workspaceName === 'marclab' ? 'Label' : '', 3: store.state.workspaceName === 'marclab' ? 'Label' : '', 4: store.state.workspaceName === 'marclab' ? 'Label' : '', 5: store.state.workspaceName === 'marclab' ? 'Label' : '', 6: store.state.workspaceName === 'marclab' ? 'Label' : '',
-    });
-    const edgeCategory: { [key: number]: string } = reactive({
-      1: '', 2: '', 3: '', 4: '', 5: '',
-    });
-    const nodeCategorySelection: { [key: number]: string } = reactive({
-      1: '', 2: '', 3: '', 4: '', 5: '', 6: '',
-    });
-    const edgeCategorySelection: { [key: number]: string } = reactive({
-      1: '', 2: '', 3: '', 4: '', 5: '',
-    });
-    const nodeQuerySelection: { [key: number]: string } = reactive({
-      1: 'contains', 2: 'contains', 3: 'contains', 4: 'contains', 5: 'contains', 6: 'contains',
+    const nodeCategory: Ref<string[]> = ref([]);
+    const edgeCategory: Ref<string[]> = ref([]);
+    const nodeCategorySelection: Ref<string[]> = ref([]);
+    const edgeCategorySelection: Ref<string[]> = ref([]);
+    const nodeQuerySelection: Ref<string[]> = ref([]);
+    const nodeCategories: Ref<string[][]> = ref([]);
+    const edgeCategories: Ref<string[][]> = ref([]);
+    const nodeCategoryOptions: string[][] = [];
+    const edgeCategoryOptions: string[][] = [];
+
+    hopsSelection.forEach(() => {
+      nodeCategory.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
+      edgeCategory.value.push(store.state.workspaceName === 'marclab' ? 'Type' : '');
+      nodeCategorySelection.value.push('');
+      edgeCategorySelection.value.push('');
+      nodeQuerySelection.value.push('contains');
+      nodeCategories.value.push(store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']);
+      edgeCategories.value.push(store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']);
     });
 
-    const nodeCategories: ComputedRef<string[]> = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
-
-    const nodeCategoryOptions: { [key: number]: string[] } = reactive({
-      1: [], 2: [], 3: [], 4: [], 5: [], 6: [],
+    watchEffect(() => {
+      nodeCategory.value.forEach((category: string, i: number) => {
+        // eslint-disable-next-line no-unused-expressions
+        store.state.network !== null ? nodeCategoryOptions[i] = store.state.network.nodes.map((n: Node) => n[category]).sort() : ['No attribute selected'];
+      });
     });
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const [key, values] of Object.entries(nodeCategory)) {
-      nodeCategoryOptions[key] = computed(() => ((store.state.network && values) ? store.state.network.nodes.map((n: Node) => n[values]).sort() : ['No attribute selected']));
-    }
-
-    const edgeCategories = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const edgeCategoryOptions: any = reactive({
-      1: [], 2: [], 3: [], 4: [], 5: [],
+    watchEffect(() => {
+      edgeCategory.value.forEach((category: string, i: number) => {
+        // eslint-disable-next-line no-unused-expressions
+        store.state.network !== null ? edgeCategoryOptions[i] = store.state.network?.edges.map((n: Edge) => n[category]).sort() : ['No attribute selected'];
+      });
     });
-    // eslint-disable-next-line no-restricted-syntax
-    for (const [key, values] of Object.entries(edgeCategory)) {
-      edgeCategoryOptions[key] = computed(() => ((store.state.network && values) ? store.state.network.edges.map((n: Edge) => n[values]).sort() : ['No attribute selected']));
-    }
 
     function submitQuery() {
       let pathQueryText = '';
       for (let i = 0; i < selectedHops.value + 1; i += 1) {
-        const queryOperator = nodeQuerySelection[i + 1] === 'is (exact)' ? '==' : '=~';
+        const queryOperator = nodeQuerySelection.value[i] === 'is (exact)' ? '==' : '=~';
         if (i === 0) {
-          pathQueryText += `FILTER p.vertices[${i}].${nodeCategory[i + 1]} ${queryOperator} '${nodeCategorySelection[i + 1]}'`;
+          pathQueryText += `FILTER p.vertices[${i}].${nodeCategory.value[i]} ${queryOperator} '${nodeCategorySelection.value[i]}'`;
         } else {
-          pathQueryText += ` AND p.vertices[${i}].${nodeCategory[i + 1]} ${queryOperator} '${nodeCategorySelection[i + 1]}'`;
+          pathQueryText += ` AND p.vertices[${i}].${nodeCategory.value[i]} ${queryOperator} '${nodeCategorySelection.value[i]}'`;
         }
       }
-      const queryOperator = nodeQuerySelection[1] === 'is (exact)' ? '==' : '=~';
-      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory[1]} ${queryOperator} '${nodeCategory[1]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
+      const queryOperator = nodeQuerySelection.value[0] === 'is (exact)' ? '==' : '=~';
+      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory.value[0]} ${queryOperator} '${nodeCategory.value[0]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
