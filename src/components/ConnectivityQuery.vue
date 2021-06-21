@@ -155,7 +155,7 @@ export default {
         }
       }
       const queryOperator = nodeQuerySelection.value[0] === 'is (exact)' ? '==' : '=~';
-      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory.value[0]} ${queryOperator} '${nodeCategory.value[0]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], edges: p.edges[*]}) let nodes = (for p in paths RETURN MERGE(p.nodes)) let edges = (for p in paths RETURN MERGE(p.edges)) RETURN {nodes: nodes, edges: edges}`;
+      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeCategory.value[0]} ${queryOperator} '${nodeCategorySelection.value[0]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], paths: p}) let all_nodes = (for p in paths RETURN p.nodes) let nodes_first = (for p in paths RETURN p.nodes[0]) let nodes_last = (for p in paths RETURN p.nodes[${selectedHops.value}]) let path = (for p in paths RETURN p.paths) RETURN {all_nodes: UNIQUE(all_nodes[**]), nodes_first: UNIQUE(nodes_first), nodes_last: UNIQUE(nodes_last), paths: path}`;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
@@ -172,10 +172,25 @@ export default {
       }
       if (newAQLNetwork !== undefined) {
         newAQLNetwork.then((promise) => {
-          const aqlNetwork: Network = promise[0];
-          if (aqlNetwork.nodes.length !== 0) {
-          // Update state with new network
-            store.commit.setNetwork(aqlNetwork);
+          const aqlResults = promise[0];
+          if (aqlResults.all_nodes.length !== 0) {
+          // some data manipulation to show only start + end nodes
+            const newNetwork: Network = { nodes: aqlResults.all_nodes, edges: [] };
+            aqlResults.paths.forEach((path: any, val: number) => {
+              const newPath: Edge = {
+                _from: '', _to: '', _key: '', _id: '',
+              };
+              for (let i = 0; i < selectedHops.value + 1; i += 1) {
+                if (i === 0) { newPath._from = path.edges[i]._from; }
+                if (i === (selectedHops.value - 1)) { newPath._to = path.edges[i]._to; }
+              }
+              // generate _key and _id
+              newPath._key = val.toString();
+              newPath._id = val.toString();
+              newNetwork.edges.push(newPath);
+            });
+            // Update state with new network
+            store.commit.setNetwork(newNetwork);
           }
         });
       }
