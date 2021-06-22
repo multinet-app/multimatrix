@@ -309,14 +309,14 @@ export default Vue.extend({
             <svg id="child-matrix-legend" />
           </v-list-item>
         </div>
-      </v-list>
-      <v-list v-if="connectivityQueryToggle">
-        <v-subheader class="grey darken-3 mt-6 py-0 white--text">
-          Connectivity Query
-        </v-subheader>
+        <div v-if="connectivityQueryToggle">
+          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+            Connectivity Query
+          </v-subheader>
 
-        <div class="pa-4">
-          <connectivity-query />
+          <div class="pa-4">
+            <connectivity-query />
+          </div>
         </div>
       </v-list>
     </v-navigation-drawer>
