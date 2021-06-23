@@ -27,7 +27,7 @@
             <v-col class="pa-2">
               <v-autocomplete
                 v-model="nodeVariable[(i-1)/2]"
-                :items="nodeVariableItems[(i-1)/2]"
+                :items="nodeVariableItems"
                 dense
               />
             </v-col>
@@ -63,7 +63,7 @@
             <v-col class="pa-2">
               <v-autocomplete
                 v-model="edgeVariable[i/2]"
-                :items="edgeVariableItems[i/2]"
+                :items="edgeVariableItems"
                 dense
               />
             </v-col>
@@ -114,8 +114,8 @@ export default {
     const nodeVariableValue: Ref<string[]> = ref([]);
     const edgeVariableValue: Ref<string[]> = ref([]);
     const nodeQuerySelection: Ref<string[]> = ref([]);
-    const nodeVariableItems: Ref<string[][]> = ref([]);
-    const edgeVariableItems: Ref<string[][]> = ref([]);
+    const nodeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
+    const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']));
     const nodeVariableOptions: string[][] = [];
     const edgeVariableOptions: string[][] = [];
     const displayedHopsLoop = Array(displayedHops.value).fill(1).map((_, i) => i + 1);
@@ -126,8 +126,6 @@ export default {
       nodeVariableValue.value.push('');
       edgeVariableValue.value.push('');
       nodeQuerySelection.value.push('contains');
-      nodeVariableItems.value.push(store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']);
-      edgeVariableItems.value.push(store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']);
     });
 
     watchEffect(() => {
