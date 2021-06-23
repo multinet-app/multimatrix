@@ -180,14 +180,15 @@ export default {
         newAQLNetwork.then((promise) => {
           const aqlResults = promise[0];
           if (aqlResults.paths.length !== 0) {
-          // some data manipulation to show only start + end nodes
+            // some data manipulation to show only start + end nodes
             const newNetwork: Network = { nodes: [], edges: [] };
             const nodesSet = new Set();
-            aqlResults.paths.forEach((path: any, val: number) => {
-              console.log(`PATH${val}:`, path);
+
+            aqlResults.paths.forEach((path: { edges: Edge[]; vertices: Node[] }, val: number) => {
               const newPath: Edge = {
                 _from: '', _to: '', _key: '', _id: '',
               };
+
               for (let i = 0; i < selectedHops.value + 1; i += 1) {
                 if (i === 0) {
                   newPath._from = path.vertices[i]._id;
@@ -200,12 +201,13 @@ export default {
                   nodesSet.add(path.vertices[i]._key);
                 }
               }
+
               // generate _key and _id
               newPath._key = val.toString();
               newPath._id = val.toString();
               newNetwork.edges.push(newPath);
             });
-            console.log(newNetwork);
+
             // Update state with new network
             store.dispatch.updateNetwork({ network: newNetwork });
           }
