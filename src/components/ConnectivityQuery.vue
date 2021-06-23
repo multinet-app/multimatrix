@@ -166,7 +166,7 @@ export default {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
       try {
-        newAQLNetwork = api.aql(store.state.workspaceName, aqlQuery);
+        newAQLNetwork = api.aql(store.state.workspaceName || '', aqlQuery);
       } catch (error) {
         // Add error message for user
         if (error.status === 400) {
