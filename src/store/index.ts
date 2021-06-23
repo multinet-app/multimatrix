@@ -226,7 +226,7 @@ const {
   },
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
-      const { commit } = rootActionContext(context);
+      const { commit, dispatch } = rootActionContext(context);
       commit.setWorkspaceName(workspaceName);
       commit.setNetworkName(networkName);
 
@@ -315,8 +315,13 @@ const {
         nodes: nodes as Node[],
         edges: edges as Edge[],
       };
-      commit.setNetwork(network);
-      commit.setSortOrder(range(0, network.nodes.length));
+      dispatch.updateNetwork({ network });
+    },
+
+    updateNetwork(context, payload: { network: Network }) {
+      const { commit } = rootActionContext(context);
+      commit.setNetwork(payload.network);
+      commit.setSortOrder(range(0, payload.network.nodes.length));
     },
 
     async fetchUserInfo(context) {

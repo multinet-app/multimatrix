@@ -113,7 +113,7 @@ export default Vue.extend({
 
           if (aqlNetwork.nodes.length !== 0) {
           // Update state with new network
-            store.commit.setNetwork(aqlNetwork);
+            store.dispatch.updateNetwork({ network: aqlNetwork });
             store.commit.setLoadError({
               message: '',
               href: '',

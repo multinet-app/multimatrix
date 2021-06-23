@@ -199,7 +199,7 @@ export default {
             });
             console.log(newNetwork);
             // Update state with new network
-            store.commit.setNetwork(newNetwork);
+            store.dispatch.updateNetwork({ network: newNetwork });
           }
         });
       }
