@@ -153,7 +153,15 @@ export default {
         }
       }
       const queryOperator = nodeQuerySelection.value[0] === 'is (exact)' ? '==' : '=~';
-      const aqlQuery = `let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeVariable.value[0]} ${queryOperator} '${nodeVariableValue.value[0]}' RETURN n) let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], paths: p}) let all_nodes = (for p in paths RETURN p.nodes) let nodes_first = (for p in paths RETURN p.nodes[0]) let nodes_last = (for p in paths RETURN p.nodes[${selectedHops.value}]) let path = (for p in paths RETURN p.paths) RETURN {all_nodes: UNIQUE(all_nodes[**]), nodes_first: UNIQUE(nodes_first), nodes_last: UNIQUE(nodes_last), paths: path}`;
+      const aqlQuery = `
+        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeVariable.value[0]} ${queryOperator} '${nodeVariableValue.value[0]}' RETURN n)
+        let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], paths: p})
+        let all_nodes = (for p in paths RETURN p.nodes)
+        let nodes_first = (for p in paths RETURN p.nodes[0])
+        let nodes_last = (for p in paths RETURN p.nodes[${selectedHops.value}])
+        let path = (for p in paths RETURN p.paths)
+        RETURN {all_nodes: UNIQUE(all_nodes[**]), nodes_first: UNIQUE(nodes_first), nodes_last: UNIQUE(nodes_last), paths: path}
+      `;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
