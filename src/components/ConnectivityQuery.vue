@@ -128,17 +128,17 @@ export default {
       nodeQuerySelection.value.push('contains');
     });
 
+    // For each selected node variable, fill in possible values for autocomplete
     watchEffect(() => {
-      nodeVariable.value.forEach((category: string, i: number) => {
-        // eslint-disable-next-line no-unused-expressions
-        store.state.network !== null ? nodeVariableOptions[i] = store.state.network.nodes.map((n: Node) => n[category]).sort() : ['No attribute selected'];
+      nodeVariable.value.forEach((variable: string, i: number) => {
+        nodeVariableOptions[i] = store.state.network !== null ? store.state.network.nodes.map((n: Node) => `${n[variable]}`).sort() : ['No attribute selected'];
       });
     });
 
+    // For each selected edge variable, fill in possible values for autocomplete
     watchEffect(() => {
-      edgeVariable.value.forEach((category: string, i: number) => {
-        // eslint-disable-next-line no-unused-expressions
-        store.state.network !== null ? edgeVariableOptions[i] = store.state.network?.edges.map((n: Edge) => n[category]).sort() : ['No attribute selected'];
+      edgeVariable.value.forEach((variable: string, i: number) => {
+        edgeVariableOptions[i] = store.state.network !== null ? store.state.network.edges.map((n: Edge) => `${n[variable]}`).sort() : ['No attribute selected'];
       });
     });
 
