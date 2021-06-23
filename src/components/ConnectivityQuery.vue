@@ -118,8 +118,9 @@ export default {
     const edgeVariableItems: Ref<string[][]> = ref([]);
     const nodeVariableOptions: string[][] = [];
     const edgeVariableOptions: string[][] = [];
+    const displayedHopsLoop = Array(displayedHops.value).fill(1).map((_, i) => i + 1);
 
-    hopsSelection.forEach(() => {
+    displayedHopsLoop.forEach(() => {
       nodeVariable.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
       edgeVariable.value.push(store.state.workspaceName === 'marclab' ? 'Type' : '');
       nodeVariableValue.value.push('');
