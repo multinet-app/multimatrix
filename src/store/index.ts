@@ -89,6 +89,17 @@ const {
     },
 
     setNetwork(state, network: Network) {
+      // eslint-disable-next-line no-param-reassign
+      network.nodes = network.nodes.sort((node1, node2) => {
+        const key1 = parseInt(node1._key, 10);
+        const key2 = parseInt(node2._key, 10);
+
+        if (key1 && key2) {
+          return key1 - key2;
+        }
+
+        return node1._key.localeCompare(node2._key);
+      });
       state.network = network;
     },
 
