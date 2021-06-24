@@ -192,13 +192,13 @@ export default {
               for (let i = 0; i < selectedHops.value + 1; i += 1) {
                 if (i === 0) {
                   newPath._from = path.vertices[i]._id;
-                  if (!nodesSet.has(path.vertices[i]._key)) { newNetwork.nodes.push(path.vertices[i]); }
-                  nodesSet.add(path.vertices[i]._key);
+                  if (!nodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
+                  nodesSet.add(path.vertices[i]._id);
                 }
                 if (i === (selectedHops.value)) {
                   newPath._to = path.vertices[i]._id;
-                  if (!nodesSet.has(path.vertices[i]._key)) { newNetwork.nodes.push(path.vertices[i]); }
-                  nodesSet.add(path.vertices[i]._key);
+                  if (!nodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
+                  nodesSet.add(path.vertices[i]._id);
                 }
               }
 
