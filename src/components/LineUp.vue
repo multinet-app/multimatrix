@@ -1,7 +1,7 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  computed, onMounted, Ref, ref, SetupContext, watchEffect,
+  computed, onMounted, Ref, ref, SetupContext, watch, watchEffect,
 } from '@vue/composition-api';
 import LineUp, { DataBuilder } from 'lineupjs';
 import { select } from 'd3-selection';
@@ -47,8 +47,18 @@ export default {
       });
     }
 
-    // We have to use nextTick so that the component is rendered
-    onMounted(() => {
+    function removeLineup() {
+      const lineupDiv = document.getElementById('lineup');
+
+      if (lineupDiv !== null) {
+        lineupDiv.innerHTML = '';
+      }
+
+      lineup.value = null;
+      builder.value = null;
+    }
+
+    function buildLineup() {
       const lineupDiv = document.getElementById('lineup');
 
       if (network.value !== null && lineupDiv !== null) {
@@ -98,6 +108,10 @@ export default {
           [lastHovered] = hoveredIDs;
         });
       }
+    }
+
+    onMounted(() => {
+      buildLineup();
     });
 
     // Update selection/hover from matrix
@@ -128,6 +142,11 @@ export default {
           currentLineupSortOrder = storeOrder;
         }
       }
+    });
+
+    watch(network, () => {
+      removeLineup();
+      buildLineup();
     });
 
     function removeHighlight() {

@@ -136,15 +136,11 @@ export default Vue.extend({
     orderingScale(): ScaleBand<number> {
       return scaleBand<number>()
         .domain(this.sortOrder)
-        .range([0, this.matrixHighlightLength]);
+        .range([0, this.sortOrder.length * this.cellSize]);
     },
 
     hoveredNodes() {
       return store.state.hoveredNodes;
-    },
-
-    matrixHighlightLength(): number {
-      return this.matrix.length * this.cellSize;
     },
 
     idMap() {
@@ -248,6 +244,7 @@ export default Vue.extend({
     },
 
     orderingScale() {
+      this.processData();
       this.initializeEdges();
     },
 
@@ -270,9 +267,9 @@ export default Vue.extend({
         // Clear the click map so correct icons are drawn for aggregation
         this.clickMap.clear();
 
-        store.commit.setNetwork(
-          nonAggrNetwork(this.nonAggrNodes, this.nonAggrEdges),
-        );
+        store.dispatch.updateNetwork({
+          network: nonAggrNetwork(this.nonAggrNodes, this.nonAggrEdges),
+        });
 
         // Update everything on the screen
         const columnLabelContainerStart = 20;
@@ -322,7 +319,7 @@ export default Vue.extend({
     },
   },
 
-  async mounted(this: any) {
+  mounted() {
     // Run process data to convert edges to cells
     this.processData();
 
@@ -761,15 +758,15 @@ export default Vue.extend({
               // expand and retract the supernode aggregation based on user selection
               if (this.clickMap.get(supernode._id)) {
                 if (this.network !== null) {
-                  store.commit.setNetwork(
-                    retractSuperNetwork(
+                  store.dispatch.updateNetwork({
+                    network: retractSuperNetwork(
                       this.nonAggrNodes,
                       this.nonAggrEdges,
                       this.network.nodes,
                       this.network.edges,
                       supernode,
                     ),
-                  );
+                  });
                 }
                 this.clickMap.set(supernode._id, false);
 
@@ -780,15 +777,15 @@ export default Vue.extend({
                 }
               } else {
                 if (this.network !== null) {
-                  store.commit.setNetwork(
-                    expandSuperNetwork(
+                  store.dispatch.updateNetwork({
+                    network: expandSuperNetwork(
                       this.nonAggrNodes,
                       this.nonAggrEdges,
                       this.network.nodes,
                       this.network.edges,
                       supernode,
                     ),
-                  );
+                  });
                 }
                 this.clickMap.set(supernode._id, true);
 

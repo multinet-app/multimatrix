@@ -7,11 +7,19 @@ import { ScaleLinear } from 'd3-scale';
 import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
+import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 
 export default Vue.extend({
   components: {
     AboutDialog,
     LoginMenu,
+    ConnectivityQuery,
+  },
+
+  data() {
+    return {
+      connectivityQueryToggle: false,
+    };
   },
 
   computed: {
@@ -229,6 +237,18 @@ export default Vue.extend({
             </v-list-item-content>
           </v-list-item>
 
+          <!-- Connectivity Query List Item -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch
+                v-model="connectivityQueryToggle"
+                class="ma-0"
+                hide-details
+              />
+            </v-list-item-action>
+            <v-list-item-content> Enable Connectivity Query </v-list-item-content>
+          </v-list-item>
+
           <v-list-item class="px-0">
             <v-btn
               block
@@ -288,6 +308,15 @@ export default Vue.extend({
             Children Legend
             <svg id="child-matrix-legend" />
           </v-list-item>
+        </div>
+        <div v-if="connectivityQueryToggle">
+          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+            Connectivity Query
+          </v-subheader>
+
+          <div class="pa-4">
+            <connectivity-query />
+          </div>
         </div>
       </v-list>
     </v-navigation-drawer>

@@ -89,6 +89,17 @@ const {
     },
 
     setNetwork(state, network: Network) {
+      // eslint-disable-next-line no-param-reassign
+      network.nodes = network.nodes.sort((node1, node2) => {
+        const key1 = parseInt(node1._key, 10);
+        const key2 = parseInt(node2._key, 10);
+
+        if (key1 && key2) {
+          return key1 - key2;
+        }
+
+        return node1._key.localeCompare(node2._key);
+      });
       state.network = network;
     },
 
@@ -226,7 +237,7 @@ const {
   },
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
-      const { commit } = rootActionContext(context);
+      const { commit, dispatch } = rootActionContext(context);
       commit.setWorkspaceName(workspaceName);
       commit.setNetworkName(networkName);
 
@@ -315,8 +326,13 @@ const {
         nodes: nodes as Node[],
         edges: edges as Edge[],
       };
-      commit.setNetwork(network);
-      commit.setSortOrder(range(0, network.nodes.length));
+      dispatch.updateNetwork({ network });
+    },
+
+    updateNetwork(context, payload: { network: Network }) {
+      const { commit } = rootActionContext(context);
+      commit.setNetwork(payload.network);
+      commit.setSortOrder(range(0, payload.network.nodes.length));
     },
 
     async fetchUserInfo(context) {
