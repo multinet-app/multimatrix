@@ -136,15 +136,11 @@ export default Vue.extend({
     orderingScale(): ScaleBand<number> {
       return scaleBand<number>()
         .domain(this.sortOrder)
-        .range([0, this.matrixHighlightLength]);
+        .range([0, this.sortOrder.length * this.cellSize]);
     },
 
     hoveredNodes() {
       return store.state.hoveredNodes;
-    },
-
-    matrixHighlightLength(): number {
-      return this.matrix.length * this.cellSize;
     },
 
     idMap() {
@@ -248,6 +244,7 @@ export default Vue.extend({
     },
 
     orderingScale() {
+      this.processData();
       this.initializeEdges();
     },
 
@@ -322,7 +319,7 @@ export default Vue.extend({
     },
   },
 
-  async mounted(this: any) {
+  mounted() {
     // Run process data to convert edges to cells
     this.processData();
 
