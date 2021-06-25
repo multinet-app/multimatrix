@@ -62,15 +62,15 @@
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="edgeVariable[i/2]"
+                v-model="edgeVariable[(i-2)/2]"
                 :items="edgeVariableItems"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="edgeVariableValue[i/2]"
-                :items="edgeVariableOptions[i/2]"
+                v-model="edgeVariableValue[(i-2)/2]"
+                :items="edgeVariableOptions[(i-2)/2]"
                 dense
               />
             </v-col>
@@ -150,6 +150,13 @@ export default {
           pathQueryText += `FILTER UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
         } else {
           pathQueryText += ` AND UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
+        }
+      }
+      for (let i = 0; i < selectedHops.value; i += 1) {
+        if (i === 0) {
+          pathQueryText += ` FILTER p.edges[${i}].${edgeVariable.value[i]} == '${edgeVariableValue.value[i]}'`;
+        } else {
+          pathQueryText += ` AND p.edges[${i}].${edgeVariable.value[i]} == '${edgeVariableValue.value[i]}'`;
         }
       }
       const queryOperator = nodeQuerySelection.value[0] === 'is (exact)' ? '==' : '=~';
