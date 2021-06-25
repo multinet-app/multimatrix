@@ -163,8 +163,7 @@ export default {
       const aqlQuery = `
         let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${nodeVariable.value[0]}) ${queryOperator} UPPER('${nodeVariableValue.value[0]}') RETURN n)
         let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
-        let path = (for p in paths RETURN p.paths)
-        RETURN {paths: path}
+        RETURN {paths: paths[**].paths}
       `;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
