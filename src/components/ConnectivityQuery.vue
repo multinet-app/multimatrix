@@ -147,20 +147,17 @@ export default {
       for (let i = 0; i < selectedHops.value + 1; i += 1) {
         const queryOperator = nodeQuerySelection.value[i] === 'is (exact)' ? '==' : '=~';
         if (i === 0) {
-          pathQueryText += `FILTER p.vertices[${i}].${nodeVariable.value[i]} ${queryOperator} '${nodeVariableValue.value[i]}'`;
+          pathQueryText += `FILTER UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
         } else {
-          pathQueryText += ` AND p.vertices[${i}].${nodeVariable.value[i]} ${queryOperator} '${nodeVariableValue.value[i]}'`;
+          pathQueryText += ` AND UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
         }
       }
       const queryOperator = nodeQuerySelection.value[0] === 'is (exact)' ? '==' : '=~';
       const aqlQuery = `
-        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeVariable.value[0]} ${queryOperator} '${nodeVariableValue.value[0]}' RETURN n)
+        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${nodeVariable.value[0]}) ${queryOperator} UPPER('${nodeVariableValue.value[0]}') RETURN n)
         let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], paths: p})
-        let all_nodes = (for p in paths RETURN p.nodes)
-        let nodes_first = (for p in paths RETURN p.nodes[0])
-        let nodes_last = (for p in paths RETURN p.nodes[${selectedHops.value}])
         let path = (for p in paths RETURN p.paths)
-        RETURN {all_nodes: UNIQUE(all_nodes[**]), nodes_first: UNIQUE(nodes_first), nodes_last: UNIQUE(nodes_last), paths: path}
+        RETURN {paths: path}
       `;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
