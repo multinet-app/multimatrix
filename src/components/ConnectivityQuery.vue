@@ -148,21 +148,21 @@ export default {
         const queryOperator = nodeQuerySelection.value[i] === 'is (exact)' ? '==' : '=~';
         if (i === 0) {
           pathQueryText += `FILTER UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
-        } else {
+        } else if (nodeVariableValue.value[i] !== '') {
           pathQueryText += ` AND UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
         }
       }
       for (let i = 0; i < selectedHops.value; i += 1) {
-        if (i === 0) {
+        if (i === 0 && edgeVariableValue.value[i] !== '') {
           pathQueryText += ` FILTER p.edges[${i}].${edgeVariable.value[i]} == '${edgeVariableValue.value[i]}'`;
-        } else {
+        } else if (edgeVariableValue.value[i] !== '') {
           pathQueryText += ` AND p.edges[${i}].${edgeVariable.value[i]} == '${edgeVariableValue.value[i]}'`;
         }
       }
       const queryOperator = nodeQuerySelection.value[0] === 'is (exact)' ? '==' : '=~';
       const aqlQuery = `
         let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${nodeVariable.value[0]}) ${queryOperator} UPPER('${nodeVariableValue.value[0]}') RETURN n)
-        let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], paths: p})
+        let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
         let path = (for p in paths RETURN p.paths)
         RETURN {paths: path}
       `;
