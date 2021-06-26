@@ -62,15 +62,15 @@
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="edgeVariable[i/2]"
+                v-model="edgeVariable[(i-2)/2]"
                 :items="edgeVariableItems"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="edgeVariableValue[i/2]"
-                :items="edgeVariableOptions[i/2]"
+                v-model="edgeVariableValue[(i-2)/2]"
+                :items="edgeVariableOptions[(i-2)/2]"
                 dense
               />
             </v-col>
@@ -147,20 +147,23 @@ export default {
       for (let i = 0; i < selectedHops.value + 1; i += 1) {
         const queryOperator = nodeQuerySelection.value[i] === 'is (exact)' ? '==' : '=~';
         if (i === 0) {
-          pathQueryText += `FILTER p.vertices[${i}].${nodeVariable.value[i]} ${queryOperator} '${nodeVariableValue.value[i]}'`;
-        } else {
-          pathQueryText += ` AND p.vertices[${i}].${nodeVariable.value[i]} ${queryOperator} '${nodeVariableValue.value[i]}'`;
+          pathQueryText += `FILTER UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
+        } else if (nodeVariableValue.value[i] !== '') {
+          pathQueryText += ` AND UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
+        }
+      }
+      for (let i = 0; i < selectedHops.value; i += 1) {
+        if (i === 0 && edgeVariableValue.value[i] !== '') {
+          pathQueryText += ` FILTER p.edges[${i}].${edgeVariable.value[i]} == '${edgeVariableValue.value[i]}'`;
+        } else if (edgeVariableValue.value[i] !== '') {
+          pathQueryText += ` AND p.edges[${i}].${edgeVariable.value[i]} == '${edgeVariableValue.value[i]}'`;
         }
       }
       const queryOperator = nodeQuerySelection.value[0] === 'is (exact)' ? '==' : '=~';
       const aqlQuery = `
-        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER n.${nodeVariable.value[0]} ${queryOperator} '${nodeVariableValue.value[0]}' RETURN n)
-        let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {nodes: p.vertices[*], paths: p})
-        let all_nodes = (for p in paths RETURN p.nodes)
-        let nodes_first = (for p in paths RETURN p.nodes[0])
-        let nodes_last = (for p in paths RETURN p.nodes[${selectedHops.value}])
-        let path = (for p in paths RETURN p.paths)
-        RETURN {all_nodes: UNIQUE(all_nodes[**]), nodes_first: UNIQUE(nodes_first), nodes_last: UNIQUE(nodes_last), paths: path}
+        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${nodeVariable.value[0]}) ${queryOperator} UPPER('${nodeVariableValue.value[0]}') RETURN n)
+        let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
+        RETURN {paths: paths[**].paths}
       `;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
