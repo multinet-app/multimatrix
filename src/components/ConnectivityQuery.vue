@@ -124,7 +124,7 @@ export default {
         } else if (selectedVariableValue.value[i] !== undefined) {
           if (i % 2 === 0) {
             // Nodes
-            pathQueryText += ` AND UPPER(p.vertices[${(i - 1) / 2}].${selectedVariables.value[i]}) ${queryOperator} UPPER('${selectedVariableValue.value[i]}')`;
+            pathQueryText += ` AND UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]}) ${queryOperator} UPPER('${selectedVariableValue.value[i]}')`;
           } else {
             // Edges
             pathQueryText += ` AND p.edges[${(i - 1) / 2}].${selectedVariables.value[i]} ${queryOperator} '${selectedVariableValue.value[i]}'`;
