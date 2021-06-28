@@ -66,6 +66,8 @@ export interface State {
   edgeTableName: string | null;
   provenance: Provenance<State, ProvenanceEventTypes, unknown> | null;
   showProvenanceVis: boolean;
+  nodeAttributes: {[key: string]: string[]};
+  edgeAttributes: {[key: string]: string[]};
 }
 
 export type ProvenanceEventTypes =

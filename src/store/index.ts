@@ -57,6 +57,8 @@ const {
     edgeTableName: null,
     provenance: null,
     showProvenanceVis: false,
+    nodeAttributes: {},
+    edgeAttributes: {},
   } as State,
 
   getters: {
@@ -234,6 +236,20 @@ const {
     toggleShowProvenanceVis(state) {
       state.showProvenanceVis = !state.showProvenanceVis;
     },
+
+    setAttributeValues(state, network: Network) {
+      const nodeKeys = Object.keys(network.nodes[0]);
+      state.nodeAttributes = nodeKeys.reduce((ac, a) => ({ ...ac, [a]: [] }), {});
+      nodeKeys.forEach((key: string) => {
+        state.nodeAttributes[key] = [...new Set(network.nodes.map((n: Node) => `${n[key]}`).sort())];
+      });
+
+      const edgeKeys = Object.keys(network.edges[0]);
+      state.edgeAttributes = edgeKeys.reduce((ac, a) => ({ ...ac, [a]: [] }), {});
+      edgeKeys.forEach((key: string) => {
+        state.edgeAttributes[key] = [...new Set(network.edges.map((e: Edge) => `${e[key]}`).sort())];
+      });
+    },
   },
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
@@ -326,6 +342,7 @@ const {
         nodes: nodes as Node[],
         edges: edges as Edge[],
       };
+      commit.setAttributeValues(network);
       dispatch.updateNetwork({ network });
     },
 
