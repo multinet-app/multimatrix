@@ -13,64 +13,41 @@
     </v-row>
     <v-list dense>
       <v-list-item
-        v-for="i in displayedHops"
+        v-for="(_, i) in displayedHops"
         :key="i"
         class="pa-0"
       >
-        <v-list-item-content v-if="i % 2 !== 0">
+        <v-list-item-content>
           <v-row class="pa-0">
             <v-col>
               <v-list-item-title>
-                Node
+                {{ i % 2 ? 'Edge' : 'Node' }}
               </v-list-item-title>
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="nodeVariable[(i-1)/2]"
-                :items="nodeVariableItems"
+                v-model="selectedVariables[i]"
+                :items="i % 2 ? edgeVariableItems : nodeVariableItems"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-model="nodeQuerySelection[(i-1)/2]"
-                :items="nodeQueryOptions"
+                v-model="selectedQueryOptions[i]"
+                :items="queryOptionItems"
                 dense
               />
             </v-col>
             <v-col class="pa-2">
               <v-autocomplete
-                v-if="nodeQuerySelection[(i-1)/2] === 'is (exact)'"
-                v-model="nodeVariableValue[(i-1)/2]"
-                :items="nodeVariableOptions[(i-1)/2]"
+                v-if="selectedQueryOptions[i] === 'is (exact)'"
+                v-model="selectedVariableValue[i]"
+                :items="variableValueItems[i]"
                 dense
               />
               <v-text-field
                 v-else
-                v-model="nodeVariableValue[(i-1)/2]"
-                dense
-              />
-            </v-col>
-          </v-row>
-        </v-list-item-content>
-        <v-list-item-content v-else>
-          <v-row class="pa-0">
-            <v-col>
-              <v-list-item-title>
-                Edge
-              </v-list-item-title>
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-model="edgeVariable[(i-2)/2]"
-                :items="edgeVariableItems"
-                dense
-              />
-            </v-col>
-            <v-col class="pa-2">
-              <v-autocomplete
-                v-model="edgeVariableValue[(i-2)/2]"
-                :items="edgeVariableOptions[(i-2)/2]"
+                v-model="selectedVariableValue[i]"
                 dense
               />
             </v-col>
@@ -108,60 +85,56 @@ export default {
     const hopsSelection = [1, 2, 3, 4, 5];
     const selectedHops: Ref<number> = ref(1);
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
-    const nodeQueryOptions = ['is (exact)', 'contains'];
-    const nodeVariable: Ref<string[]> = ref([]);
-    const edgeVariable: Ref<string[]> = ref([]);
-    const nodeVariableValue: Ref<string[]> = ref([]);
-    const edgeVariableValue: Ref<string[]> = ref([]);
-    const nodeQuerySelection: Ref<string[]> = ref([]);
+
+    const selectedVariables: Ref<string[]> = ref([]);
     const nodeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
     const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']));
-    const nodeVariableOptions: string[][] = [];
-    const edgeVariableOptions: string[][] = [];
-    const displayedHopsLoop = Array(displayedHops.value).fill(1).map((_, i) => i + 1);
 
-    displayedHopsLoop.forEach(() => {
-      nodeVariable.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
-      edgeVariable.value.push(store.state.workspaceName === 'marclab' ? 'Type' : '');
-      nodeVariableValue.value.push('');
-      edgeVariableValue.value.push('');
-      nodeQuerySelection.value.push('contains');
+    const selectedQueryOptions: Ref<string[]> = ref([]);
+    const queryOptionItems = ['is (exact)', 'contains'];
+
+    const selectedVariableValue: Ref<string[]> = ref([]);
+    const variableValueItems: Ref<string[][]> = ref([]);
+
+    // 21 = 2n + 1 for n = 5 (max number of hops allowed above)
+    Array(21).fill(1).forEach(() => {
+      selectedVariables.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
+      selectedQueryOptions.value.push('contains');
     });
 
     // For each selected node variable, fill in possible values for autocomplete
     watchEffect(() => {
-      nodeVariable.value.forEach((variable: string, i: number) => {
-        nodeVariableOptions[i] = store.state.network !== null ? store.state.network.nodes.map((n: Node) => `${n[variable]}`).sort() : ['No attribute selected'];
-      });
-    });
-
-    // For each selected edge variable, fill in possible values for autocomplete
-    watchEffect(() => {
-      edgeVariable.value.forEach((variable: string, i: number) => {
-        edgeVariableOptions[i] = store.state.network !== null ? store.state.network.edges.map((n: Edge) => `${n[variable]}`).sort() : ['No attribute selected'];
+      selectedVariables.value.forEach((variable: string, i: number) => {
+        if (store.state.network !== null) {
+          const currentData = i % 2 ? store.state.network.edges : store.state.network.nodes;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          variableValueItems.value[i] = (currentData as any).map((d: any) => `${d[variable]}`).sort();
+        }
       });
     });
 
     function submitQuery() {
       let pathQueryText = '';
-      for (let i = 0; i < selectedHops.value + 1; i += 1) {
-        const queryOperator = nodeQuerySelection.value[i] === 'is (exact)' ? '==' : '=~';
+
+      for (let i = 0; i < displayedHops.value; i += 1) {
+        const queryOperator = selectedQueryOptions.value[i] === 'is (exact)' ? '==' : '=~';
+
         if (i === 0) {
-          pathQueryText += `FILTER UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
-        } else if (nodeVariableValue.value[i] !== '') {
-          pathQueryText += ` AND UPPER(p.vertices[${i}].${nodeVariable.value[i]}) ${queryOperator} UPPER('${nodeVariableValue.value[i]}')`;
+          pathQueryText += `FILTER UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]}) ${queryOperator} UPPER('${selectedVariableValue.value[i]}')`;
+        } else if (selectedVariableValue.value[i] !== undefined) {
+          if (i % 2 === 0) {
+            // Nodes
+            pathQueryText += ` AND UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]}) ${queryOperator} UPPER('${selectedVariableValue.value[i]}')`;
+          } else {
+            // Edges
+            pathQueryText += ` AND p.edges[${(i - 1) / 2}].${selectedVariables.value[i]} ${queryOperator} '${selectedVariableValue.value[i]}'`;
+          }
         }
       }
-      for (let i = 0; i < selectedHops.value; i += 1) {
-        if (i === 0 && edgeVariableValue.value[i] !== '') {
-          pathQueryText += ` FILTER p.edges[${i}].${edgeVariable.value[i]} == '${edgeVariableValue.value[i]}'`;
-        } else if (edgeVariableValue.value[i] !== '') {
-          pathQueryText += ` AND p.edges[${i}].${edgeVariable.value[i]} == '${edgeVariableValue.value[i]}'`;
-        }
-      }
-      const queryOperator = nodeQuerySelection.value[0] === 'is (exact)' ? '==' : '=~';
+
+      const queryOperator = selectedQueryOptions.value[0] === 'is (exact)' ? '==' : '=~';
       const aqlQuery = `
-        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${nodeVariable.value[0]}) ${queryOperator} UPPER('${nodeVariableValue.value[0]}') RETURN n)
+        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${selectedVariables.value[0]}) ${queryOperator} UPPER('${selectedVariableValue.value[0]}') RETURN n)
         let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
         RETURN {paths: paths[**].paths}
       `;
@@ -221,16 +194,13 @@ export default {
       hopsSelection,
       selectedHops,
       displayedHops,
-      nodeQueryOptions,
-      nodeVariable,
-      edgeVariable,
-      nodeVariableValue,
-      edgeVariableValue,
-      nodeQuerySelection,
+      queryOptionItems,
+      selectedVariables,
+      selectedQueryOptions,
+      selectedVariableValue,
       nodeVariableItems,
-      nodeVariableOptions,
       edgeVariableItems,
-      edgeVariableOptions,
+      variableValueItems,
       submitQuery,
     };
   },
