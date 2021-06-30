@@ -11,6 +11,7 @@ import {
   GraphSpec, RowsSpec, TableRow, UserSpec,
 } from 'multinet';
 import {
+  ArangoAttributes,
   Cell,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State,
 } from '@/types';
@@ -251,7 +252,7 @@ const {
       });
     },
 
-    setLargeNetworkAttributeValues(state: State, payload: { nodeAttributes: {[key: string]: string[]}; edgeAttributes: {[key: string]: string[]}}) {
+    setLargeNetworkAttributeValues(state: State, payload: { nodeAttributes: ArangoAttributes; edgeAttributes: ArangoAttributes }) {
       state.nodeAttributes = payload.nodeAttributes;
       state.edgeAttributes = payload.edgeAttributes;
     },

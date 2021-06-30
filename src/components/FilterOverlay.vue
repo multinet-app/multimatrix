@@ -57,7 +57,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import api from '@/api';
-import { Network } from '@/types';
+import { ArangoAttributes, Network } from '@/types';
 import store from '@/store';
 
 export default Vue.extend({
@@ -150,8 +150,8 @@ export default Vue.extend({
 
           const nodeAttrDict: {[key: string]: number} = {};
           const edgeAttrDict: {[key: string]: number} = {};
-          const nodeAttributes: {[key: string]: string[] | unknown[]} = {};
-          const edgeAttributes: {[key: string]: string[] | unknown[]} = {};
+          const nodeAttributes: ArangoAttributes = {};
+          const edgeAttributes: ArangoAttributes = {};
 
           const getKeyByValue = (obj: {[key: string]: string | number | boolean }, value: string | number | boolean) => Object.keys(obj)[Object.values(obj).indexOf(value)];
 
@@ -172,7 +172,7 @@ export default Vue.extend({
           for (const [key, value] of Object.entries(edgeAttrDict)) {
             edgeAttributes[key] = [...new Set(aqlResults.edgeValues.map((vals: string[]) => `${vals[value]}`).sort())];
           }
-          store.commit.setLargeNetworkAttributeValues(nodeAttributes, edgeAttributes);
+          store.commit.setLargeNetworkAttributeValues({ nodeAttributes, edgeAttributes });
         });
       }
     },
