@@ -107,7 +107,7 @@ export default {
       selectedVariables.value.forEach((variable: string, i: number) => {
         if (store.state.network !== null) {
           const currentData = i % 2 ? store.state.edgeAttributes : store.state.nodeAttributes;
-          variableValueItems.value[i] = currentData[variable];
+          variableValueItems.value[i] = currentData[variable].map((value) => `${value}`);
         }
       });
     });
