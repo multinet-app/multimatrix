@@ -87,8 +87,8 @@ export default {
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
 
     const selectedVariables: Ref<string[]> = ref([]);
-    const nodeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.network.nodes[0]) : ['No network']));
-    const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.network.edges[0]) : ['No network']));
+    const nodeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.nodeAttributes) : ['No network']));
+    const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.edgeAttributes) : ['No network']));
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
     const queryOptionItems = ['is (exact)', 'contains'];
@@ -106,9 +106,8 @@ export default {
     watchEffect(() => {
       selectedVariables.value.forEach((variable: string, i: number) => {
         if (store.state.network !== null) {
-          const currentData = i % 2 ? store.state.network.edges : store.state.network.nodes;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          variableValueItems.value[i] = (currentData as any).map((d: any) => `${d[variable]}`).sort();
+          const currentData = i % 2 ? store.state.edgeAttributes : store.state.nodeAttributes;
+          variableValueItems.value[i] = currentData[variable];
         }
       });
     });
