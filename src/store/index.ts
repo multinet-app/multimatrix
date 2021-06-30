@@ -250,6 +250,11 @@ const {
         state.edgeAttributes[key] = [...new Set(network.edges.map((e: Edge) => `${e[key]}`).sort())];
       });
     },
+
+    setLargeNetworkAttributeValues(state: State, nodeAttributes: {[key: string]: string[]}, edgeAttributes: {[key: string]: string[]}) {
+      state.nodeAttributes = nodeAttributes;
+      state.edgeAttributes = edgeAttributes;
+    },
   },
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
