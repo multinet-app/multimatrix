@@ -251,9 +251,9 @@ const {
       });
     },
 
-    setLargeNetworkAttributeValues(state: State, nodeAttributes: {[key: string]: string[]}, edgeAttributes: {[key: string]: string[]}) {
-      state.nodeAttributes = nodeAttributes;
-      state.edgeAttributes = edgeAttributes;
+    setLargeNetworkAttributeValues(state: State, payload: { nodeAttributes: {[key: string]: string[]}; edgeAttributes: {[key: string]: string[]}}) {
+      state.nodeAttributes = payload.nodeAttributes;
+      state.edgeAttributes = payload.edgeAttributes;
     },
   },
   actions: {
