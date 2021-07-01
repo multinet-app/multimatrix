@@ -123,6 +123,7 @@ export default Vue.extend({
         this.getAttributes();
       }
     },
+
     getAttributes() {
       const aqlQuery = `
       let nodeValues = (FOR doc IN ${store.state.nodeTableNames}[**] RETURN VALUES(doc))
