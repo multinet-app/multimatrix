@@ -57,7 +57,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import api from '@/api';
-import { Network } from '@/types';
+import { ArangoAttributes, Network } from '@/types';
 import store from '@/store';
 
 export default Vue.extend({
@@ -119,6 +119,61 @@ export default Vue.extend({
               href: '',
             });
           }
+        });
+        this.getAttributes();
+      }
+    },
+
+    getAttributes() {
+      const aqlQuery = `
+      let nodeValues = (FOR doc IN ${store.state.nodeTableNames}[**] RETURN VALUES(doc))
+      let edgeValues = (FOR doc IN ${store.state.edgeTableName} RETURN VALUES(doc))
+      let nodeAttr = (FOR doc IN ${store.state.nodeTableNames}[**] LIMIT 1 RETURN doc)
+      let edgeAttr = (FOR doc IN ${store.state.edgeTableName} LIMIT 1 RETURN doc)
+      RETURN {nodeAttributes: nodeAttr, nodeValues: nodeValues, edgeAttributes: edgeAttr, edgeValues: edgeValues}
+      `;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let nodeAndEdgeQuery: Promise<any[]> | undefined;
+      try {
+        nodeAndEdgeQuery = api.aql(store.state.workspaceName || '', aqlQuery);
+      } catch (error) {
+        // Add error message for user
+        if (error.status === 400) {
+          store.commit.setLoadError({
+            message: error.statusText,
+            href: 'https://multinet.app',
+          });
+        }
+      }
+      if (nodeAndEdgeQuery !== undefined) {
+        nodeAndEdgeQuery.then((promise) => {
+          const aqlResults = promise[0];
+
+          const nodeAttrDict: {[key: string]: number} = {};
+          const edgeAttrDict: {[key: string]: number} = {};
+          const nodeAttributes: ArangoAttributes = {};
+          const edgeAttributes: ArangoAttributes = {};
+
+          const getKeyByValue = (obj: {[key: string]: string | number | boolean }, value: string | number | boolean) => Object.keys(obj)[Object.values(obj).indexOf(value)];
+
+          Array(aqlResults.nodeValues[0].length).fill(1).forEach((_, i) => {
+            const attrKey: string = getKeyByValue(aqlResults.nodeAttributes[0], aqlResults.nodeValues[0][i]);
+            nodeAttrDict[attrKey] = i;
+          });
+          // eslint-disable-next-line no-restricted-syntax
+          for (const [key, value] of Object.entries(nodeAttrDict)) {
+            nodeAttributes[key] = [...new Set(aqlResults.nodeValues.map((vals: string[]) => `${vals[value]}`).sort())];
+          }
+
+          Array(aqlResults.edgeValues[0].length).fill(1).forEach((_, i) => {
+            const attrKey: string = getKeyByValue(aqlResults.edgeAttributes[0], aqlResults.edgeValues[0][i]);
+            edgeAttrDict[attrKey] = i;
+          });
+          // eslint-disable-next-line no-restricted-syntax
+          for (const [key, value] of Object.entries(edgeAttrDict)) {
+            edgeAttributes[key] = [...new Set(aqlResults.edgeValues.map((vals: string[]) => `${vals[value]}`).sort())];
+          }
+          store.commit.setLargeNetworkAttributeValues({ nodeAttributes, edgeAttributes });
         });
       }
     },

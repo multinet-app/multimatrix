@@ -11,6 +11,7 @@ import {
   GraphSpec, RowsSpec, TableRow, UserSpec,
 } from 'multinet';
 import {
+  ArangoAttributes,
   Cell,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State,
 } from '@/types';
@@ -57,6 +58,8 @@ const {
     edgeTableName: null,
     provenance: null,
     showProvenanceVis: false,
+    nodeAttributes: {},
+    edgeAttributes: {},
   } as State,
 
   getters: {
@@ -234,6 +237,29 @@ const {
     toggleShowProvenanceVis(state) {
       state.showProvenanceVis = !state.showProvenanceVis;
     },
+
+    setAttributeValues(state, network: Network) {
+      const allNodeKeys: Set<string> = new Set();
+      network.nodes.forEach((node: Node) => Object.keys(node).forEach((key) => allNodeKeys.add(key)));
+      const nodeKeys = [...allNodeKeys];
+      state.nodeAttributes = nodeKeys.reduce((ac, a) => ({ ...ac, [a]: [] }), {});
+      nodeKeys.forEach((key: string) => {
+        state.nodeAttributes[key] = [...new Set(network.nodes.map((n: Node) => `${n[key]}`).sort())];
+      });
+
+      const allEdgeKeys: Set<string> = new Set();
+      network.edges.forEach((edge: Edge) => Object.keys(edge).forEach((key) => allEdgeKeys.add(key)));
+      const edgeKeys = [...allEdgeKeys];
+      state.edgeAttributes = edgeKeys.reduce((ac, a) => ({ ...ac, [a]: [] }), {});
+      edgeKeys.forEach((key: string) => {
+        state.edgeAttributes[key] = [...new Set(network.edges.map((e: Edge) => `${e[key]}`).sort())];
+      });
+    },
+
+    setLargeNetworkAttributeValues(state: State, payload: { nodeAttributes: ArangoAttributes; edgeAttributes: ArangoAttributes }) {
+      state.nodeAttributes = payload.nodeAttributes;
+      state.edgeAttributes = payload.edgeAttributes;
+    },
   },
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
@@ -326,6 +352,7 @@ const {
         nodes: nodes as Node[],
         edges: edges as Edge[],
       };
+      commit.setAttributeValues(network);
       dispatch.updateNetwork({ network });
     },
 

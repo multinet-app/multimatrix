@@ -40,6 +40,10 @@ export interface LoadError {
   href: string;
 }
 
+export interface ArangoAttributes {
+  [key: string]: unknown[];
+}
+
 export interface State {
   workspaceName: string | null;
   networkName: string | null;
@@ -66,6 +70,8 @@ export interface State {
   edgeTableName: string | null;
   provenance: Provenance<State, ProvenanceEventTypes, unknown> | null;
   showProvenanceVis: boolean;
+  nodeAttributes: ArangoAttributes;
+  edgeAttributes: ArangoAttributes;
 }
 
 export type ProvenanceEventTypes =
