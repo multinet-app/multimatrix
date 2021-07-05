@@ -157,6 +157,7 @@ export default {
         newAQLNetwork.then((promise) => {
           const aqlResults = promise[0];
           if (aqlResults.paths.length !== 0) {
+            store.commit.setConnectivityMatrixPaths(aqlResults.paths);
             // some data manipulation to show only start + end nodes
             const newNetwork: Network = { nodes: [], edges: [] };
             const nodesSet = new Set();
