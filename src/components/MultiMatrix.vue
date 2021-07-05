@@ -24,6 +24,7 @@ import { select, selectAll } from 'd3-selection';
 import { transition } from 'd3-transition';
 import store from '@/store';
 import LineUp from '@/components/LineUp.vue';
+import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 
 import 'science';
 import 'reorder.js';
@@ -33,6 +34,7 @@ declare const reorder: any;
 export default Vue.extend({
   components: {
     LineUp,
+    IntermediaryNodes,
   },
 
   data(): {
@@ -185,6 +187,10 @@ export default Vue.extend({
 
     childColorScale() {
       return store.getters.childColorScale;
+    },
+
+    showInterMediateNodes() {
+      return store.state.showIntNodeVis;
     },
   },
 
@@ -1125,6 +1131,7 @@ export default Vue.extend({
         />
       </div>
       <line-up v-if="finishedMounting" />
+      <intermediary-nodes v-if="finishedMounting && showInterMediateNodes" />
     </v-container>
 
     <div

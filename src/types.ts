@@ -72,6 +72,7 @@ export interface State {
   showProvenanceVis: boolean;
   nodeAttributes: ArangoAttributes;
   edgeAttributes: ArangoAttributes;
+  showIntNodeVis: boolean;
 }
 
 export type ProvenanceEventTypes =

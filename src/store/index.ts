@@ -60,6 +60,7 @@ const {
     showProvenanceVis: false,
     nodeAttributes: {},
     edgeAttributes: {},
+    showIntNodeVis: true,
   } as State,
 
   getters: {
@@ -259,6 +260,10 @@ const {
     setLargeNetworkAttributeValues(state: State, payload: { nodeAttributes: ArangoAttributes; edgeAttributes: ArangoAttributes }) {
       state.nodeAttributes = payload.nodeAttributes;
       state.edgeAttributes = payload.edgeAttributes;
+    },
+
+    toggleShowIntNodeVis(state, showIntNodeVis: boolean) {
+      state.showIntNodeVis = showIntNodeVis;
     },
   },
   actions: {
