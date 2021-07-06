@@ -173,14 +173,14 @@ export default {
                   newPath._from = path.vertices[i]._id;
                   if (!endsNodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
                   endsNodesSet.add(path.vertices[i]._id);
-                }
-                if (i === (selectedHops.value)) {
+                } else if (i > 0 && i < selectedHops.value) {
+                  if (!middleNodesSet.has(path.vertices[i]._id)) { middleNodesList.push(path.vertices[i]); }
+                  middleNodesSet.add(path.vertices[i]._id);
+                } else {
                   newPath._to = path.vertices[i]._id;
                   if (!endsNodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
                   endsNodesSet.add(path.vertices[i]._id);
                 }
-                if (!middleNodesSet.has(path.vertices[i]._id)) { middleNodesList.push(path.vertices[i]); }
-                middleNodesSet.add(path.vertices[i]._id);
               }
 
               // generate _key and _id

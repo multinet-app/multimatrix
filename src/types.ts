@@ -42,6 +42,8 @@ export interface ConnectivityCell {
   startingNode: string;
   endingNode: string;
   cellName: string;
+  nodePosition: number;
+  paths: number[];
 }
 
 export interface LoadError {
@@ -51,6 +53,11 @@ export interface LoadError {
 
 export interface ArangoAttributes {
   [key: string]: unknown[];
+}
+
+export interface ArangoPath {
+  vertices: Node[];
+  edges: Edge[];
 }
 
 export interface State {
@@ -82,7 +89,7 @@ export interface State {
   nodeAttributes: ArangoAttributes;
   edgeAttributes: ArangoAttributes;
   showIntNodeVis: boolean;
-  connectivityMatrixPaths: {nodes: Node[]; paths: unknown[]};
+  connectivityMatrixPaths: {nodes: Node[]; paths: ArangoPath[]};
 }
 
 export type ProvenanceEventTypes =

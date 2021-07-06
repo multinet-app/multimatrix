@@ -12,6 +12,7 @@ import {
 } from 'multinet';
 import {
   ArangoAttributes,
+  ArangoPath,
   Cell,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State,
 } from '@/types';
@@ -267,7 +268,7 @@ const {
       state.showIntNodeVis = showIntNodeVis;
     },
 
-    setConnectivityMatrixPaths(state, payload: { nodes: Node[]; paths: unknown[]}) {
+    setConnectivityMatrixPaths(state, payload: { nodes: Node[]; paths: ArangoPath[]}) {
       state.connectivityMatrixPaths.nodes = payload.nodes;
       state.connectivityMatrixPaths.paths = payload.paths;
     },
