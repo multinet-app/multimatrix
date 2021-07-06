@@ -157,10 +157,11 @@ export default {
         newAQLNetwork.then((promise) => {
           const aqlResults = promise[0];
           if (aqlResults.paths.length !== 0) {
-            store.commit.setConnectivityMatrixPaths(aqlResults.paths);
             // some data manipulation to show only start + end nodes
             const newNetwork: Network = { nodes: [], edges: [] };
-            const nodesSet = new Set();
+            const endsNodesSet = new Set();
+            const middleNodesSet = new Set();
+            const middleNodesList: Node[] = [];
 
             aqlResults.paths.forEach((path: { edges: Edge[]; vertices: Node[] }, val: number) => {
               const newPath: Edge = {
@@ -170,14 +171,16 @@ export default {
               for (let i = 0; i < selectedHops.value + 1; i += 1) {
                 if (i === 0) {
                   newPath._from = path.vertices[i]._id;
-                  if (!nodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
-                  nodesSet.add(path.vertices[i]._id);
+                  if (!endsNodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
+                  endsNodesSet.add(path.vertices[i]._id);
                 }
                 if (i === (selectedHops.value)) {
                   newPath._to = path.vertices[i]._id;
-                  if (!nodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
-                  nodesSet.add(path.vertices[i]._id);
+                  if (!endsNodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
+                  endsNodesSet.add(path.vertices[i]._id);
                 }
+                if (!middleNodesSet.has(path.vertices[i]._id)) { middleNodesList.push(path.vertices[i]); }
+                middleNodesSet.add(path.vertices[i]._id);
               }
 
               // generate _key and _id
@@ -185,6 +188,9 @@ export default {
               newPath._id = val.toString();
               newNetwork.edges.push(newPath);
             });
+
+            // Update state for use in intermediate node vis
+            store.commit.setConnectivityMatrixPaths({ nodes: middleNodesList, paths: aqlResults.paths });
 
             // Update state with new network
             store.dispatch.updateNetwork({ network: newNetwork });

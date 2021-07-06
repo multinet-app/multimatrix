@@ -61,7 +61,7 @@ const {
     nodeAttributes: {},
     edgeAttributes: {},
     showIntNodeVis: true,
-    connectivityMatrixPaths: {},
+    connectivityMatrixPaths: { nodes: [], paths: [] },
   } as State,
 
   getters: {
@@ -266,8 +266,10 @@ const {
     toggleShowIntNodeVis(state, showIntNodeVis: boolean) {
       state.showIntNodeVis = showIntNodeVis;
     },
-    setConnectivityMatrixPaths(state, connectivityMatrixPaths) {
-      state.connectivityMatrixPaths = connectivityMatrixPaths;
+
+    setConnectivityMatrixPaths(state, payload: { nodes: Node[]; paths: unknown[]}) {
+      state.connectivityMatrixPaths.nodes = payload.nodes;
+      state.connectivityMatrixPaths.paths = payload.paths;
     },
   },
   actions: {

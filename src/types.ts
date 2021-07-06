@@ -35,6 +35,15 @@ export interface Cell {
   correspondingCell: string;
 }
 
+export interface ConnectivityCell {
+  x: number;
+  y: number;
+  z: number;
+  startingNode: string;
+  endingNode: string;
+  cellName: string;
+}
+
 export interface LoadError {
   message: string;
   href: string;
@@ -73,7 +82,7 @@ export interface State {
   nodeAttributes: ArangoAttributes;
   edgeAttributes: ArangoAttributes;
   showIntNodeVis: boolean;
-  connectivityMatrixPaths: ArangoAttributes;
+  connectivityMatrixPaths: {nodes: Node[]; paths: unknown[]};
 }
 
 export type ProvenanceEventTypes =
