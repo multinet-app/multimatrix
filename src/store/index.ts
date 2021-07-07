@@ -558,6 +558,32 @@ const {
         dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
       }
     },
+
+    updateEnableAggregation(context, enableAggregation: boolean) {
+      const { state, commit, dispatch } = rootActionContext(context);
+
+      commit.setEnableAggregation(enableAggregation);
+
+      // Reset an aggregated network
+      if (state.aggregated && state.network) {
+        const allChildren = state.network.nodes
+          .map((node) => node.children)
+          .flat()
+          .filter((node): node is Node => node !== undefined);
+
+        const originalEdges = state.network.edges.map((edge) => {
+          const originalEdge = { ...edge };
+          originalEdge._from = `${originalEdge.originalFrom}`;
+          originalEdge._to = `${originalEdge.originalTo}`;
+
+          return originalEdge;
+        });
+
+        store.commit.setAggregated(false);
+        store.commit.setShowChildLegend(false);
+        dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
+      }
+    },
   },
 });
 
