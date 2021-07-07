@@ -345,6 +345,7 @@ export default Vue.extend({
           ) {
             if (cell.z > maxNumConnections) {
               maxNumConnections = cell.z;
+              maxChildConnections = cell.z;
             }
           }
           if (
@@ -353,14 +354,6 @@ export default Vue.extend({
           ) {
             if (cell.z > maxAggrConnections) {
               maxAggrConnections = cell.z;
-            }
-          }
-          if (
-            cell.rowCellType === 'childnode'
-            || cell.colCellType === 'childnode'
-          ) {
-            if (cell.z > maxChildConnections) {
-              maxChildConnections = cell.z;
             }
           }
         });
@@ -685,10 +678,15 @@ export default Vue.extend({
               // retract
               this.expandedSuperNodes.delete(node._id);
               store.dispatch.retractAggregatedNode(node._id);
+
+              if (this.expandedSuperNodes.size === 0) {
+                store.commit.setShowChildLegend(false);
+              }
             } else {
               // expand
               this.expandedSuperNodes.add(node._id);
               store.dispatch.expandAggregatedNode(node._id);
+              store.commit.setShowChildLegend(true);
             }
           } else {
             store.commit.clickElement(node._id);
