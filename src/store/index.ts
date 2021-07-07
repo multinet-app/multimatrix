@@ -473,6 +473,7 @@ const {
             children: value.map((node) => JSON.parse(JSON.stringify(node))),
             type: 'supernode',
             neighbors: [] as string[],
+            [varName]: key,
           }),
         );
 
