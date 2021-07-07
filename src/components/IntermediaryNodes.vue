@@ -22,29 +22,17 @@ export default {
     const cellSize = computed(() => store.state.cellSize);
     const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node: Node) => node._id).sort());
     const margin = {
-      top: 70,
-      right: 0,
+      top: 79,
+      right: 25,
       bottom: 0,
-      left: 70,
+      left: 25,
     };
     const matrixWidth = computed(() => connectivityPaths.value.paths[0].edges.length * cellSize.value + margin.left + margin.right);
     const matrixHeight = computed(() => connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom);
 
-    const intNodeWidth = computed(() => {
-      const controlsElement = select<Element, Element>('.app-sidebar').node();
-      const matrixElement = select<Element, Element>('#matrix').node();
-
-      if (controlsElement !== null && matrixElement !== null) {
-        const availableSpace = context.root.$vuetify.breakpoint.width - controlsElement.clientWidth - matrixElement.clientWidth - 12; // 12 from the svg container padding
-        return availableSpace < 330 ? 330 : availableSpace;
-      }
-
-      return 330;
-    });
-
-    const orderingScale: ScaleBand<string> = scaleBand()
-      .domain(sortOrder.value)
-      .range([0, sortOrder.value.length * cellSize.value]);
+    const intNodeWidth = computed(() => (store.state.connectivityMatrixPaths.nodes.length > 0
+      ? store.state.connectivityMatrixPaths.nodes.length * cellSize.value + margin.left + margin.right
+      : 0));
 
     const xScale = scaleBand().domain([0, sortOrder.value.length]).rangeRound([0, matrixWidth.value]).paddingInner(0.1)
       .align(0);

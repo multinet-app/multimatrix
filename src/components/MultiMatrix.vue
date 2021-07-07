@@ -1130,8 +1130,8 @@ export default Vue.extend({
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
         />
       </div>
-      <line-up v-if="finishedMounting" />
       <intermediary-nodes v-if="finishedMounting && showInterMediateNodes" />
+      <line-up v-if="finishedMounting" />
     </v-container>
 
     <div
