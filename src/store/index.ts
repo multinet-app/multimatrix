@@ -454,8 +454,8 @@ const {
 
           /* eslint-disable no-param-reassign */
           /* eslint-disable no-underscore-dangle */
-          edge.originalFrom = edge.originalFrom === undefined && edge._from;
-          edge.originalTo = edge.originalTo === undefined && edge._to;
+          edge.originalFrom = edge.originalFrom === undefined ? edge._from : edge.originalFrom;
+          edge.originalTo = edge.originalTo === undefined ? edge._to : edge.originalTo;
           edge._from = `aggregated/${fromNodeValue}`;
           edge._to = `aggregated/${toNodeValue}`;
           /* eslint-enable no-param-reassign */
