@@ -80,6 +80,10 @@ const {
         .domain([0, state.maxConnections.child])
         .range(['#f79d97', '#c0362c']);
     },
+
+    nodeVariableItems(state): string[] {
+      return state.network ? Object.keys(state.nodeAttributes) : [];
+    },
   },
 
   mutations: {

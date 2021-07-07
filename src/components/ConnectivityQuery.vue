@@ -87,7 +87,7 @@ export default {
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
 
     const selectedVariables: Ref<string[]> = ref([]);
-    const nodeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.nodeAttributes) : ['No network']));
+    const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
     const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.edgeAttributes) : ['No network']));
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
