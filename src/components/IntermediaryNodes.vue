@@ -5,9 +5,9 @@ import {
 import {
   ScaleBand,
   scaleBand,
+  scaleLinear,
 } from 'd3-scale';
 import { select, selectAll } from 'd3-selection';
-import { transition } from 'd3-transition';
 import store from '@/store';
 import { ArangoPath, ConnectivityCell } from '@/types';
 
@@ -27,11 +27,9 @@ export default {
       bottom: 0,
       left: 70,
     };
-    const orderingScale: ScaleBand<string> = scaleBand()
-      .domain(sortOrder.value)
-      .range([0, sortOrder.value.length * cellSize.value]);
     const matrixWidth = computed(() => connectivityPaths.value.paths[0].edges.length * cellSize.value + margin.left + margin.right);
     const matrixHeight = computed(() => connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom);
+
     const intNodeWidth = computed(() => {
       const controlsElement = select<Element, Element>('.app-sidebar').node();
       const matrixElement = select<Element, Element>('#matrix').node();
@@ -43,6 +41,14 @@ export default {
 
       return 330;
     });
+
+    const orderingScale: ScaleBand<string> = scaleBand()
+      .domain(sortOrder.value)
+      .range([0, sortOrder.value.length * cellSize.value]);
+
+    const xScale = scaleBand().domain([0, sortOrder.value.length]).rangeRound([0, matrixWidth.value]).paddingInner(0.1)
+      .align(0);
+    const opacity = scaleLinear().domain([0, 0]).range([0.25, 1]).clamp(true);
 
     function removeIntView() {
       if (intNodeSVG !== null) {
@@ -84,26 +90,96 @@ export default {
         console.log(matrix);
       }
       console.log(connectivityPaths.value);
+      //   Update opacity
+      const allPaths = matrix.map((row: ConnectivityCell[]) => row.map((cell: ConnectivityCell) => cell.z)).flat();
+      const maxPath = allPaths.reduce((a, b) => Math.max(a, b));
+      opacity.domain([
+        0,
+        maxPath,
+      ]);
+    }
+
+    function makeRow(rowData: ConnectivityCell) {
+      const row = selectAll('g.row');
+      const column = selectAll('g.column');
+      console.log(rowData);
+      const cell = select(this)
+        .selectAll('rect')
+        .data(rowData)
+        .enter()
+        .append('rect')
+        .attr('x', (d) => xScale(d.x))
+        .attr('width', xScale.bandwidth())
+        .attr('height', xScale.bandwidth())
+        .style('fill-opacity', (d) => opacity(d.z))
+        .style('fill', 'blue')
+        .on('mouseover', (d) => {
+          row
+            .filter((_, i) => d.x === i)
+            .selectAll('text')
+            .style('fill', '#d62333')
+            .style('font-weight', 'bold');
+          column
+            .filter((_, j) => d.y === j)
+            .style('fill', '#d62333')
+            .style('font-weight', 'bold');
+        })
+        .on('mouseout', () => {
+          row.selectAll('text').style('fill', null).style('font-weight', null);
+          column.style('fill', null).style('font-weight', null);
+        });
+      cell.append('title').text((d) => `
+      ${d.cellName} 
+      in ${d.z} paths`);
     }
 
     function buildIntView() {
       if (matrix.length > 0) {
       // set the radius for cells
-        const cellRadius = 3;
-
-        // set the matrix highlight
-        const matrixHighlightLength = matrix.length * cellSize.value;
+        // const cellRadius = 3;
 
         const svg = select('#intNode').append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-
+        // Calculate opacity domain
         // constant for starting the column label container
-        const columnLabelContainerStart = 20;
-        const labelContainerHeight = 25;
-        const rowLabelContainerStart = 75;
-        const labelContainerWidth = rowLabelContainerStart;
+        // const columnLabelContainerStart = 20;
+        // const labelContainerHeight = 25;
+        // const rowLabelContainerStart = 75;
+        // const labelContainerWidth = rowLabelContainerStart;
 
-        const verticalOffset = 187.5;
-        const horizontalOffset = (orderingScale.bandwidth() / 2 - 4.5) / 0.075;
+        // const verticalOffset = 187.5;
+        // const horizontalOffset = (orderingScale.bandwidth() / 2 - 4.5) / 0.075;
+
+        //   Draw rows
+        const row = svg
+          .selectAll('g.row')
+          .data(matrix)
+          .enter()
+          .append('g')
+          .attr('class', 'row')
+          .attr('transform', (_, i) => `translate(0,${xScale(i)})`)
+          .each(makeRow);
+        row
+          .append('text')
+          .attr('class', 'label')
+          .attr('x', -4)
+          .attr('y', xScale.bandwidth() / 2)
+          .attr('dy', '0.32em')
+          .text((d: ConnectivityCell) => `${d.cellName}: in ${d.z} paths`);
+
+        //   Draw columns
+        const column = svg
+          .selectAll('g.column')
+          .data(matrix)
+          .enter()
+          .append('g')
+          .attr('class', 'column')
+          .attr('transform', (_, i) => `translate(${xScale(i)}, 0)rotate(-90)`)
+          .append('text')
+          .attr('class', 'label')
+          .attr('x', 4)
+          .attr('y', xScale.bandwidth() / 2)
+          .attr('dy', '0.32em')
+          .text((d: ConnectivityCell) => `${d.cellName}: in ${d.z} paths`);
       }
     }
 
@@ -129,6 +205,7 @@ export default {
 
 <template>
   <div
+    id="intNodeDiv"
     :style="`width: ${intNodeWidth}px;`"
   >
     <svg
