@@ -450,12 +450,9 @@ export default Vue.extend({
         })
         .classed('colLabels', true);
 
-      columnEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'childnode') {
-          return '#aaa';
-        }
-        return 'black';
-      });
+      columnEnter
+        .selectAll('p')
+        .style('color', (d: Node) => (this.aggregated && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
 
       columnEnter
         .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
@@ -580,12 +577,9 @@ export default Vue.extend({
         })
         .classed('rowLabels', true);
 
-      rowEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'childnode') {
-          return '#aaa';
-        }
-        return 'black';
-      });
+      rowEnter
+        .selectAll('p')
+        .style('color', (d: Node) => (this.aggregated && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
 
       rowEnter
         .on('mouseover', (event: MouseEvent, node: Node) => {
