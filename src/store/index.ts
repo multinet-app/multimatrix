@@ -497,6 +497,66 @@ const {
         dispatch.updateNetwork({ network: { nodes: aggregatedNodes, edges: aggregatedEdges } });
       }
     },
+
+    expandAggregatedNode(context, nodeID: string) {
+      const { state, dispatch } = rootActionContext(context);
+
+      if (state.network !== null) {
+        // Add children nodes into list at the correct index
+        const indexOfParent = state.network && state.network.nodes.findIndex((node) => node._id === nodeID);
+        const parentChildren = state.network.nodes[indexOfParent].children || [];
+        const expandedNodes = [...state.network.nodes];
+        expandedNodes.splice(indexOfParent + 1, 0, ...parentChildren);
+
+        // Add children edges
+        const expandedEdges = state.network.edges
+          .map((edge) => {
+            const newEdge = { ...edge };
+            let modified = false;
+
+            if (newEdge._from === nodeID) {
+              newEdge._from = `${newEdge.originalFrom}`;
+              modified = true;
+            }
+
+            if (edge._to === nodeID) {
+              newEdge._to = `${newEdge.originalTo}`;
+              modified = true;
+            }
+
+            return modified ? newEdge : null;
+          })
+          .filter((edge): edge is Edge => edge !== null);
+
+        dispatch.updateNetwork({ network: { nodes: expandedNodes, edges: [...expandedEdges, ...state.network.edges] } });
+      }
+    },
+
+    retractAggregatedNode(context, nodeID: string) {
+      const { state, dispatch } = rootActionContext(context);
+
+      if (state.network !== null) {
+        // Remove children nodes
+        const parentNode = state.network.nodes.find((node) => node._id === nodeID);
+        const parentChildren = parentNode && parentNode.children;
+        const retractedNodes = state.network.nodes.filter((node) => parentChildren && parentChildren.indexOf(node) === -1);
+
+        // Remove children edges
+        const retractedEdges = state.network.edges
+          .map((edge) => {
+            const parentChildrenIDs = parentChildren && parentChildren.map((node) => node._id);
+
+            if (parentChildrenIDs && (parentChildrenIDs.indexOf(edge._from) !== -1 || parentChildrenIDs.indexOf(edge._to) !== -1)) {
+              return null;
+            }
+
+            return edge;
+          })
+          .filter((edge): edge is Edge => edge !== null);
+
+        dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
+      }
+    },
   },
 });
 

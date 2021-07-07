@@ -684,9 +684,11 @@ export default Vue.extend({
             if (this.expandedSuperNodes.has(node._id)) {
               // retract
               this.expandedSuperNodes.delete(node._id);
+              store.dispatch.retractAggregatedNode(node._id);
             } else {
               // expand
               this.expandedSuperNodes.add(node._id);
+              store.dispatch.expandAggregatedNode(node._id);
             }
           } else {
             store.commit.clickElement(node._id);
