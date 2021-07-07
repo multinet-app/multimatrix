@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
-import { range } from 'd3-array';
+import { group, range } from 'd3-array';
 import { scaleLinear, ScaleLinear } from 'd3-scale';
 import { initProvenance, Provenance } from '@visdesignlab/trrack';
 
@@ -431,6 +431,69 @@ const {
 
       // Add keydown listener for undo/redo
       document.addEventListener('keydown', (event) => undoRedoKeyHandler(event, storeState));
+    },
+
+    aggregateNetwork(context, varName: string) {
+      const { state, commit, dispatch } = rootActionContext(context);
+
+      if (state.network !== null) {
+        // Calculate edges
+        const aggregatedEdges = state.network.edges.map((edge) => {
+          const fromNode = state.network && state.network.nodes.find((node) => node._id === edge._from);
+          const toNode = state.network && state.network.nodes.find((node) => node._id === edge._to);
+
+          if (fromNode === undefined || toNode === undefined || fromNode === null || toNode === null) {
+            return edge;
+          }
+
+          const fromNodeValue = fromNode[varName];
+          const toNodeValue = toNode[varName];
+
+          /* eslint-disable no-param-reassign */
+          /* eslint-disable no-underscore-dangle */
+          edge.originalFrom = edge.originalFrom === undefined && edge._from;
+          edge.originalTo = edge.originalTo === undefined && edge._to;
+          edge._from = `aggregated/${fromNodeValue}`;
+          edge._to = `aggregated/${toNodeValue}`;
+          /* eslint-enable no-param-reassign */
+          /* eslint-enable no-underscore-dangle */
+
+          return edge;
+        });
+
+        // Calculate nodes
+        const aggregatedNodes = Array.from(
+          group(state.network.nodes, (d) => d[varName]),
+          ([key, value]) => ({
+            _id: `aggregated/${key}`,
+            _key: `${key}`,
+            children: value.map((node) => JSON.parse(JSON.stringify(node))),
+            type: 'supernode',
+            neighbors: [] as string[],
+          }),
+        );
+
+        // Calculate neighbors
+        aggregatedEdges.forEach((edge) => {
+          const fromNode = aggregatedNodes.find((node) => node._id === edge._from);
+          const toNode = aggregatedNodes.find((node) => node._id === edge._to);
+
+          if (fromNode === undefined || toNode === undefined) {
+            return;
+          }
+
+          if (edge._to !== fromNode._id && fromNode.neighbors.indexOf(edge._to) === -1) {
+            fromNode.neighbors.push(edge._to);
+          }
+          if (edge._from !== toNode._id && toNode.neighbors.indexOf(edge._from) === -1) {
+            toNode.neighbors.push(edge._from);
+          }
+        });
+
+        // Set network and aggregated
+        commit.setAggregated(true);
+        dispatch.updateNetwork({ network: { nodes: aggregatedNodes, edges: aggregatedEdges } });
+      }
     },
   },
 });
