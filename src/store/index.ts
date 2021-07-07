@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import Vuex, { Store } from 'vuex';
+import Vuex from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
 import { group, range } from 'd3-array';
@@ -267,6 +267,7 @@ const {
       state.edgeAttributes = payload.edgeAttributes;
     },
   },
+
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
       const { commit, dispatch } = rootActionContext(context);
