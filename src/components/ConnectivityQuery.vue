@@ -186,6 +186,7 @@ export default {
             });
 
             // Update state with new network
+            store.dispatch.updateEnableAggregation(false);
             store.dispatch.updateNetwork({ network: newNetwork });
           }
         });
