@@ -1,8 +1,8 @@
 import Vue from 'vue';
-import Vuex, { Store } from 'vuex';
+import Vuex from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
-import { range } from 'd3-array';
+import { group, range } from 'd3-array';
 import { scaleLinear, ScaleLinear } from 'd3-scale';
 import { initProvenance, Provenance } from '@visdesignlab/trrack';
 
@@ -80,6 +80,10 @@ const {
         .domain([0, state.maxConnections.child])
         .range(['#f79d97', '#c0362c']);
     },
+
+    nodeVariableItems(state): string[] {
+      return state.network ? Object.keys(state.nodeAttributes) : [];
+    },
   },
 
   mutations: {
@@ -92,17 +96,19 @@ const {
     },
 
     setNetwork(state, network: Network) {
-      // eslint-disable-next-line no-param-reassign
-      network.nodes = network.nodes.sort((node1, node2) => {
-        const key1 = parseInt(node1._key, 10);
-        const key2 = parseInt(node2._key, 10);
+      if (!state.aggregated) {
+        // eslint-disable-next-line no-param-reassign
+        network.nodes = network.nodes.sort((node1, node2) => {
+          const key1 = parseInt(node1._key, 10);
+          const key2 = parseInt(node2._key, 10);
 
-        if (key1 && key2) {
-          return key1 - key2;
-        }
+          if (key1 && key2) {
+            return key1 - key2;
+          }
 
-        return node1._key.localeCompare(node2._key);
-      });
+          return node1._key.localeCompare(node2._key);
+        });
+      }
       state.network = network;
     },
 
@@ -261,6 +267,7 @@ const {
       state.edgeAttributes = payload.edgeAttributes;
     },
   },
+
   actions: {
     async fetchNetwork(context, { workspaceName, networkName }) {
       const { commit, dispatch } = rootActionContext(context);
@@ -427,6 +434,156 @@ const {
 
       // Add keydown listener for undo/redo
       document.addEventListener('keydown', (event) => undoRedoKeyHandler(event, storeState));
+    },
+
+    aggregateNetwork(context, varName: string) {
+      const { state, commit, dispatch } = rootActionContext(context);
+
+      if (state.network !== null) {
+        // Calculate edges
+        const aggregatedEdges = state.network.edges.map((edge) => {
+          const fromNode = state.network && state.network.nodes.find((node) => node._id === edge._from);
+          const toNode = state.network && state.network.nodes.find((node) => node._id === edge._to);
+
+          if (fromNode === undefined || toNode === undefined || fromNode === null || toNode === null) {
+            return edge;
+          }
+
+          const fromNodeValue = fromNode[varName];
+          const toNodeValue = toNode[varName];
+
+          /* eslint-disable no-param-reassign */
+          /* eslint-disable no-underscore-dangle */
+          edge.originalFrom = edge.originalFrom === undefined ? edge._from : edge.originalFrom;
+          edge.originalTo = edge.originalTo === undefined ? edge._to : edge.originalTo;
+          edge._from = `aggregated/${fromNodeValue}`;
+          edge._to = `aggregated/${toNodeValue}`;
+          /* eslint-enable no-param-reassign */
+          /* eslint-enable no-underscore-dangle */
+
+          return edge;
+        });
+
+        // Calculate nodes
+        const aggregatedNodes = Array.from(
+          group(state.network.nodes, (d) => d[varName]),
+          ([key, value]) => ({
+            _id: `aggregated/${key}`,
+            _key: `${key}`,
+            children: value.map((node) => JSON.parse(JSON.stringify(node))),
+            type: 'supernode',
+            neighbors: [] as string[],
+            [varName]: key,
+          }),
+        );
+
+        // Calculate neighbors
+        aggregatedEdges.forEach((edge) => {
+          const fromNode = aggregatedNodes.find((node) => node._id === edge._from);
+          const toNode = aggregatedNodes.find((node) => node._id === edge._to);
+
+          if (fromNode === undefined || toNode === undefined) {
+            return;
+          }
+
+          if (edge._to !== fromNode._id && fromNode.neighbors.indexOf(edge._to) === -1) {
+            fromNode.neighbors.push(edge._to);
+          }
+          if (edge._from !== toNode._id && toNode.neighbors.indexOf(edge._from) === -1) {
+            toNode.neighbors.push(edge._from);
+          }
+        });
+
+        // Set network and aggregated
+        commit.setAggregated(true);
+        dispatch.updateNetwork({ network: { nodes: aggregatedNodes, edges: aggregatedEdges } });
+      }
+    },
+
+    expandAggregatedNode(context, nodeID: string) {
+      const { state, dispatch } = rootActionContext(context);
+
+      if (state.network !== null) {
+        // Add children nodes into list at the correct index
+        const indexOfParent = state.network && state.network.nodes.findIndex((node) => node._id === nodeID);
+        const parentChildren = state.network.nodes[indexOfParent].children || [];
+        const expandedNodes = [...state.network.nodes];
+        expandedNodes.splice(indexOfParent + 1, 0, ...parentChildren);
+
+        // Add children edges
+        const expandedEdges = state.network.edges
+          .map((edge) => {
+            const newEdge = { ...edge };
+            let modified = false;
+
+            if (newEdge._from === nodeID) {
+              newEdge._from = `${newEdge.originalFrom}`;
+              modified = true;
+            }
+
+            if (edge._to === nodeID) {
+              newEdge._to = `${newEdge.originalTo}`;
+              modified = true;
+            }
+
+            return modified ? newEdge : null;
+          })
+          .filter((edge): edge is Edge => edge !== null);
+
+        dispatch.updateNetwork({ network: { nodes: expandedNodes, edges: [...expandedEdges, ...state.network.edges] } });
+      }
+    },
+
+    retractAggregatedNode(context, nodeID: string) {
+      const { state, dispatch } = rootActionContext(context);
+
+      if (state.network !== null) {
+        // Remove children nodes
+        const parentNode = state.network.nodes.find((node) => node._id === nodeID);
+        const parentChildren = parentNode && parentNode.children;
+        const retractedNodes = state.network.nodes.filter((node) => parentChildren && parentChildren.indexOf(node) === -1);
+
+        // Remove children edges
+        const retractedEdges = state.network.edges
+          .map((edge) => {
+            const parentChildrenIDs = parentChildren && parentChildren.map((node) => node._id);
+
+            if (parentChildrenIDs && (parentChildrenIDs.indexOf(edge._from) !== -1 || parentChildrenIDs.indexOf(edge._to) !== -1)) {
+              return null;
+            }
+
+            return edge;
+          })
+          .filter((edge): edge is Edge => edge !== null);
+
+        dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
+      }
+    },
+
+    updateEnableAggregation(context, enableAggregation: boolean) {
+      const { state, commit, dispatch } = rootActionContext(context);
+
+      commit.setEnableAggregation(enableAggregation);
+
+      // Reset an aggregated network
+      if (state.aggregated && state.network) {
+        const allChildren = state.network.nodes
+          .map((node) => node.children)
+          .flat()
+          .filter((node): node is Node => node !== undefined);
+
+        const originalEdges = state.network.edges.map((edge) => {
+          const originalEdge = { ...edge };
+          originalEdge._from = `${originalEdge.originalFrom}`;
+          originalEdge._to = `${originalEdge.originalTo}`;
+
+          return originalEdge;
+        });
+
+        store.commit.setAggregated(false);
+        store.commit.setShowChildLegend(false);
+        dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
+      }
     },
   },
 });

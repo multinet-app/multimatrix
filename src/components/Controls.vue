@@ -59,7 +59,7 @@ export default Vue.extend({
         return store.state.enableAggregation;
       },
       set(value: boolean) {
-        store.commit.setEnableAggregation(value);
+        store.dispatch.updateEnableAggregation(value);
       },
     },
 
@@ -81,6 +81,10 @@ export default Vue.extend({
 
     childColorScale() {
       return store.getters.childColorScale;
+    },
+
+    nodeVariableItems() {
+      return store.getters.nodeVariableItems;
     },
   },
 
@@ -138,6 +142,10 @@ export default Vue.extend({
 
     toggleProvVis() {
       store.commit.toggleShowProvenanceVis();
+    },
+
+    aggregateNetwork(varName: string) {
+      store.dispatch.aggregateNetwork(varName);
     },
   },
 });
@@ -234,6 +242,21 @@ export default Vue.extend({
             </v-list-item-action>
             <v-list-item-content>
               Enable Aggregation
+            </v-list-item-content>
+          </v-list-item>
+
+          <!-- Aggregation Variable Selection -->
+          <v-list-item
+            v-if="enableAggregation"
+            class="pa-0 ma-0"
+          >
+            <v-list-item-content class="pa-0 ma-0">
+              <v-autocomplete
+                class="pa-0 ma-0"
+                :items="nodeVariableItems"
+                placeholder="Variable to aggregate by"
+                @change="aggregateNetwork"
+              />
             </v-list-item-content>
           </v-list-item>
 

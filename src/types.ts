@@ -9,6 +9,7 @@ export interface Dimensions {
 export interface Node extends TableRow {
   type: string;
   neighbors: string[];
+  children?: Node[];
   [propName: string]: unknown;
 }
 
