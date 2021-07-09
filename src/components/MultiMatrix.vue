@@ -1,6 +1,4 @@
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Vue from 'vue';
 import {
   Cell,
@@ -22,6 +20,7 @@ import LineUp from '@/components/LineUp.vue';
 import 'science';
 import 'reorder.js';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const reorder: any;
 
 export default Vue.extend({
@@ -30,15 +29,19 @@ export default Vue.extend({
   },
 
   data(): {
-    visMargins: any;
+    visMargins: { left: number; top: number; right: number; bottom: number};
     matrix: Cell[][];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     edges: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     edgeColumns: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     edgeRows: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     cells: any;
     expandedSuperNodes: Set<string>;
     icons: { [key: string]: { [d: string]: string } };
-    orderType: any;
+    orderType: unknown;
     sortKey: string;
     finishedMounting: boolean;
     } {
@@ -584,6 +587,7 @@ export default Vue.extend({
       const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
 
       // Update existing icons
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (selectAll('.aggrButton') as any)
         .data(this.network.nodes, (d: Node) => d._id)
         .attr('d', (d: Node) => {
@@ -739,13 +743,13 @@ export default Vue.extend({
       // vertical grid lines
       lines
         .append('line')
-        .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`)
+        .attr('transform', (d: unknown, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`)
         .attr('x1', -this.orderingScale.range()[1]);
 
       // horizontal grid lines
       lines
         .append('line')
-        .attr('transform', (d: any, i: number) => `translate(0,${this.orderingScale(i)})`)
+        .attr('transform', (d: unknown, i: number) => `translate(0,${this.orderingScale(i)})`)
         .attr('x2', this.orderingScale.range()[1]);
 
       // vertical grid line edges
@@ -814,16 +818,20 @@ export default Vue.extend({
         });
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       select(this.$refs.tooltip as any)
         .style('left', `${event.clientX - 256 + 10}px`)
         .style('top', `${event.clientY + 10}px`)
         .html(message)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0.9);
     },
 
     hideToolTip(): void {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       select(this.$refs.tooltip as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0);
     },
@@ -833,6 +841,8 @@ export default Vue.extend({
     },
 
     sortObserver(type: string, isNode = false) {
+      if (this.network === null) { return; }
+
       let order;
       this.sortKey = type;
       if (
@@ -843,15 +853,16 @@ export default Vue.extend({
         if (this.network == null) {
           return;
         }
-        const edges: any[] = Array(this.network.edges.length);
+        const edges: unknown[] = Array(this.network.edges.length);
 
         // Generate edges that are compatible with reorder.js
         this.network.edges.forEach((edge: Edge, index: number) => {
+          if (this.network === null) { return; }
           edges[index] = {
-            source: this.network!.nodes.find(
+            source: this.network.nodes.find(
               (node: Node) => node._id === edge._from,
             ),
-            target: this.network!.nodes.find(
+            target: this.network.nodes.find(
               (node: Node) => node._id === edge._to,
             ),
           };
@@ -878,24 +889,33 @@ export default Vue.extend({
           order = reorder.optimal_leaf_order()(mat);
         }
       } else if (this.sortKey === 'edges') {
-        order = range(this.network!.nodes.length).sort((a, b) => {
-          const firstValue = this.network!.nodes[b][type] as number;
-          const secondValue = this.network!.nodes[a][type] as number;
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          const firstValue = this.network.nodes[b][type] as number;
+          const secondValue = this.network.nodes[a][type] as number;
 
           return firstValue - secondValue;
         });
       } else if (isNode === true) {
-        order = range(this.network!.nodes.length).sort((a, b) => this.network!.nodes[a]._id.localeCompare(this.network!.nodes[b]._id));
-        order = range(this.network!.nodes.length).sort(
-          (a, b) => Number(this.network!.nodes[b].neighbors.includes(type))
-            - Number(this.network!.nodes[a].neighbors.includes(type)),
-        );
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+        });
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return Number(this.network.nodes[b].neighbors.includes(type))
+            - Number(this.network.nodes[a].neighbors.includes(type));
+        });
       } else if (this.sortKey === 'shortName') {
-        order = range(this.network!.nodes.length).sort((a, b) => this.network!.nodes[a]._id.localeCompare(this.network!.nodes[b]._id));
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+        });
       } else {
-        order = range(this.network!.nodes.length).sort((a, b) => {
-          const firstValue = this.network!.nodes[b][type] as number;
-          const secondValue = this.network!.nodes[a][type] as number;
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          const firstValue = this.network.nodes[b][type] as number;
+          const secondValue = this.network.nodes[a][type] as number;
 
           return firstValue - secondValue;
         });
