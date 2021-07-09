@@ -841,25 +841,6 @@ export default Vue.extend({
     },
 
     showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
-      let svgElement: SVGGraphicsElement;
-
-      if (event.target === null || (event.target as SVGElement).className.baseVal === 'sortIcon') { return; }
-
-      // If foreign object, get the foreign object, not the p
-      if ((event.target as SVGElement).localName === 'p') {
-        svgElement = (event.target as SVGElement).parentElement as unknown as SVGGraphicsElement;
-      } else {
-        svgElement = event.target as SVGGraphicsElement;
-      }
-
-      const CTM = svgElement
-        .getCTM();
-
-      if (CTM === null) { return; }
-
-      const matrix = CTM
-        .translate(parseFloat(svgElement.getAttribute('x') || this.matrixWidth.toString()), parseFloat(svgElement.getAttribute('y') || this.matrixHeight.toString()));
-
       let message = '';
 
       if (this.isCell(networkElement)) {
@@ -880,13 +861,10 @@ export default Vue.extend({
         });
       }
 
-      select(this.$refs.tooltip as any).html(message);
-
       select(this.$refs.tooltip as any)
-        .style('left', `${matrix.e}px`)
-        .style('top', `${matrix.f - select(this.$refs.tooltip as any).node().getBoundingClientRect().height}px`);
-
-      select(this.$refs.tooltip as any)
+        .style('left', `${event.clientX - 256 + 10}px`)
+        .style('top', `${event.clientY + 10}px`)
+        .html(message)
         .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0.9);
     },
