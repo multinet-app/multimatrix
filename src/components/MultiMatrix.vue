@@ -224,7 +224,6 @@ export default Vue.extend({
     },
 
     orderingScale() {
-      this.processData();
       this.initializeEdges();
     },
 
@@ -233,20 +232,15 @@ export default Vue.extend({
     },
 
     network() {
-      this.processData();
       this.initializeEdges();
     },
 
     directionalEdges() {
-      this.processData();
       this.initializeEdges();
     },
   },
 
   mounted() {
-    // Run process data to convert edges to cells
-    this.processData();
-
     this.edges = select('#matrix')
       .append('g')
       .attr(
@@ -363,6 +357,9 @@ export default Vue.extend({
       if (this.network === null) {
         return;
       }
+
+      this.processData();
+
       // set the radius for cells
       const cellRadius = 3;
 
