@@ -46,13 +46,11 @@ const {
     showGridLines: true,
     enableAggregation: false,
     aggregated: false,
-    showChildLegend: false,
     visualizedNodeAttributes: [],
     visualizedEdgeAttributes: [],
     maxConnections: {
       unAggr: 0,
       parent: 0,
-      child: 0,
     },
     nodeTableNames: [],
     edgeTableName: null,
@@ -73,12 +71,6 @@ const {
       return scaleLinear<string, number>()
         .domain([0, state.maxConnections.parent])
         .range(['#dcedfa', '#0066cc']);
-    },
-
-    childColorScale(state): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, state.maxConnections.child])
-        .range(['#f79d97', '#c0362c']);
     },
 
     nodeVariableItems(state): string[] {
@@ -218,14 +210,9 @@ const {
       state.aggregated = aggregated;
     },
 
-    setShowChildLegend(state, showChildLegend: boolean) {
-      state.showChildLegend = showChildLegend;
-    },
-
     setMaxConnections(state, maxConnections: {
       unAggr: number;
       parent: number;
-      child: number;
     }) {
       state.maxConnections = maxConnections;
     },
@@ -581,7 +568,6 @@ const {
         });
 
         store.commit.setAggregated(false);
-        store.commit.setShowChildLegend(false);
         dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
       }
     },
