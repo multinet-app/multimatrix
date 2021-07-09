@@ -1,6 +1,5 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Vue from 'vue';
 import {
   Cell,
@@ -833,6 +832,8 @@ export default Vue.extend({
     },
 
     sortObserver(type: string, isNode = false) {
+      if (this.network === null) { return; }
+
       let order;
       this.sortKey = type;
       if (
@@ -847,11 +848,12 @@ export default Vue.extend({
 
         // Generate edges that are compatible with reorder.js
         this.network.edges.forEach((edge: Edge, index: number) => {
+          if (this.network === null) { return; }
           edges[index] = {
-            source: this.network!.nodes.find(
+            source: this.network.nodes.find(
               (node: Node) => node._id === edge._from,
             ),
-            target: this.network!.nodes.find(
+            target: this.network.nodes.find(
               (node: Node) => node._id === edge._to,
             ),
           };
@@ -878,24 +880,33 @@ export default Vue.extend({
           order = reorder.optimal_leaf_order()(mat);
         }
       } else if (this.sortKey === 'edges') {
-        order = range(this.network!.nodes.length).sort((a, b) => {
-          const firstValue = this.network!.nodes[b][type] as number;
-          const secondValue = this.network!.nodes[a][type] as number;
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          const firstValue = this.network.nodes[b][type] as number;
+          const secondValue = this.network.nodes[a][type] as number;
 
           return firstValue - secondValue;
         });
       } else if (isNode === true) {
-        order = range(this.network!.nodes.length).sort((a, b) => this.network!.nodes[a]._id.localeCompare(this.network!.nodes[b]._id));
-        order = range(this.network!.nodes.length).sort(
-          (a, b) => Number(this.network!.nodes[b].neighbors.includes(type))
-            - Number(this.network!.nodes[a].neighbors.includes(type)),
-        );
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+        });
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return Number(this.network.nodes[b].neighbors.includes(type))
+            - Number(this.network.nodes[a].neighbors.includes(type));
+        });
       } else if (this.sortKey === 'shortName') {
-        order = range(this.network!.nodes.length).sort((a, b) => this.network!.nodes[a]._id.localeCompare(this.network!.nodes[b]._id));
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+        });
       } else {
-        order = range(this.network!.nodes.length).sort((a, b) => {
-          const firstValue = this.network!.nodes[b][type] as number;
-          const secondValue = this.network!.nodes[a][type] as number;
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          const firstValue = this.network.nodes[b][type] as number;
+          const secondValue = this.network.nodes[a][type] as number;
 
           return firstValue - secondValue;
         });
