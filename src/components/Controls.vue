@@ -114,11 +114,6 @@ export default Vue.extend({
         legendSVG = select('#matrix-legend');
       }
 
-      legendSVG
-        .append('g')
-        .classed('legendLinear', true)
-        .attr('transform', 'translate(10, 60)');
-
       // construct the legend and format the labels to have 0 decimal places
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const legendLinear = (legendColor() as any)
@@ -300,7 +295,12 @@ export default Vue.extend({
             style="display: flex; max-height: 50px"
           >
             Aggregate Legend
-            <svg id="parent-matrix-legend" />
+            <svg id="parent-matrix-legend">
+              <g
+                class="legendLinear"
+                transform="translate(10, 60)"
+              />
+            </svg>
           </v-list-item>
 
           <!-- Matrix Legend -->
@@ -309,7 +309,12 @@ export default Vue.extend({
             :style="`display: flex; max-height: 50px; opacity: ${maxConnections.unAggr > 0 ? 1 : 0}`"
           >
             {{ aggregated ? 'Child Legend' : 'Matrix Legend' }}
-            <svg id="matrix-legend" />
+            <svg id="matrix-legend">
+              <g
+                class="legendLinear"
+                transform="translate(10, 60)"
+              />
+            </svg>
           </v-list-item>
         </div>
         <div v-if="connectivityQueryToggle">
