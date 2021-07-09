@@ -96,9 +96,29 @@ export default Vue.extend({
 
   methods: {
     exportNetwork() {
+      if (this.network === null) {
+        return;
+      }
+
+      const networkToExport = {
+        nodes: this.network.nodes.map((node) => {
+          const newNode = { ...node };
+          newNode.id = newNode._key;
+          delete newNode._key;
+
+          return newNode;
+        }),
+        links: this.network.edges.map((edge) => {
+          const newEdge = { ...edge };
+          newEdge.source = `${edge._from.split('/')[1]}`;
+          newEdge.target = `${edge._to.split('/')[1]}`;
+          return newEdge;
+        }),
+      };
+
       const a = document.createElement('a');
       a.href = URL.createObjectURL(
-        new Blob([JSON.stringify(this.network)], {
+        new Blob([JSON.stringify(networkToExport)], {
           type: 'text/json',
         }),
       );
