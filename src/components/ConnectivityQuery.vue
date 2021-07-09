@@ -192,6 +192,9 @@ export default {
             // Update state for use in intermediate node vis
             store.commit.setConnectivityMatrixPaths({ nodes: middleNodesList, paths: aqlResults.paths });
 
+            // Update state for showing intermediate node vis
+            if (selectedHops.value > 1) store.commit.toggleShowIntNodeVis(true);
+
             // Update state with new network
             store.dispatch.updateNetwork({ network: newNetwork });
           }

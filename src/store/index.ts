@@ -61,7 +61,7 @@ const {
     showProvenanceVis: false,
     nodeAttributes: {},
     edgeAttributes: {},
-    showIntNodeVis: true,
+    showIntNodeVis: false,
     connectivityMatrixPaths: { nodes: [], paths: [] },
   } as State,
 
