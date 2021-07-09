@@ -447,18 +447,6 @@ export default Vue.extend({
         .selectAll('p')
         .style('color', (d: Node) => (this.aggregated && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
 
-      columnEnter
-        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
-          this.showToolTip(event, matrixElement);
-          this.hoverEdge(matrixElement);
-        })
-        .attr('cursor', 'pointer');
-
-      columnEnter.on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
-        this.hideToolTip();
-        this.unHoverEdge(matrixElement);
-      });
-
       // Invisible Rectangles for Foreign Column Labels
       columnEnter
         .append('rect')
@@ -468,7 +456,6 @@ export default Vue.extend({
         .attr('height', 15)
         .attr('class', 'colLabelRect')
         .style('opacity', 0)
-        .attr('cursor', 'pointer')
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           store.commit.clickElement(matrixElement._id);
         });
@@ -485,15 +472,17 @@ export default Vue.extend({
         )
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           this.sort(matrixElement._id);
-        })
+        });
+
+      columnEnter
         .attr('cursor', 'pointer')
-        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
+        .on('mouseover', (event: MouseEvent, matrixElement: Node) => {
           this.showToolTip(event, matrixElement);
-          this.hoverEdge(matrixElement);
+          this.hoverNode(matrixElement._id);
         })
-        .on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
+        .on('mouseout', (event: MouseEvent, matrixElement: Node) => {
           this.hideToolTip();
-          this.unHoverEdge(matrixElement);
+          this.unHoverNode(matrixElement._id);
         });
 
       this.edgeColumns.merge(columnEnter);
@@ -569,13 +558,6 @@ export default Vue.extend({
         .selectAll('p')
         .style('color', (d: Node) => (this.aggregated && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
 
-      rowEnter
-        .on('mouseover', (event: MouseEvent, node: Node) => {
-          this.showToolTip(event, node);
-          this.hoverNode(node._id);
-        })
-        .attr('cursor', 'pointer');
-
       // Invisible Rectangles for Foreign Row Labels
       rowEnter
         .append('rect')
@@ -588,12 +570,15 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           store.commit.clickElement(matrixElement._id);
+        })
+        .on('mouseover', (event: MouseEvent, node: Node) => {
+          this.showToolTip(event, node);
+          this.hoverNode(node._id);
+        })
+        .on('mouseout', (event: MouseEvent, node: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(node._id);
         });
-
-      rowEnter.on('mouseout', (event: MouseEvent, node: Node) => {
-        this.hideToolTip();
-        this.unHoverNode(node._id);
-      });
 
       // Invisible Rect Transform
       const invisibleRectTransform = 'translate(-73,2)';
@@ -727,7 +712,6 @@ export default Vue.extend({
           }
           return this.cellColorScale(d.z);
         })
-
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
           this.showToolTip(event, matrixElement);
@@ -813,25 +797,6 @@ export default Vue.extend({
     },
 
     showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
-      let svgElement: SVGGraphicsElement;
-
-      if (event.target === null || (event.target as SVGElement).className.baseVal === 'sortIcon') { return; }
-
-      // If foreign object, get the foreign object, not the p
-      if ((event.target as SVGElement).localName === 'p') {
-        svgElement = (event.target as SVGElement).parentElement as unknown as SVGGraphicsElement;
-      } else {
-        svgElement = event.target as SVGGraphicsElement;
-      }
-
-      const CTM = svgElement
-        .getCTM();
-
-      if (CTM === null) { return; }
-
-      const matrix = CTM
-        .translate(parseFloat(svgElement.getAttribute('x') || this.matrixWidth.toString()), parseFloat(svgElement.getAttribute('y') || this.matrixHeight.toString()));
-
       let message = '';
 
       if (this.isCell(networkElement)) {
@@ -852,13 +817,10 @@ export default Vue.extend({
         });
       }
 
-      select(this.$refs.tooltip as any).html(message);
-
       select(this.$refs.tooltip as any)
-        .style('left', `${matrix.e}px`)
-        .style('top', `${matrix.f - select(this.$refs.tooltip as any).node().getBoundingClientRect().height}px`);
-
-      select(this.$refs.tooltip as any)
+        .style('left', `${event.clientX - 256 + 10}px`)
+        .style('top', `${event.clientY + 10}px`)
+        .html(message)
         .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0.9);
     },
@@ -1052,6 +1014,7 @@ svg >>> .highlightCol {
   pointer-events: none;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   max-width: 400px;
+  z-index: 1;
 }
 
 svg >>> .hovered {
