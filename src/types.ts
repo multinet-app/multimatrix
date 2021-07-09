@@ -61,11 +61,9 @@ export interface State {
   showGridLines: boolean;
   enableAggregation: boolean;
   aggregated: boolean;
-  showChildLegend: boolean;
   maxConnections: {
     unAggr: number;
     parent: number;
-    child: number;
   };
   nodeTableNames: string[];
   edgeTableName: string | null;

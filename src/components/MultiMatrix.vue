@@ -166,10 +166,6 @@ export default Vue.extend({
     parentColorScale() {
       return store.getters.parentColorScale;
     },
-
-    childColorScale() {
-      return store.getters.childColorScale;
-    },
   },
 
   watch: {
@@ -306,7 +302,6 @@ export default Vue.extend({
       // Reset some values that will be re-calcuated
       let maxNumConnections = 0;
       let maxAggrConnections = 0;
-      let maxChildConnections = 0;
       this.matrix = [];
 
       if (this.network !== null) {
@@ -345,7 +340,6 @@ export default Vue.extend({
           ) {
             if (cell.z > maxNumConnections) {
               maxNumConnections = cell.z;
-              maxChildConnections = cell.z;
             }
           }
           if (
@@ -362,7 +356,6 @@ export default Vue.extend({
       store.commit.setMaxConnections({
         unAggr: maxNumConnections,
         parent: maxAggrConnections,
-        child: maxChildConnections,
       });
     },
 
@@ -541,12 +534,7 @@ export default Vue.extend({
       // add foreign objects for label
       rowEnter
         .append('foreignObject')
-        .attr('x', (d: Node) => {
-          if (d.type === 'childnode') {
-            return -rowLabelContainerStart + 29;
-          }
-          return -rowLabelContainerStart + 20;
-        })
+        .attr('x', -rowLabelContainerStart + 29)
         .attr('y', -5)
         .attr('width', (d: Node) => {
           if (d.type === 'supernode') {
@@ -573,12 +561,7 @@ export default Vue.extend({
       // Invisible Rectangles for Foreign Row Labels
       rowEnter
         .append('rect')
-        .attr('x', (d: Node) => {
-          if (d.type === 'childnode') {
-            return -rowLabelContainerStart + 29;
-          }
-          return -rowLabelContainerStart + 20;
-        })
+        .attr('x', -rowLabelContainerStart + 20)
         .attr('y', 0)
         .attr('width', labelContainerWidth - 25)
         .attr('height', 15)
@@ -649,7 +632,7 @@ export default Vue.extend({
         .on('click', (event: MouseEvent, node: Node) => {
           // allow expanding the vis if aggregation is turned on
           if (this.aggregated) {
-            if (node.type === 'childnode') {
+            if (node.type !== 'supernode') {
               return;
             }
             // expand and retract the supernode aggregation based on user selection
@@ -657,15 +640,10 @@ export default Vue.extend({
               // retract
               this.expandedSuperNodes.delete(node._id);
               store.dispatch.retractAggregatedNode(node._id);
-
-              if (this.expandedSuperNodes.size === 0) {
-                store.commit.setShowChildLegend(false);
-              }
             } else {
               // expand
               this.expandedSuperNodes.add(node._id);
               store.dispatch.expandAggregatedNode(node._id);
-              store.commit.setShowChildLegend(true);
             }
           } else {
             store.commit.clickElement(node._id);
@@ -697,9 +675,6 @@ export default Vue.extend({
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.parentColorScale(d.z);
-          }
-          if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
-            return this.childColorScale(d.z);
           }
           return this.cellColorScale(d.z);
         })
@@ -734,9 +709,6 @@ export default Vue.extend({
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.parentColorScale(d.z);
-          }
-          if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
-            return this.childColorScale(d.z);
           }
           return this.cellColorScale(d.z);
         })

@@ -67,10 +67,6 @@ export default Vue.extend({
       return store.state.aggregated;
     },
 
-    showChildLegend() {
-      return store.state.showChildLegend;
-    },
-
     cellColorScale() {
       return store.getters.cellColorScale;
     },
@@ -79,12 +75,12 @@ export default Vue.extend({
       return store.getters.parentColorScale;
     },
 
-    childColorScale() {
-      return store.getters.childColorScale;
-    },
-
     nodeVariableItems() {
       return store.getters.nodeVariableItems;
+    },
+
+    maxConnections() {
+      return store.state.maxConnections;
     },
   },
 
@@ -95,10 +91,6 @@ export default Vue.extend({
 
     parentColorScale() {
       this.updateLegend(this.parentColorScale, 'parent');
-    },
-
-    childColorScale() {
-      this.updateLegend(this.childColorScale, 'child');
     },
   },
 
@@ -114,15 +106,14 @@ export default Vue.extend({
       a.click();
     },
 
-    updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'child' | 'unAggr') {
+    updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr') {
       let legendSVG;
       if (legendName === 'parent') {
         legendSVG = select('#parent-matrix-legend');
-      } else if (legendName === 'child') {
-        legendSVG = select('#child-matrix-legend');
       } else {
         legendSVG = select('#matrix-legend');
       }
+
       legendSVG
         .append('g')
         .classed('legendLinear', true)
@@ -314,22 +305,11 @@ export default Vue.extend({
 
           <!-- Matrix Legend -->
           <v-list-item
-            v-else
             class="pb-0 px-0"
-            style="display: flex; max-height: 50px"
+            :style="`display: flex; max-height: 50px; opacity: ${maxConnections.unAggr > 0 ? 1 : 0}`"
           >
-            Matrix Legend
+            {{ aggregated ? 'Child Legend' : 'Matrix Legend' }}
             <svg id="matrix-legend" />
-          </v-list-item>
-
-          <!-- Child Matrix Legend -->
-          <v-list-item
-            v-if="showChildLegend"
-            class="pb-0 px-0"
-            style="display: flex; max-height: 50px"
-          >
-            Children Legend
-            <svg id="child-matrix-legend" />
           </v-list-item>
         </div>
         <div v-if="connectivityQueryToggle">
