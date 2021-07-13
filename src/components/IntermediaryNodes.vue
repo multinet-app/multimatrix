@@ -18,10 +18,12 @@ export default {
     const connectivityPaths = computed(() => store.state.connectivityMatrixPaths);
     const matrix: ConnectivityCell[][] = [];
     const cellSize = computed(() => store.state.cellSize);
+    const pathLength = computed(() => connectivityPaths.value.paths[0].vertices.length);
+    const edgeLength = computed(() => connectivityPaths.value.paths[0].edges.length);
 
     const margin = {
       top: 79,
-      right: 25,
+      right: 50,
       bottom: 0,
       left: 25,
     };
@@ -35,15 +37,13 @@ export default {
     watchEffect(() => {
       matrixHeight.value = connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom : 0;
     });
-    // const matrixWidth = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.paths[0].edges.length * cellSize.value + margin.left + margin.right : 0));
-    // const matrixHeight = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom : 0));
 
     const intNodeWidth = computed(() => (store.state.connectivityMatrixPaths.nodes.length > 0
       ? store.state.connectivityMatrixPaths.nodes.length * cellSize.value + margin.left + margin.right
       : 0));
-    const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node: Node) => node._id).sort());
-    const xScale = scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]);
-    const yScale = scaleLinear().domain([0, (connectivityPaths.value.paths[0].edges.length - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]);
+    const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node: Node) => node._key).sort());
+    const yScale = scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]);
+    const xScale = scaleLinear().domain([0, (edgeLength.value - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]);
 
     const opacity = scaleLinear().domain([0, 0]).range([0.25, 1]).clamp(true);
 
@@ -55,12 +55,12 @@ export default {
 
     function processData() {
       if (network.value !== null && intNodeSVG !== null && connectivityPaths.value.nodes.length > 0) {
-        const hops: number = connectivityPaths.value.paths[0].edges.length - 1;
+        const hops: number = edgeLength.value - 1;
 
         // Set up matrix intermediate nodes x # of hops
-        connectivityPaths.value.nodes.forEach((rowNode: Node, i: number) => {
+        sortOrder.value.forEach((rowNode: Node, i: number) => {
           matrix[i] = [...Array(hops).keys()].slice(0).map((j: number) => ({
-            cellName: `${rowNode._id}`,
+            cellName: `${rowNode}`,
             nodePosition: j + 1,
             startingNode: '',
             endingNode: '',
@@ -76,7 +76,7 @@ export default {
         connectivityPaths.value.paths.forEach((path: ArangoPath, i: number) => {
           matrix.forEach((matrixRow) => {
             [...Array(hops).keys()].slice(0).forEach((j) => {
-              if (path.vertices[j + 1]._id === matrixRow[j].cellName) {
+              if (path.vertices[j + 1]._key === matrixRow[j].cellName) {
                 // eslint-disable-next-line no-param-reassign
                 matrixRow[j].z += 1;
                 matrixRow[j].paths.push(i);
@@ -96,38 +96,62 @@ export default {
     }
 
     function makeRow(rowData: ConnectivityCell) {
-      // set the radius for cells
-      const cellRadius = 3;
-
       const cell = select(this)
         .selectAll('rect')
         .data(rowData)
         .enter()
         .append('rect')
-        .attr('x', (d: ConnectivityCell) => xScale(d.x))
-        .attr('rx', cellRadius)
+        .attr('x', (d: ConnectivityCell) => yScale(d.x))
         .attr('width', cellSize.value)
         .attr('height', cellSize.value)
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
 
-      cell.append('title').text((d: ConnectivityCell) => `${d.cellName} 
-      in ${d.z} paths`);
+      cell.append('title').text((d: ConnectivityCell) => `${d.cellName} in ${d.z} paths`);
     }
 
     function buildIntView() {
       if (matrix.length > 0) {
         const svg = select('#intNode').append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
+        //   Draw path symbols
+        const circles = svg.selectAll('g.circles')
+          .data([...Array(pathLength.value).keys()])
+          .enter()
+          .append('g')
+          .attr('class', 'circles')
+          .attr('transform', `translate(${matrixWidth.value * 0.13}, -${margin.top / 4})`);
+
+        circles.append('circle')
+          // .attr('transform', `translate(${matrixWidth.value * 0.12}, -${margin.top / 4})`)
+          .attr('cx', (_, i) => xScale(i))
+          .attr('cy', 0)
+          .attr('r', cellSize.value / 2)
+          .attr('fill', (_, i) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'))
+          .attr('stroke', 'black')
+          .attr('stroke-width', '1');
+
+        circles.append('text')
+          .attr('x', (_, i) => xScale(i))
+          .attr('y', cellSize.value / 2 - 3)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', `${cellSize.value - 2}px`)
+          .text((_, i) => i + 1);
+
         //   Draw rows
-        const row = svg
+        svg
           .selectAll('g.row')
           .data(matrix)
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i) => `translate(0,${xScale(i)})`)
-          .each(makeRow);
+          .attr('transform', (_, i) => `translate(${matrixWidth.value * 0.2},${yScale(i)})`)
+          .each(makeRow)
+          .append('text')
+          .attr('class', 'label')
+          .attr('y', cellSize.value / 2 + 4)
+          .attr('x', -(matrixWidth.value * 0.33))
+          .text((_, i) => sortOrder.value[i]);
 
         //   Draw columns
         svg
@@ -136,10 +160,7 @@ export default {
           .enter()
           .append('g')
           .attr('class', 'column')
-          .attr('transform', (_, i) => {
-            console.log(yScale(i));
-            return `translate(${yScale(i)}, 0)rotate(-90)`;
-          });
+          .attr('transform', (_, i) => `translate(${xScale(i)}, 0)rotate(-90)`);
       }
     }
 
