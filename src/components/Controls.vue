@@ -59,16 +59,12 @@ export default Vue.extend({
         return store.state.enableAggregation;
       },
       set(value: boolean) {
-        store.commit.setEnableAggregation(value);
+        store.dispatch.updateEnableAggregation(value);
       },
     },
 
     aggregated() {
       return store.state.aggregated;
-    },
-
-    showChildLegend() {
-      return store.state.showChildLegend;
     },
 
     cellColorScale() {
@@ -79,8 +75,12 @@ export default Vue.extend({
       return store.getters.parentColorScale;
     },
 
-    childColorScale() {
-      return store.getters.childColorScale;
+    nodeVariableItems() {
+      return store.getters.nodeVariableItems;
+    },
+
+    maxConnections() {
+      return store.state.maxConnections;
     },
   },
 
@@ -92,17 +92,33 @@ export default Vue.extend({
     parentColorScale() {
       this.updateLegend(this.parentColorScale, 'parent');
     },
-
-    childColorScale() {
-      this.updateLegend(this.childColorScale, 'child');
-    },
   },
 
   methods: {
     exportNetwork() {
+      if (this.network === null) {
+        return;
+      }
+
+      const networkToExport = {
+        nodes: this.network.nodes.map((node) => {
+          const newNode = { ...node };
+          newNode.id = newNode._key;
+          delete newNode._key;
+
+          return newNode;
+        }),
+        links: this.network.edges.map((edge) => {
+          const newEdge = { ...edge };
+          newEdge.source = `${edge._from.split('/')[1]}`;
+          newEdge.target = `${edge._to.split('/')[1]}`;
+          return newEdge;
+        }),
+      };
+
       const a = document.createElement('a');
       a.href = URL.createObjectURL(
-        new Blob([JSON.stringify(this.network)], {
+        new Blob([JSON.stringify(networkToExport)], {
           type: 'text/json',
         }),
       );
@@ -110,19 +126,13 @@ export default Vue.extend({
       a.click();
     },
 
-    updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'child' | 'unAggr') {
+    updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr') {
       let legendSVG;
       if (legendName === 'parent') {
         legendSVG = select('#parent-matrix-legend');
-      } else if (legendName === 'child') {
-        legendSVG = select('#child-matrix-legend');
       } else {
         legendSVG = select('#matrix-legend');
       }
-      legendSVG
-        .append('g')
-        .classed('legendLinear', true)
-        .attr('transform', 'translate(10, 60)');
 
       // construct the legend and format the labels to have 0 decimal places
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -138,6 +148,10 @@ export default Vue.extend({
 
     toggleProvVis() {
       store.commit.toggleShowProvenanceVis();
+    },
+
+    aggregateNetwork(varName: string) {
+      store.dispatch.aggregateNetwork(varName);
     },
   },
 });
@@ -237,6 +251,21 @@ export default Vue.extend({
             </v-list-item-content>
           </v-list-item>
 
+          <!-- Aggregation Variable Selection -->
+          <v-list-item
+            v-if="enableAggregation"
+            class="pa-0 ma-0"
+          >
+            <v-list-item-content class="pa-0 ma-0">
+              <v-autocomplete
+                class="pa-0 ma-0"
+                :items="nodeVariableItems"
+                placeholder="Variable to aggregate by"
+                @change="aggregateNetwork"
+              />
+            </v-list-item-content>
+          </v-list-item>
+
           <!-- Connectivity Query List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
@@ -286,27 +315,26 @@ export default Vue.extend({
             style="display: flex; max-height: 50px"
           >
             Aggregate Legend
-            <svg id="parent-matrix-legend" />
+            <svg id="parent-matrix-legend">
+              <g
+                class="legendLinear"
+                transform="translate(10, 60)"
+              />
+            </svg>
           </v-list-item>
 
           <!-- Matrix Legend -->
           <v-list-item
-            v-else
             class="pb-0 px-0"
-            style="display: flex; max-height: 50px"
+            :style="`display: flex; max-height: 50px; opacity: ${maxConnections.unAggr > 0 ? 1 : 0}`"
           >
-            Matrix Legend
-            <svg id="matrix-legend" />
-          </v-list-item>
-
-          <!-- Child Matrix Legend -->
-          <v-list-item
-            v-if="showChildLegend"
-            class="pb-0 px-0"
-            style="display: flex; max-height: 50px"
-          >
-            Children Legend
-            <svg id="child-matrix-legend" />
+            {{ aggregated ? 'Child Legend' : 'Matrix Legend' }}
+            <svg id="matrix-legend">
+              <g
+                class="legendLinear"
+                transform="translate(10, 60)"
+              />
+            </svg>
           </v-list-item>
         </div>
         <div v-if="connectivityQueryToggle">

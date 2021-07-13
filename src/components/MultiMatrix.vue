@@ -1,13 +1,5 @@
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Vue from 'vue';
-
-import {
-  expandSuperNetwork,
-  retractSuperNetwork,
-  nonAggrNetwork,
-} from '@/lib/aggregation';
 import {
   Cell,
   Edge,
@@ -29,6 +21,7 @@ import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 import 'science';
 import 'reorder.js';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const reorder: any;
 
 export default Vue.extend({
@@ -38,19 +31,20 @@ export default Vue.extend({
   },
 
   data(): {
-    visMargins: any;
+    visMargins: { left: number; top: number; right: number; bottom: number};
     matrix: Cell[][];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     edges: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     edgeColumns: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     edgeRows: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     cells: any;
-    clickMap: Map<string, boolean>; // variable for keeping track of whether a label has been clicked or not
-    nonAggrNodes: Node[];
-    nonAggrEdges: Edge[];
+    expandedSuperNodes: Set<string>;
     icons: { [key: string]: { [d: string]: string } };
-    orderType: any;
+    orderType: unknown;
     sortKey: string;
-    showIcon: boolean;
     finishedMounting: boolean;
     } {
     return {
@@ -62,9 +56,7 @@ export default Vue.extend({
       edgeColumns: undefined,
       edgeRows: undefined,
       cells: undefined,
-      clickMap: new Map<string, boolean>(),
-      nonAggrNodes: [],
-      nonAggrEdges: [],
+      expandedSuperNodes: new Set(),
       icons: {
         quant: {
           d:
@@ -85,7 +77,6 @@ export default Vue.extend({
       },
       orderType: undefined,
       sortKey: '',
-      showIcon: false,
       finishedMounting: false,
     };
   },
@@ -169,10 +160,6 @@ export default Vue.extend({
       return store.state.showGridLines;
     },
 
-    enableAggregation() {
-      return store.state.enableAggregation;
-    },
-
     aggregated() {
       return store.state.aggregated;
     },
@@ -183,10 +170,6 @@ export default Vue.extend({
 
     parentColorScale() {
       return store.getters.parentColorScale;
-    },
-
-    childColorScale() {
-      return store.getters.childColorScale;
     },
 
     showInterMediateNodes() {
@@ -250,7 +233,6 @@ export default Vue.extend({
     },
 
     orderingScale() {
-      this.processData();
       this.initializeEdges();
     },
 
@@ -259,76 +241,15 @@ export default Vue.extend({
     },
 
     network() {
-      this.processData();
       this.initializeEdges();
     },
 
     directionalEdges() {
-      this.processData();
       this.initializeEdges();
-    },
-
-    enableAggregation() {
-      if (!this.enableAggregation && this.aggregated === true && this.network !== null) {
-        // Clear the click map so correct icons are drawn for aggregation
-        this.clickMap.clear();
-
-        store.dispatch.updateNetwork({
-          network: nonAggrNetwork(this.nonAggrNodes, this.nonAggrEdges),
-        });
-
-        // Update everything on the screen
-        const columnLabelContainerStart = 20;
-        const labelContainerHeight = 25;
-        const rowLabelContainerStart = 75;
-        const labelContainerWidth = rowLabelContainerStart;
-
-        // Update the rows and row labels
-        (selectAll('.rowContainer') as any)
-          .selectAll('.rowForeign')
-          .data(this.network.nodes, (d: Node) => d._id)
-          .attr('x', -rowLabelContainerStart + 20)
-          .attr('y', -5)
-          .attr('width', labelContainerWidth - 15)
-          .attr('height', labelContainerHeight);
-
-        (selectAll('.rowLabels') as any)
-          .data(this.network.nodes, (d: Node) => d._id)
-          .style('color', 'black')
-          .classed('rowLabels', true);
-
-        // Update the columns and the column labels
-        (selectAll('.column') as any)
-          .selectAll('foreignObject')
-          .data(this.network.nodes, (d: Node) => d._id)
-          .attr('y', -5)
-          .attr('x', columnLabelContainerStart)
-          .attr('width', labelContainerWidth)
-          .attr('height', labelContainerHeight);
-
-        (selectAll('.colLabels') as any)
-          .data(this.network.nodes, (d: Node) => d._id)
-          .style('color', 'black')
-          .classed('rowLabels', true);
-
-        // Update the children count and labels
-        (select('.childCount') as any).style('opacity', 0);
-
-        (selectAll('.countLabels') as any).style('opacity', 0);
-
-        // Update the legend
-        store.commit.setShowChildLegend(false);
-
-        // Reset aggregated state
-        store.commit.setAggregated(false);
-      }
     },
   },
 
   mounted() {
-    // Run process data to convert edges to cells
-    this.processData();
-
     this.edges = select('#matrix')
       .append('g')
       .attr(
@@ -384,7 +305,6 @@ export default Vue.extend({
       // Reset some values that will be re-calcuated
       let maxNumConnections = 0;
       let maxAggrConnections = 0;
-      let maxChildConnections = 0;
       this.matrix = [];
 
       if (this.network !== null) {
@@ -433,21 +353,12 @@ export default Vue.extend({
               maxAggrConnections = cell.z;
             }
           }
-          if (
-            cell.rowCellType === 'childnode'
-            || cell.colCellType === 'childnode'
-          ) {
-            if (cell.z > maxChildConnections) {
-              maxChildConnections = cell.z;
-            }
-          }
         });
       });
 
       store.commit.setMaxConnections({
         unAggr: maxNumConnections,
         parent: maxAggrConnections,
-        child: maxChildConnections,
       });
     },
 
@@ -455,6 +366,9 @@ export default Vue.extend({
       if (this.network === null) {
         return;
       }
+
+      this.processData();
+
       // set the radius for cells
       const cellRadius = 3;
 
@@ -535,24 +449,9 @@ export default Vue.extend({
         })
         .classed('colLabels', true);
 
-      columnEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'childnode') {
-          return '#aaa';
-        }
-        return 'black';
-      });
-
       columnEnter
-        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
-          this.showToolTip(event, matrixElement);
-          this.hoverEdge(matrixElement);
-        })
-        .attr('cursor', 'pointer');
-
-      columnEnter.on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
-        this.hideToolTip();
-        this.unHoverEdge(matrixElement);
-      });
+        .selectAll('p')
+        .style('color', (d: Node) => (this.aggregated && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
 
       // Invisible Rectangles for Foreign Column Labels
       columnEnter
@@ -563,7 +462,6 @@ export default Vue.extend({
         .attr('height', 15)
         .attr('class', 'colLabelRect')
         .style('opacity', 0)
-        .attr('cursor', 'pointer')
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           store.commit.clickElement(matrixElement._id);
         });
@@ -580,15 +478,17 @@ export default Vue.extend({
         )
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           this.sort(matrixElement._id);
-        })
+        });
+
+      columnEnter
         .attr('cursor', 'pointer')
-        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
+        .on('mouseover', (event: MouseEvent, matrixElement: Node) => {
           this.showToolTip(event, matrixElement);
-          this.hoverEdge(matrixElement);
+          this.hoverNode(matrixElement._id);
         })
-        .on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
+        .on('mouseout', (event: MouseEvent, matrixElement: Node) => {
           this.hideToolTip();
-          this.unHoverEdge(matrixElement);
+          this.unHoverNode(matrixElement._id);
         });
 
       this.edgeColumns.merge(columnEnter);
@@ -640,12 +540,7 @@ export default Vue.extend({
       // add foreign objects for label
       rowEnter
         .append('foreignObject')
-        .attr('x', (d: Node) => {
-          if (d.type === 'childnode') {
-            return -rowLabelContainerStart + 29;
-          }
-          return -rowLabelContainerStart + 20;
-        })
+        .attr('x', -rowLabelContainerStart + 29)
         .attr('y', -5)
         .attr('width', (d: Node) => {
           if (d.type === 'supernode') {
@@ -665,29 +560,14 @@ export default Vue.extend({
         })
         .classed('rowLabels', true);
 
-      rowEnter.selectAll('p').style('color', (d: Node) => {
-        if (d.type === 'childnode') {
-          return '#aaa';
-        }
-        return 'black';
-      });
-
       rowEnter
-        .on('mouseover', (event: MouseEvent, node: Node) => {
-          this.showToolTip(event, node);
-          this.hoverNode(node._id);
-        })
-        .attr('cursor', 'pointer');
+        .selectAll('p')
+        .style('color', (d: Node) => (this.aggregated && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
 
       // Invisible Rectangles for Foreign Row Labels
       rowEnter
         .append('rect')
-        .attr('x', (d: Node) => {
-          if (d.type === 'childnode') {
-            return -rowLabelContainerStart + 29;
-          }
-          return -rowLabelContainerStart + 20;
-        })
+        .attr('x', -rowLabelContainerStart + 20)
         .attr('y', 0)
         .attr('width', labelContainerWidth - 25)
         .attr('height', 15)
@@ -696,113 +576,86 @@ export default Vue.extend({
         .attr('cursor', 'pointer')
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           store.commit.clickElement(matrixElement._id);
+        })
+        .on('mouseover', (event: MouseEvent, node: Node) => {
+          this.showToolTip(event, node);
+          this.hoverNode(node._id);
+        })
+        .on('mouseout', (event: MouseEvent, node: Node) => {
+          this.hideToolTip();
+          this.unHoverNode(node._id);
         });
 
-      rowEnter.on('mouseout', (event: MouseEvent, node: Node) => {
-        this.hideToolTip();
-        this.unHoverNode(node._id);
-      });
+      // Invisible Rect Transform
+      const invisibleRectTransform = 'translate(-73,2)';
+      // Icon Paths
+      const expandPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M11,7H13V11H17V13H13V17H11V13H7V11H11V7Z';
+      const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
 
-      // Show the icons
-      if (this.showIcon === true) {
-        // Invisible Rect Transform
-        const invisibleRectTransform = 'translate(-73,2)';
-        // Icon Paths
-        const expandPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M11,7H13V11H17V13H13V17H11V13H7V11H11V7Z';
-        const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
-
-        // Update existing icons
-        (selectAll('.aggrButton') as any)
-          .data(this.network.nodes, (d: Node) => d._id)
-          .attr('d', (d: Node) => {
-            if (d.type === 'supernode') {
-              if (this.clickMap.get(d._id)) {
-                return retractPath;
-              }
-              return expandPath;
+      // Update existing icons
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (selectAll('.aggrButton') as any)
+        .data(this.network.nodes, (d: Node) => d._id)
+        .attr('d', (d: Node) => {
+          if (d.type === 'supernode') {
+            if (this.expandedSuperNodes.has(d._id)) {
+              return retractPath;
             }
-            return '';
-          });
+            return expandPath;
+          }
+          return '';
+        });
 
-        // Add Icons
-        rowEnter
-          .append('path')
-          .attr('d', (d: Node) => {
-            if (d.type === 'supernode') {
-              if (this.clickMap.get(d._id) === true) {
-                return retractPath;
-              }
-              return expandPath;
+      // Add Icons
+      rowEnter
+        .append('path')
+        .attr('d', (d: Node) => {
+          if (d.type === 'supernode') {
+            if (this.expandedSuperNodes.has(d._id)) {
+              return retractPath;
             }
-            return '';
-          })
-          .attr('class', 'aggrButton')
-          .attr('fill', '#8B8B8B')
-          .attr('transform', `${invisibleRectTransform}scale(0.5)`);
+            return expandPath;
+          }
+          return '';
+        })
+        .attr('class', 'aggrButton')
+        .attr('fill', '#8B8B8B')
+        .attr('transform', `${invisibleRectTransform}scale(0.5)`);
 
-        // Add Rectangles
-        rowEnter
-          .append('rect')
-          .attr('width', 10)
-          .attr('height', 10)
-          .attr('transform', invisibleRectTransform)
-          .style('opacity', 0)
-          .attr('class', 'invisibleRect')
-          .attr('cursor', (d: Node) => {
-            if (d.type === 'supernode') {
-              return 'pointer';
+      // Add Rectangles
+      rowEnter
+        .append('rect')
+        .attr('width', 10)
+        .attr('height', 10)
+        .attr('transform', invisibleRectTransform)
+        .style('opacity', 0)
+        .attr('class', 'invisibleRect')
+        .attr('cursor', (d: Node) => {
+          if (d.type === 'supernode') {
+            return 'pointer';
+          }
+          return '';
+        })
+        .on('click', (event: MouseEvent, node: Node) => {
+          // allow expanding the vis if aggregation is turned on
+          if (this.aggregated) {
+            if (node.type !== 'supernode') {
+              return;
             }
-            return '';
-          })
-          .on('click', (event: MouseEvent, node: Node) => {
-            // allow expanding the vis if aggregation is turned on
-            if (this.enableAggregation) {
-              if (node.type === 'childnode') {
-                return;
-              }
-              const supernode = node;
-              // expand and retract the supernode aggregation based on user selection
-              if (this.clickMap.get(supernode._id)) {
-                if (this.network !== null) {
-                  store.dispatch.updateNetwork({
-                    network: retractSuperNetwork(
-                      this.nonAggrNodes,
-                      this.nonAggrEdges,
-                      this.network.nodes,
-                      this.network.edges,
-                      supernode,
-                    ),
-                  });
-                }
-                this.clickMap.set(supernode._id, false);
-
-                // Hide Child Legend
-                const values = [...this.clickMap.values()];
-                if (!values.includes(true)) {
-                  store.commit.setShowChildLegend(false);
-                }
-              } else {
-                if (this.network !== null) {
-                  store.dispatch.updateNetwork({
-                    network: expandSuperNetwork(
-                      this.nonAggrNodes,
-                      this.nonAggrEdges,
-                      this.network.nodes,
-                      this.network.edges,
-                      supernode,
-                    ),
-                  });
-                }
-                this.clickMap.set(supernode._id, true);
-
-                // Display Child Legend
-                store.commit.setShowChildLegend(true);
-              }
+            // expand and retract the supernode aggregation based on user selection
+            if (this.expandedSuperNodes.has(node._id)) {
+              // retract
+              this.expandedSuperNodes.delete(node._id);
+              store.dispatch.retractAggregatedNode(node._id);
             } else {
-              store.commit.clickElement(node._id);
+              // expand
+              this.expandedSuperNodes.add(node._id);
+              store.dispatch.expandAggregatedNode(node._id);
             }
-          });
-      }
+          } else {
+            store.commit.clickElement(node._id);
+          }
+        });
 
       rowEnter.append('g').attr('class', 'cellsGroup');
 
@@ -829,9 +682,6 @@ export default Vue.extend({
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.parentColorScale(d.z);
-          }
-          if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
-            return this.childColorScale(d.z);
           }
           return this.cellColorScale(d.z);
         })
@@ -867,12 +717,8 @@ export default Vue.extend({
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.parentColorScale(d.z);
           }
-          if (d.rowCellType === 'childnode' || d.colCellType === 'childnode') {
-            return this.childColorScale(d.z);
-          }
           return this.cellColorScale(d.z);
         })
-
         .style('fill-opacity', (d: Cell) => d.z)
         .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
           this.showToolTip(event, matrixElement);
@@ -903,13 +749,13 @@ export default Vue.extend({
       // vertical grid lines
       lines
         .append('line')
-        .attr('transform', (d: any, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`)
+        .attr('transform', (d: unknown, i: number) => `translate(${this.orderingScale(i)},0)rotate(-90)`)
         .attr('x1', -this.orderingScale.range()[1]);
 
       // horizontal grid lines
       lines
         .append('line')
-        .attr('transform', (d: any, i: number) => `translate(0,${this.orderingScale(i)})`)
+        .attr('transform', (d: unknown, i: number) => `translate(0,${this.orderingScale(i)})`)
         .attr('x2', this.orderingScale.range()[1]);
 
       // vertical grid line edges
@@ -958,25 +804,6 @@ export default Vue.extend({
     },
 
     showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
-      let svgElement: SVGGraphicsElement;
-
-      if (event.target === null || (event.target as SVGElement).className.baseVal === 'sortIcon') { return; }
-
-      // If foreign object, get the foreign object, not the p
-      if ((event.target as SVGElement).localName === 'p') {
-        svgElement = (event.target as SVGElement).parentElement as unknown as SVGGraphicsElement;
-      } else {
-        svgElement = event.target as SVGGraphicsElement;
-      }
-
-      const CTM = svgElement
-        .getCTM();
-
-      if (CTM === null) { return; }
-
-      const matrix = CTM
-        .translate(parseFloat(svgElement.getAttribute('x') || this.matrixWidth.toString()), parseFloat(svgElement.getAttribute('y') || this.matrixHeight.toString()));
-
       let message = '';
 
       if (this.isCell(networkElement)) {
@@ -997,19 +824,20 @@ export default Vue.extend({
         });
       }
 
-      select(this.$refs.tooltip as any).html(message);
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       select(this.$refs.tooltip as any)
-        .style('left', `${matrix.e}px`)
-        .style('top', `${matrix.f - select(this.$refs.tooltip as any).node().getBoundingClientRect().height}px`);
-
-      select(this.$refs.tooltip as any)
+        .style('left', `${event.clientX - 256 + 10}px`)
+        .style('top', `${event.clientY + 10}px`)
+        .html(message)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0.9);
     },
 
     hideToolTip(): void {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       select(this.$refs.tooltip as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0);
     },
@@ -1019,6 +847,8 @@ export default Vue.extend({
     },
 
     sortObserver(type: string, isNode = false) {
+      if (this.network === null) { return; }
+
       let order;
       this.sortKey = type;
       if (
@@ -1029,15 +859,16 @@ export default Vue.extend({
         if (this.network == null) {
           return;
         }
-        const edges: any[] = Array(this.network.edges.length);
+        const edges: unknown[] = Array(this.network.edges.length);
 
         // Generate edges that are compatible with reorder.js
         this.network.edges.forEach((edge: Edge, index: number) => {
+          if (this.network === null) { return; }
           edges[index] = {
-            source: this.network!.nodes.find(
+            source: this.network.nodes.find(
               (node: Node) => node._id === edge._from,
             ),
-            target: this.network!.nodes.find(
+            target: this.network.nodes.find(
               (node: Node) => node._id === edge._to,
             ),
           };
@@ -1064,24 +895,33 @@ export default Vue.extend({
           order = reorder.optimal_leaf_order()(mat);
         }
       } else if (this.sortKey === 'edges') {
-        order = range(this.network!.nodes.length).sort((a, b) => {
-          const firstValue = this.network!.nodes[b][type] as number;
-          const secondValue = this.network!.nodes[a][type] as number;
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          const firstValue = this.network.nodes[b][type] as number;
+          const secondValue = this.network.nodes[a][type] as number;
 
           return firstValue - secondValue;
         });
       } else if (isNode === true) {
-        order = range(this.network!.nodes.length).sort((a, b) => this.network!.nodes[a]._id.localeCompare(this.network!.nodes[b]._id));
-        order = range(this.network!.nodes.length).sort(
-          (a, b) => Number(this.network!.nodes[b].neighbors.includes(type))
-            - Number(this.network!.nodes[a].neighbors.includes(type)),
-        );
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+        });
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return Number(this.network.nodes[b].neighbors.includes(type))
+            - Number(this.network.nodes[a].neighbors.includes(type));
+        });
       } else if (this.sortKey === 'shortName') {
-        order = range(this.network!.nodes.length).sort((a, b) => this.network!.nodes[a]._id.localeCompare(this.network!.nodes[b]._id));
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          return this.network.nodes[a]._id.localeCompare(this.network.nodes[b]._id);
+        });
       } else {
-        order = range(this.network!.nodes.length).sort((a, b) => {
-          const firstValue = this.network!.nodes[b][type] as number;
-          const secondValue = this.network!.nodes[a][type] as number;
+        order = range(this.network.nodes.length).sort((a, b) => {
+          if (this.network === null) { return 0; }
+          const firstValue = this.network.nodes[b][type] as number;
+          const secondValue = this.network.nodes[a][type] as number;
 
           return firstValue - secondValue;
         });
@@ -1198,6 +1038,7 @@ svg >>> .highlightCol {
   pointer-events: none;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   max-width: 400px;
+  z-index: 1;
 }
 
 svg >>> .hovered {

@@ -9,6 +9,7 @@ export interface Dimensions {
 export interface Node extends TableRow {
   type: string;
   neighbors: string[];
+  children?: Node[];
   [propName: string]: unknown;
 }
 
@@ -76,11 +77,9 @@ export interface State {
   showGridLines: boolean;
   enableAggregation: boolean;
   aggregated: boolean;
-  showChildLegend: boolean;
   maxConnections: {
     unAggr: number;
     parent: number;
-    child: number;
   };
   nodeTableNames: string[];
   edgeTableName: string | null;
