@@ -1,6 +1,6 @@
 <script lang="ts">
 import {
-  computed, onMounted, ref, Ref, watch, watchEffect,
+  computed, onBeforeUpdate, onMounted, ref, Ref, watch, watchEffect,
 } from '@vue/composition-api';
 import {
   scaleLinear,
@@ -25,7 +25,7 @@ export default {
       top: 79,
       right: 50,
       bottom: 0,
-      left: 25,
+      left: 40,
     };
     const matrixWidth: Ref<number> = ref(0);
     const matrixHeight: Ref<number> = ref(0);
@@ -46,12 +46,6 @@ export default {
     const xScale = scaleLinear().domain([0, (edgeLength.value - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]);
 
     const opacity = scaleLinear().domain([0, 0]).range([0, 1]).clamp(true);
-
-    function removeIntView() {
-      if (intNodeSVG !== null) {
-        intNodeSVG.innerHTML = '';
-      }
-    }
 
     function processData() {
       if (network.value !== null && intNodeSVG !== null && connectivityPaths.value.nodes.length > 0) {
@@ -105,7 +99,7 @@ export default {
         .attr('y', 1)
         .attr('width', cellSize.value - 2)
         .attr('height', cellSize.value - 2)
-        .style('fill-opacity', (d) => opacity(d.z))
+        .style('fill-opacity', (d: ConnectivityCell) => opacity(d.z))
         .style('fill', 'blue');
 
       cell.append('title').text((d: ConnectivityCell) => `${d.cellName} in ${d.z} paths`);
@@ -120,24 +114,21 @@ export default {
           .data([...Array(pathLength.value).keys()])
           .enter()
           .append('g')
-          .attr('class', 'circles')
           .attr('transform', `translate(${matrixWidth.value * 0.13}, -${margin.top / 4})`);
 
         circles.append('circle')
-          // .attr('transform', `translate(${matrixWidth.value * 0.12}, -${margin.top / 4})`)
-          .attr('cx', (_, i) => xScale(i))
+          .attr('class', 'circleIcons')
+          .attr('cx', (_, i: number) => xScale(i))
           .attr('cy', 0)
           .attr('r', cellSize.value / 2)
-          .attr('fill', (_, i) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'))
-          .attr('stroke', 'black')
-          .attr('stroke-width', '1');
+          .attr('fill', (_, i: number) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'));
 
         circles.append('text')
-          .attr('x', (_, i) => xScale(i))
+          .attr('x', (_, i: number) => xScale(i))
           .attr('y', cellSize.value / 2 - 3)
           .attr('text-anchor', 'middle')
           .attr('font-size', `${cellSize.value - 2}px`)
-          .text((_, i) => i + 1);
+          .text((_, i: number) => i + 1);
 
         //   Draw gridlines
         const gridLines = svg.append('g')
@@ -187,13 +178,13 @@ export default {
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i) => `translate(${matrixWidth.value * 0.2},${yScale(i)})`)
+          .attr('transform', (_, i: number) => `translate(${matrixWidth.value * 0.2},${yScale(i)})`)
           .each(makeRow)
           .append('text')
           .attr('class', 'label')
           .attr('y', cellSize.value / 2 + 5)
           .attr('x', -(matrixWidth.value * 0.33))
-          .text((_, i) => sortOrder.value[i]);
+          .text((_, i: number) => sortOrder.value[i]);
 
         //   Draw columns
         svg
@@ -202,7 +193,7 @@ export default {
           .enter()
           .append('g')
           .attr('class', 'column')
-          .attr('transform', (_, i) => `translate(${xScale(i)}, 0)rotate(-90)`);
+          .attr('transform', (_, i: number) => `translate(${xScale(i)}, 0)rotate(-90)`);
       }
     }
 
@@ -211,8 +202,7 @@ export default {
       buildIntView();
     });
 
-    watch(network, () => {
-      removeIntView();
+    watch(connectivityPaths, () => {
       processData();
       buildIntView();
     });
@@ -246,5 +236,10 @@ export default {
 svg >>> .gridLines {
   pointer-events: none;
   stroke: #BBBBBB;
+}
+
+svg >>> .circleIcons {
+    stroke: black;
+    stroke-width: 1;
 }
 </style>
