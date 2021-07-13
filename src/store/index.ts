@@ -17,6 +17,7 @@ import {
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
 import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
+import { isInternalField } from '@/lib/typeUtils';
 
 Vue.use(Vuex);
 
@@ -74,7 +75,10 @@ const {
     },
 
     nodeVariableItems(state): string[] {
-      return state.network ? Object.keys(state.nodeAttributes) : [];
+      if (state.network !== null) {
+        return Object.keys(state.nodeAttributes).filter((varName) => !isInternalField(varName));
+      }
+      return [];
     },
   },
 

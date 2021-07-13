@@ -77,6 +77,7 @@ import {
   computed, ref, Ref, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
+import { isInternalField } from '@/lib/typeUtils';
 
 export default {
   name: 'ConnectivityQuery',
@@ -88,7 +89,7 @@ export default {
 
     const selectedVariables: Ref<string[]> = ref([]);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
-    const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.edgeAttributes) : ['No network']));
+    const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)) : ['No network']));
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
     const queryOptionItems = ['is (exact)', 'contains'];
