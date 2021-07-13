@@ -342,7 +342,7 @@ export default Vue.extend({
             Connectivity Query
           </v-subheader>
 
-          <div class="pa-4">
+          <div class="pa-2">
             <connectivity-query />
           </div>
         </div>
