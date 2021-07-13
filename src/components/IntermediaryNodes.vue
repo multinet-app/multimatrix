@@ -13,7 +13,7 @@ export default {
   name: 'IntermediaryNodes',
 
   setup() {
-    const intNodeSVG = document.getElementById('intNode');
+    const intNodeSVG = ref(null);
     const network = computed(() => store.state.network);
     const connectivityPaths = computed(() => store.state.connectivityMatrixPaths);
     const matrix: ConnectivityCell[][] = [];
@@ -84,7 +84,6 @@ export default {
             });
           });
         });
-        console.log('MATRIX', matrix);
       }
 
       //   Update opacity
@@ -156,6 +155,7 @@ export default {
     });
 
     return {
+      intNodeSVG,
       intNodeWidth,
       matrixWidth,
       matrixHeight,
@@ -171,7 +171,7 @@ export default {
   >
     <svg
       id="intNode"
-      ref="intNode"
+      ref="intNodeSVG"
       :width="matrixWidth"
       :height="matrixHeight"
       :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
