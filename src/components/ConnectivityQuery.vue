@@ -71,6 +71,7 @@
           class="ml-0 mt-4"
           color="primary"
           depressed
+          :loading="loading"
           @click="submitQuery"
         >
           Submit Query
@@ -96,6 +97,7 @@ export default {
     const hopsSelection = [1, 2, 3, 4, 5];
     const selectedHops: Ref<number> = ref(1);
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
+    const loading: Ref<boolean> = ref(false);
 
     const selectedVariables: Ref<string[]> = ref([]);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
@@ -126,6 +128,7 @@ export default {
     });
 
     function submitQuery() {
+      loading.value = true;
       let pathQueryText = '';
 
       for (let i = 0; i < displayedHops.value; i += 1) {
@@ -199,6 +202,7 @@ export default {
             // Update state with new network
             store.dispatch.updateEnableAggregation(false);
             store.dispatch.updateNetwork({ network: newNetwork });
+            loading.value = false;
           }
         });
       }
@@ -215,6 +219,7 @@ export default {
       edgeVariableItems,
       variableValueItems,
       submitQuery,
+      loading,
     };
   },
 };
