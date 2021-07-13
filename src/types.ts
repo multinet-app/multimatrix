@@ -82,3 +82,6 @@ export type ProvenanceEventTypes =
   'De-Select Cell' |
   'Select Node' |
   'De-Select Node';
+
+export const internalFieldNames = ['_from', '_to', '_id', '_rev'] as const;
+export type InternalField = (typeof internalFieldNames)[number];
