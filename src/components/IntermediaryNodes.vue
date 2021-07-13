@@ -1,6 +1,6 @@
 <script lang="ts">
 import {
-  computed, onBeforeUpdate, onMounted, ref, Ref, watch, watchEffect,
+  computed, onMounted, ref, Ref, watch, watchEffect,
 } from '@vue/composition-api';
 import {
   scaleLinear,
@@ -41,7 +41,7 @@ export default {
     const intNodeWidth = computed(() => (store.state.connectivityMatrixPaths.nodes.length > 0
       ? store.state.connectivityMatrixPaths.nodes.length * cellSize.value + margin.left + margin.right
       : 0));
-    const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node: Node) => node._key).sort());
+    const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node) => node._key).sort());
     const yScale = scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]);
     const xScale = scaleLinear().domain([0, (edgeLength.value - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]);
 
@@ -52,7 +52,7 @@ export default {
         const hops: number = edgeLength.value - 1;
 
         // Set up matrix intermediate nodes x # of hops
-        sortOrder.value.forEach((rowNode: Node, i: number) => {
+        sortOrder.value.forEach((rowNode, i) => {
           matrix[i] = [...Array(hops).keys()].slice(0).map((j: number) => ({
             cellName: `${rowNode}`,
             nodePosition: j + 1,
@@ -89,7 +89,8 @@ export default {
       ]);
     }
 
-    function makeRow(rowData: ConnectivityCell) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function makeRow(this: any, rowData: ConnectivityCell[]) {
       const cell = select(this)
         .selectAll('rect')
         .data(rowData)
