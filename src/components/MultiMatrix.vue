@@ -369,9 +369,6 @@ export default Vue.extend({
 
       this.processData();
 
-      // set the radius for cells
-      const cellRadius = 3;
-
       // set the matrix highlight
       const matrixHighlightLength = this.matrix.length * this.cellSize;
 
@@ -678,7 +675,6 @@ export default Vue.extend({
         .attr('y', 1)
         .attr('width', this.cellSize - 2)
         .attr('height', this.cellSize - 2)
-        .attr('rx', cellRadius)
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.parentColorScale(d.z);
@@ -712,7 +708,6 @@ export default Vue.extend({
         .attr('y', 1)
         .attr('width', this.cellSize - 2)
         .attr('height', this.cellSize - 2)
-        .attr('rx', cellRadius)
         .style('fill', (d: Cell) => {
           if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
             return this.parentColorScale(d.z);
@@ -739,7 +734,7 @@ export default Vue.extend({
       const gridLines = this.edges
         .append('g')
         .attr('class', 'gridLines')
-        .style('opacity', this.showGridLines ? 0.3 : 0);
+        .style('opacity', this.showGridLines ? 1 : 0);
 
       const lines = gridLines
         .selectAll('line')
@@ -764,8 +759,7 @@ export default Vue.extend({
         .attr('x1', this.orderingScale.range()[1])
         .attr('x2', this.orderingScale.range()[1])
         .attr('y1', 0)
-        .attr('y2', this.orderingScale.range()[1])
-        .style('stroke', '#aaa');
+        .attr('y2', this.orderingScale.range()[1]);
 
       // horizontal grid line edges
       gridLines
@@ -773,8 +767,7 @@ export default Vue.extend({
         .attr('x1', 0)
         .attr('x2', this.orderingScale.range()[1])
         .attr('y1', this.orderingScale.range()[1])
-        .attr('y2', this.orderingScale.range()[1])
-        .style('stroke', '#aaa');
+        .attr('y2', this.orderingScale.range()[1]);
     },
 
     sort(order: string): void {
@@ -1068,8 +1061,7 @@ svg >>> text.clicked {
 
 svg >>> .gridLines {
   pointer-events: none;
-  stroke: #aaa;
-  opacity: 0.3;
+  stroke: #BBBBBB;
 }
 
 svg >>> g.box line {
