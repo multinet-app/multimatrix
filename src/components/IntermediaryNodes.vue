@@ -45,7 +45,7 @@ export default {
     const yScale = scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]);
     const xScale = scaleLinear().domain([0, (edgeLength.value - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]);
 
-    const opacity = scaleLinear().domain([0, 0]).range([0.25, 1]).clamp(true);
+    const opacity = scaleLinear().domain([0, 0]).range([0, 1]).clamp(true);
 
     function removeIntView() {
       if (intNodeSVG !== null) {
@@ -102,8 +102,9 @@ export default {
         .enter()
         .append('rect')
         .attr('x', (d: ConnectivityCell) => yScale(d.x))
-        .attr('width', cellSize.value)
-        .attr('height', cellSize.value)
+        .attr('y', 1)
+        .attr('width', cellSize.value - 2)
+        .attr('height', cellSize.value - 2)
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
 
@@ -138,6 +139,47 @@ export default {
           .attr('font-size', `${cellSize.value - 2}px`)
           .text((_, i) => i + 1);
 
+        //   Draw gridlines
+        const gridLines = svg.append('g')
+          .append('g')
+          .attr('class', 'gridLines');
+
+        const horizontalLines = gridLines.selectAll('line')
+          .data(matrix)
+          .enter();
+
+        const verticalLines = gridLines.selectAll('line')
+          .data([...Array(edgeLength.value).keys()])
+          .enter();
+
+        // vertical grid lines
+        verticalLines
+          .append('line')
+          .attr('x1', -yScale.range()[1])
+          .attr('y1', 0)
+          .attr('y2', yScale.range()[1])
+          .attr('x1', (_, i: number) => xScale(i))
+          .attr('x2', (_, i: number) => xScale(i))
+          .attr('transform', `translate(${matrixWidth.value * 0.2 - 1},0)`);
+
+        // horizontal grid lines
+        horizontalLines
+          .append('line')
+          .attr('x1', 0)
+          .attr('x2', xScale.range()[1] - 1)
+          .attr('y1', (_, i: number) => yScale(i))
+          .attr('y2', (_, i: number) => yScale(i))
+          .attr('transform', `translate(${matrixWidth.value * 0.2},0)`);
+
+        // horizontal grid line edges
+        gridLines
+          .append('line')
+          .attr('x1', 0)
+          .attr('x2', xScale.range()[1])
+          .attr('y1', yScale.range()[1])
+          .attr('y2', yScale.range()[1])
+          .attr('transform', `translate(${matrixWidth.value * 0.2},0)`);
+
         //   Draw rows
         svg
           .selectAll('g.row')
@@ -149,7 +191,7 @@ export default {
           .each(makeRow)
           .append('text')
           .attr('class', 'label')
-          .attr('y', cellSize.value / 2 + 4)
+          .attr('y', cellSize.value / 2 + 5)
           .attr('x', -(matrixWidth.value * 0.33))
           .text((_, i) => sortOrder.value[i]);
 
@@ -199,3 +241,10 @@ export default {
     />
   </div>
 </template>
+
+<style scoped>
+svg >>> .gridLines {
+  pointer-events: none;
+  stroke: #BBBBBB;
+}
+</style>
