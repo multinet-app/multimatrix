@@ -1,12 +1,11 @@
 <script lang="ts">
-import Vue from 'vue';
 import { ProvVisCreator } from '@visdesignlab/trrack-vis';
 import { ProvenanceEventTypes, State } from '@/types';
 import { computed, ComputedRef, onMounted } from '@vue/composition-api';
 import store from '@/store';
 import { Provenance } from '@visdesignlab/trrack';
 
-export default Vue.extend({
+export default {
   setup() {
     const provenance: ComputedRef<Provenance<State, ProvenanceEventTypes, unknown> | null> = computed(
       () => store.state.provenance,
@@ -32,7 +31,7 @@ export default Vue.extend({
 
     return { toggleProvVis };
   },
-});
+};
 </script>
 
 <template>
