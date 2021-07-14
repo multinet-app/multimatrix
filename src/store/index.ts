@@ -266,8 +266,7 @@ const {
     },
 
     setConnectivityMatrixPaths(state, payload: { nodes: Node[]; paths: ArangoPath[]}) {
-      state.connectivityMatrixPaths.nodes = payload.nodes;
-      state.connectivityMatrixPaths.paths = payload.paths;
+      state.connectivityMatrixPaths = payload;
     },
   },
 
