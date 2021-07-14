@@ -1,19 +1,18 @@
 <script lang="ts">
 import {
-  computed, onMounted, ref, Ref, watch, watchEffect,
+  computed, onMounted, ref, watch, watchEffect,
 } from '@vue/composition-api';
 import {
   scaleLinear,
 } from 'd3-scale';
 import { select } from 'd3-selection';
 import store from '@/store';
-import { ArangoPath, ConnectivityCell } from '@/types';
+import { ConnectivityCell } from '@/types';
 
 export default {
   name: 'IntermediaryNodes',
 
   setup() {
-    const intNodeSVG = ref(null);
     const network = computed(() => store.state.network);
     const connectivityPaths = computed(() => store.state.connectivityMatrixPaths);
     const matrix: ConnectivityCell[][] = [];
@@ -27,8 +26,8 @@ export default {
       bottom: 0,
       left: 40,
     };
-    const matrixWidth: Ref<number> = ref(0);
-    const matrixHeight: Ref<number> = ref(0);
+    const matrixWidth = ref(0);
+    const matrixHeight = ref(0);
 
     watchEffect(() => {
       matrixWidth.value = connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.paths[0].edges.length * cellSize.value + margin.left + margin.right : 0;
@@ -48,12 +47,12 @@ export default {
     const opacity = scaleLinear().domain([0, 0]).range([0, 1]).clamp(true);
 
     function processData() {
-      if (network.value !== null && intNodeSVG !== null && connectivityPaths.value.nodes.length > 0) {
-        const hops: number = edgeLength.value - 1;
+      if (network.value !== null && connectivityPaths.value.nodes.length > 0) {
+        const hops = edgeLength.value - 1;
 
         // Set up matrix intermediate nodes x # of hops
         sortOrder.value.forEach((rowNode, i) => {
-          matrix[i] = [...Array(hops).keys()].slice(0).map((j: number) => ({
+          matrix[i] = [...Array(hops).keys()].slice(0).map((j) => ({
             cellName: `${rowNode}`,
             nodePosition: j + 1,
             startingNode: '',
@@ -67,7 +66,7 @@ export default {
 
         // Set up number of connections based on paths
         // Record associated paths
-        connectivityPaths.value.paths.forEach((path: ArangoPath, i: number) => {
+        connectivityPaths.value.paths.forEach((path, i) => {
           matrix.forEach((matrixRow) => {
             [...Array(hops).keys()].slice(0).forEach((j) => {
               if (path.vertices[j + 1]._key === matrixRow[j].cellName) {
@@ -81,7 +80,7 @@ export default {
       }
 
       //   Update opacity
-      const allPaths = matrix.map((row: ConnectivityCell[]) => row.map((cell: ConnectivityCell) => cell.z)).flat();
+      const allPaths = matrix.map((row) => row.map((cell) => cell.z)).flat();
       const maxPath = allPaths.reduce((a, b) => Math.max(a, b));
       opacity.domain([
         0,
@@ -96,14 +95,14 @@ export default {
         .data(rowData)
         .enter()
         .append('rect')
-        .attr('x', (d: ConnectivityCell) => yScale(d.x))
+        .attr('x', (d) => yScale(d.x))
         .attr('y', 1)
         .attr('width', cellSize.value - 2)
         .attr('height', cellSize.value - 2)
-        .style('fill-opacity', (d: ConnectivityCell) => opacity(d.z))
+        .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
 
-      cell.append('title').text((d: ConnectivityCell) => `${d.cellName} in ${d.z} paths`);
+      cell.append('title').text((d) => `${d.cellName} in ${d.z} paths`);
     }
 
     function buildIntView() {
@@ -119,17 +118,17 @@ export default {
 
         circles.append('circle')
           .attr('class', 'circleIcons')
-          .attr('cx', (_, i: number) => xScale(i))
+          .attr('cx', (_, i) => xScale(i))
           .attr('cy', 0)
           .attr('r', cellSize.value / 2)
-          .attr('fill', (_, i: number) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'));
+          .attr('fill', (_, i) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'));
 
         circles.append('text')
-          .attr('x', (_, i: number) => xScale(i))
+          .attr('x', (_, i) => xScale(i))
           .attr('y', cellSize.value / 2 - 3)
           .attr('text-anchor', 'middle')
           .attr('font-size', `${cellSize.value - 2}px`)
-          .text((_, i: number) => i + 1);
+          .text((_, i) => i + 1);
 
         //   Draw gridlines
         const gridLines = svg.append('g')
@@ -150,8 +149,8 @@ export default {
           .attr('x1', -yScale.range()[1])
           .attr('y1', 0)
           .attr('y2', yScale.range()[1])
-          .attr('x1', (_, i: number) => xScale(i))
-          .attr('x2', (_, i: number) => xScale(i))
+          .attr('x1', (_, i) => xScale(i))
+          .attr('x2', (_, i) => xScale(i))
           .attr('transform', `translate(${matrixWidth.value * 0.2 - 1},0)`);
 
         // horizontal grid lines
@@ -159,8 +158,8 @@ export default {
           .append('line')
           .attr('x1', 0)
           .attr('x2', xScale.range()[1] - 1)
-          .attr('y1', (_, i: number) => yScale(i))
-          .attr('y2', (_, i: number) => yScale(i))
+          .attr('y1', (_, i) => yScale(i))
+          .attr('y2', (_, i) => yScale(i))
           .attr('transform', `translate(${matrixWidth.value * 0.2},0)`);
 
         // horizontal grid line edges
@@ -179,13 +178,13 @@ export default {
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i: number) => `translate(${matrixWidth.value * 0.2},${yScale(i)})`)
+          .attr('transform', (_, i) => `translate(${matrixWidth.value * 0.2},${yScale(i)})`)
           .each(makeRow)
           .append('text')
           .attr('class', 'label')
           .attr('y', cellSize.value / 2 + 5)
           .attr('x', -(matrixWidth.value * 0.33))
-          .text((_, i: number) => sortOrder.value[i]);
+          .text((_, i) => sortOrder.value[i]);
 
         //   Draw columns
         svg
@@ -194,7 +193,7 @@ export default {
           .enter()
           .append('g')
           .attr('class', 'column')
-          .attr('transform', (_, i: number) => `translate(${xScale(i)}, 0)rotate(-90)`);
+          .attr('transform', (_, i) => `translate(${xScale(i)}, 0)rotate(-90)`);
       }
     }
 
@@ -209,7 +208,6 @@ export default {
     });
 
     return {
-      intNodeSVG,
       intNodeWidth,
       matrixWidth,
       matrixHeight,
@@ -225,7 +223,6 @@ export default {
   >
     <svg
       id="intNode"
-      ref="intNodeSVG"
       :width="matrixWidth"
       :height="matrixHeight"
       :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
