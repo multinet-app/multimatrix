@@ -1,6 +1,6 @@
 <script lang="ts">
 import {
-  computed, onMounted, ref, watch, watchEffect,
+  computed, onMounted, watch,
 } from '@vue/composition-api';
 import {
   scaleLinear,
