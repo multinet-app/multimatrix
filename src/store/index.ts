@@ -45,7 +45,6 @@ const {
     directionalEdges: false,
     selectNeighbors: true,
     showGridLines: true,
-    enableAggregation: false,
     aggregated: false,
     visualizedNodeAttributes: [],
     visualizedEdgeAttributes: [],
@@ -199,14 +198,6 @@ const {
 
       if (state.provenance !== null) {
         updateProvenanceState(state, 'Set Show Grid Lines');
-      }
-    },
-
-    setEnableAggregation(state, enableAggregation: boolean) {
-      state.enableAggregation = enableAggregation;
-
-      if (state.provenance !== null) {
-        updateProvenanceState(state, 'Set Enable Aggregation');
       }
     },
 
@@ -548,31 +539,6 @@ const {
           .filter((edge): edge is Edge => edge !== null);
 
         dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
-      }
-    },
-
-    updateEnableAggregation(context, enableAggregation: boolean) {
-      const { state, commit, dispatch } = rootActionContext(context);
-
-      commit.setEnableAggregation(enableAggregation);
-
-      // Reset an aggregated network
-      if (state.aggregated && state.network) {
-        const allChildren = state.network.nodes
-          .map((node) => node.children)
-          .flat()
-          .filter((node): node is Node => node !== undefined);
-
-        const originalEdges = state.network.edges.map((edge) => {
-          const originalEdge = { ...edge };
-          originalEdge._from = `${originalEdge.originalFrom}`;
-          originalEdge._to = `${originalEdge.originalTo}`;
-
-          return originalEdge;
-        });
-
-        store.commit.setAggregated(false);
-        dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
       }
     },
   },

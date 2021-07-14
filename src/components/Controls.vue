@@ -54,15 +54,6 @@ export default Vue.extend({
       },
     },
 
-    enableAggregation: {
-      get() {
-        return store.state.enableAggregation;
-      },
-      set(value: boolean) {
-        store.dispatch.updateEnableAggregation(value);
-      },
-    },
-
     aggregated() {
       return store.state.aggregated;
     },
@@ -237,23 +228,8 @@ export default Vue.extend({
             <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
-          <!-- Aggregation Toggle List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="enableAggregation"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content>
-              Enable Aggregation
-            </v-list-item-content>
-          </v-list-item>
-
           <!-- Aggregation Variable Selection -->
           <v-list-item
-            v-if="enableAggregation"
             class="pa-0 ma-0"
           >
             <v-list-item-content class="pa-0 ma-0">
