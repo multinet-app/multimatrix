@@ -26,16 +26,8 @@ export default {
       bottom: 0,
       left: 40,
     };
-    const matrixWidth = ref(0);
-    const matrixHeight = ref(0);
-
-    watchEffect(() => {
-      matrixWidth.value = connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.paths[0].edges.length * cellSize.value + margin.left + margin.right : 0;
-    });
-
-    watchEffect(() => {
-      matrixHeight.value = connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom : 0;
-    });
+    const matrixWidth = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.paths[0].edges.length * cellSize.value + margin.left + margin.right : 0));
+    const matrixHeight = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom : 0));
 
     const intNodeWidth = computed(() => (store.state.connectivityMatrixPaths.nodes.length > 0
       ? store.state.connectivityMatrixPaths.nodes.length * cellSize.value + margin.left + margin.right
@@ -185,15 +177,6 @@ export default {
           .attr('y', cellSize.value / 2 + 5)
           .attr('x', -(matrixWidth.value * 0.33))
           .text((_, i) => sortOrder.value[i]);
-
-        //   Draw columns
-        svg
-          .selectAll('g.column')
-          .data(matrix)
-          .enter()
-          .append('g')
-          .attr('class', 'column')
-          .attr('transform', (_, i) => `translate(${xScale(i)}, 0)rotate(-90)`);
       }
     }
 

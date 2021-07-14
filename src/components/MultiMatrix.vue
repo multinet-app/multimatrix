@@ -172,7 +172,7 @@ export default Vue.extend({
       return store.getters.parentColorScale;
     },
 
-    showInterMediateNodes() {
+    showIntNodeVis() {
       return store.state.showIntNodeVis;
     },
   },
@@ -963,7 +963,7 @@ export default Vue.extend({
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
         />
       </div>
-      <intermediary-nodes v-if="finishedMounting && showInterMediateNodes" />
+      <intermediary-nodes v-if="finishedMounting && showIntNodeVis" />
       <line-up v-if="finishedMounting" />
     </v-container>
 
