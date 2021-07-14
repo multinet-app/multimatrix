@@ -26,11 +26,11 @@ export default {
       bottom: 0,
       left: 40,
     };
-    const matrixWidth = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.paths[0].edges.length * cellSize.value + margin.left + margin.right : 0));
+    const matrixWidth = computed(() => (connectivityPaths.value.nodes.length > 0 ? edgeLength.value * cellSize.value + margin.left + margin.right : 0));
     const matrixHeight = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom : 0));
 
     const intNodeWidth = computed(() => (store.state.connectivityMatrixPaths.nodes.length > 0
-      ? store.state.connectivityMatrixPaths.nodes.length * cellSize.value + margin.left + margin.right
+      ? pathLength.value * cellSize.value + margin.left + margin.right
       : 0));
     const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node) => node._key).sort());
     const yScale = scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]);
