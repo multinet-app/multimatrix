@@ -127,7 +127,6 @@ export default {
 
         //   Draw gridlines
         const gridLines = svg.append('g')
-          .append('g')
           .attr('class', 'gridLines');
 
         const horizontalLines = gridLines.selectAll('line')
