@@ -107,7 +107,6 @@ export default {
     watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
     watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
     watchEffect(() => {
-      console.log('triggered');
       if (!aggregated.value) {
         aggregateBy.value = 'none';
       }
