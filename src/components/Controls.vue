@@ -1,5 +1,4 @@
 <script lang="ts">
-import Vue from 'vue';
 import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -8,105 +7,66 @@ import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
+import { computed, ref, watchEffect } from '@vue/composition-api';
 
-export default Vue.extend({
+export default {
   components: {
     AboutDialog,
     LoginMenu,
     ConnectivityQuery,
   },
 
-  data() {
-    return {
-      connectivityQueryToggle: false,
-      aggregateBy: 'none',
-    };
-  },
-
-  computed: {
-    network() {
-      return store.state.network;
-    },
-
-    directionalEdges: {
+  setup() {
+    // Template objects
+    const connectivityQueryToggle = ref(false);
+    const aggregateBy = ref('none');
+    const directionalEdges = computed({
       get() {
         return store.state.directionalEdges;
       },
       set(value: boolean) {
         store.commit.setDirectionalEdges(value);
       },
-    },
-
-    selectNeighbors: {
+    });
+    const selectNeighbors = computed({
       get() {
         return store.state.selectNeighbors;
       },
       set(value: boolean) {
         store.commit.setSelectNeighbors(value);
       },
-    },
-
-    showGridLines: {
+    });
+    const showGridLines = computed({
       get() {
         return store.state.showGridLines;
       },
       set(value: boolean) {
         store.commit.setShowGridlines(value);
       },
-    },
+    });
+    const aggregated = computed(() => store.state.aggregated);
+    const cellColorScale = computed(() => store.getters.cellColorScale);
+    const parentColorScale = computed(() => store.getters.parentColorScale);
+    const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
+    const maxConnections = computed(() => store.state.maxConnections);
 
-    aggregated() {
-      return store.state.aggregated;
-    },
+    // Non-template objects
+    const network = computed(() => store.state.network);
 
-    cellColorScale() {
-      return store.getters.cellColorScale;
-    },
-
-    parentColorScale() {
-      return store.getters.parentColorScale;
-    },
-
-    nodeVariableItems() {
-      return store.getters.nodeVariableItems;
-    },
-
-    maxConnections() {
-      return store.state.maxConnections;
-    },
-  },
-
-  watch: {
-    cellColorScale() {
-      this.updateLegend(this.cellColorScale, 'unAggr');
-    },
-
-    parentColorScale() {
-      this.updateLegend(this.parentColorScale, 'parent');
-    },
-
-    aggregated() {
-      if (!this.aggregated) {
-        this.aggregateBy = 'none';
-      }
-    },
-  },
-
-  methods: {
-    exportNetwork() {
-      if (this.network === null) {
+    function exportNetwork() {
+      if (network.value === null) {
         return;
       }
 
       const networkToExport = {
-        nodes: this.network.nodes.map((node) => {
+        nodes: network.value.nodes.map((node) => {
           const newNode = { ...node };
           newNode.id = newNode._key;
           delete newNode._key;
 
           return newNode;
         }),
-        links: this.network.edges.map((edge) => {
+        links: network.value.edges.map((edge) => {
           const newEdge = { ...edge };
           newEdge.source = `${edge._from.split('/')[1]}`;
           newEdge.target = `${edge._to.split('/')[1]}`;
@@ -122,9 +82,9 @@ export default Vue.extend({
       );
       a.download = `${store.state.networkName}.json`;
       a.click();
-    },
+    }
 
-    updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr') {
+    function updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr') {
       let legendSVG;
       if (legendName === 'parent') {
         legendSVG = select('#parent-matrix-legend');
@@ -142,17 +102,43 @@ export default Vue.extend({
         .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);
-    },
+    }
 
-    toggleProvVis() {
+    watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
+    watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
+    watchEffect(() => {
+      console.log('triggered');
+      if (!aggregated.value) {
+        aggregateBy.value = 'none';
+      }
+    });
+
+    function toggleProvVis() {
       store.commit.toggleShowProvenanceVis();
-    },
+    }
 
-    aggregateNetwork(varName: string) {
+    function aggregateNetwork(varName: string) {
       store.dispatch.aggregateNetwork(varName);
-    },
+    }
+
+    return {
+      connectivityQueryToggle,
+      aggregateBy,
+      directionalEdges,
+      selectNeighbors,
+      showGridLines,
+      aggregated,
+      cellColorScale,
+      parentColorScale,
+      nodeVariableItems,
+      maxConnections,
+      exportNetwork,
+      updateLegend,
+      toggleProvVis,
+      aggregateNetwork,
+    };
   },
-});
+};
 </script>
 
 <template>
