@@ -1,5 +1,4 @@
 <script lang="ts">
-import Vue from 'vue';
 import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -8,107 +7,66 @@ import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
+import { computed, ref, watchEffect } from '@vue/composition-api';
 
-export default Vue.extend({
+export default {
   components: {
     AboutDialog,
     LoginMenu,
     ConnectivityQuery,
   },
 
-  data() {
-    return {
-      connectivityQueryToggle: false,
-    };
-  },
-
-  computed: {
-    network() {
-      return store.state.network;
-    },
-
-    directionalEdges: {
+  setup() {
+    // Template objects
+    const connectivityQueryToggle = ref(false);
+    const aggregateBy = ref('none');
+    const directionalEdges = computed({
       get() {
         return store.state.directionalEdges;
       },
       set(value: boolean) {
         store.commit.setDirectionalEdges(value);
       },
-    },
-
-    selectNeighbors: {
+    });
+    const selectNeighbors = computed({
       get() {
         return store.state.selectNeighbors;
       },
       set(value: boolean) {
         store.commit.setSelectNeighbors(value);
       },
-    },
-
-    showGridLines: {
+    });
+    const showGridLines = computed({
       get() {
         return store.state.showGridLines;
       },
       set(value: boolean) {
         store.commit.setShowGridlines(value);
       },
-    },
+    });
+    const aggregated = computed(() => store.state.aggregated);
+    const cellColorScale = computed(() => store.getters.cellColorScale);
+    const parentColorScale = computed(() => store.getters.parentColorScale);
+    const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
+    const maxConnections = computed(() => store.state.maxConnections);
 
-    enableAggregation: {
-      get() {
-        return store.state.enableAggregation;
-      },
-      set(value: boolean) {
-        store.dispatch.updateEnableAggregation(value);
-      },
-    },
+    // Non-template objects
+    const network = computed(() => store.state.network);
 
-    aggregated() {
-      return store.state.aggregated;
-    },
-
-    cellColorScale() {
-      return store.getters.cellColorScale;
-    },
-
-    parentColorScale() {
-      return store.getters.parentColorScale;
-    },
-
-    nodeVariableItems() {
-      return store.getters.nodeVariableItems;
-    },
-
-    maxConnections() {
-      return store.state.maxConnections;
-    },
-  },
-
-  watch: {
-    cellColorScale() {
-      this.updateLegend(this.cellColorScale, 'unAggr');
-    },
-
-    parentColorScale() {
-      this.updateLegend(this.parentColorScale, 'parent');
-    },
-  },
-
-  methods: {
-    exportNetwork() {
-      if (this.network === null) {
+    function exportNetwork() {
+      if (network.value === null) {
         return;
       }
 
       const networkToExport = {
-        nodes: this.network.nodes.map((node) => {
+        nodes: network.value.nodes.map((node) => {
           const newNode = { ...node };
           newNode.id = newNode._key;
           delete newNode._key;
 
           return newNode;
         }),
-        links: this.network.edges.map((edge) => {
+        links: network.value.edges.map((edge) => {
           const newEdge = { ...edge };
           newEdge.source = `${edge._from.split('/')[1]}`;
           newEdge.target = `${edge._to.split('/')[1]}`;
@@ -124,9 +82,9 @@ export default Vue.extend({
       );
       a.download = `${store.state.networkName}.json`;
       a.click();
-    },
+    }
 
-    updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr') {
+    function updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr') {
       let legendSVG;
       if (legendName === 'parent') {
         legendSVG = select('#parent-matrix-legend');
@@ -144,17 +102,42 @@ export default Vue.extend({
         .labelFormat(format('.0f'));
 
       legendSVG.select('.legendLinear').call(legendLinear);
-    },
+    }
 
-    toggleProvVis() {
+    watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
+    watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
+    watchEffect(() => {
+      if (!aggregated.value) {
+        aggregateBy.value = 'none';
+      }
+    });
+
+    function toggleProvVis() {
       store.commit.toggleShowProvenanceVis();
-    },
+    }
 
-    aggregateNetwork(varName: string) {
+    function aggregateNetwork(varName: string) {
       store.dispatch.aggregateNetwork(varName);
-    },
+    }
+
+    return {
+      connectivityQueryToggle,
+      aggregateBy,
+      directionalEdges,
+      selectNeighbors,
+      showGridLines,
+      aggregated,
+      cellColorScale,
+      parentColorScale,
+      nodeVariableItems,
+      maxConnections,
+      exportNetwork,
+      updateLegend,
+      toggleProvVis,
+      aggregateNetwork,
+    };
   },
-});
+};
 </script>
 
 <template>
@@ -237,35 +220,6 @@ export default Vue.extend({
             <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
-          <!-- Aggregation Toggle List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="enableAggregation"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content>
-              Enable Aggregation
-            </v-list-item-content>
-          </v-list-item>
-
-          <!-- Aggregation Variable Selection -->
-          <v-list-item
-            v-if="enableAggregation"
-            class="pa-0 ma-0"
-          >
-            <v-list-item-content class="pa-0 ma-0">
-              <v-autocomplete
-                class="pa-0 ma-0"
-                :items="nodeVariableItems"
-                placeholder="Variable to aggregate by"
-                @change="aggregateNetwork"
-              />
-            </v-list-item-content>
-          </v-list-item>
-
           <!-- Connectivity Query List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
@@ -276,6 +230,22 @@ export default Vue.extend({
               />
             </v-list-item-action>
             <v-list-item-content> Enable Connectivity Query </v-list-item-content>
+          </v-list-item>
+
+          <!-- Aggregation Variable Selection -->
+          <v-list-item
+            class="pa-0 ma-0"
+          >
+            <v-list-item-content class="pa-0 ma-0">
+              <v-autocomplete
+                v-model="aggregateBy"
+                class="pa-0 ma-0"
+                :items="['none', ...nodeVariableItems]"
+                hint="Variable to aggregate by"
+                persistent-hint
+                @change="aggregateNetwork"
+              />
+            </v-list-item-content>
           </v-list-item>
 
           <v-list-item class="px-0">

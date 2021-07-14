@@ -46,7 +46,6 @@ const {
     directionalEdges: false,
     selectNeighbors: true,
     showGridLines: true,
-    enableAggregation: false,
     aggregated: false,
     visualizedNodeAttributes: [],
     visualizedEdgeAttributes: [],
@@ -202,14 +201,6 @@ const {
 
       if (state.provenance !== null) {
         updateProvenanceState(state, 'Set Show Grid Lines');
-      }
-    },
-
-    setEnableAggregation(state, enableAggregation: boolean) {
-      state.enableAggregation = enableAggregation;
-
-      if (state.provenance !== null) {
-        updateProvenanceState(state, 'Set Enable Aggregation');
       }
     },
 
@@ -442,63 +433,86 @@ const {
       const { state, commit, dispatch } = rootActionContext(context);
 
       if (state.network !== null) {
-        // Calculate edges
-        const aggregatedEdges = state.network.edges.map((edge) => {
-          const fromNode = state.network && state.network.nodes.find((node) => node._id === edge._from);
-          const toNode = state.network && state.network.nodes.find((node) => node._id === edge._to);
+        // Reset network if aggregated
+        if (state.aggregated) {
+          // Reset an aggregated network
+          const allChildren = state.network.nodes
+            .map((node) => node.children)
+            .flat()
+            .filter((node): node is Node => node !== undefined);
 
-          if (fromNode === undefined || toNode === undefined || fromNode === null || toNode === null) {
+          const originalEdges = state.network.edges.map((edge) => {
+            const originalEdge = { ...edge };
+            originalEdge._from = `${originalEdge.originalFrom}`;
+            originalEdge._to = `${originalEdge.originalTo}`;
+
+            return originalEdge;
+          });
+
+          store.commit.setAggregated(false);
+          dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
+        }
+
+        // Aggregate the network if the varName is not none
+        if (varName !== 'none') {
+          // Calculate edges
+          const aggregatedEdges = state.network.edges.map((edge) => {
+            const fromNode = state.network && state.network.nodes.find((node) => node._id === edge._from);
+            const toNode = state.network && state.network.nodes.find((node) => node._id === edge._to);
+
+            if (fromNode === undefined || toNode === undefined || fromNode === null || toNode === null) {
+              return edge;
+            }
+
+            const fromNodeValue = fromNode[varName];
+            const toNodeValue = toNode[varName];
+
+            /* eslint-disable no-param-reassign */
+            /* eslint-disable no-underscore-dangle */
+            edge.originalFrom = edge.originalFrom === undefined ? edge._from : edge.originalFrom;
+            edge.originalTo = edge.originalTo === undefined ? edge._to : edge.originalTo;
+            edge._from = `aggregated/${fromNodeValue}`;
+            edge._to = `aggregated/${toNodeValue}`;
+            /* eslint-enable no-param-reassign */
+            /* eslint-enable no-underscore-dangle */
+
             return edge;
-          }
+          });
 
-          const fromNodeValue = fromNode[varName];
-          const toNodeValue = toNode[varName];
+          // Calculate nodes
+          const aggregatedNodes = Array.from(
+            group(state.network.nodes, (d) => d[varName]),
+            ([key, value]) => ({
+              _id: `aggregated/${key}`,
+              _key: `${key}`,
+              children: value.map((node) => JSON.parse(JSON.stringify(node))),
+              type: 'supernode',
+              neighbors: [] as string[],
+              [varName]: key,
+            }),
+          );
 
-          /* eslint-disable no-param-reassign */
-          /* eslint-disable no-underscore-dangle */
-          edge.originalFrom = edge.originalFrom === undefined ? edge._from : edge.originalFrom;
-          edge.originalTo = edge.originalTo === undefined ? edge._to : edge.originalTo;
-          edge._from = `aggregated/${fromNodeValue}`;
-          edge._to = `aggregated/${toNodeValue}`;
-          /* eslint-enable no-param-reassign */
-          /* eslint-enable no-underscore-dangle */
+          // Calculate neighbors
+          aggregatedEdges.forEach((edge) => {
+            const fromNode = aggregatedNodes.find((node) => node._id === edge._from);
+            const toNode = aggregatedNodes.find((node) => node._id === edge._to);
 
-          return edge;
-        });
+            if (fromNode === undefined || toNode === undefined) {
+              return;
+            }
 
-        // Calculate nodes
-        const aggregatedNodes = Array.from(
-          group(state.network.nodes, (d) => d[varName]),
-          ([key, value]) => ({
-            _id: `aggregated/${key}`,
-            _key: `${key}`,
-            children: value.map((node) => JSON.parse(JSON.stringify(node))),
-            type: 'supernode',
-            neighbors: [] as string[],
-            [varName]: key,
-          }),
-        );
+            if (edge._to !== fromNode._id && fromNode.neighbors.indexOf(edge._to) === -1) {
+              fromNode.neighbors.push(edge._to);
+            }
+            if (edge._from !== toNode._id && toNode.neighbors.indexOf(edge._from) === -1) {
+              toNode.neighbors.push(edge._from);
+            }
+          });
 
-        // Calculate neighbors
-        aggregatedEdges.forEach((edge) => {
-          const fromNode = aggregatedNodes.find((node) => node._id === edge._from);
-          const toNode = aggregatedNodes.find((node) => node._id === edge._to);
-
-          if (fromNode === undefined || toNode === undefined) {
-            return;
-          }
-
-          if (edge._to !== fromNode._id && fromNode.neighbors.indexOf(edge._to) === -1) {
-            fromNode.neighbors.push(edge._to);
-          }
-          if (edge._from !== toNode._id && toNode.neighbors.indexOf(edge._from) === -1) {
-            toNode.neighbors.push(edge._from);
-          }
-        });
-
-        // Set network and aggregated
-        commit.setAggregated(true);
-        dispatch.updateNetwork({ network: { nodes: aggregatedNodes, edges: aggregatedEdges } });
+          // Set network and aggregated
+          commit.setAggregated(true);
+          dispatch.updateNetwork({ network: { nodes: aggregatedNodes, edges: aggregatedEdges } });
+        }
       }
     },
 
@@ -559,31 +573,6 @@ const {
           .filter((edge): edge is Edge => edge !== null);
 
         dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
-      }
-    },
-
-    updateEnableAggregation(context, enableAggregation: boolean) {
-      const { state, commit, dispatch } = rootActionContext(context);
-
-      commit.setEnableAggregation(enableAggregation);
-
-      // Reset an aggregated network
-      if (state.aggregated && state.network) {
-        const allChildren = state.network.nodes
-          .map((node) => node.children)
-          .flat()
-          .filter((node): node is Node => node !== undefined);
-
-        const originalEdges = state.network.edges.map((edge) => {
-          const originalEdge = { ...edge };
-          originalEdge._from = `${originalEdge.originalFrom}`;
-          originalEdge._to = `${originalEdge.originalTo}`;
-
-          return originalEdge;
-        });
-
-        store.commit.setAggregated(false);
-        dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
       }
     },
   },

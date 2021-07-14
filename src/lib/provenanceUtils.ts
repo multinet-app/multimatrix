@@ -11,8 +11,6 @@ export function updateProvenanceState(vuexState: State, label: ProvenanceEventTy
       provState.showGridLines = newProvState.showGridLines;
     } else if (label === 'Set Directional Edges') {
       provState.directionalEdges = newProvState.directionalEdges;
-    } else if (label === 'Set Enable Aggregation') {
-      provState.enableAggregation = newProvState.enableAggregation;
     } else if (label === 'Select Cell' || label === 'De-Select Cell') {
       provState.selectedCells = newProvState.selectedCells;
     } else if (label === 'Select Node' || label === 'De-Select Node') {
