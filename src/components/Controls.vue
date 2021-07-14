@@ -228,6 +228,18 @@ export default Vue.extend({
             <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
+          <!-- Connectivity Query List Item -->
+          <v-list-item class="px-0">
+            <v-list-item-action class="mr-3">
+              <v-switch
+                v-model="connectivityQueryToggle"
+                class="ma-0"
+                hide-details
+              />
+            </v-list-item-action>
+            <v-list-item-content> Enable Connectivity Query </v-list-item-content>
+          </v-list-item>
+
           <!-- Aggregation Variable Selection -->
           <v-list-item
             class="pa-0 ma-0"
@@ -240,18 +252,6 @@ export default Vue.extend({
                 @change="aggregateNetwork"
               />
             </v-list-item-content>
-          </v-list-item>
-
-          <!-- Connectivity Query List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="connectivityQueryToggle"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content> Enable Connectivity Query </v-list-item-content>
           </v-list-item>
 
           <v-list-item class="px-0">
