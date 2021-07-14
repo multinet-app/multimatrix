@@ -84,6 +84,12 @@ export default Vue.extend({
     parentColorScale() {
       this.updateLegend(this.parentColorScale, 'parent');
     },
+
+    aggregated() {
+      if (!this.aggregated) {
+        this.aggregateBy = 'none';
+      }
+    },
   },
 
   methods: {
