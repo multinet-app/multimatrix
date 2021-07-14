@@ -19,6 +19,7 @@ export default Vue.extend({
   data() {
     return {
       connectivityQueryToggle: false,
+      aggregateBy: 'none',
     };
   },
 
@@ -54,15 +55,6 @@ export default Vue.extend({
       },
     },
 
-    enableAggregation: {
-      get() {
-        return store.state.enableAggregation;
-      },
-      set(value: boolean) {
-        store.dispatch.updateEnableAggregation(value);
-      },
-    },
-
     aggregated() {
       return store.state.aggregated;
     },
@@ -91,6 +83,12 @@ export default Vue.extend({
 
     parentColorScale() {
       this.updateLegend(this.parentColorScale, 'parent');
+    },
+
+    aggregated() {
+      if (!this.aggregated) {
+        this.aggregateBy = 'none';
+      }
     },
   },
 
@@ -237,35 +235,6 @@ export default Vue.extend({
             <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
-          <!-- Aggregation Toggle List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="enableAggregation"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content>
-              Enable Aggregation
-            </v-list-item-content>
-          </v-list-item>
-
-          <!-- Aggregation Variable Selection -->
-          <v-list-item
-            v-if="enableAggregation"
-            class="pa-0 ma-0"
-          >
-            <v-list-item-content class="pa-0 ma-0">
-              <v-autocomplete
-                class="pa-0 ma-0"
-                :items="nodeVariableItems"
-                placeholder="Variable to aggregate by"
-                @change="aggregateNetwork"
-              />
-            </v-list-item-content>
-          </v-list-item>
-
           <!-- Connectivity Query List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
@@ -276,6 +245,22 @@ export default Vue.extend({
               />
             </v-list-item-action>
             <v-list-item-content> Enable Connectivity Query </v-list-item-content>
+          </v-list-item>
+
+          <!-- Aggregation Variable Selection -->
+          <v-list-item
+            class="pa-0 ma-0"
+          >
+            <v-list-item-content class="pa-0 ma-0">
+              <v-autocomplete
+                v-model="aggregateBy"
+                class="pa-0 ma-0"
+                :items="['none', ...nodeVariableItems]"
+                hint="Variable to aggregate by"
+                persistent-hint
+                @change="aggregateNetwork"
+              />
+            </v-list-item-content>
           </v-list-item>
 
           <v-list-item class="px-0">
