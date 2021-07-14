@@ -19,6 +19,7 @@ export default Vue.extend({
   data() {
     return {
       connectivityQueryToggle: false,
+      aggregateBy: 'none',
     };
   },
 
@@ -246,9 +247,11 @@ export default Vue.extend({
           >
             <v-list-item-content class="pa-0 ma-0">
               <v-autocomplete
+                v-model="aggregateBy"
                 class="pa-0 ma-0"
-                :items="nodeVariableItems"
-                placeholder="Variable to aggregate by"
+                :items="['none', ...nodeVariableItems]"
+                hint="Variable to aggregate by"
+                persistent-hint
                 @change="aggregateNetwork"
               />
             </v-list-item-content>
