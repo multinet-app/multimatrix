@@ -100,13 +100,16 @@ export default {
     function buildIntView() {
       if (matrix.length > 0) {
         const svg = select('#intNode').append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+        const svgWidth: number = parseFloat(select('#intNode').attr('width'));
+        const svgHeight: number = parseFloat(select('#intNode').attr('height'));
+        const rowLabelWidth = 20;
 
         //   Draw path symbols
         const circles = svg.selectAll('g.circles')
           .data([...Array(pathLength.value).keys()])
           .enter()
           .append('g')
-          .attr('transform', `translate(${matrixWidth.value * 0.13}, -${margin.top / 4})`);
+          .attr('transform', `translate(${svgWidth / 7}, ${(margin.top - svgHeight) / 4})`);
 
         circles.append('circle')
           .attr('class', 'circleIcons')
@@ -143,7 +146,7 @@ export default {
           .attr('y2', yScale.range()[1])
           .attr('x1', (_, i) => xScale(i))
           .attr('x2', (_, i) => xScale(i))
-          .attr('transform', `translate(${matrixWidth.value * 0.2 - 1},0)`);
+          .attr('transform', `translate(${svgWidth / 5 - 1},0)`);
 
         // horizontal grid lines
         horizontalLines
@@ -152,7 +155,7 @@ export default {
           .attr('x2', xScale.range()[1] - 1)
           .attr('y1', (_, i) => yScale(i))
           .attr('y2', (_, i) => yScale(i))
-          .attr('transform', `translate(${matrixWidth.value * 0.2},0)`);
+          .attr('transform', `translate(${svgWidth / 5},0)`);
 
         // horizontal grid line edges
         gridLines
@@ -161,7 +164,7 @@ export default {
           .attr('x2', xScale.range()[1])
           .attr('y1', yScale.range()[1])
           .attr('y2', yScale.range()[1])
-          .attr('transform', `translate(${matrixWidth.value * 0.2},0)`);
+          .attr('transform', `translate(${svgWidth / 5},0)`);
 
         //   Draw rows
         svg
@@ -170,12 +173,12 @@ export default {
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i) => `translate(${matrixWidth.value * 0.2},${yScale(i)})`)
+          .attr('transform', (_, i) => `translate(${svgWidth / 5},${yScale(i)})`)
           .each(makeRow)
           .append('text')
-          .attr('class', 'label')
+          .attr('class', 'rowLabels')
           .attr('y', cellSize.value / 2 + 5)
-          .attr('x', -(matrixWidth.value * 0.33))
+          .attr('x', -(svgWidth / 5 + rowLabelWidth))
           .text((_, i) => sortOrder.value[i]);
       }
     }
@@ -222,5 +225,13 @@ svg >>> .gridLines {
 svg >>> .circleIcons {
     stroke: black;
     stroke-width: 1;
+}
+
+svg >>> .rowLabels {
+  max-width: 20px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 12pt;
+  z-index: 100;
 }
 </style>
