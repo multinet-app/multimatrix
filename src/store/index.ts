@@ -12,6 +12,7 @@ import {
 } from 'multinet';
 import {
   ArangoAttributes,
+  ArangoPath,
   Cell,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State,
 } from '@/types';
@@ -58,6 +59,8 @@ const {
     showProvenanceVis: false,
     nodeAttributes: {},
     edgeAttributes: {},
+    showIntNodeVis: false,
+    connectivityMatrixPaths: { nodes: [], paths: [] },
   } as State,
 
   getters: {
@@ -247,6 +250,14 @@ const {
     setLargeNetworkAttributeValues(state: State, payload: { nodeAttributes: ArangoAttributes; edgeAttributes: ArangoAttributes }) {
       state.nodeAttributes = payload.nodeAttributes;
       state.edgeAttributes = payload.edgeAttributes;
+    },
+
+    toggleShowIntNodeVis(state, showIntNodeVis: boolean) {
+      state.showIntNodeVis = showIntNodeVis;
+    },
+
+    setConnectivityMatrixPaths(state, payload: { nodes: Node[]; paths: ArangoPath[]}) {
+      state.connectivityMatrixPaths = payload;
     },
   },
 

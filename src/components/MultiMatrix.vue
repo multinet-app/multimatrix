@@ -14,6 +14,7 @@ import { select, selectAll } from 'd3-selection';
 import { transition } from 'd3-transition';
 import store from '@/store';
 import LineUp from '@/components/LineUp.vue';
+import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 
 import 'science';
 import 'reorder.js';
@@ -27,6 +28,7 @@ declare const reorder: any;
 export default {
   components: {
     LineUp,
+    IntermediaryNodes,
   },
 
   setup() {
@@ -65,6 +67,7 @@ export default {
     const orderType = ref(undefined);
     const sortKey = ref('');
     const finishedMounting = ref(false);
+    const showIntNodeVis = computed(() => store.state.showIntNodeVis);
 
     const cellSize = computed(() => store.state.cellSize);
     const selectedNodes = computed(() => store.state.selectedNodes);
@@ -875,6 +878,7 @@ export default {
 
     return {
       finishedMounting,
+      showIntNodeVis,
       matrixWidth,
       matrixHeight,
     };
@@ -895,6 +899,7 @@ export default {
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
         />
       </div>
+      <intermediary-nodes v-if="finishedMounting && showIntNodeVis" />
       <line-up v-if="finishedMounting" />
     </v-container>
 

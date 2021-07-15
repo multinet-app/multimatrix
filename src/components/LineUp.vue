@@ -20,9 +20,13 @@ export default {
     const lineupWidth = computed(() => {
       const controlsElement = select<Element, Element>('.app-sidebar').node();
       const matrixElement = select<Element, Element>('#matrix').node();
+      const intermediaryElement = select<Element, Element>('#intNodeDiv').node();
 
       if (controlsElement !== null && matrixElement !== null) {
-        const availableSpace = context.root.$vuetify.breakpoint.width - controlsElement.clientWidth - matrixElement.clientWidth - 12; // 12 from the svg container padding
+        let availableSpace = context.root.$vuetify.breakpoint.width - controlsElement.clientWidth - matrixElement.clientWidth - 12; // 12 from the svg container padding
+        if (intermediaryElement !== null) {
+          availableSpace -= intermediaryElement.clientWidth;
+        }
         return availableSpace < 330 ? 330 : availableSpace;
       }
 
