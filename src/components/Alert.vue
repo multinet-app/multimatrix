@@ -1,12 +1,12 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  computed, Ref, ref, watchEffect,
+  computed, defineComponent, Ref, ref, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
 import FilterOverlay from '@/components/FilterOverlay.vue';
 
-export default {
+export default defineComponent({
   name: 'Alert',
 
   components: {
@@ -59,7 +59,7 @@ export default {
       workspaceOptions,
     };
   },
-};
+});
 </script>
 
 <template>
