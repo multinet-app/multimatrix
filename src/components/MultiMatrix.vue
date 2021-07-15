@@ -881,6 +881,7 @@ export default defineComponent({
       showIntNodeVis,
       matrixWidth,
       matrixHeight,
+      tooltip,
     };
   },
 
@@ -904,6 +905,7 @@ export default defineComponent({
     </v-container>
 
     <div
+      id="tooltip"
       ref="tooltip"
     />
   </div>
