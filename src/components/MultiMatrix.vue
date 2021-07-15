@@ -326,7 +326,7 @@ export default {
         .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
     });
 
-    watchEffect(() => {
+    watch(selectedCells, () => {
       // Apply cell highlight
       selectAll('.cellsGroup')
         .selectAll('.cell')
