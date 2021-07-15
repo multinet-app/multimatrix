@@ -1,10 +1,10 @@
 <template>
   <div class="pa-0">
     <v-row>
-      <v-col>
+      <v-col class="pa-2">
         <v-subheader> Hops</v-subheader>
       </v-col>
-      <v-col>
+      <v-col class="pa-2">
         <v-select
           v-model="selectedHops"
           :items="hopsSelection"
@@ -17,30 +17,40 @@
         :key="i"
         class="pa-0"
       >
-        <v-list-item-content>
-          <v-row class="pa-0">
-            <v-col>
-              <v-list-item-title>
-                {{ i % 2 ? 'Edge' : 'Node' }}
-              </v-list-item-title>
-            </v-col>
-            <v-col class="pa-2">
+        <v-list-item-content class="pa-0">
+          <v-list-item-title>
+            {{ i % 2 ? 'Edge' : 'Node' }}
+          </v-list-item-title>
+          <v-row no-gutters>
+            <v-col
+              cols="12"
+              sm="5"
+              class="pa-1"
+            >
               <v-autocomplete
                 v-model="selectedVariables[i]"
                 :items="i % 2 ? edgeVariableItems : nodeVariableItems"
                 dense
               />
             </v-col>
-            <v-col class="pa-2">
+            <v-col
+              cols="12"
+              sm="3"
+              class="pa-1"
+            >
               <v-autocomplete
                 v-model="selectedQueryOptions[i]"
                 :items="queryOptionItems"
                 dense
               />
             </v-col>
-            <v-col class="pa-2">
+            <v-col
+              cols="12"
+              sm="4"
+              class="pa-1"
+            >
               <v-autocomplete
-                v-if="selectedQueryOptions[i] === 'is (exact)'"
+                v-if="selectedQueryOptions[i] === '=='"
                 v-model="selectedVariableValue[i]"
                 :items="variableValueItems[i]"
                 dense
@@ -61,6 +71,7 @@
           class="ml-0 mt-4"
           color="primary"
           depressed
+          :loading="loading"
           @click="submitQuery"
         >
           Submit Query
@@ -86,13 +97,14 @@ export default {
     const hopsSelection = [1, 2, 3, 4, 5];
     const selectedHops: Ref<number> = ref(1);
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
+    const loading: Ref<boolean> = ref(false);
 
     const selectedVariables: Ref<string[]> = ref([]);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
     const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)) : ['No network']));
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
-    const queryOptionItems = ['is (exact)', 'contains'];
+    const queryOptionItems = ['==', '~='];
 
     const selectedVariableValue: Ref<string[]> = ref([]);
     const variableValueItems: Ref<string[][]> = ref([]);
@@ -100,7 +112,7 @@ export default {
     // 21 = 2n + 1 for n = 5 (max number of hops allowed above)
     Array(21).fill(1).forEach(() => {
       selectedVariables.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
-      selectedQueryOptions.value.push('contains');
+      selectedQueryOptions.value.push('~=');
     });
 
     // For each selected node variable, fill in possible values for autocomplete
@@ -116,10 +128,11 @@ export default {
     });
 
     function submitQuery() {
+      loading.value = true;
       let pathQueryText = '';
 
       for (let i = 0; i < displayedHops.value; i += 1) {
-        const queryOperator = selectedQueryOptions.value[i] === 'is (exact)' ? '==' : '=~';
+        const queryOperator = selectedQueryOptions.value[i] === '==' ? '==' : '=~';
 
         if (i === 0) {
           pathQueryText += `FILTER UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]}) ${queryOperator} UPPER('${selectedVariableValue.value[i]}')`;
@@ -134,7 +147,7 @@ export default {
         }
       }
 
-      const queryOperator = selectedQueryOptions.value[0] === 'is (exact)' ? '==' : '=~';
+      const queryOperator = selectedQueryOptions.value[0] === '==' ? '==' : '=~';
       const aqlQuery = `
         let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${selectedVariables.value[0]}) ${queryOperator} UPPER('${selectedVariableValue.value[0]}') RETURN n)
         let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
@@ -199,6 +212,7 @@ export default {
             // Update state with new network
             store.dispatch.aggregateNetwork('none');
             store.dispatch.updateNetwork({ network: newNetwork });
+            loading.value = false;
           }
         });
       }
@@ -215,6 +229,7 @@ export default {
       edgeVariableItems,
       variableValueItems,
       submitQuery,
+      loading,
     };
   },
 };
