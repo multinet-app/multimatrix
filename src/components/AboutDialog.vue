@@ -54,9 +54,9 @@
 </template>
 
 <script lang="ts">
-import { ref } from '@vue/composition-api';
+import { defineComponent, ref } from '@vue/composition-api';
 
-export default {
+export default defineComponent({
   setup() {
     const dialog = ref(false);
 
@@ -64,6 +64,6 @@ export default {
       dialog,
     };
   },
-};
+});
 
 </script>

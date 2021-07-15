@@ -19,13 +19,13 @@ import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 import 'science';
 import 'reorder.js';
 import {
-  computed, onMounted, Ref, ref, watch, watchEffect,
+  computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const reorder: any;
 
-export default {
+export default defineComponent({
   components: {
     LineUp,
     IntermediaryNodes,
@@ -884,7 +884,7 @@ export default {
     };
   },
 
-};
+});
 </script>
 
 <template>
