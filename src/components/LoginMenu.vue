@@ -63,9 +63,11 @@
 <script lang="ts">
 import { host } from '@/environment';
 import store from '@/store';
-import { computed, ref, watchEffect } from '@vue/composition-api';
+import {
+  computed, defineComponent, ref, watchEffect,
+} from '@vue/composition-api';
 
-export default {
+export default defineComponent({
   setup() {
     const menu = ref(false);
     const location = ref('');
@@ -105,7 +107,7 @@ export default {
       userInfo,
     };
   },
-};
+});
 </script>
 
 <style scoped>

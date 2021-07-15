@@ -1,6 +1,6 @@
 <script lang="ts">
 import {
-  computed, onMounted, watch,
+  computed, defineComponent, onMounted, watch,
 } from '@vue/composition-api';
 import {
   scaleLinear,
@@ -9,7 +9,7 @@ import { select } from 'd3-selection';
 import store from '@/store';
 import { ConnectivityCell } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'IntermediaryNodes',
 
   setup() {
@@ -198,7 +198,7 @@ export default {
       matrixHeight,
     };
   },
-};
+});
 </script>
 
 <template>

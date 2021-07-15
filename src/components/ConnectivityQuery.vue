@@ -74,12 +74,12 @@
 import store from '@/store';
 import { Node, Edge, Network } from '@/types';
 import {
-  computed, ref, Ref, watchEffect,
+  computed, defineComponent, ref, Ref, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
 import { isInternalField } from '@/lib/typeUtils';
 
-export default {
+export default defineComponent({
   name: 'ConnectivityQuery',
 
   setup() {
@@ -217,5 +217,5 @@ export default {
       submitQuery,
     };
   },
-};
+});
 </script>
