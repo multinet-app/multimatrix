@@ -338,7 +338,7 @@ export default defineComponent({
         });
     });
 
-    watchEffect(() => {
+    watch(hoveredNodes, () => {
       if (network.value === null) {
         return;
       }
