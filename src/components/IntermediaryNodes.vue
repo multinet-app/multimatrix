@@ -87,12 +87,15 @@ export default {
         .data(rowData)
         .enter()
         .append('rect')
+        .attr('class', 'connectivityCell')
         .attr('x', (d) => yScale(d.x))
         .attr('y', 1)
         .attr('width', cellSize.value - 2)
         .attr('height', cellSize.value - 2)
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
+
+      cell.on('click', () => console.log('clicked!', rowData));
 
       cell.append('title').text((d) => `${d.cellName} in ${d.z} paths`);
     }
@@ -232,5 +235,11 @@ svg >>> .rowLabels {
   overflow: hidden;
   font-size: 12pt;
   z-index: 100;
+}
+
+svg >>> .connectivityCell:hover {
+  cursor: pointer;
+  stroke-width: 1px;
+  stroke: black;
 }
 </style>
