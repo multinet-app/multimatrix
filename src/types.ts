@@ -88,6 +88,7 @@ export interface State {
   edgeAttributes: ArangoAttributes;
   showIntNodeVis: boolean;
   connectivityMatrixPaths: {nodes: Node[]; paths: ArangoPath[]};
+  selectedConnectivityPaths: ArangoPath[];
 }
 
 export type ProvenanceEventTypes =
