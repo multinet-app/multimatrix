@@ -522,7 +522,16 @@ const {
       if (state.network !== null) {
         // Add children nodes into list at the correct index
         const indexOfParent = state.network && state.network.nodes.findIndex((node) => node._id === nodeID);
-        const parentChildren = state.network.nodes[indexOfParent].children || [];
+        let parentChildren = state.network.nodes[indexOfParent].children;
+        if (parentChildren === undefined) {
+          return;
+        }
+
+        parentChildren = parentChildren.map((child) => {
+          // eslint-disable-next-line no-param-reassign
+          child.parentPosition = indexOfParent;
+          return child;
+        }) || [];
         const expandedNodes = [...state.network.nodes];
         expandedNodes.splice(indexOfParent + 1, 0, ...parentChildren);
 
