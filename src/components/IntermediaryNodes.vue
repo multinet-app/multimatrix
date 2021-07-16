@@ -1,6 +1,6 @@
 <script lang="ts">
 import {
-  computed, onMounted, watch,
+  computed, onMounted, ref, watch,
 } from '@vue/composition-api';
 import {
   scaleLinear,
@@ -8,9 +8,14 @@ import {
 import { select } from 'd3-selection';
 import store from '@/store';
 import { ConnectivityCell } from '@/types';
+import PathTable from '@/components/PathTable.vue';
 
 export default {
   name: 'IntermediaryNodes',
+
+  components: {
+    PathTable,
+  },
 
   setup() {
     const network = computed(() => store.state.network);
@@ -19,6 +24,7 @@ export default {
     const cellSize = computed(() => store.state.cellSize);
     const pathLength = computed(() => connectivityPaths.value.paths[0].vertices.length);
     const edgeLength = computed(() => connectivityPaths.value.paths[0].edges.length);
+    const cellSelected = ref(false);
 
     const margin = {
       top: 79,
@@ -95,7 +101,10 @@ export default {
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
 
-      cell.on('click', () => console.log('clicked!', rowData));
+      cell.on('click', () => {
+        cellSelected.value = !cellSelected.value;
+        store.commit.setSelectedConnectivityPaths(rowData);
+      });
 
       cell.append('title').text((d) => `${d.cellName} in ${d.z} paths`);
     }
@@ -196,6 +205,7 @@ export default {
     });
 
     return {
+      cellSelected,
       intNodeWidth,
       matrixWidth,
       matrixHeight,
@@ -215,6 +225,7 @@ export default {
       :height="matrixHeight"
       :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
     />
+    <path-table v-if="cellSelected" />
   </div>
 </template>
 
