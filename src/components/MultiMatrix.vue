@@ -338,7 +338,7 @@ export default defineComponent({
         });
     });
 
-    watchEffect(() => {
+    watch(hoveredNodes, () => {
       if (network.value === null) {
         return;
       }
@@ -488,10 +488,8 @@ export default defineComponent({
         .append('g')
         .attr('class', 'column')
         .attr('transform', (d: Node) => {
-          if (d.type === 'childnode') {
-            return `translate(${orderingScale.value(
-              d.parentPosition as number,
-            )})rotate(-90)`;
+          if (d.type !== 'supernode') {
+            return `translate(${orderingScale.value(parseInt(`${d.parentPosition}`, 10))})rotate(-90)`;
           }
           return 'translate(0, 0)rotate(-90)';
         });
@@ -597,8 +595,8 @@ export default defineComponent({
         .append('g')
         .attr('class', 'rowContainer')
         .attr('transform', (d: Node) => {
-          if (d.type === 'childnode') {
-            return `translate(0, ${orderingScale.value(d.parentPosition as number)})`;
+          if (d.type !== 'supernode') {
+            return `translate(0, ${orderingScale.value(parseInt(`${d.parentPosition}`, 10))})`;
           }
           return 'translate(0, 0)';
         });
@@ -881,6 +879,7 @@ export default defineComponent({
       showIntNodeVis,
       matrixWidth,
       matrixHeight,
+      tooltip,
     };
   },
 
@@ -904,6 +903,7 @@ export default defineComponent({
     </v-container>
 
     <div
+      id="tooltip"
       ref="tooltip"
     />
   </div>
