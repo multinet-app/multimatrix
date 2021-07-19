@@ -1,26 +1,30 @@
 <template>
   <div class="pa-0">
-    <v-row>
-      <v-col class="pa-2">
-        <v-subheader> Hops</v-subheader>
-      </v-col>
-      <v-col class="pa-2">
+    <v-card
+      color="grey lighten-3"
+      flat
+      tile
+    >
+      <v-card-text class="pt-2 pb-1">
         <v-select
           v-model="selectedHops"
+          label="Hops"
           :items="hopsSelection"
         />
-      </v-col>
-    </v-row>
+      </v-card-text>
+    </v-card>
     <v-list dense>
       <v-list-item
         v-for="(_, i) in displayedHops"
         :key="i"
         class="pa-0"
       >
-        <v-list-item-content class="pa-0">
-          <v-list-item-title>
-            {{ i % 2 ? 'Edge' : 'Node' }}
-          </v-list-item-title>
+        <v-list-item-avatar class="mr-0">
+          <v-icon size="18">
+            {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
+          </v-icon>
+        </v-list-item-avatar>
+        <v-list-item-content class="pa-0 pr-1">
           <v-row no-gutters>
             <v-col
               cols="12"
@@ -65,7 +69,7 @@
         </v-list-item-content>
       </v-list-item>
 
-      <v-list-item class="px-0">
+      <v-list-item>
         <v-btn
           block
           class="ml-0 mt-4"

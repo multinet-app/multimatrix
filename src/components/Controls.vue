@@ -341,10 +341,7 @@ export default Vue.extend({
           <v-subheader class="grey darken-3 mt-6 py-0 white--text">
             Connectivity Query
           </v-subheader>
-
-          <div class="pa-2">
-            <connectivity-query />
-          </div>
+          <connectivity-query />
         </div>
       </v-list>
     </v-navigation-drawer>
