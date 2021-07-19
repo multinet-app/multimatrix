@@ -7,9 +7,11 @@ import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
-import { computed, ref, watchEffect } from '@vue/composition-api';
+import {
+  computed, defineComponent, ref, watchEffect,
+} from '@vue/composition-api';
 
-export default {
+export default defineComponent({
   components: {
     AboutDialog,
     LoginMenu,
@@ -137,7 +139,7 @@ export default {
       aggregateNetwork,
     };
   },
-};
+});
 </script>
 
 <template>

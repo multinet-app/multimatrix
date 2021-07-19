@@ -1,11 +1,13 @@
 <script lang="ts">
 import { ProvVisCreator } from '@visdesignlab/trrack-vis';
 import { ProvenanceEventTypes, State } from '@/types';
-import { computed, ComputedRef, onMounted } from '@vue/composition-api';
+import {
+  computed, ComputedRef, defineComponent, onMounted,
+} from '@vue/composition-api';
 import store from '@/store';
 import { Provenance } from '@visdesignlab/trrack';
 
-export default {
+export default defineComponent({
   setup() {
     const provenance: ComputedRef<Provenance<State, ProvenanceEventTypes, unknown> | null> = computed(
       () => store.state.provenance,
@@ -31,7 +33,7 @@ export default {
 
     return { toggleProvVis };
   },
-};
+});
 </script>
 
 <template>

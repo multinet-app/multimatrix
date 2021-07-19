@@ -58,9 +58,9 @@
 import api from '@/api';
 import { ArangoAttributes, Network } from '@/types';
 import store from '@/store';
-import { computed, ref } from '@vue/composition-api';
+import { computed, defineComponent, ref } from '@vue/composition-api';
 
-export default {
+export default defineComponent({
   setup() {
     const subsetAmount = ref(0);
     const workspace = computed(() => store.state.workspaceName);
@@ -178,5 +178,5 @@ export default {
       getAttributes,
     };
   },
-};
+});
 </script>

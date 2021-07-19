@@ -1,6 +1,7 @@
 <script lang="ts">
 import {
   computed, onMounted, ref, watch,
+  defineComponent,
 } from '@vue/composition-api';
 import {
   scaleLinear,
@@ -10,7 +11,7 @@ import store from '@/store';
 import { ConnectivityCell } from '@/types';
 import PathTable from '@/components/PathTable.vue';
 
-export default {
+export default defineComponent({
   name: 'IntermediaryNodes',
 
   components: {
@@ -211,7 +212,7 @@ export default {
       matrixHeight,
     };
   },
-};
+});
 </script>
 
 <template>

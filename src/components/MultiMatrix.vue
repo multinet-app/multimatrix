@@ -19,13 +19,13 @@ import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 import 'science';
 import 'reorder.js';
 import {
-  computed, onMounted, Ref, ref, watch, watchEffect,
+  computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const reorder: any;
 
-export default {
+export default defineComponent({
   components: {
     LineUp,
     IntermediaryNodes,
@@ -326,7 +326,7 @@ export default {
         .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
     });
 
-    watchEffect(() => {
+    watch(selectedCells, () => {
       // Apply cell highlight
       selectAll('.cellsGroup')
         .selectAll('.cell')
@@ -338,7 +338,7 @@ export default {
         });
     });
 
-    watchEffect(() => {
+    watch(hoveredNodes, () => {
       if (network.value === null) {
         return;
       }
@@ -488,10 +488,8 @@ export default {
         .append('g')
         .attr('class', 'column')
         .attr('transform', (d: Node) => {
-          if (d.type === 'childnode') {
-            return `translate(${orderingScale.value(
-              d.parentPosition as number,
-            )})rotate(-90)`;
+          if (d.type !== 'supernode') {
+            return `translate(${orderingScale.value(parseInt(`${d.parentPosition}`, 10))})rotate(-90)`;
           }
           return 'translate(0, 0)rotate(-90)';
         });
@@ -597,8 +595,8 @@ export default {
         .append('g')
         .attr('class', 'rowContainer')
         .attr('transform', (d: Node) => {
-          if (d.type === 'childnode') {
-            return `translate(0, ${orderingScale.value(d.parentPosition as number)})`;
+          if (d.type !== 'supernode') {
+            return `translate(0, ${orderingScale.value(parseInt(`${d.parentPosition}`, 10))})`;
           }
           return 'translate(0, 0)';
         });
@@ -881,10 +879,11 @@ export default {
       showIntNodeVis,
       matrixWidth,
       matrixHeight,
+      tooltip,
     };
   },
 
-};
+});
 </script>
 
 <template>
@@ -904,6 +903,7 @@ export default {
     </v-container>
 
     <div
+      id="tooltip"
       ref="tooltip"
     />
   </div>

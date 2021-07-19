@@ -10,6 +10,7 @@ export interface Node extends TableRow {
   type: string;
   neighbors: string[];
   children?: Node[];
+  parentPosition?: number;
   [propName: string]: unknown;
 }
 

@@ -1,12 +1,12 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  computed, onMounted, Ref, ref, SetupContext, watch, watchEffect,
+  computed, defineComponent, onMounted, Ref, ref, SetupContext, watch, watchEffect,
 } from '@vue/composition-api';
 import LineUp, { DataBuilder } from 'lineupjs';
 import { select } from 'd3-selection';
 
-export default {
+export default defineComponent({
   name: 'LineUp',
 
   setup(props: unknown, context: SetupContext) {
@@ -162,7 +162,7 @@ export default {
       removeHighlight,
     };
   },
-};
+});
 </script>
 
 <template>
