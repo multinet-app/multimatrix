@@ -30,27 +30,27 @@ export default {
     const search = ref('');
     const pathLength = computed(() => store.state.selectedConnectivityPaths[0].vertices.length);
     const headers = computed(() => {
-      const toReturn: string[] = [];
+      const toReturn: any[] = [];
       [...Array(pathLength.value).keys()].forEach((i) => {
         if (i < pathLength.value - 1) {
-          toReturn.push(`Node ${i + 1}`);
-          toReturn.push(`Edge ${i + 1}`);
+          toReturn.push({ text: `Node ${i + 1}`, value: `Node${i + 1}` });
+          toReturn.push({ text: `Edge ${i + 1}`, value: `Edge${i + 1}` });
         } else {
-          toReturn.push(`Node ${i + 1}`);
+          toReturn.push({ text: `Node ${i + 1}`, value: `Node${i + 1}` });
         }
-        return toReturn;
       });
+      return toReturn;
     });
     const tableData = computed(() => {
       const toReturn: any[] = [];
       store.state.selectedConnectivityPaths.forEach((path) => {
-        const tablePath = {};
+        const tablePath: { [key: string]: string } = {};
         [...Array(pathLength.value).keys()].forEach((i) => {
           if (i < pathLength.value - 1) {
-            tablePath[`Node ${i + 1}`] = path.vertices[i]._key;
-            tablePath[`Edge ${i + 1}`] = path.edges[i]._key;
+            tablePath[`Node${i + 1}`] = path.vertices[i]._key;
+            tablePath[`Edge${i + 1}`] = path.edges[i]._key;
           } else {
-            tablePath[`Node ${i + 1}`] = path.vertices[i]._key;
+            tablePath[`Node${i + 1}`] = path.vertices[i]._key;
           }
         });
         toReturn.push(tablePath);
