@@ -313,10 +313,7 @@ export default defineComponent({
           <v-subheader class="grey darken-3 mt-6 py-0 white--text">
             Connectivity Query
           </v-subheader>
-
-          <div class="pa-4">
-            <connectivity-query />
-          </div>
+          <connectivity-query />
         </div>
       </v-list>
     </v-navigation-drawer>
