@@ -55,76 +55,17 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
 import api from '@/api';
 import { ArangoAttributes, Network } from '@/types';
 import store from '@/store';
+import { computed, defineComponent, ref } from '@vue/composition-api';
 
-export default Vue.extend({
-  data: () => ({
-    subsetAmount: 0,
-  }),
+export default defineComponent({
+  setup() {
+    const subsetAmount = ref(0);
+    const workspace = computed(() => store.state.workspaceName);
 
-  computed: {
-    workspace() {
-      return store.state.workspaceName;
-    },
-  },
-
-  methods: {
-    filterNetwork() {
-      if (this.workspace === null) {
-        return;
-      }
-
-      const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] LIMIT ${this.subsetAmount} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
-      RETURN {"nodes": nodes[**], edges}`;
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let newAQLNetwork: Promise<any[]> | undefined;
-
-      try {
-        newAQLNetwork = api.aql(this.workspace, aqlQuery);
-      } catch (error) {
-        if (error.status === 400) {
-          store.commit.setLoadError({
-            message: error.statusText,
-            href: 'https://multinet.app',
-          });
-        } else {
-          store.commit.setLoadError({
-            message: 'An unexpected error ocurred',
-            href: 'https://multinet.app',
-          });
-        }
-      } finally {
-        if (store.state.loadError.message === 'The network you are loading is too large' && typeof newAQLNetwork === 'undefined') {
-          // Catches CORS errors, issues when DB/API are down, etc.
-          store.commit.setLoadError({
-            message: 'There was a network issue when getting data',
-            href: `./?workspace=${store.state.workspaceName}&graph=${store.state.networkName}`,
-          });
-        }
-      }
-
-      if (newAQLNetwork !== undefined) {
-        newAQLNetwork.then((promise) => {
-          const aqlNetwork: Network = promise[0];
-
-          if (aqlNetwork.nodes.length !== 0) {
-          // Update state with new network
-            store.dispatch.updateNetwork({ network: aqlNetwork });
-            store.commit.setLoadError({
-              message: '',
-              href: '',
-            });
-          }
-        });
-        this.getAttributes();
-      }
-    },
-
-    getAttributes() {
+    function getAttributes() {
       const aqlQuery = `
       let nodeValues = (FOR doc IN ${store.state.nodeTableNames}[**] RETURN VALUES(doc))
       let edgeValues = (FOR doc IN ${store.state.edgeTableName} RETURN VALUES(doc))
@@ -176,7 +117,66 @@ export default Vue.extend({
           store.commit.setLargeNetworkAttributeValues({ nodeAttributes, edgeAttributes });
         });
       }
-    },
+    }
+
+    function filterNetwork() {
+      if (workspace.value === null) {
+        return;
+      }
+
+      const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] LIMIT ${subsetAmount.value} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
+      RETURN {"nodes": nodes[**], edges}`;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let newAQLNetwork: Promise<any[]> | undefined;
+
+      try {
+        newAQLNetwork = api.aql(workspace.value, aqlQuery);
+      } catch (error) {
+        if (error.status === 400) {
+          store.commit.setLoadError({
+            message: error.statusText,
+            href: 'https://multinet.app',
+          });
+        } else {
+          store.commit.setLoadError({
+            message: 'An unexpected error ocurred',
+            href: 'https://multinet.app',
+          });
+        }
+      } finally {
+        if (store.state.loadError.message === 'The network you are loading is too large' && typeof newAQLNetwork === 'undefined') {
+          // Catches CORS errors, issues when DB/API are down, etc.
+          store.commit.setLoadError({
+            message: 'There was a network issue when getting data',
+            href: `./?workspace=${store.state.workspaceName}&graph=${store.state.networkName}`,
+          });
+        }
+      }
+
+      if (newAQLNetwork !== undefined) {
+        newAQLNetwork.then((promise) => {
+          const aqlNetwork: Network = promise[0];
+
+          if (aqlNetwork.nodes.length !== 0) {
+          // Update state with new network
+            store.dispatch.updateNetwork({ network: aqlNetwork });
+            store.commit.setLoadError({
+              message: '',
+              href: '',
+            });
+          }
+        });
+        getAttributes();
+      }
+    }
+
+    return {
+      subsetAmount,
+      workspace,
+      filterNetwork,
+      getAttributes,
+    };
   },
 });
 </script>
