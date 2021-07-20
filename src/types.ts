@@ -90,6 +90,7 @@ export interface State {
   showIntNodeVis: boolean;
   connectivityMatrixPaths: {nodes: Node[]; paths: ArangoPath[]};
   selectedConnectivityPaths: ArangoPath[];
+  showPathTable: boolean;
 }
 
 export type ProvenanceEventTypes =

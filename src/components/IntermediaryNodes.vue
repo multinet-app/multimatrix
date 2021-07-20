@@ -1,6 +1,6 @@
 <script lang="ts">
 import {
-  computed, onMounted, ref, watch,
+  computed, onMounted, watch,
   defineComponent,
 } from '@vue/composition-api';
 import {
@@ -9,14 +9,9 @@ import {
 import { select } from 'd3-selection';
 import store from '@/store';
 import { ConnectivityCell } from '@/types';
-import PathTable from '@/components/PathTable.vue';
 
 export default defineComponent({
   name: 'IntermediaryNodes',
-
-  components: {
-    PathTable,
-  },
 
   setup() {
     const network = computed(() => store.state.network);
@@ -25,7 +20,14 @@ export default defineComponent({
     const cellSize = computed(() => store.state.cellSize);
     const pathLength = computed(() => connectivityPaths.value.paths[0].vertices.length);
     const edgeLength = computed(() => connectivityPaths.value.paths[0].edges.length);
-    const showTable = ref(false);
+    const showTable = computed({
+      get() {
+        return store.state.showPathTable;
+      },
+      set(value: boolean) {
+        store.commit.setShowPathTable(value);
+      },
+    });
     let selectedCell = '';
 
     const margin = {
@@ -232,7 +234,6 @@ export default defineComponent({
       :height="matrixHeight"
       :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
     />
-    <path-table v-if="showTable" />
   </div>
 </template>
 

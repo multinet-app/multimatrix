@@ -63,6 +63,7 @@ const {
     showIntNodeVis: false,
     connectivityMatrixPaths: { nodes: [], paths: [] },
     selectedConnectivityPaths: [],
+    showPathTable: false,
   } as State,
 
   getters: {
@@ -264,6 +265,10 @@ const {
 
     setSelectedConnectivityPaths(state, payload: ConnectivityCell[]) {
       state.selectedConnectivityPaths = payload[0].paths.map((path: number) => state.connectivityMatrixPaths.paths[path]);
+    },
+
+    setShowPathTable(state, showPathTable: boolean) {
+      state.showPathTable = showPathTable;
     },
   },
 
