@@ -25,7 +25,8 @@ export default defineComponent({
     const cellSize = computed(() => store.state.cellSize);
     const pathLength = computed(() => connectivityPaths.value.paths[0].vertices.length);
     const edgeLength = computed(() => connectivityPaths.value.paths[0].edges.length);
-    const cellSelected = ref(false);
+    const showTable = ref(false);
+    let selectedCell = '';
 
     const margin = {
       top: 79,
@@ -103,8 +104,13 @@ export default defineComponent({
         .style('fill', 'blue');
 
       cell.on('click', () => {
-        cellSelected.value = !cellSelected.value;
-        store.commit.setSelectedConnectivityPaths(rowData);
+        if (selectedCell !== rowData[0].cellName || !showTable.value) {
+          selectedCell = rowData[0].cellName;
+          store.commit.setSelectedConnectivityPaths(rowData);
+          showTable.value = true;
+        } else if (selectedCell === rowData[0].cellName && showTable.value) {
+          showTable.value = !showTable.value;
+        }
       });
 
       cell.append('title').text((d) => `${d.cellName} in ${d.z} paths`);
@@ -206,7 +212,7 @@ export default defineComponent({
     });
 
     return {
-      cellSelected,
+      showTable,
       intNodeWidth,
       matrixWidth,
       matrixHeight,
@@ -218,7 +224,7 @@ export default defineComponent({
 <template>
   <div
     id="intNodeDiv"
-    :style="`width: ${intNodeWidth}px;`"
+    :style="`width: 700px;`"
   >
     <svg
       id="intNode"
@@ -226,7 +232,7 @@ export default defineComponent({
       :height="matrixHeight"
       :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
     />
-    <path-table v-if="cellSelected" />
+    <path-table v-if="showTable" />
   </div>
 </template>
 
