@@ -1,7 +1,20 @@
 <template>
-  <div>
+  <div :style="divStyle">
     <v-card>
-      <v-card-title>
+      <v-row>
+        <v-col class="pl-6">
+          <v-icon @mousedown="iconMouseDown">
+            mdi-drag-variant
+          </v-icon>
+        </v-col>
+        <v-spacer />
+        <v-col class="text-right pr-6">
+          <v-icon @click="closeCard">
+            mdi-close
+          </v-icon>
+        </v-col>
+      </v-row>
+      <v-card-title class="pt-0 mt-0">
         <v-text-field
           v-model="search"
           append-icon="mdi-magnify"
@@ -58,10 +71,37 @@ export default {
       return toReturn;
     });
 
+    const top = ref(0);
+    const left = ref(0);
+    const divStyle = computed(() => `position: absolute; top: ${top.value}px; left: ${left.value}px; z-index: 1;`);
+    function iconDrag(event: MouseEvent) {
+      // 24 to account for icon size and padding
+      top.value = event.clientY - 24;
+      left.value = event.clientX - 256 - 24;
+    }
+    function iconMouseUp() {
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+    function iconMouseDown(event: MouseEvent) {
+      // 24 to account for icon size and padding
+      top.value = event.clientY - 24;
+      left.value = event.clientX - 256 - 24;
+      document.onmousemove = iconDrag;
+      document.onmouseup = iconMouseUp;
+    }
+
+    function closeCard() {
+      store.commit.setShowPathTable(false);
+    }
+
     return {
       search,
       headers,
       tableData,
+      divStyle,
+      iconMouseDown,
+      closeCard,
     };
   },
 };
