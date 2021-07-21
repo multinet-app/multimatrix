@@ -57,6 +57,21 @@
           </v-list>
         </template>
       </v-data-table>
+      <v-row>
+        <v-col />
+        <v-col />
+        <v-col>
+          <v-btn
+            block
+            class="ml-0 mt-4"
+            color="primary"
+            depressed
+            @click="exportPaths"
+          >
+            Export Paths
+          </v-btn>
+        </v-col>
+      </v-row>
     </v-card>
   </div>
 </template>
@@ -140,6 +155,33 @@ export default {
       store.commit.setShowPathTable(false);
     }
 
+    function exportPaths() {
+      if (tableData.value === null) {
+        return;
+      }
+      const colHeader: string[] = headers.value.map((header) => header.text);
+
+      const a = document.createElement('a');
+      // In case there is an empty value
+      const replacer = (key, value) => (value === null ? '' : value);
+
+      let csvData = tableData.value.map((row) => colHeader.map((_, i) => JSON.stringify(row[i], replacer)));
+
+      // Add column header selections
+      csvData.unshift(selectedHeader.value.join(','));
+      // Add column headers
+      csvData.unshift(colHeader.join(','));
+
+      csvData = csvData.join('\r\n');
+      a.href = URL.createObjectURL(
+        new Blob([csvData], {
+          type: 'text/csv',
+        }),
+      );
+      a.download = `${store.state.networkName}-paths.csv`;
+      a.click();
+    }
+
     return {
       search,
       headers,
@@ -150,6 +192,7 @@ export default {
       divStyle,
       iconMouseDown,
       closeCard,
+      exportPaths,
     };
   },
 };
