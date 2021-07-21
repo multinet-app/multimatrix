@@ -1,7 +1,6 @@
 <script lang="ts">
 import {
-  computed, onMounted, watch,
-  defineComponent,
+  computed, defineComponent, onMounted, watch,
 } from '@vue/composition-api';
 import {
   scaleLinear,
@@ -226,7 +225,7 @@ export default defineComponent({
 <template>
   <div
     id="intNodeDiv"
-    :style="`width: 700px;`"
+    :style="`width: ${intNodeWidth}px;`"
   >
     <svg
       id="intNode"
