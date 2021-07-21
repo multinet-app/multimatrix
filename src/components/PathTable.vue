@@ -14,27 +14,57 @@
           </v-icon>
         </v-col>
       </v-row>
-      <v-card-title class="pt-0 mt-0">
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          label="Search"
-          single-line
-          hide-details
-        />
-      </v-card-title>
+      <v-card
+        color="grey lighten-3"
+        flat
+        tile
+      >
+        <v-card-title class="pt-0 mt-0">
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          />
+        </v-card-title>
+      </v-card>
       <v-data-table
         :headers="headers"
         :items="tableData"
         :search="search"
-      />
+      >
+        <template
+          v-slot:top
+        >
+          <v-list dense>
+            <v-list-item dense>
+              <v-row>
+                <v-col
+                  v-for="(header, i) in headers"
+                  :key="i"
+                  class="pa-0"
+                >
+                  <v-select
+                    v-model="selectedHeader[i]"
+                    :items="i % 2 ? headerEdgeSelections : headerNodeSelections"
+                    label="Attribute"
+                    dense
+                  />
+                </v-col>
+              </v-row>
+            </v-list-item>
+          </v-list>
+        </template>
+      </v-data-table>
     </v-card>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, ref } from '@vue/composition-api';
+import { computed, ref, Ref } from '@vue/composition-api';
 import store from '@/store';
+import { isInternalField } from '@/lib/typeUtils';
 
 export default {
   name: 'PathTable',
@@ -42,14 +72,26 @@ export default {
   setup() {
     const search = ref('');
     const pathLength = computed(() => store.state.selectedConnectivityPaths[0].vertices.length);
+
+    const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
+    const headerEdgeSelections = (store.state.network ? Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)) : ['No network']);
+    const selectedHeader: Ref<string[]> = ref([]);
+
+    Array(pathLength.value + 2).fill(1).forEach(() => {
+      selectedHeader.value.push('_key');
+    });
+
     const headers = computed(() => {
       const toReturn: any[] = [];
+      let index = 0;
       [...Array(pathLength.value).keys()].forEach((i) => {
         if (i < pathLength.value - 1) {
-          toReturn.push({ text: `Node ${i + 1}`, value: `Node${i + 1}` });
-          toReturn.push({ text: `Edge ${i + 1}`, value: `Edge${i + 1}` });
+          toReturn.push({ text: `Node ${i + 1}`, value: `${index}` });
+          index += 1;
+          toReturn.push({ text: `Edge ${i + 1}`, value: `${index}` });
+          index += 1;
         } else {
-          toReturn.push({ text: `Node ${i + 1}`, value: `Node${i + 1}` });
+          toReturn.push({ text: `Node ${i + 1}`, value: `${index}` });
         }
       });
       return toReturn;
@@ -57,13 +99,16 @@ export default {
     const tableData = computed(() => {
       const toReturn: any[] = [];
       store.state.selectedConnectivityPaths.forEach((path) => {
-        const tablePath: { [key: string]: string } = {};
+        const tablePath: { [key: string]: any } = {};
+        let index = 0;
         [...Array(pathLength.value).keys()].forEach((i) => {
           if (i < pathLength.value - 1) {
-            tablePath[`Node${i + 1}`] = path.vertices[i]._key;
-            tablePath[`Edge${i + 1}`] = path.edges[i]._key;
+            tablePath[`${index}`] = path.vertices[i][selectedHeader.value[index]];
+            index += 1;
+            tablePath[`${index}`] = path.edges[i][selectedHeader.value[index]];
+            index += 1;
           } else {
-            tablePath[`Node${i + 1}`] = path.vertices[i]._key;
+            tablePath[`${index}`] = path.vertices[i][selectedHeader.value[index]];
           }
         });
         toReturn.push(tablePath);
@@ -98,6 +143,9 @@ export default {
     return {
       search,
       headers,
+      headerNodeSelections,
+      headerEdgeSelections,
+      selectedHeader,
       tableData,
       divStyle,
       iconMouseDown,
