@@ -14,21 +14,28 @@
           </v-icon>
         </v-col>
       </v-row>
-      <v-card
-        color="grey lighten-3"
-        flat
-        tile
+      <v-card-title
+        class="pt-0 mt-0"
       >
-        <v-card-title class="pt-0 mt-0">
-          <v-text-field
-            v-model="search"
-            append-icon="mdi-magnify"
-            label="Search"
-            single-line
-            hide-details
-          />
-        </v-card-title>
-      </v-card>
+        <v-row>
+          <v-col
+            cols="4"
+          >
+            Path Table
+          </v-col>
+          <v-col
+            cols="8"
+          >
+            <v-text-field
+              v-model="search"
+              append-icon="mdi-magnify"
+              label="Search"
+              single-line
+              hide-details
+            />
+          </v-col>
+        </v-row>
+      </v-card-title>
       <v-data-table
         :headers="headers"
         :items="tableData"
@@ -48,7 +55,7 @@
                   <v-select
                     v-model="selectedHeader[i]"
                     :items="i % 2 ? headerEdgeSelections : headerNodeSelections"
-                    label="Attribute"
+                    :label="`${headers[i].text} Attribute`"
                     dense
                   />
                 </v-col>
@@ -58,9 +65,12 @@
         </template>
       </v-data-table>
       <v-row>
-        <v-col />
-        <v-col />
-        <v-col>
+        <v-col
+          cols="8"
+        />
+        <v-col
+          cols="4"
+        >
           <v-btn
             block
             class="ml-0 mt-4"
@@ -77,11 +87,13 @@
 </template>
 
 <script lang="ts">
-import { computed, ref, Ref } from '@vue/composition-api';
+import {
+  computed, ref, Ref, defineComponent,
+} from '@vue/composition-api';
 import store from '@/store';
 import { isInternalField } from '@/lib/typeUtils';
 
-export default {
+export default defineComponent({
   name: 'PathTable',
 
   setup() {
@@ -195,5 +207,5 @@ export default {
       exportPaths,
     };
   },
-};
+});
 </script>
