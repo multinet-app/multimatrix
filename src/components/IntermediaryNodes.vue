@@ -1,11 +1,11 @@
 <script lang="ts">
 import {
-  computed, defineComponent, onMounted, watch,
+  computed, defineComponent, onMounted, watch, watchEffect,
 } from '@vue/composition-api';
 import {
   scaleLinear,
 } from 'd3-scale';
-import { select } from 'd3-selection';
+import { select, selectAll } from 'd3-selection';
 import store from '@/store';
 import { ConnectivityCell } from '@/types';
 
@@ -28,6 +28,11 @@ export default defineComponent({
       },
     });
     let selectedCell = '';
+
+    watchEffect(() => {
+      console.log(showTable.value);
+      if (showTable.value === false) { selectAll('.connectivityCell').classed('clicked', false); }
+    });
 
     const margin = {
       top: 79,
@@ -109,8 +114,13 @@ export default defineComponent({
           selectedCell = rowData[0].cellName;
           store.commit.setSelectedConnectivityPaths(rowData);
           showTable.value = true;
+
+          // Remove prior selections
+          selectAll('.connectivityCell').classed('clicked', false);
+          cell.classed('clicked', true);
         } else if (selectedCell === rowData[0].cellName && showTable.value) {
           showTable.value = !showTable.value;
+          cell.classed('clicked', false);
         }
       });
 
@@ -257,6 +267,11 @@ svg >>> .rowLabels {
 
 svg >>> .connectivityCell:hover {
   cursor: pointer;
+  stroke-width: 1px;
+  stroke: black;
+}
+
+svg >>> .connectivityCell.clicked {
   stroke-width: 1px;
   stroke: black;
 }
