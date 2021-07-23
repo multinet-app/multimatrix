@@ -102,7 +102,7 @@ export default defineComponent({
     const pathLength = computed(() => store.state.selectedConnectivityPaths[0].vertices.length);
 
     const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
-    const headerEdgeSelections = (store.state.network ? Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)) : ['No network']);
+    const headerEdgeSelections = computed(() => store.getters.edgeVariableItems);
     const selectedHeader: Ref<string[]> = ref([]);
 
     Array(pathLength.value + 2).fill(1).forEach(() => {

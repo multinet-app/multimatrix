@@ -85,6 +85,13 @@ const {
       }
       return [];
     },
+
+    edgeVariableItems(state): string[] {
+      if (state.network !== null) {
+        return Object.keys(state.edgeAttributes).filter((varName) => !isInternalField(varName));
+      }
+      return [];
+    },
   },
 
   mutations: {

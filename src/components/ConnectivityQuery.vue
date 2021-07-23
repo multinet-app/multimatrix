@@ -105,7 +105,7 @@ export default defineComponent({
 
     const selectedVariables: Ref<string[]> = ref([]);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
-    const edgeVariableItems = computed(() => (store.state.network ? Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)) : ['No network']));
+    const edgeVariableItems = computed(() => store.getters.edgeVariableItems);
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
     const queryOptionItems = ['==', '~='];
