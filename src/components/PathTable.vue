@@ -50,7 +50,8 @@
                 <v-col
                   v-for="(header, i) in headers"
                   :key="i"
-                  class="pa-0"
+                  class="py-0"
+                  :cols="`${Math.ceil(12 % (headers.length - 1))}`"
                 >
                   <v-select
                     v-model="selectedHeader[i]"
