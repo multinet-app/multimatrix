@@ -145,7 +145,7 @@ export default defineComponent({
     });
 
     const top = ref(0);
-    const left = ref(0);
+    const left = ref(store.state.network !== null ? store.state.cellSize * store.state.network.nodes.length + 200 : 0);
     const divStyle = computed(() => `position: absolute; top: ${top.value}px; left: ${left.value}px; z-index: 1;`);
     function iconDrag(event: MouseEvent) {
       // 24 to account for icon size and padding
