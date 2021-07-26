@@ -92,7 +92,6 @@ import {
   computed, defineComponent, ref, Ref, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
-import { isInternalField } from '@/lib/typeUtils';
 
 export default defineComponent({
   name: 'ConnectivityQuery',

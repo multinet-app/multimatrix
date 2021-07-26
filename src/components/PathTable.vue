@@ -92,7 +92,6 @@ import {
   computed, ref, Ref, defineComponent,
 } from '@vue/composition-api';
 import store from '@/store';
-import { isInternalField } from '@/lib/typeUtils';
 
 export default defineComponent({
   name: 'PathTable',
@@ -110,7 +109,7 @@ export default defineComponent({
     });
 
     const headers = computed(() => {
-      const toReturn: any[] = [];
+      const toReturn: { [key: string]: string }[] = [];
       let index = 0;
       [...Array(pathLength.value).keys()].forEach((i) => {
         if (i < pathLength.value - 1) {
@@ -125,18 +124,18 @@ export default defineComponent({
       return toReturn;
     });
     const tableData = computed(() => {
-      const toReturn: any[] = [];
+      const toReturn: { [key: string]: string }[] = [];
       store.state.selectedConnectivityPaths.forEach((path) => {
-        const tablePath: { [key: string]: any } = {};
+        const tablePath: { [key: string]: string } = {};
         let index = 0;
         [...Array(pathLength.value).keys()].forEach((i) => {
           if (i < pathLength.value - 1) {
-            tablePath[`${index}`] = path.vertices[i][selectedHeader.value[index]];
+            tablePath[`${index}`] = `${path.vertices[i][selectedHeader.value[index]]}`;
             index += 1;
-            tablePath[`${index}`] = path.edges[i][selectedHeader.value[index]];
+            tablePath[`${index}`] = `${path.edges[i][selectedHeader.value[index]]}`;
             index += 1;
           } else {
-            tablePath[`${index}`] = path.vertices[i][selectedHeader.value[index]];
+            tablePath[`${index}`] = `${path.vertices[i][selectedHeader.value[index]]}`;
           }
         });
         toReturn.push(tablePath);
@@ -176,16 +175,16 @@ export default defineComponent({
 
       const a = document.createElement('a');
       // In case there is an empty value
-      const replacer = (key, value) => (value === null ? '' : value);
+      const replacer = (key: unknown, value: unknown) => (value === null ? '' : value);
 
-      let csvData = tableData.value.map((row) => colHeader.map((_, i) => JSON.stringify(row[i], replacer)));
+      const csvDataArray = tableData.value.map((row) => colHeader.map((_, i) => JSON.stringify(row[i], replacer)));
 
       // Add column header selections
-      csvData.unshift(selectedHeader.value.join(','));
+      csvDataArray.unshift(selectedHeader.value);
       // Add column headers
-      csvData.unshift(colHeader.join(','));
+      csvDataArray.unshift(colHeader);
 
-      csvData = csvData.join('\r\n');
+      const csvData = csvDataArray.join('\r\n');
       a.href = URL.createObjectURL(
         new Blob([csvData], {
           type: 'text/csv',

@@ -30,7 +30,6 @@ export default defineComponent({
     let selectedCell = '';
 
     watchEffect(() => {
-      console.log(showTable.value);
       if (showTable.value === false) { selectAll('.connectivityCell').classed('clicked', false); }
     });
 
