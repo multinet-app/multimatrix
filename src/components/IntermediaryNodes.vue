@@ -15,7 +15,7 @@ export default defineComponent({
   setup() {
     const network = computed(() => store.state.network);
     const connectivityPaths = computed(() => store.state.connectivityMatrixPaths);
-    const matrix: ConnectivityCell[][] = [];
+    let matrix: ConnectivityCell[][] = [];
     const cellSize = computed(() => store.state.cellSize);
     const pathLength = computed(() => connectivityPaths.value.paths[0].vertices.length);
     const edgeLength = computed(() => connectivityPaths.value.paths[0].edges.length);
@@ -46,14 +46,15 @@ export default defineComponent({
       ? pathLength.value * cellSize.value + margin.left + margin.right
       : 0));
     const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node) => node._key).sort());
-    const yScale = scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]);
-    const xScale = scaleLinear().domain([0, (edgeLength.value - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]);
+    const yScale = computed(() => scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]));
+    const xScale = computed(() => scaleLinear().domain([0, (edgeLength.value - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]));
 
     const opacity = scaleLinear().domain([0, 0]).range([0, 1]).clamp(true);
 
     function processData() {
       if (network.value !== null && connectivityPaths.value.nodes.length > 0) {
         const hops = edgeLength.value - 1;
+        matrix = [];
 
         // Set up matrix intermediate nodes x # of hops
         sortOrder.value.forEach((rowNode, i) => {
@@ -101,7 +102,7 @@ export default defineComponent({
         .enter()
         .append('rect')
         .attr('class', 'connectivityCell')
-        .attr('x', (d) => yScale(d.x))
+        .attr('x', (d) => yScale.value(d.x))
         .attr('y', 1)
         .attr('width', cellSize.value - 2)
         .attr('height', cellSize.value - 2)
@@ -129,8 +130,6 @@ export default defineComponent({
     function buildIntView() {
       if (matrix.length > 0) {
         const svg = select('#intNode').append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-        const svgWidth: number = parseFloat(select('#intNode').attr('width'));
-        const svgHeight: number = parseFloat(select('#intNode').attr('height'));
         const rowLabelWidth = 20;
 
         //   Draw path symbols
@@ -138,17 +137,17 @@ export default defineComponent({
           .data([...Array(pathLength.value).keys()])
           .enter()
           .append('g')
-          .attr('transform', `translate(${svgWidth / 7}, ${(margin.top - svgHeight) / 4})`);
+          .attr('transform', `translate(${matrixWidth.value / 7}, ${(margin.top - matrixHeight.value) / 4})`);
 
         circles.append('circle')
           .attr('class', 'circleIcons')
-          .attr('cx', (_, i) => xScale(i))
+          .attr('cx', (_, i) => xScale.value(i))
           .attr('cy', 0)
           .attr('r', cellSize.value / 2)
           .attr('fill', (_, i) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'));
 
         circles.append('text')
-          .attr('x', (_, i) => xScale(i))
+          .attr('x', (_, i) => xScale.value(i))
           .attr('y', cellSize.value / 2 - 3)
           .attr('text-anchor', 'middle')
           .attr('font-size', `${cellSize.value - 2}px`)
@@ -169,30 +168,30 @@ export default defineComponent({
         // vertical grid lines
         verticalLines
           .append('line')
-          .attr('x1', -yScale.range()[1])
+          .attr('x1', -yScale.value.range()[1])
           .attr('y1', 0)
-          .attr('y2', yScale.range()[1])
-          .attr('x1', (_, i) => xScale(i))
-          .attr('x2', (_, i) => xScale(i))
-          .attr('transform', `translate(${svgWidth / 5 - 1},0)`);
+          .attr('y2', yScale.value.range()[1])
+          .attr('x1', (_, i) => xScale.value(i))
+          .attr('x2', (_, i) => xScale.value(i))
+          .attr('transform', `translate(${matrixWidth.value / 5 - 1},0)`);
 
         // horizontal grid lines
         horizontalLines
           .append('line')
           .attr('x1', 0)
-          .attr('x2', xScale.range()[1] - 1)
-          .attr('y1', (_, i) => yScale(i))
-          .attr('y2', (_, i) => yScale(i))
-          .attr('transform', `translate(${svgWidth / 5},0)`);
+          .attr('x2', xScale.value.range()[1] - 1)
+          .attr('y1', (_, i) => yScale.value(i))
+          .attr('y2', (_, i) => yScale.value(i))
+          .attr('transform', `translate(${matrixWidth.value / 5},0)`);
 
         // horizontal grid line edges
         gridLines
           .append('line')
           .attr('x1', 0)
-          .attr('x2', xScale.range()[1])
-          .attr('y1', yScale.range()[1])
-          .attr('y2', yScale.range()[1])
-          .attr('transform', `translate(${svgWidth / 5},0)`);
+          .attr('x2', xScale.value.range()[1])
+          .attr('y1', yScale.value.range()[1])
+          .attr('y2', yScale.value.range()[1])
+          .attr('transform', `translate(${matrixWidth.value / 5},0)`);
 
         //   Draw rows
         svg
@@ -201,14 +200,18 @@ export default defineComponent({
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i) => `translate(${svgWidth / 5},${yScale(i)})`)
+          .attr('transform', (_, i) => `translate(${matrixWidth.value / 5},${yScale.value(i)})`)
           .each(makeRow)
           .append('text')
           .attr('class', 'rowLabels')
           .attr('y', cellSize.value / 2 + 5)
-          .attr('x', -(svgWidth / 5 + rowLabelWidth))
+          .attr('x', -(matrixWidth.value / 5 + rowLabelWidth))
           .text((_, i) => sortOrder.value[i]);
       }
+    }
+
+    function teardownOldView() {
+      select('#intNode').selectAll('g').remove();
     }
 
     onMounted(() => {
@@ -218,6 +221,7 @@ export default defineComponent({
 
     watch(connectivityPaths, () => {
       processData();
+      teardownOldView();
       buildIntView();
     });
 
