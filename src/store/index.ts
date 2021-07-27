@@ -14,6 +14,7 @@ import {
   ArangoAttributes,
   ArangoPath,
   Cell,
+  ConnectivityCell,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
@@ -61,6 +62,8 @@ const {
     edgeAttributes: {},
     showIntNodeVis: false,
     connectivityMatrixPaths: { nodes: [], paths: [] },
+    selectedConnectivityPaths: [],
+    showPathTable: false,
   } as State,
 
   getters: {
@@ -79,6 +82,13 @@ const {
     nodeVariableItems(state): string[] {
       if (state.network !== null) {
         return Object.keys(state.nodeAttributes).filter((varName) => !isInternalField(varName));
+      }
+      return [];
+    },
+
+    edgeVariableItems(state): string[] {
+      if (state.network !== null) {
+        return Object.keys(state.edgeAttributes).filter((varName) => !isInternalField(varName));
       }
       return [];
     },
@@ -258,6 +268,14 @@ const {
 
     setConnectivityMatrixPaths(state, payload: { nodes: Node[]; paths: ArangoPath[]}) {
       state.connectivityMatrixPaths = payload;
+    },
+
+    setSelectedConnectivityPaths(state, payload: ConnectivityCell[]) {
+      state.selectedConnectivityPaths = payload[0].paths.map((path: number) => state.connectivityMatrixPaths.paths[path]);
+    },
+
+    setShowPathTable(state, showPathTable: boolean) {
+      state.showPathTable = showPathTable;
     },
   },
 

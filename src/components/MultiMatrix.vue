@@ -21,6 +21,7 @@ import 'reorder.js';
 import {
   computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
+import PathTable from './PathTable.vue';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const reorder: any;
@@ -29,9 +30,11 @@ export default defineComponent({
   components: {
     LineUp,
     IntermediaryNodes,
+    PathTable,
   },
 
   setup() {
+    const showPathTable = computed(() => store.state.showPathTable);
     const tooltip = ref(null);
     const visMargins = ref({
       left: 75, top: 79, right: 0, bottom: 0,
@@ -880,6 +883,7 @@ export default defineComponent({
       matrixWidth,
       matrixHeight,
       tooltip,
+      showPathTable,
     };
   },
 
@@ -906,6 +910,7 @@ export default defineComponent({
       id="tooltip"
       ref="tooltip"
     />
+    <path-table v-if="showPathTable" />
   </div>
 </template>
 

@@ -1,11 +1,11 @@
 <script lang="ts">
 import {
-  computed, defineComponent, onMounted, watch,
+  computed, defineComponent, onMounted, watch, watchEffect,
 } from '@vue/composition-api';
 import {
   scaleLinear,
 } from 'd3-scale';
-import { select } from 'd3-selection';
+import { select, selectAll } from 'd3-selection';
 import store from '@/store';
 import { ConnectivityCell } from '@/types';
 
@@ -19,6 +19,19 @@ export default defineComponent({
     const cellSize = computed(() => store.state.cellSize);
     const pathLength = computed(() => connectivityPaths.value.paths[0].vertices.length);
     const edgeLength = computed(() => connectivityPaths.value.paths[0].edges.length);
+    const showTable = computed({
+      get() {
+        return store.state.showPathTable;
+      },
+      set(value: boolean) {
+        store.commit.setShowPathTable(value);
+      },
+    });
+    let selectedCell = '';
+
+    watchEffect(() => {
+      if (showTable.value === false) { selectAll('.connectivityCell').classed('clicked', false); }
+    });
 
     const margin = {
       top: 79,
@@ -87,12 +100,28 @@ export default defineComponent({
         .data(rowData)
         .enter()
         .append('rect')
+        .attr('class', 'connectivityCell')
         .attr('x', (d) => yScale(d.x))
         .attr('y', 1)
         .attr('width', cellSize.value - 2)
         .attr('height', cellSize.value - 2)
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
+
+      cell.on('click', () => {
+        if (selectedCell !== rowData[0].cellName || !showTable.value) {
+          selectedCell = rowData[0].cellName;
+          store.commit.setSelectedConnectivityPaths(rowData);
+          showTable.value = true;
+
+          // Remove prior selections
+          selectAll('.connectivityCell').classed('clicked', false);
+          cell.classed('clicked', true);
+        } else if (selectedCell === rowData[0].cellName && showTable.value) {
+          showTable.value = !showTable.value;
+          cell.classed('clicked', false);
+        }
+      });
 
       cell.append('title').text((d) => `${d.cellName} in ${d.z} paths`);
     }
@@ -193,6 +222,7 @@ export default defineComponent({
     });
 
     return {
+      showTable,
       intNodeWidth,
       matrixWidth,
       matrixHeight,
@@ -232,5 +262,16 @@ svg >>> .rowLabels {
   overflow: hidden;
   font-size: 12pt;
   z-index: 100;
+}
+
+svg >>> .connectivityCell:hover {
+  cursor: pointer;
+  stroke-width: 1px;
+  stroke: black;
+}
+
+svg >>> .connectivityCell.clicked {
+  stroke-width: 1px;
+  stroke: black;
 }
 </style>
