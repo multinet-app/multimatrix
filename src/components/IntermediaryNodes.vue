@@ -130,8 +130,6 @@ export default defineComponent({
     function buildIntView() {
       if (matrix.length > 0) {
         const svg = select('#intNode').append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-        const svgWidth: number = parseFloat(select('#intNode').attr('width'));
-        const svgHeight: number = parseFloat(select('#intNode').attr('height'));
         const rowLabelWidth = 20;
 
         //   Draw path symbols
@@ -139,7 +137,7 @@ export default defineComponent({
           .data([...Array(pathLength.value).keys()])
           .enter()
           .append('g')
-          .attr('transform', `translate(${svgWidth / 7}, ${(margin.top - svgHeight) / 4})`);
+          .attr('transform', `translate(${matrixWidth.value / 7}, ${(margin.top - matrixHeight.value) / 4})`);
 
         circles.append('circle')
           .attr('class', 'circleIcons')
@@ -175,7 +173,7 @@ export default defineComponent({
           .attr('y2', yScale.value.range()[1])
           .attr('x1', (_, i) => xScale.value(i))
           .attr('x2', (_, i) => xScale.value(i))
-          .attr('transform', `translate(${svgWidth / 5 - 1},0)`);
+          .attr('transform', `translate(${matrixWidth.value / 5 - 1},0)`);
 
         // horizontal grid lines
         horizontalLines
@@ -184,7 +182,7 @@ export default defineComponent({
           .attr('x2', xScale.value.range()[1] - 1)
           .attr('y1', (_, i) => yScale.value(i))
           .attr('y2', (_, i) => yScale.value(i))
-          .attr('transform', `translate(${svgWidth / 5},0)`);
+          .attr('transform', `translate(${matrixWidth.value / 5},0)`);
 
         // horizontal grid line edges
         gridLines
@@ -193,7 +191,7 @@ export default defineComponent({
           .attr('x2', xScale.value.range()[1])
           .attr('y1', yScale.value.range()[1])
           .attr('y2', yScale.value.range()[1])
-          .attr('transform', `translate(${svgWidth / 5},0)`);
+          .attr('transform', `translate(${matrixWidth.value / 5},0)`);
 
         //   Draw rows
         svg
@@ -202,12 +200,12 @@ export default defineComponent({
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i) => `translate(${svgWidth / 5},${yScale.value(i)})`)
+          .attr('transform', (_, i) => `translate(${matrixWidth.value / 5},${yScale.value(i)})`)
           .each(makeRow)
           .append('text')
           .attr('class', 'rowLabels')
           .attr('y', cellSize.value / 2 + 5)
-          .attr('x', -(svgWidth / 5 + rowLabelWidth))
+          .attr('x', -(matrixWidth.value / 5 + rowLabelWidth))
           .text((_, i) => sortOrder.value[i]);
       }
     }
