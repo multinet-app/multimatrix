@@ -46,8 +46,8 @@ export default defineComponent({
       ? pathLength.value * cellSize.value + margin.left + margin.right
       : 0));
     const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node) => node._key).sort());
-    const yScale = scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]);
-    const xScale = scaleLinear().domain([0, (edgeLength.value - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]);
+    const yScale = computed(() => scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]));
+    const xScale = computed(() => scaleLinear().domain([0, (edgeLength.value - 1)]).range([0, (connectivityPaths.value.paths[0].edges.length - 1) * cellSize.value]));
 
     const opacity = scaleLinear().domain([0, 0]).range([0, 1]).clamp(true);
 
@@ -101,7 +101,7 @@ export default defineComponent({
         .enter()
         .append('rect')
         .attr('class', 'connectivityCell')
-        .attr('x', (d) => yScale(d.x))
+        .attr('x', (d) => yScale.value(d.x))
         .attr('y', 1)
         .attr('width', cellSize.value - 2)
         .attr('height', cellSize.value - 2)
@@ -142,13 +142,13 @@ export default defineComponent({
 
         circles.append('circle')
           .attr('class', 'circleIcons')
-          .attr('cx', (_, i) => xScale(i))
+          .attr('cx', (_, i) => xScale.value(i))
           .attr('cy', 0)
           .attr('r', cellSize.value / 2)
           .attr('fill', (_, i) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'));
 
         circles.append('text')
-          .attr('x', (_, i) => xScale(i))
+          .attr('x', (_, i) => xScale.value(i))
           .attr('y', cellSize.value / 2 - 3)
           .attr('text-anchor', 'middle')
           .attr('font-size', `${cellSize.value - 2}px`)
@@ -169,29 +169,29 @@ export default defineComponent({
         // vertical grid lines
         verticalLines
           .append('line')
-          .attr('x1', -yScale.range()[1])
+          .attr('x1', -yScale.value.range()[1])
           .attr('y1', 0)
-          .attr('y2', yScale.range()[1])
-          .attr('x1', (_, i) => xScale(i))
-          .attr('x2', (_, i) => xScale(i))
+          .attr('y2', yScale.value.range()[1])
+          .attr('x1', (_, i) => xScale.value(i))
+          .attr('x2', (_, i) => xScale.value(i))
           .attr('transform', `translate(${svgWidth / 5 - 1},0)`);
 
         // horizontal grid lines
         horizontalLines
           .append('line')
           .attr('x1', 0)
-          .attr('x2', xScale.range()[1] - 1)
-          .attr('y1', (_, i) => yScale(i))
-          .attr('y2', (_, i) => yScale(i))
+          .attr('x2', xScale.value.range()[1] - 1)
+          .attr('y1', (_, i) => yScale.value(i))
+          .attr('y2', (_, i) => yScale.value(i))
           .attr('transform', `translate(${svgWidth / 5},0)`);
 
         // horizontal grid line edges
         gridLines
           .append('line')
           .attr('x1', 0)
-          .attr('x2', xScale.range()[1])
-          .attr('y1', yScale.range()[1])
-          .attr('y2', yScale.range()[1])
+          .attr('x2', xScale.value.range()[1])
+          .attr('y1', yScale.value.range()[1])
+          .attr('y2', yScale.value.range()[1])
           .attr('transform', `translate(${svgWidth / 5},0)`);
 
         //   Draw rows
@@ -201,7 +201,7 @@ export default defineComponent({
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i) => `translate(${svgWidth / 5},${yScale(i)})`)
+          .attr('transform', (_, i) => `translate(${svgWidth / 5},${yScale.value(i)})`)
           .each(makeRow)
           .append('text')
           .attr('class', 'rowLabels')
