@@ -15,7 +15,7 @@ export default defineComponent({
   setup() {
     const network = computed(() => store.state.network);
     const connectivityPaths = computed(() => store.state.connectivityMatrixPaths);
-    const matrix: ConnectivityCell[][] = [];
+    let matrix: ConnectivityCell[][] = [];
     const cellSize = computed(() => store.state.cellSize);
     const pathLength = computed(() => connectivityPaths.value.paths[0].vertices.length);
     const edgeLength = computed(() => connectivityPaths.value.paths[0].edges.length);
@@ -54,6 +54,7 @@ export default defineComponent({
     function processData() {
       if (network.value !== null && connectivityPaths.value.nodes.length > 0) {
         const hops = edgeLength.value - 1;
+        matrix = [];
 
         // Set up matrix intermediate nodes x # of hops
         sortOrder.value.forEach((rowNode, i) => {
