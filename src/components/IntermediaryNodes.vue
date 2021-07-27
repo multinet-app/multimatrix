@@ -211,6 +211,10 @@ export default defineComponent({
       }
     }
 
+    function teardownOldView() {
+      select('#intNode').selectAll('g').remove();
+    }
+
     onMounted(() => {
       processData();
       buildIntView();
@@ -218,6 +222,7 @@ export default defineComponent({
 
     watch(connectivityPaths, () => {
       processData();
+      teardownOldView();
       buildIntView();
     });
 
