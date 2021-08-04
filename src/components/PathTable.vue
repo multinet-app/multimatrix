@@ -53,11 +53,13 @@
                   class="py-0"
                   :cols="`${Math.ceil(12 % (headers.length - 1))}`"
                 >
-                  <v-select
+                  <v-autocomplete
                     v-model="selectedHeader[i]"
                     :items="i % 2 ? headerEdgeSelections : headerNodeSelections"
                     :label="`${headers[i].text} Attribute`"
                     dense
+                    small-chips
+                    multiple
                   />
                 </v-col>
               </v-row>
@@ -102,23 +104,34 @@ export default defineComponent({
 
     const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
     const headerEdgeSelections = computed(() => store.getters.edgeVariableItems);
-    const selectedHeader: Ref<string[]> = ref([]);
+    const selectedHeader: Ref<string[][]> = ref([]);
 
     Array(pathLength.value + 2).fill(1).forEach(() => {
-      selectedHeader.value.push('_key');
+      selectedHeader.value.push(['_key']);
     });
 
     const headers = computed(() => {
       const toReturn: { [key: string]: string }[] = [];
       let index = 0;
+      // Iterate through paths
       [...Array(pathLength.value).keys()].forEach((i) => {
         if (i < pathLength.value - 1) {
-          toReturn.push({ text: `Node ${i + 1}`, value: `${index}` });
+          // Iterate through selected attributes
+          selectedHeader.value[index].forEach((header: string) => {
+            toReturn.push({ text: `Node ${i + 1}`, value: `${index}`, attribute: `${header}` });
+          });
+          // toReturn.push({ text: `Node ${i + 1}`, value: `${index}` });
           index += 1;
-          toReturn.push({ text: `Edge ${i + 1}`, value: `${index}` });
+          // Iterate through selected attributes
+          selectedHeader.value[index].forEach((header: string) => {
+            toReturn.push({ text: `Edge ${i + 1}`, value: `${index}`, attribute: `${header}` });
+          });
           index += 1;
         } else {
-          toReturn.push({ text: `Node ${i + 1}`, value: `${index}` });
+          selectedHeader.value[index].forEach((header: string) => {
+            toReturn.push({ text: `Node ${i + 1}`, value: `${index}`, attribute: `${header}` });
+          });
+          // toReturn.push({ text: `Node ${i + 1}`, value: `${index}` });
         }
       });
       return toReturn;
@@ -128,14 +141,23 @@ export default defineComponent({
       store.state.selectedConnectivityPaths.forEach((path) => {
         const tablePath: { [key: string]: string } = {};
         let index = 0;
+        // Iterate through the path positions
         [...Array(pathLength.value).keys()].forEach((i) => {
           if (i < pathLength.value - 1) {
-            tablePath[`${index}`] = `${path.vertices[i][selectedHeader.value[index]]}`;
-            index += 1;
-            tablePath[`${index}`] = `${path.edges[i][selectedHeader.value[index]]}`;
-            index += 1;
+            // Iterate through selected attributes
+            selectedHeader.value[i].forEach((header: string) => {
+              tablePath[`${index}`] = `${path.vertices[i][header]}`;
+              index += 1;
+            });
+            selectedHeader.value[i].forEach((header: string) => {
+              tablePath[`${index}`] = `${path.edges[i][header]}`;
+              index += 1;
+            });
           } else {
-            tablePath[`${index}`] = `${path.vertices[i][selectedHeader.value[index]]}`;
+            selectedHeader.value[i].forEach((header: string) => {
+              tablePath[`${index}`] = `${path.vertices[i][header]}`;
+              index += 1;
+            });
           }
         });
         toReturn.push(tablePath);
