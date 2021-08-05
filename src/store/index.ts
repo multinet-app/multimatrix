@@ -277,6 +277,10 @@ const {
     setShowPathTable(state, showPathTable: boolean) {
       state.showPathTable = showPathTable;
     },
+
+    setCellSize(state, cellSize: number) {
+      state.cellSize = cellSize;
+    },
   },
 
   actions: {
