@@ -131,7 +131,6 @@ export default defineComponent({
           });
         }
       });
-      console.log('Headers', toReturn);
       return toReturn;
     });
 
@@ -147,7 +146,6 @@ export default defineComponent({
         });
         toReturn.push(tablePath);
       });
-      console.log('Table Body', toReturn);
       return toReturn;
     });
 
@@ -187,8 +185,6 @@ export default defineComponent({
 
       const csvDataArray = tableData.value.map((row) => colHeader.map((_, i) => JSON.stringify(row[i], replacer)));
 
-      // Add column header selections
-      csvDataArray.unshift(selectedHeader.value);
       // Add column headers
       csvDataArray.unshift(colHeader);
 
