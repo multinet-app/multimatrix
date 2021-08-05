@@ -841,7 +841,7 @@ export default defineComponent({
         const path = button.datum(icon.sortName);
         path
           .append('path')
-          .attr('class', 'sortIcon')
+          .attr('class', 'reorderSort')
           .attr('d', icons.value[icon.iconName].d)
           .style('fill', () => (icon.sortName === orderType.value ? '#EBB769' : '#8B8B8B'))
           .attr('transform', 'scale(0.1)translate(-195,-320)')
