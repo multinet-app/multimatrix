@@ -46,6 +46,14 @@ export default defineComponent({
         store.commit.setShowGridlines(value);
       },
     });
+    const cellSize = computed({
+      get() {
+        return store.state.cellSize;
+      },
+      set(value: number) {
+        store.commit.setCellSize(value);
+      },
+    });
     const aggregated = computed(() => store.state.aggregated);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
@@ -128,6 +136,7 @@ export default defineComponent({
       directionalEdges,
       selectNeighbors,
       showGridLines,
+      cellSize,
       aggregated,
       cellColorScale,
       parentColorScale,
@@ -232,6 +241,21 @@ export default defineComponent({
               />
             </v-list-item-action>
             <v-list-item-content> Enable Connectivity Query </v-list-item-content>
+          </v-list-item>
+
+          <!-- Connectivity Query List Item -->
+          <v-list-item class="px-0">
+            Cell Size
+            <v-slider
+              v-model="cellSize"
+              :min="10"
+              :max="100"
+              :label="String(cellSize)"
+              class="px-2"
+              inverse-label
+              hide-details
+              color="blue darken-1"
+            />
           </v-list-item>
 
           <!-- Aggregation Variable Selection -->
