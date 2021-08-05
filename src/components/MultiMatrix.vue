@@ -505,10 +505,8 @@ export default defineComponent({
       // Update existing topoCols
       edges.value
         .selectAll('.topoCol')
-        .attr(
-          'width',
-          matrixHighlightLength + visMargins.value.top + visMargins.value.bottom,
-        )
+        .attr('width', matrixHighlightLength + visMargins.value.top + visMargins.value.bottom)
+        .attr('height', cellSize.value)
         .attr('x', -matrixHighlightLength - visMargins.value.bottom);
 
       // add the highlight columns
@@ -609,10 +607,8 @@ export default defineComponent({
       // Update existing topoRols
       edges.value
         .selectAll('.topoRow')
-        .attr(
-          'width',
-          matrixHighlightLength + visMargins.value.left + visMargins.value.right,
-        );
+        .attr('width', matrixHighlightLength + visMargins.value.left + visMargins.value.right)
+        .attr('height', cellSize.value);
 
       rowEnter
         .append('rect')
