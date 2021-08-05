@@ -523,7 +523,18 @@ export default defineComponent({
           matrixHighlightLength + visMargins.value.top + visMargins.value.bottom,
         )
         .attr('height', orderingScale.value.bandwidth())
-        .attr('fill-opacity', 0);
+        .attr('fill-opacity', 0)
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          store.commit.clickElement(matrixElement._id);
+        })
+        .on('mouseover', (event: MouseEvent, node: Node) => {
+          showToolTip(event, node);
+          hoverNode(node._id);
+        })
+        .on('mouseout', (event: MouseEvent, node: Node) => {
+          hideToolTip();
+          unHoverNode(node._id);
+        });
 
       columnEnter
         .append('foreignObject')
@@ -544,19 +555,6 @@ export default defineComponent({
       columnEnter
         .selectAll('p')
         .style('color', (d: Node) => (aggregated.value && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
-
-      // Invisible Rectangles for Foreign Column Labels
-      columnEnter
-        .append('rect')
-        .attr('y', 0)
-        .attr('x', columnLabelContainerStart)
-        .attr('width', labelContainerWidth)
-        .attr('height', 15)
-        .attr('class', 'colLabelRect')
-        .style('opacity', 0)
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
-        });
 
       columnEnter
         .append('path')
@@ -627,7 +625,18 @@ export default defineComponent({
           matrixHighlightLength + visMargins.value.left + visMargins.value.right,
         )
         .attr('height', orderingScale.value.bandwidth())
-        .attr('fill-opacity', 0);
+        .attr('fill-opacity', 0)
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          store.commit.clickElement(matrixElement._id);
+        })
+        .on('mouseover', (event: MouseEvent, node: Node) => {
+          showToolTip(event, node);
+          hoverNode(node._id);
+        })
+        .on('mouseout', (event: MouseEvent, node: Node) => {
+          hideToolTip();
+          unHoverNode(node._id);
+        });
 
       // add foreign objects for label
       rowEnter
@@ -651,32 +660,6 @@ export default defineComponent({
           return 'black';
         })
         .classed('rowLabels', true);
-
-      rowEnter
-        .selectAll('p')
-        .style('color', (d: Node) => (aggregated.value && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
-
-      // Invisible Rectangles for Foreign Row Labels
-      rowEnter
-        .append('rect')
-        .attr('x', -rowLabelContainerStart + 20)
-        .attr('y', 0)
-        .attr('width', labelContainerWidth - 25)
-        .attr('height', 15)
-        .attr('class', 'rowLabelRect')
-        .style('opacity', 0)
-        .attr('cursor', 'pointer')
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
-        })
-        .on('mouseover', (event: MouseEvent, node: Node) => {
-          showToolTip(event, node);
-          hoverNode(node._id);
-        })
-        .on('mouseout', (event: MouseEvent, node: Node) => {
-          hideToolTip();
-          unHoverNode(node._id);
-        });
 
       // Invisible Rect Transform
       const invisibleRectTransform = 'translate(-73,2)';
@@ -1006,5 +989,9 @@ svg >>> .gridLines {
 
 svg >>> g.box line {
   stroke: slategray;
+}
+
+svg >>> foreignObject {
+  pointer-events: none;
 }
 </style>
