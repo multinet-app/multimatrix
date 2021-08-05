@@ -48,16 +48,18 @@
             <v-list-item dense>
               <v-row>
                 <v-col
-                  v-for="(header, i) in headers"
+                  v-for="(path, i) in (pathLength + 2)"
                   :key="i"
                   class="py-0"
-                  :cols="`${Math.ceil(12 % (headers.length - 1))}`"
+                  :cols="`${Math.ceil(12 % (pathLength - 1))}`"
                 >
-                  <v-select
+                  <v-autocomplete
                     v-model="selectedHeader[i]"
                     :items="i % 2 ? headerEdgeSelections : headerNodeSelections"
-                    :label="`${headers[i].text} Attribute`"
+                    :label="i % 2 ? `Edge ${(i+1)/2}: Attribute` : `Node ${(i+2)/2}: Attribute`"
                     dense
+                    small-chips
+                    multiple
                   />
                 </v-col>
               </v-row>
@@ -102,41 +104,45 @@ export default defineComponent({
 
     const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
     const headerEdgeSelections = computed(() => store.getters.edgeVariableItems);
-    const selectedHeader: Ref<string[]> = ref([]);
+    const selectedHeader: Ref<string[][]> = ref([]);
 
     Array(pathLength.value + 2).fill(1).forEach(() => {
-      selectedHeader.value.push('_key');
+      selectedHeader.value.push(['_key']);
     });
 
     const headers = computed(() => {
       const toReturn: { [key: string]: string }[] = [];
       let index = 0;
-      [...Array(pathLength.value).keys()].forEach((i) => {
-        if (i < pathLength.value - 1) {
-          toReturn.push({ text: `Node ${i + 1}`, value: `${index}` });
-          index += 1;
-          toReturn.push({ text: `Edge ${i + 1}`, value: `${index}` });
-          index += 1;
+
+      selectedHeader.value.forEach((_, i) => {
+        if (i % 2) {
+          selectedHeader.value[i].forEach((header: string) => {
+            toReturn.push({
+              value: `${index}`, text: `Edge ${(i + 1) / 2}: ${header}`, type: 'edge', attribute: `${header}`, position: `${(i + 1) / 2 - 1}`,
+            });
+            index += 1;
+          });
         } else {
-          toReturn.push({ text: `Node ${i + 1}`, value: `${index}` });
+          selectedHeader.value[i].forEach((header: string) => {
+            toReturn.push({
+              value: `${index}`, text: `Node ${(i + 2) / 2}: ${header}`, type: 'node', attribute: `${header}`, position: `${(i + 2) / 2 - 1}`,
+            });
+            index += 1;
+          });
         }
       });
       return toReturn;
     });
+
     const tableData = computed(() => {
       const toReturn: { [key: string]: string }[] = [];
       store.state.selectedConnectivityPaths.forEach((path) => {
         const tablePath: { [key: string]: string } = {};
-        let index = 0;
-        [...Array(pathLength.value).keys()].forEach((i) => {
-          if (i < pathLength.value - 1) {
-            tablePath[`${index}`] = `${path.vertices[i][selectedHeader.value[index]]}`;
-            index += 1;
-            tablePath[`${index}`] = `${path.edges[i][selectedHeader.value[index]]}`;
-            index += 1;
-          } else {
-            tablePath[`${index}`] = `${path.vertices[i][selectedHeader.value[index]]}`;
-          }
+        headers.value.forEach((header) => {
+          // eslint-disable-next-line no-unused-expressions
+          header.type === 'edge' ? tablePath[`${header.value}`] = `${path.edges[+header.position][header.attribute]}`
+            : tablePath[`${header.value}`] = `${path.vertices[+header.position][header.attribute]
+            }`;
         });
         toReturn.push(tablePath);
       });
@@ -179,8 +185,6 @@ export default defineComponent({
 
       const csvDataArray = tableData.value.map((row) => colHeader.map((_, i) => JSON.stringify(row[i], replacer)));
 
-      // Add column header selections
-      csvDataArray.unshift(selectedHeader.value);
       // Add column headers
       csvDataArray.unshift(colHeader);
 
@@ -202,6 +206,7 @@ export default defineComponent({
       selectedHeader,
       tableData,
       divStyle,
+      pathLength,
       iconMouseDown,
       closeCard,
       exportPaths,
