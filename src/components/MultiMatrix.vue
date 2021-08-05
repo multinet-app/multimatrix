@@ -467,16 +467,12 @@ export default defineComponent({
       processData();
 
       // set the matrix highlight
-      const matrixHighlightLength = matrix.value.length * cellSize.value;
-
-      // constant for starting the column label container
-      const columnLabelContainerStart = 20;
-      const labelContainerHeight = 25;
-      const rowLabelContainerStart = 75;
-      const labelContainerWidth = rowLabelContainerStart;
-
-      const verticalOffset = 187.5;
-      const horizontalOffset = (orderingScale.value.bandwidth() / 2 - 4.5) / 0.075;
+      const highlightLength = matrix.value.length * cellSize.value;
+      const labelWidth = 60;
+      const labelTextHeight = 21; // Determined by 11pt font in the CSS below
+      const sortIconWidth = 8.133; // Determined by path size and the scale factor applied to it (1/scalefactor)
+      const sortIconScaleFactor = 15;
+      const invisibleRectSize = 11; // Actual size of the icon is 9 + 1 px each side for stroke width
 
       // creates column groupings
       edgeColumns.value = edges.value
@@ -505,32 +501,57 @@ export default defineComponent({
       // Update existing topoCols
       edges.value
         .selectAll('.topoCol')
-        .attr(
-          'width',
-          matrixHighlightLength + visMargins.value.top + visMargins.value.bottom,
-        )
-        .attr('x', -matrixHighlightLength - visMargins.value.bottom);
+        .attr('width', highlightLength + visMargins.value.top + visMargins.value.bottom)
+        .attr('height', cellSize.value)
+        .attr('x', -highlightLength - visMargins.value.bottom);
+
+      // Update existing foreignObjects
+      edges.value
+        .selectAll('.colForeign')
+        .attr('height', cellSize.value);
+
+      edges.value
+        .selectAll('.colForeign')
+        .selectAll('p')
+        .style('margin-top', `${(cellSize.value - labelTextHeight) / 2}px`);
+
+      // Update existing sorticons
+      edges.value
+        .selectAll('.sortIcon')
+        .attr('transform', `scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize.value - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`);
 
       // add the highlight columns
       columnEnter
         .append('rect')
         .classed('topoCol', true)
         .attr('id', (d: Node) => `topoCol${d._id}`)
-        .attr('x', -matrixHighlightLength - visMargins.value.bottom)
+        .attr('x', -highlightLength - visMargins.value.bottom)
         .attr('y', 0)
         .attr(
           'width',
-          matrixHighlightLength + visMargins.value.top + visMargins.value.bottom,
+          highlightLength + visMargins.value.top + visMargins.value.bottom,
         )
         .attr('height', orderingScale.value.bandwidth())
-        .attr('fill-opacity', 0);
+        .attr('fill-opacity', 0)
+        .on('click', (event: MouseEvent, matrixElement: Node) => {
+          store.commit.clickElement(matrixElement._id);
+        })
+        .on('mouseover', (event: MouseEvent, node: Node) => {
+          showToolTip(event, node);
+          hoverNode(node._id);
+        })
+        .on('mouseout', (event: MouseEvent, node: Node) => {
+          hideToolTip();
+          unHoverNode(node._id);
+        });
 
       columnEnter
         .append('foreignObject')
-        .attr('y', -5)
-        .attr('x', columnLabelContainerStart)
-        .attr('width', labelContainerWidth)
-        .attr('height', labelContainerHeight)
+        .classed('colForeign', true)
+        .attr('y', 0)
+        .attr('x', 20)
+        .attr('width', labelWidth)
+        .attr('height', cellSize.value)
         .append('xhtml:p')
         .text((d: Node) => d._key)
         .style('color', (d: Node) => {
@@ -539,24 +560,12 @@ export default defineComponent({
           }
           return 'black';
         })
+        .style('margin-top', `${(cellSize.value - labelTextHeight) / 2}px`)
         .classed('colLabels', true);
 
       columnEnter
         .selectAll('p')
         .style('color', (d: Node) => (aggregated.value && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
-
-      // Invisible Rectangles for Foreign Column Labels
-      columnEnter
-        .append('rect')
-        .attr('y', 0)
-        .attr('x', columnLabelContainerStart)
-        .attr('width', labelContainerWidth)
-        .attr('height', 15)
-        .attr('class', 'colLabelRect')
-        .style('opacity', 0)
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
-        });
 
       columnEnter
         .append('path')
@@ -564,10 +573,7 @@ export default defineComponent({
         .attr('class', 'sortIcon')
         .attr('d', icons.value.cellSort.d)
         .style('fill', (d: Node) => (d === orderType.value ? '#EBB769' : '#8B8B8B'))
-        .attr(
-          'transform',
-          `scale(0.075)translate(${verticalOffset},${horizontalOffset})rotate(90)`,
-        )
+        .attr('transform', `scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize.value - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`)
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           sort(matrixElement._id);
         });
@@ -611,10 +617,18 @@ export default defineComponent({
       // Update existing topoRols
       edges.value
         .selectAll('.topoRow')
-        .attr(
-          'width',
-          matrixHighlightLength + visMargins.value.left + visMargins.value.right,
-        );
+        .attr('width', highlightLength + visMargins.value.left + visMargins.value.right)
+        .attr('height', cellSize.value);
+
+      // Update existing foreignObjects
+      edges.value
+        .selectAll('.rowForeign')
+        .attr('height', cellSize.value);
+
+      edges.value
+        .selectAll('.rowForeign')
+        .selectAll('p')
+        .style('margin-top', `${(cellSize.value - labelTextHeight) / 2}px`);
 
       rowEnter
         .append('rect')
@@ -624,48 +638,10 @@ export default defineComponent({
         .attr('y', 0)
         .attr(
           'width',
-          matrixHighlightLength + visMargins.value.left + visMargins.value.right,
+          highlightLength + visMargins.value.left + visMargins.value.right,
         )
         .attr('height', orderingScale.value.bandwidth())
-        .attr('fill-opacity', 0);
-
-      // add foreign objects for label
-      rowEnter
-        .append('foreignObject')
-        .attr('x', -rowLabelContainerStart + 29)
-        .attr('y', -5)
-        .attr('width', (d: Node) => {
-          if (d.type === 'supernode') {
-            return labelContainerWidth - 45;
-          }
-          return labelContainerWidth - 15;
-        })
-        .attr('height', labelContainerHeight)
-        .classed('rowForeign', true)
-        .append('xhtml:p')
-        .text((d: Node) => d._key)
-        .style('color', (d: Node) => {
-          if (d.type === 'node') {
-            return '#aaa';
-          }
-          return 'black';
-        })
-        .classed('rowLabels', true);
-
-      rowEnter
-        .selectAll('p')
-        .style('color', (d: Node) => (aggregated.value && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
-
-      // Invisible Rectangles for Foreign Row Labels
-      rowEnter
-        .append('rect')
-        .attr('x', -rowLabelContainerStart + 20)
-        .attr('y', 0)
-        .attr('width', labelContainerWidth - 25)
-        .attr('height', 15)
-        .attr('class', 'rowLabelRect')
-        .style('opacity', 0)
-        .attr('cursor', 'pointer')
+        .attr('fill-opacity', 0)
         .on('click', (event: MouseEvent, matrixElement: Node) => {
           store.commit.clickElement(matrixElement._id);
         })
@@ -678,8 +654,23 @@ export default defineComponent({
           unHoverNode(node._id);
         });
 
-      // Invisible Rect Transform
-      const invisibleRectTransform = 'translate(-73,2)';
+      // add foreign objects for label
+      rowEnter
+        .append('foreignObject')
+        .attr('x', -labelWidth)
+        .attr('width', labelWidth)
+        .attr('height', cellSize.value)
+        .classed('rowForeign', true)
+        .append('xhtml:p')
+        .text((d: Node) => d._key)
+        .style('color', (d: Node) => {
+          if (d.type === 'node') {
+            return '#aaa';
+          }
+          return 'black';
+        })
+        .style('margin-top', `${(cellSize.value - labelTextHeight) / 2}px`)
+        .classed('rowLabels', true);
       // Icon Paths
       const expandPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M11,7H13V11H17V13H13V17H11V13H7V11H11V7Z';
       const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
@@ -696,7 +687,8 @@ export default defineComponent({
             return expandPath;
           }
           return '';
-        });
+        })
+        .attr('transform', `translate(-73, ${(cellSize.value - invisibleRectSize) / 2})scale(0.5)`);
 
       // Add Icons
       rowEnter
@@ -712,14 +704,14 @@ export default defineComponent({
         })
         .attr('class', 'aggrButton')
         .attr('fill', '#8B8B8B')
-        .attr('transform', `${invisibleRectTransform}scale(0.5)`);
+        .attr('transform', `translate(-73, ${(cellSize.value - invisibleRectSize) / 2})scale(0.5)`);
 
       // Add Rectangles
       rowEnter
         .append('rect')
         .attr('width', 10)
         .attr('height', 10)
-        .attr('transform', invisibleRectTransform)
+        .attr('transform', `translate(-73, ${(cellSize.value - invisibleRectSize) / 2})`)
         .style('opacity', 0)
         .attr('class', 'invisibleRect')
         .attr('cursor', (d: Node) => {
@@ -862,7 +854,7 @@ export default defineComponent({
         const path = button.datum(icon.sortName);
         path
           .append('path')
-          .attr('class', 'sortIcon')
+          .attr('class', 'reorderSort')
           .attr('d', icons.value[icon.iconName].d)
           .style('fill', () => (icon.sortName === orderType.value ? '#EBB769' : '#8B8B8B'))
           .attr('transform', 'scale(0.1)translate(-195,-320)')
@@ -919,20 +911,13 @@ svg >>> .baseCell {
   fill-opacity: 0;
 }
 
-svg >>> .rowLabels {
-  max-width: 45px;
+svg >>> .rowLabels, svg >>> .colLabels {
+  max-width: 60px;
   text-overflow: ellipsis;
   overflow: hidden;
-  font-size: 12pt;
+  font-size: 11pt;
   z-index: 100;
-}
-
-svg >>> .colLabels {
-  max-width: 55px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  font-size: 12pt;
-  z-index: 100;
+  margin: 0;
 }
 
 svg >>> .hoveredCell {
@@ -1006,5 +991,9 @@ svg >>> .gridLines {
 
 svg >>> g.box line {
   stroke: slategray;
+}
+
+svg >>> foreignObject {
+  pointer-events: none;
 }
 </style>
