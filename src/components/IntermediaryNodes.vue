@@ -129,6 +129,7 @@ export default defineComponent({
 
     function buildIntView() {
       if (matrix.length > 0) {
+        const labelPadding = 10;
         const headerPadding = 5;
         const circleRadius = cellSize.value / 2;
         const cellFontSize = cellSize.value * 0.8;
@@ -200,11 +201,14 @@ export default defineComponent({
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i) => `translate(${matrixWidth.value / 5},${yScale.value(i)})`)
+          .attr('transform', (_, i) => `translate(0,${yScale.value(i)})`)
           .each(makeRow)
           .append('text')
           .attr('class', 'rowLabels')
+          .attr('x', -cellFontSize - labelPadding)
+          .attr('y', 5)
           .style('font-size', `${cellFontSize}px`)
+          .attr('dominant-baseline', 'hanging')
           .text((_, i) => sortOrder.value[i]);
       }
     }
