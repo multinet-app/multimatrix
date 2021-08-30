@@ -39,7 +39,6 @@ export default defineComponent({
       bottom: 0,
       left: 40,
     };
-    const matrixWidth = computed(() => (connectivityPaths.value.nodes.length > 0 ? edgeLength.value * cellSize.value + margin.left + margin.right : 0));
     const matrixHeight = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom : 0));
 
     const intNodeWidth = computed(() => (store.state.connectivityMatrixPaths.nodes.length > 0
@@ -226,7 +225,6 @@ export default defineComponent({
     return {
       showTable,
       intNodeWidth,
-      matrixWidth,
       matrixHeight,
     };
   },
@@ -240,9 +238,9 @@ export default defineComponent({
   >
     <svg
       id="intNode"
-      :width="matrixWidth"
+      :width="intNodeWidth"
       :height="matrixHeight"
-      :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
+      :viewbox="`0 0 ${intNodeWidth} ${matrixHeight}`"
     />
   </div>
 </template>
