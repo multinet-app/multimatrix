@@ -129,8 +129,9 @@ export default defineComponent({
 
     function buildIntView() {
       if (matrix.length > 0) {
+        const cellFontSize = cellSize.value * 0.8;
+
         const svg = select('#intNode').append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-        const rowLabelWidth = 20;
 
         //   Draw path symbols
         const circles = svg.selectAll('g.circles')
@@ -150,7 +151,7 @@ export default defineComponent({
           .attr('x', (_, i) => xScale.value(i))
           .attr('y', cellSize.value / 2 - 3)
           .attr('text-anchor', 'middle')
-          .attr('font-size', `${cellSize.value - 2}px`)
+          .attr('font-size', `${cellFontSize}px`)
           .text((_, i) => i + 1);
 
         //   Draw gridlines
@@ -204,8 +205,7 @@ export default defineComponent({
           .each(makeRow)
           .append('text')
           .attr('class', 'rowLabels')
-          .attr('y', cellSize.value / 2 + 5)
-          .attr('x', -(matrixWidth.value / 5 + rowLabelWidth))
+          .style('font-size', `${cellFontSize}px`)
           .text((_, i) => sortOrder.value[i]);
       }
     }
@@ -264,7 +264,6 @@ svg >>> .rowLabels {
   max-width: 20px;
   text-overflow: ellipsis;
   overflow: hidden;
-  font-size: 12pt;
   z-index: 100;
 }
 
