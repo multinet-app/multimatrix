@@ -127,7 +127,6 @@ export default defineComponent({
 
     function buildIntView() {
       if (matrix.length > 0) {
-        const labelPadding = 10;
         const headerPadding = 5;
         const circleRadius = cellSize.value / 2;
         const cellFontSize = cellSize.value * 0.8;
@@ -199,7 +198,6 @@ export default defineComponent({
           .each(makeRow)
           .append('text')
           .attr('class', 'rowLabels')
-          .attr('x', -cellFontSize - labelPadding)
           .attr('y', 5)
           .style('font-size', `${cellFontSize}px`)
           .attr('dominant-baseline', 'hanging')
