@@ -219,7 +219,7 @@ export default defineComponent({
       buildIntView();
     });
 
-    watch(connectivityPaths, () => {
+    watch([connectivityPaths, cellSize], () => {
       processData();
       teardownOldView();
       buildIntView();
