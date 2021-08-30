@@ -7,6 +7,7 @@ import { scaleLinear, ScaleLinear } from 'd3-scale';
 import { initProvenance, Provenance } from '@visdesignlab/trrack';
 
 import api from '@/api';
+import oauthClient from '@/oauth';
 import {
   NetworkSpec, UserSpec,
 } from 'multinet';
@@ -382,7 +383,7 @@ const {
       const { commit } = rootActionContext(context);
 
       // Perform the server logout.
-      await api.logout();
+      oauthClient.logout();
       commit.setUserInfo(null);
     },
 

@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts">
-import { host } from '@/environment';
+import oauthClient from '@/oauth';
 import store from '@/store';
 import {
   computed, defineComponent, ref, watchEffect,
@@ -73,10 +73,6 @@ export default defineComponent({
     const location = ref('');
 
     const userInfo = computed(() => store.state.userInfo);
-    const loginLink = computed(() => {
-      const encodedLocation = encodeURIComponent(location.value);
-      return `${host}/api/user/oauth/google/login?return_url=${encodedLocation}`;
-    });
     const userInitials = computed(() => (userInfo.value !== null ? `${userInfo.value.first_name[0]}${userInfo.value.last_name[0]}` : ''));
 
     watchEffect(() => {
@@ -95,14 +91,18 @@ export default defineComponent({
       window.location.href = 'https://multinet.app';
     }
 
+    function login(): void {
+      oauthClient.redirectToLogin();
+    }
+
     // Get user info on created
     store.dispatch.fetchUserInfo();
 
     return {
       menu,
       location,
-      loginLink,
       userInitials,
+      login,
       logout,
       userInfo,
     };
