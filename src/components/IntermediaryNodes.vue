@@ -129,6 +129,8 @@ export default defineComponent({
 
     function buildIntView() {
       if (matrix.length > 0) {
+        const headerPadding = 5;
+        const circleRadius = cellSize.value / 2;
         const cellFontSize = cellSize.value * 0.8;
 
         const svg = select('#intNode').append('g').attr('transform', `translate(${margin.left},${margin.top})`);
@@ -138,18 +140,15 @@ export default defineComponent({
           .data([...Array(pathLength.value).keys()])
           .enter()
           .append('g')
-          .attr('transform', `translate(${matrixWidth.value / 7}, ${(margin.top - matrixHeight.value) / 4})`);
+          .attr('transform', (_, i) => `translate(${cellSize.value + xScale.value(i)}, ${(-circleRadius) - headerPadding})`);
 
         circles.append('circle')
           .attr('class', 'circleIcons')
-          .attr('cx', (_, i) => xScale.value(i))
-          .attr('cy', 0)
-          .attr('r', cellSize.value / 2)
+          .attr('r', circleRadius)
           .attr('fill', (_, i) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'));
 
         circles.append('text')
-          .attr('x', (_, i) => xScale.value(i))
-          .attr('y', cellSize.value / 2 - 3)
+          .attr('y', circleRadius / 2)
           .attr('text-anchor', 'middle')
           .attr('font-size', `${cellFontSize}px`)
           .text((_, i) => i + 1);
