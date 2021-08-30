@@ -77,7 +77,7 @@ export default defineComponent({
       const encodedLocation = encodeURIComponent(location.value);
       return `${host}/api/user/oauth/google/login?return_url=${encodedLocation}`;
     });
-    const userInitials = computed(() => (userInfo.value !== null ? `${userInfo.value.given_name[0]}${userInfo.value.family_name[0]}` : ''));
+    const userInitials = computed(() => (userInfo.value !== null ? `${userInfo.value.first_name[0]}${userInfo.value.last_name[0]}` : ''));
 
     watchEffect(() => {
       if (menu.value) {
