@@ -102,10 +102,9 @@ export default defineComponent({
         .enter()
         .append('rect')
         .attr('class', 'connectivityCell')
-        .attr('x', (d) => yScale.value(d.x))
-        .attr('y', 1)
-        .attr('width', cellSize.value - 2)
-        .attr('height', cellSize.value - 2)
+        .attr('x', (_, i) => (i + 1.5) * cellSize.value)
+        .attr('width', cellSize.value)
+        .attr('height', cellSize.value)
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
 
@@ -169,30 +168,26 @@ export default defineComponent({
         // vertical grid lines
         verticalLines
           .append('line')
-          .attr('x1', -yScale.value.range()[1])
+          .attr('x1', (_, i) => (i + 1.5) * cellSize.value)
+          .attr('x2', (_, i) => (i + 1.5) * cellSize.value)
           .attr('y1', 0)
-          .attr('y2', yScale.value.range()[1])
-          .attr('x1', (_, i) => xScale.value(i))
-          .attr('x2', (_, i) => xScale.value(i))
-          .attr('transform', `translate(${matrixWidth.value / 5 - 1},0)`);
+          .attr('y2', yScale.value.range()[1]);
 
         // horizontal grid lines
         horizontalLines
           .append('line')
-          .attr('x1', 0)
-          .attr('x2', xScale.value.range()[1] - 1)
+          .attr('x1', 1.5 * cellSize.value)
+          .attr('x2', 1.5 * cellSize.value + xScale.value.range()[1])
           .attr('y1', (_, i) => yScale.value(i))
-          .attr('y2', (_, i) => yScale.value(i))
-          .attr('transform', `translate(${matrixWidth.value / 5},0)`);
+          .attr('y2', (_, i) => yScale.value(i));
 
-        // horizontal grid line edges
+        // Add final horizontal grid line
         gridLines
           .append('line')
-          .attr('x1', 0)
-          .attr('x2', xScale.value.range()[1])
+          .attr('x1', 1.5 * cellSize.value)
+          .attr('x2', 1.5 * cellSize.value + xScale.value.range()[1])
           .attr('y1', yScale.value.range()[1])
-          .attr('y2', yScale.value.range()[1])
-          .attr('transform', `translate(${matrixWidth.value / 5},0)`);
+          .attr('y2', yScale.value.range()[1]);
 
         //   Draw rows
         svg
