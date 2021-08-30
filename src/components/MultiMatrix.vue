@@ -469,7 +469,7 @@ export default defineComponent({
       // set the matrix highlight
       const highlightLength = matrix.value.length * cellSize.value;
       const labelWidth = 60;
-      const labelTextHeight = 21; // Determined by 11pt font in the CSS below
+      const labelFontSize = cellSize.value * 0.8;
       const sortIconWidth = 8.133; // Determined by path size and the scale factor applied to it (1/scalefactor)
       const sortIconScaleFactor = 15;
       const invisibleRectSize = 11; // Actual size of the icon is 9 + 1 px each side for stroke width
@@ -513,7 +513,8 @@ export default defineComponent({
       edges.value
         .selectAll('.colForeign')
         .selectAll('p')
-        .style('margin-top', `${(cellSize.value - labelTextHeight) / 2}px`);
+        .style('margin-top', `${cellSize.value * -0.1}px`)
+        .style('font-size', `${labelFontSize}px`);
 
       // Update existing sorticons
       edges.value
@@ -560,7 +561,8 @@ export default defineComponent({
           }
           return 'black';
         })
-        .style('margin-top', `${(cellSize.value - labelTextHeight) / 2}px`)
+        .style('margin-top', `${cellSize.value * -0.1}px`)
+        .style('font-size', `${labelFontSize}px`)
         .classed('colLabels', true);
 
       columnEnter
@@ -628,7 +630,8 @@ export default defineComponent({
       edges.value
         .selectAll('.rowForeign')
         .selectAll('p')
-        .style('margin-top', `${(cellSize.value - labelTextHeight) / 2}px`);
+        .style('margin-top', `${cellSize.value * -0.1}px`)
+        .style('font-size', `${labelFontSize}px`);
 
       rowEnter
         .append('rect')
@@ -669,7 +672,8 @@ export default defineComponent({
           }
           return 'black';
         })
-        .style('margin-top', `${(cellSize.value - labelTextHeight) / 2}px`)
+        .style('margin-top', `${cellSize.value * -0.1}px`)
+        .style('font-size', `${labelFontSize}px`)
         .classed('rowLabels', true);
       // Icon Paths
       const expandPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M11,7H13V11H17V13H13V17H11V13H7V11H11V7Z';
@@ -915,7 +919,6 @@ svg >>> .rowLabels, svg >>> .colLabels {
   max-width: 60px;
   text-overflow: ellipsis;
   overflow: hidden;
-  font-size: 11pt;
   z-index: 100;
   margin: 0;
 }
