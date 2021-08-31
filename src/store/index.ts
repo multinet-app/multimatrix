@@ -324,7 +324,7 @@ const {
           // Catches CORS errors, issues when DB/API are down, etc.
           commit.setLoadError({
             message: 'There was a network issue when getting data',
-            href: `./?workspace=${workspaceName}&graph=${networkName}`,
+            href: `./?workspace=${workspaceName}&network=${networkName}`,
           });
         }
       }

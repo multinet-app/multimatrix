@@ -124,7 +124,7 @@ export default defineComponent({
         return;
       }
 
-      const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] LIMIT ${subsetAmount.value} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e) 
+      const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] LIMIT ${subsetAmount.value} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e)
       RETURN {"nodes": nodes[**], edges}`;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -149,7 +149,7 @@ export default defineComponent({
           // Catches CORS errors, issues when DB/API are down, etc.
           store.commit.setLoadError({
             message: 'There was a network issue when getting data',
-            href: `./?workspace=${store.state.workspaceName}&graph=${store.state.networkName}`,
+            href: `./?workspace=${store.state.workspaceName}&network=${store.state.networkName}`,
           });
         }
       }
