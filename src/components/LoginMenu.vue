@@ -41,7 +41,7 @@
               class="google-sign-in"
               dark
               :ripple="false"
-              :href="loginLink"
+              @click="login"
             >
               <span class="google-logo">
                 <img
@@ -72,8 +72,11 @@ export default defineComponent({
     const menu = ref(false);
     const location = ref('');
 
+    // Get user info on created
+    store.dispatch.fetchUserInfo();
+
     const userInfo = computed(() => store.state.userInfo);
-    const userInitials = computed(() => (userInfo.value !== null ? `${userInfo.value.first_name[0]}${userInfo.value.last_name[0]}` : ''));
+    const userInitials = computed(() => (userInfo.value !== null ? `${userInfo.value.first_name[0] || ''}${userInfo.value.last_name[0] || ''}` : ''));
 
     watchEffect(() => {
       if (menu.value) {
@@ -94,9 +97,6 @@ export default defineComponent({
     function login(): void {
       oauthClient.redirectToLogin();
     }
-
-    // Get user info on created
-    store.dispatch.fetchUserInfo();
 
     return {
       menu,
