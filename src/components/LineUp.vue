@@ -72,7 +72,11 @@ export default defineComponent({
         builder.value = new DataBuilder(network.value.nodes);
 
         // Config adjustments
-        builder.value.rowHeight(cellSize.value - 2, 2);
+        builder.value.dynamicHeight(() => ({
+          defaultHeight: cellSize.value - 2,
+          padding: () => 2,
+          height: () => cellSize.value - 2,
+        }));
 
         // Make the vis
         lineup.value = builder.value.deriveColumns(columns).deriveColors().defaultRanking().build(lineupDiv);
@@ -149,9 +153,15 @@ export default defineComponent({
       }
     });
 
-    watch([network, cellSize], () => {
+    watch(network, () => {
       removeLineup();
       buildLineup();
+    });
+
+    watch(cellSize, () => {
+      if (lineup.value !== null) {
+        lineup.value.update();
+      }
     });
 
     function removeHighlight() {
