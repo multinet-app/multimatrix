@@ -37,7 +37,7 @@ export default defineComponent({
     const showPathTable = computed(() => store.state.showPathTable);
     const tooltip = ref(null);
     const visMargins = ref({
-      left: 75, top: 79, right: 0, bottom: 0,
+      left: 75, top: 110, right: 0, bottom: 0,
     });
     const matrix: Ref<Cell[][]> = ref([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
