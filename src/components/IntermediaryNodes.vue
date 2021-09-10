@@ -34,16 +34,15 @@ export default defineComponent({
     });
 
     const margin = {
-      top: 79,
+      top: 110,
       right: 50,
       bottom: 0,
       left: 40,
     };
-    const matrixWidth = computed(() => (connectivityPaths.value.nodes.length > 0 ? edgeLength.value * cellSize.value + margin.left + margin.right : 0));
     const matrixHeight = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom : 0));
 
     const intNodeWidth = computed(() => (store.state.connectivityMatrixPaths.nodes.length > 0
-      ? pathLength.value * cellSize.value + margin.left + margin.right
+      ? margin.left + (pathLength.value + 1) * cellSize.value
       : 0));
     const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node) => node._key).sort());
     const yScale = computed(() => scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]));
@@ -102,10 +101,9 @@ export default defineComponent({
         .enter()
         .append('rect')
         .attr('class', 'connectivityCell')
-        .attr('x', (d) => yScale.value(d.x))
-        .attr('y', 1)
-        .attr('width', cellSize.value - 2)
-        .attr('height', cellSize.value - 2)
+        .attr('x', (_, i) => (i + 1.5) * cellSize.value)
+        .attr('width', cellSize.value)
+        .attr('height', cellSize.value)
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
 
@@ -129,28 +127,28 @@ export default defineComponent({
 
     function buildIntView() {
       if (matrix.length > 0) {
+        const headerPadding = 5;
+        const circleRadius = cellSize.value / 2;
+        const cellFontSize = cellSize.value * 0.8;
+
         const svg = select('#intNode').append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-        const rowLabelWidth = 20;
 
         //   Draw path symbols
         const circles = svg.selectAll('g.circles')
           .data([...Array(pathLength.value).keys()])
           .enter()
           .append('g')
-          .attr('transform', `translate(${matrixWidth.value / 7}, ${(margin.top - matrixHeight.value) / 4})`);
+          .attr('transform', (_, i) => `translate(${cellSize.value + xScale.value(i)}, ${(-circleRadius) - headerPadding})`);
 
         circles.append('circle')
           .attr('class', 'circleIcons')
-          .attr('cx', (_, i) => xScale.value(i))
-          .attr('cy', 0)
-          .attr('r', cellSize.value / 2)
+          .attr('r', circleRadius)
           .attr('fill', (_, i) => (i !== 0 && i !== (pathLength.value - 1) ? 'lightgrey' : 'none'));
 
         circles.append('text')
-          .attr('x', (_, i) => xScale.value(i))
-          .attr('y', cellSize.value / 2 - 3)
+          .attr('y', circleRadius / 2)
           .attr('text-anchor', 'middle')
-          .attr('font-size', `${cellSize.value - 2}px`)
+          .attr('font-size', `${cellFontSize}px`)
           .text((_, i) => i + 1);
 
         //   Draw gridlines
@@ -168,30 +166,26 @@ export default defineComponent({
         // vertical grid lines
         verticalLines
           .append('line')
-          .attr('x1', -yScale.value.range()[1])
+          .attr('x1', (_, i) => (i + 1.5) * cellSize.value)
+          .attr('x2', (_, i) => (i + 1.5) * cellSize.value)
           .attr('y1', 0)
-          .attr('y2', yScale.value.range()[1])
-          .attr('x1', (_, i) => xScale.value(i))
-          .attr('x2', (_, i) => xScale.value(i))
-          .attr('transform', `translate(${matrixWidth.value / 5 - 1},0)`);
+          .attr('y2', yScale.value.range()[1]);
 
         // horizontal grid lines
         horizontalLines
           .append('line')
-          .attr('x1', 0)
-          .attr('x2', xScale.value.range()[1] - 1)
+          .attr('x1', 1.5 * cellSize.value)
+          .attr('x2', 1.5 * cellSize.value + xScale.value.range()[1])
           .attr('y1', (_, i) => yScale.value(i))
-          .attr('y2', (_, i) => yScale.value(i))
-          .attr('transform', `translate(${matrixWidth.value / 5},0)`);
+          .attr('y2', (_, i) => yScale.value(i));
 
-        // horizontal grid line edges
+        // Add final horizontal grid line
         gridLines
           .append('line')
-          .attr('x1', 0)
-          .attr('x2', xScale.value.range()[1])
+          .attr('x1', 1.5 * cellSize.value)
+          .attr('x2', 1.5 * cellSize.value + xScale.value.range()[1])
           .attr('y1', yScale.value.range()[1])
-          .attr('y2', yScale.value.range()[1])
-          .attr('transform', `translate(${matrixWidth.value / 5},0)`);
+          .attr('y2', yScale.value.range()[1]);
 
         //   Draw rows
         svg
@@ -200,12 +194,14 @@ export default defineComponent({
           .enter()
           .append('g')
           .attr('class', 'row')
-          .attr('transform', (_, i) => `translate(${matrixWidth.value / 5},${yScale.value(i)})`)
+          .attr('transform', (_, i) => `translate(0,${yScale.value(i)})`)
           .each(makeRow)
           .append('text')
           .attr('class', 'rowLabels')
-          .attr('y', cellSize.value / 2 + 5)
-          .attr('x', -(matrixWidth.value / 5 + rowLabelWidth))
+          .attr('y', 5)
+          .style('font-size', `${cellFontSize}px`)
+          .attr('dominant-baseline', 'hanging')
+          .attr('x', -20)
           .text((_, i) => sortOrder.value[i]);
       }
     }
@@ -219,7 +215,7 @@ export default defineComponent({
       buildIntView();
     });
 
-    watch(connectivityPaths, () => {
+    watch([connectivityPaths, cellSize], () => {
       processData();
       teardownOldView();
       buildIntView();
@@ -228,7 +224,6 @@ export default defineComponent({
     return {
       showTable,
       intNodeWidth,
-      matrixWidth,
       matrixHeight,
     };
   },
@@ -242,9 +237,9 @@ export default defineComponent({
   >
     <svg
       id="intNode"
-      :width="matrixWidth"
+      :width="intNodeWidth"
       :height="matrixHeight"
-      :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
+      :viewbox="`0 0 ${intNodeWidth} ${matrixHeight}`"
     />
   </div>
 </template>
@@ -264,7 +259,6 @@ svg >>> .rowLabels {
   max-width: 20px;
   text-overflow: ellipsis;
   overflow: hidden;
-  font-size: 12pt;
   z-index: 100;
 }
 

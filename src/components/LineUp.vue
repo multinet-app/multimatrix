@@ -188,6 +188,7 @@ export default defineComponent({
 #lineup {
   z-index: 1;
   height: 10000px; /* big enough to show all rows */
+  padding-top: 34px;
 }
 
 .le-td {
