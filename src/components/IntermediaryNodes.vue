@@ -34,7 +34,7 @@ export default defineComponent({
     });
 
     const margin = {
-      top: 79,
+      top: 110,
       right: 50,
       bottom: 0,
       left: 40,
@@ -42,7 +42,7 @@ export default defineComponent({
     const matrixHeight = computed(() => (connectivityPaths.value.nodes.length > 0 ? connectivityPaths.value.nodes.length * cellSize.value + margin.top + margin.bottom : 0));
 
     const intNodeWidth = computed(() => (store.state.connectivityMatrixPaths.nodes.length > 0
-      ? pathLength.value * cellSize.value + margin.left + margin.right
+      ? margin.left + (pathLength.value + 1) * cellSize.value
       : 0));
     const sortOrder = computed(() => store.state.connectivityMatrixPaths.nodes.map((node) => node._key).sort());
     const yScale = computed(() => scaleLinear().domain([0, sortOrder.value.length]).range([0, sortOrder.value.length * cellSize.value]));
@@ -201,6 +201,7 @@ export default defineComponent({
           .attr('y', 5)
           .style('font-size', `${cellFontSize}px`)
           .attr('dominant-baseline', 'hanging')
+          .attr('x', -20)
           .text((_, i) => sortOrder.value[i]);
       }
     }
