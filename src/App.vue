@@ -18,11 +18,11 @@ export default {
   },
 
   setup() {
-    const { workspace, graph: networkName } = getUrlVars();
+    const urlVars = getUrlVars();
 
     store.dispatch.fetchNetwork({
-      workspaceName: workspace,
-      networkName,
+      workspaceName: urlVars.workspace,
+      networkName: urlVars.network,
     }).then(() => {
       store.dispatch.createProvenance();
     });

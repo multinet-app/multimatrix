@@ -7,8 +7,9 @@ import { scaleLinear, ScaleLinear } from 'd3-scale';
 import { initProvenance, Provenance } from '@visdesignlab/trrack';
 
 import api from '@/api';
+import oauthClient from '@/oauth';
 import {
-  GraphSpec, RowsSpec, TableRow, UserSpec,
+  NetworkSpec, UserSpec,
 } from 'multinet';
 import {
   ArangoAttributes,
@@ -289,11 +290,11 @@ const {
       commit.setWorkspaceName(workspaceName);
       commit.setNetworkName(networkName);
 
-      let networkTables: GraphSpec | undefined;
+      let network: NetworkSpec | undefined;
 
       // Get all table names
       try {
-        networkTables = await api.graph(workspaceName, networkName);
+        network = await api.network(workspaceName, networkName);
       } catch (error) {
         if (error.status === 404) {
           if (workspaceName === undefined || networkName === undefined) {
@@ -319,63 +320,50 @@ const {
           });
         }
       } finally {
-        if (store.state.loadError.message === '' && typeof networkTables === 'undefined') {
+        if (store.state.loadError.message === '' && typeof network === 'undefined') {
           // Catches CORS errors, issues when DB/API are down, etc.
           commit.setLoadError({
             message: 'There was a network issue when getting data',
-            href: `./?workspace=${workspaceName}&graph=${networkName}`,
+            href: `./?workspace=${workspaceName}&network=${networkName}`,
           });
         }
       }
 
-      if (networkTables === undefined) {
+      if (network === undefined) {
         return;
       }
 
-      // Check node and table size
-      const sizePromises = networkTables.nodeTables.map((table) => api.aql(workspaceName, `FOR doc IN ${table} COLLECT WITH COUNT INTO length RETURN length`));
-      const resolvedSizePromises = await Promise.all(sizePromises);
-      resolvedSizePromises.forEach((promise) => {
-        if (promise[0] > 500) {
-          commit.setLoadError({
-            message: 'The network you are loading is too large',
-            href: 'https://multinet.app',
-          });
-        }
-      });
-      commit.setNodeTableNames(networkTables.nodeTables);
-      commit.setEdgeTableName(networkTables.edgeTable);
+      // Check network size
+      if (network.node_count > 300) {
+        commit.setLoadError({
+          message: 'The network you are loading is too large',
+          href: 'https://multinet.app',
+        });
+      }
+
+      const networkTables = await api.networkTables(workspaceName, networkName);
+      commit.setNodeTableNames(networkTables.filter((table) => !table.edge).map((table) => table.name));
+      commit.setEdgeTableName(networkTables.filter((table) => table.edge).map((table) => table.name)[0]);
+
       if (store.state.loadError.message !== '') {
         return;
       }
 
       // Generate all node table promises
-      const nodePromises: Promise<RowsSpec>[] = [];
-      networkTables.nodeTables.forEach((table) => {
-        nodePromises.push(api.table(workspaceName, table, { offset: 0, limit: 1000 }));
-      });
-
-      // Resolve all node table promises and extract the rows
-      const resolvedNodePromises = await Promise.all(nodePromises);
-      let nodes: TableRow[] = [];
-      resolvedNodePromises.forEach((resolvedPromise) => {
-        nodes.push(...resolvedPromise.rows);
-      });
+      const nodeRows = await api.nodes(workspaceName, networkName, { offset: 0, limit: 300 });
 
       // Generate and resolve edge table promise and extract rows
-      const edgePromise = await api.table(workspaceName, networkTables.edgeTable, { offset: 0, limit: 1000 });
-      const edges = edgePromise.rows as Edge[];
+      const edges = await api.edges(workspaceName, networkName, { offset: 0, limit: 1000 });
 
-      // Add neighbor definition to nodes
-      nodes = defineNeighbors(nodes, edges);
+      const nodes = defineNeighbors(nodeRows.results, edges.results as Edge[]);
 
       // Build the network object and set it as the network in the store
-      const network = {
+      const networkElements = {
         nodes: nodes as Node[],
-        edges: edges as Edge[],
+        edges: edges.results as Edge[],
       };
-      commit.setAttributeValues(network);
-      dispatch.updateNetwork({ network });
+      commit.setAttributeValues(networkElements);
+      dispatch.updateNetwork({ network: networkElements });
     },
 
     updateNetwork(context, payload: { network: Network }) {
@@ -395,7 +383,7 @@ const {
       const { commit } = rootActionContext(context);
 
       // Perform the server logout.
-      await api.logout();
+      oauthClient.logout();
       commit.setUserInfo(null);
     },
 
@@ -507,6 +495,7 @@ const {
             ([key, value]) => ({
               _id: `aggregated/${key}`,
               _key: `${key}`,
+              _rev: '', // _rev property is needed to conform to Node interface
               children: value.map((node) => JSON.parse(JSON.stringify(node))),
               type: 'supernode',
               neighbors: [] as string[],
@@ -533,7 +522,7 @@ const {
 
           // Set network and aggregated
           commit.setAggregated(true);
-          dispatch.updateNetwork({ network: { nodes: aggregatedNodes, edges: aggregatedEdges } });
+          dispatch.updateNetwork({ network: { nodes: aggregatedNodes as Node[], edges: aggregatedEdges } });
         }
       }
     },
