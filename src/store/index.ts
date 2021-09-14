@@ -270,7 +270,7 @@ const {
       state.connectivityMatrixPaths = payload;
     },
 
-    setSelectedConnectivityPaths(state, payload: ConnectivityCell[]) {
+    setSelectedConnectivityPaths(state, payload: ConnectivityCell[] | [{[key: string]: number[]}]) {
       state.selectedConnectivityPaths = payload[0].paths.map((path: number) => state.connectivityMatrixPaths.paths[path]);
     },
 

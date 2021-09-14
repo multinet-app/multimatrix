@@ -3,6 +3,7 @@ import {
   Cell,
   Edge,
   Node,
+  ArangoPath,
 } from '@/types';
 import {
   scaleBand,
@@ -35,6 +36,7 @@ export default defineComponent({
 
   setup() {
     const showPathTable = computed(() => store.state.showPathTable);
+    const connectivityMatrixPaths = computed(() => store.state.connectivityMatrixPaths);
     const tooltip = ref(null);
     const visMargins = ref({
       left: 75, top: 110, right: 0, bottom: 0,
@@ -110,6 +112,14 @@ export default defineComponent({
       }
 
       return computedIdMap;
+    });
+    const showTable = computed({
+      get() {
+        return store.state.showPathTable;
+      },
+      set(value: boolean) {
+        store.commit.setShowPathTable(value);
+      },
     });
 
     // Helpers
@@ -781,7 +791,9 @@ export default defineComponent({
           hideToolTip();
           unHoverEdge(matrixElement);
         })
-        .on('click', (event: MouseEvent, matrixElement: Cell) => store.commit.clickCell(matrixElement))
+        .on('click', (event: MouseEvent, matrixElement: Cell) => {
+          store.commit.clickCell(matrixElement);
+        })
         .attr('cursor', 'pointer');
 
       cells.value.exit().remove();
@@ -814,7 +826,22 @@ export default defineComponent({
           hideToolTip();
           unHoverEdge(matrixElement);
         })
-        .on('click', (event: MouseEvent, matrixElement: Cell) => store.commit.clickCell(matrixElement))
+        .on('click', (event: MouseEvent, matrixElement: Cell) => {
+          // Create path data if connectivity query
+          if (connectivityMatrixPaths.value.paths.length > 0) {
+            const pathIdList: [{[key: string]: number[]}] = [{ paths: [] }];
+            store.state.connectivityMatrixPaths.paths.forEach((path: ArangoPath, i: number) => {
+              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[1]._id === matrixElement.colID) {
+                pathIdList[0].paths.push(i);
+              }
+            });
+
+            store.commit.setSelectedConnectivityPaths(pathIdList);
+            showTable.value = true;
+          }
+
+          store.commit.clickCell(matrixElement);
+        })
         .attr('cursor', 'pointer');
 
       cells.value.merge(cellsEnter);
