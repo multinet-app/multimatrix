@@ -131,6 +131,10 @@ export default defineComponent({
           });
         }
       });
+      // Removes extra edge in even paths
+      if (pathLength.value % 2 === 0) {
+        toReturn.pop();
+      }
       return toReturn;
     });
 
