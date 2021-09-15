@@ -792,6 +792,19 @@ export default defineComponent({
           unHoverEdge(matrixElement);
         })
         .on('click', (event: MouseEvent, matrixElement: Cell) => {
+          // Create path data if connectivity query
+          if (connectivityMatrixPaths.value.paths.length > 0) {
+            const pathIdList: [{[key: string]: number[]}] = [{ paths: [] }];
+            store.state.connectivityMatrixPaths.paths.forEach((path: ArangoPath, i: number) => {
+              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[1]._id === matrixElement.colID) {
+                pathIdList[0].paths.push(i);
+              }
+            });
+
+            store.commit.setSelectedConnectivityPaths(pathIdList);
+            showTable.value = true;
+          }
+
           store.commit.clickCell(matrixElement);
         })
         .attr('cursor', 'pointer');
