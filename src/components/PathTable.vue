@@ -100,7 +100,13 @@ export default defineComponent({
 
   setup() {
     const search = ref('');
-    const pathLength = computed(() => store.state.selectedConnectivityPaths[0].vertices.length);
+    const pathLength = computed(() => {
+      // Removes extra edge in even paths
+      if (store.state.selectedConnectivityPaths[0].vertices.length % 2 === 0) {
+        return store.state.selectedConnectivityPaths[0].vertices.length - 1;
+      }
+      return store.state.selectedConnectivityPaths[0].vertices.length;
+    });
 
     const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
     const headerEdgeSelections = computed(() => store.getters.edgeVariableItems);
@@ -131,10 +137,10 @@ export default defineComponent({
           });
         }
       });
-      // Removes extra edge in even paths
-      if (pathLength.value % 2 === 0) {
-        toReturn.pop();
-      }
+      // // Removes extra edge in even paths
+      // if (pathLength.value % 2 === 0) {
+      //   toReturn.pop();
+      // }
       return toReturn;
     });
 
