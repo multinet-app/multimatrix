@@ -801,8 +801,12 @@ export default defineComponent({
               }
             });
 
-            store.commit.setSelectedConnectivityPaths(pathIdList);
-            showTable.value = true;
+            if (pathIdList[0].paths.length > 0) {
+              store.commit.setSelectedConnectivityPaths(pathIdList);
+              showTable.value = true;
+            } else {
+              showTable.value = false;
+            }
           }
 
           store.commit.clickCell(matrixElement);
@@ -849,8 +853,12 @@ export default defineComponent({
               }
             });
 
-            store.commit.setSelectedConnectivityPaths(pathIdList);
-            showTable.value = true;
+            if (pathIdList[0].paths.length > 0) {
+              store.commit.setSelectedConnectivityPaths(pathIdList);
+              showTable.value = true;
+            } else {
+              showTable.value = false;
+            }
           }
 
           store.commit.clickCell(matrixElement);
