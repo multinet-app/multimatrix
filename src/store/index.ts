@@ -41,7 +41,7 @@ const {
     userInfo: null,
     cellSize: 15,
     selectedNodes: [],
-    selectedCells: [],
+    selectedCell: null,
     hoveredNodes: [],
     sortOrder: [],
     directionalEdges: false,
@@ -149,19 +149,13 @@ const {
 
     clickCell(state, cell: Cell) {
       // Add/remove cell from selectedCells. If adding make sure nodes are selected
-      if (state.selectedCells.findIndex((arrayElement) => arrayElement.cellName === cell.cellName) === -1) {
-        state.selectedCells.push(cell);
-
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'Select Cell');
-        }
+      if (state.selectedCell === cell) {
+        updateProvenanceState(state, 'De-Select Cell');
       } else {
-        state.selectedCells = state.selectedCells.filter((arrayElement) => arrayElement.cellName !== cell.cellName);
-
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'De-Select Cell');
-        }
+        updateProvenanceState(state, 'Select Cell');
       }
+
+      state.selectedCell = cell;
     },
 
     setSortOrder(state, sortOrder: number[]) {

@@ -76,7 +76,7 @@ export default defineComponent({
 
     const cellSize = computed(() => store.state.cellSize);
     const selectedNodes = computed(() => store.state.selectedNodes);
-    const selectedCells = computed(() => store.state.selectedCells);
+    const selectedCell = computed(() => store.state.selectedCell);
     const network = computed(() => store.state.network);
     const directionalEdges = computed(() => store.state.directionalEdges);
     const selectNeighbors = computed(() => store.state.selectNeighbors);
@@ -339,13 +339,13 @@ export default defineComponent({
         .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
     });
 
-    watch(selectedCells, () => {
+    watch(selectedCell, () => {
       // Apply cell highlight
       selectAll('.cellsGroup')
         .selectAll('.cell')
         .classed('clicked', (cell) => {
-          if (isCell(cell)) {
-            return selectedCells.value.findIndex((selectedCell) => selectedCell.cellName === cell.cellName) !== -1;
+          if (isCell(cell) && selectedCell.value !== null) {
+            return selectedCell.value.cellName === cell.cellName;
           }
           return false;
         });
