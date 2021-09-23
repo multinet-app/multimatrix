@@ -12,7 +12,7 @@ export function updateProvenanceState(vuexState: State, label: ProvenanceEventTy
     } else if (label === 'Set Directional Edges') {
       provState.directionalEdges = newProvState.directionalEdges;
     } else if (label === 'Select Cell' || label === 'De-Select Cell') {
-      provState.selectedCells = newProvState.selectedCells;
+      provState.selectedCell = newProvState.selectedCell;
     } else if (label === 'Select Node' || label === 'De-Select Node') {
       provState.selectedNodes = newProvState.selectedNodes;
     }

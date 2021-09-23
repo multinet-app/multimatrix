@@ -41,7 +41,7 @@ const {
     userInfo: null,
     cellSize: 15,
     selectedNodes: [],
-    selectedCells: [],
+    selectedCell: null,
     hoveredNodes: [],
     sortOrder: [],
     directionalEdges: false,
@@ -148,19 +148,12 @@ const {
     },
 
     clickCell(state, cell: Cell) {
-      // Add/remove cell from selectedCells. If adding make sure nodes are selected
-      if (state.selectedCells.findIndex((arrayElement) => arrayElement.cellName === cell.cellName) === -1) {
-        state.selectedCells.push(cell);
-
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'Select Cell');
-        }
+      if (state.selectedCell !== null && state.selectedCell.cellName === cell.cellName) {
+        state.selectedCell = null;
+        updateProvenanceState(state, 'De-Select Cell');
       } else {
-        state.selectedCells = state.selectedCells.filter((arrayElement) => arrayElement.cellName !== cell.cellName);
-
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'De-Select Cell');
-        }
+        state.selectedCell = cell;
+        updateProvenanceState(state, 'Select Cell');
       }
     },
 
@@ -270,7 +263,7 @@ const {
       state.connectivityMatrixPaths = payload;
     },
 
-    setSelectedConnectivityPaths(state, payload: ConnectivityCell[]) {
+    setSelectedConnectivityPaths(state, payload: ConnectivityCell[] | [{[key: string]: number[]}]) {
       state.selectedConnectivityPaths = payload[0].paths.map((path: number) => state.connectivityMatrixPaths.paths[path]);
     },
 
@@ -418,7 +411,7 @@ const {
         () => {
           const provenanceState = context.state.provenance.state;
 
-          const { selectedNodes, selectedCells } = provenanceState;
+          const { selectedNodes, selectedCell } = provenanceState;
 
           // Helper function
           const setsAreEqual = (a: Set<unknown>, b: Set<unknown>) => a.size === b.size && [...a].every((value) => b.has(value));
@@ -427,9 +420,10 @@ const {
           // update the store's selectedNodes to match the provenance state
           if (!setsAreEqual(new Set(selectedNodes), new Set(storeState.selectedNodes))) {
             storeState.selectedNodes = selectedNodes instanceof Array ? selectedNodes : [];
-          } else if (!setsAreEqual(new Set(selectedCells), new Set(storeState.selectedCells))) {
-            storeState.selectedCells = selectedCells instanceof Array ? selectedCells : [];
           }
+
+          // Update selectedCell
+          storeState.selectedCell = selectedCell;
 
           // Iterate through vars with primitive data types
           [
