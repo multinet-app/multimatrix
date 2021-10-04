@@ -2,8 +2,8 @@ import Vue from 'vue';
 import App from '@/App.vue';
 import VueCompositionApi from '@vue/composition-api';
 import vuetify from '@/plugins/vuetify';
-import api from './api';
-import oauthClient from './oauth';
+import api from '@/api';
+import oauthClient from '@/oauth';
 
 Vue.config.productionTip = false;
 Vue.use(VueCompositionApi);

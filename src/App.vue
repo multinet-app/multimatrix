@@ -2,10 +2,10 @@
 import Alert from '@/components/Alert.vue';
 import { computed } from '@vue/composition-api';
 import ProvVis from '@/components/ProvVis.vue';
-import Controls from './components/Controls.vue';
-import MultiMatrix from './components/MultiMatrix.vue';
-import { getUrlVars } from './lib/utils';
-import store from './store';
+import Controls from '@/components/Controls.vue';
+import MultiMatrix from '@/components/MultiMatrix.vue';
+import { getUrlVars } from '@/lib/utils';
+import store from '@/store';
 
 export default {
   name: 'App',

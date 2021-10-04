@@ -21,7 +21,7 @@ import 'reorder.js';
 import {
   computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
-import PathTable from './PathTable.vue';
+import PathTable from '@/components/PathTable.vue';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const reorder: any;
