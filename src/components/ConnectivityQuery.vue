@@ -182,7 +182,7 @@ export default defineComponent({
 
             aqlResults.paths.forEach((path: { edges: Edge[]; vertices: Node[] }, val: number) => {
               const newPath: Edge = {
-                _from: '', _to: '', _key: '', _id: '',
+                _from: '', _to: '', _key: '', _id: '', _rev: '',
               };
 
               for (let i = 0; i < selectedHops.value + 1; i += 1) {
