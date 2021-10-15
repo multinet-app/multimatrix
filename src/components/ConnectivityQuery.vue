@@ -216,6 +216,7 @@ export default defineComponent({
             store.dispatch.aggregateNetwork('none');
             store.dispatch.updateNetwork({ network: newNetwork });
             loading.value = false;
+            store.commit.setDirectionalEdges(true);
           }
         });
       }

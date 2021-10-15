@@ -3,6 +3,7 @@ import {
   Cell,
   Edge,
   Node,
+  ArangoPath,
 } from '@/types';
 import {
   scaleBand,
@@ -35,9 +36,10 @@ export default defineComponent({
 
   setup() {
     const showPathTable = computed(() => store.state.showPathTable);
+    const connectivityMatrixPaths = computed(() => store.state.connectivityMatrixPaths);
     const tooltip = ref(null);
     const visMargins = ref({
-      left: 75, top: 79, right: 0, bottom: 0,
+      left: 75, top: 110, right: 0, bottom: 0,
     });
     const matrix: Ref<Cell[][]> = ref([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,7 +76,7 @@ export default defineComponent({
 
     const cellSize = computed(() => store.state.cellSize);
     const selectedNodes = computed(() => store.state.selectedNodes);
-    const selectedCells = computed(() => store.state.selectedCells);
+    const selectedCell = computed(() => store.state.selectedCell);
     const network = computed(() => store.state.network);
     const directionalEdges = computed(() => store.state.directionalEdges);
     const selectNeighbors = computed(() => store.state.selectNeighbors);
@@ -110,6 +112,14 @@ export default defineComponent({
       }
 
       return computedIdMap;
+    });
+    const showTable = computed({
+      get() {
+        return store.state.showPathTable;
+      },
+      set(value: boolean) {
+        store.commit.setShowPathTable(value);
+      },
     });
 
     // Helpers
@@ -329,13 +339,13 @@ export default defineComponent({
         .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
     });
 
-    watch(selectedCells, () => {
+    watch(selectedCell, () => {
       // Apply cell highlight
       selectAll('.cellsGroup')
         .selectAll('.cell')
         .classed('clicked', (cell) => {
-          if (isCell(cell)) {
-            return selectedCells.value.findIndex((selectedCell) => selectedCell.cellName === cell.cellName) !== -1;
+          if (isCell(cell) && selectedCell.value !== null) {
+            return selectedCell.value.cellName === cell.cellName;
           }
           return false;
         });
@@ -781,7 +791,26 @@ export default defineComponent({
           hideToolTip();
           unHoverEdge(matrixElement);
         })
-        .on('click', (event: MouseEvent, matrixElement: Cell) => store.commit.clickCell(matrixElement))
+        .on('click', (event: MouseEvent, matrixElement: Cell) => {
+          // Create path data if connectivity query
+          if (connectivityMatrixPaths.value.paths.length > 0) {
+            const pathIdList: [{[key: string]: number[]}] = [{ paths: [] }];
+            store.state.connectivityMatrixPaths.paths.forEach((path: ArangoPath, i: number) => {
+              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[1]._id === matrixElement.colID) {
+                pathIdList[0].paths.push(i);
+              }
+            });
+
+            if (pathIdList[0].paths.length > 0) {
+              store.commit.setSelectedConnectivityPaths(pathIdList);
+              showTable.value = true;
+            } else {
+              showTable.value = false;
+            }
+          }
+
+          store.commit.clickCell(matrixElement);
+        })
         .attr('cursor', 'pointer');
 
       cells.value.exit().remove();
@@ -814,7 +843,26 @@ export default defineComponent({
           hideToolTip();
           unHoverEdge(matrixElement);
         })
-        .on('click', (event: MouseEvent, matrixElement: Cell) => store.commit.clickCell(matrixElement))
+        .on('click', (event: MouseEvent, matrixElement: Cell) => {
+          // Create path data if connectivity query
+          if (connectivityMatrixPaths.value.paths.length > 0) {
+            const pathIdList: [{[key: string]: number[]}] = [{ paths: [] }];
+            store.state.connectivityMatrixPaths.paths.forEach((path: ArangoPath, i: number) => {
+              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[1]._id === matrixElement.colID) {
+                pathIdList[0].paths.push(i);
+              }
+            });
+
+            if (pathIdList[0].paths.length > 0) {
+              store.commit.setSelectedConnectivityPaths(pathIdList);
+              showTable.value = true;
+            } else {
+              showTable.value = false;
+            }
+          }
+
+          store.commit.clickCell(matrixElement);
+        })
         .attr('cursor', 'pointer');
 
       cells.value.merge(cellsEnter);

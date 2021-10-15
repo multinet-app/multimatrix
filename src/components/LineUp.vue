@@ -13,6 +13,7 @@ export default defineComponent({
     const network = computed(() => store.state.network);
     const selectedNodes = computed(() => store.state.selectedNodes);
     const hoveredNodes = computed(() => store.state.hoveredNodes);
+    const cellSize = computed(() => store.state.cellSize);
 
     const lineup: Ref<LineUp | null> = ref(null);
     const builder: Ref<DataBuilder | null> = ref(null);
@@ -71,7 +72,11 @@ export default defineComponent({
         builder.value = new DataBuilder(network.value.nodes);
 
         // Config adjustments
-        builder.value.rowHeight(store.state.cellSize - 2, 2);
+        builder.value.dynamicHeight(() => ({
+          defaultHeight: cellSize.value - 2,
+          padding: () => 2,
+          height: () => cellSize.value - 2,
+        }));
 
         // Make the vis
         lineup.value = builder.value.deriveColumns(columns).deriveColors().defaultRanking().build(lineupDiv);
@@ -153,6 +158,12 @@ export default defineComponent({
       buildLineup();
     });
 
+    watch(cellSize, () => {
+      if (lineup.value !== null) {
+        lineup.value.update();
+      }
+    });
+
     function removeHighlight() {
       store.commit.clearHoveredNodes();
     }
@@ -177,6 +188,7 @@ export default defineComponent({
 #lineup {
   z-index: 1;
   height: 10000px; /* big enough to show all rows */
+  padding-top: 34px;
 }
 
 .le-td {
