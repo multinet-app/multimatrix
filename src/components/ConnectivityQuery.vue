@@ -107,7 +107,7 @@ export default defineComponent({
     const edgeVariableItems = computed(() => store.getters.edgeVariableItems);
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
-    const queryOptionItems = ['==', '~='];
+    const queryOptionItems = ['==', '=~', '<', '<=', '>', '>='];
 
     const selectedVariableValue: Ref<string[]> = ref([]);
     const variableValueItems: Ref<string[][]> = ref([]);
@@ -115,7 +115,7 @@ export default defineComponent({
     // 21 = 2n + 1 for n = 5 (max number of hops allowed above)
     Array(21).fill(1).forEach(() => {
       selectedVariables.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
-      selectedQueryOptions.value.push('~=');
+      selectedQueryOptions.value.push('=~');
     });
 
     // For each selected node variable, fill in possible values for autocomplete
@@ -135,7 +135,7 @@ export default defineComponent({
       let pathQueryText = '';
 
       for (let i = 0; i < displayedHops.value; i += 1) {
-        const queryOperator = selectedQueryOptions.value[i] === '==' ? '==' : '=~';
+        const queryOperator = selectedQueryOptions.value[i];
 
         if (i === 0) {
           pathQueryText += `FILTER UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]}) ${queryOperator} UPPER('${selectedVariableValue.value[i]}')`;
@@ -150,7 +150,7 @@ export default defineComponent({
         }
       }
 
-      const queryOperator = selectedQueryOptions.value[0] === '==' ? '==' : '=~';
+      const queryOperator = selectedQueryOptions.value[0];
       const aqlQuery = `
         let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${selectedVariables.value[0]}) ${queryOperator} UPPER('${selectedVariableValue.value[0]}') RETURN n)
         let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
