@@ -130,29 +130,40 @@ export default defineComponent({
       });
     });
 
+    function isTextComparison(operator: string) {
+      return ['==', '=~'].includes(operator);
+    }
     function submitQuery() {
       loading.value = true;
       let pathQueryText = '';
 
+      // If we're doing a text comparison use UPPER('...') else, just the value
+      const valueInQuery = selectedVariableValue.value.map((value, index) => (isTextComparison(selectedQueryOptions.value[index]) ? `UPPER('${value}')` : `TO_NUMBER(${value})`));
+
+      pathQueryText += 'FILTER 1==1';
       for (let i = 0; i < displayedHops.value; i += 1) {
         const queryOperator = selectedQueryOptions.value[i];
 
-        if (i === 0) {
-          pathQueryText += `FILTER UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]}) ${queryOperator} UPPER('${selectedVariableValue.value[i]}')`;
-        } else if (selectedVariableValue.value[i] !== undefined) {
+        if (selectedVariableValue.value[i] !== undefined) {
           if (i % 2 === 0) {
             // Nodes
-            pathQueryText += ` AND UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]}) ${queryOperator} UPPER('${selectedVariableValue.value[i]}')`;
+            const variableinQuery = valueInQuery[i].startsWith('UPPER')
+              ? `UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]})`
+              : `TO_NUMBER(p.vertices[${i / 2}].${selectedVariables.value[i]})`;
+            pathQueryText += ` AND ${variableinQuery} ${queryOperator} ${valueInQuery[i]}`;
           } else {
             // Edges
-            pathQueryText += ` AND p.edges[${(i - 1) / 2}].${selectedVariables.value[i]} ${queryOperator} '${selectedVariableValue.value[i]}'`;
+            const variableinQuery = valueInQuery[i].startsWith('UPPER')
+              ? `UPPER(p.edges[${(i - 1) / 2}].${selectedVariables.value[i]})`
+              : `TO_NUMBER(p.edges[${(i - 1) / 2}].${selectedVariables.value[i]})`;
+            pathQueryText += ` AND ${variableinQuery} ${queryOperator} ${valueInQuery[i]}`;
           }
         }
       }
 
-      const queryOperator = selectedQueryOptions.value[0];
+      const startNode = isTextComparison(selectedQueryOptions.value[0]) ? `UPPER(n.${selectedVariables.value[0]})` : `TO_NUMBER(n.${selectedVariables.value[0]})`;
       const aqlQuery = `
-        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER UPPER(n.${selectedVariables.value[0]}) ${queryOperator} UPPER('${selectedVariableValue.value[0]}') RETURN n)
+        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER ${startNode} ${selectedQueryOptions.value[0]} ${valueInQuery[0]} RETURN n)
         let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
         RETURN {paths: paths[**].paths}
       `;
