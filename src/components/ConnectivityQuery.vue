@@ -107,7 +107,7 @@ export default defineComponent({
     const edgeVariableItems = computed(() => store.getters.edgeVariableItems);
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
-    const queryOptionItems = ['==', '=~', '<', '<=', '>', '>='];
+    const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
 
     const selectedVariableValue: Ref<string[]> = ref([]);
     const variableValueItems: Ref<string[][]> = ref([]);
