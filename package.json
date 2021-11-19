@@ -8,7 +8,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint --max-warnings=0 --no-fix",
+    "lint": "vue-cli-service lint --max-warnings=0 --no-fix --mode=production",
     "lint:fix": "vue-cli-service lint",
     "test:unit": "vue-cli-service test:unit"
   },
