@@ -11,7 +11,7 @@ To get the application up and running in dev mode:
 
 1. Ensure that you have Node and yarn installed.
 2. Check out this repository and move into it (e.g., `cd multimatrix`).
-3. Copy .env.development to .env with `cp .env.development .env`
+3. Copy .env.default to .env with `cp .env.default .env`
 4. Install the Yarn dependencies: `yarn install`.
 5. Run the application: `yarn serve`.
 
