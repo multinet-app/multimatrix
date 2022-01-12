@@ -145,7 +145,8 @@ export default defineComponent({
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
 
-      cell.on('click', (d) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cell.on('click', (d: any) => {
         if (selectedCell !== rowData[0].cellName || !showTable.value) {
           selectedCell = d.target.id;
           // eslint-disable-next-line radix
