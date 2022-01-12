@@ -101,9 +101,9 @@ export default defineComponent({
   setup() {
     const search = ref('');
     const pathLength = computed(() => {
-      // Removes extra edge in even paths
+      // Add extra node in even paths
       if (store.state.selectedConnectivityPaths[0].vertices.length % 2 === 0) {
-        return store.state.selectedConnectivityPaths[0].vertices.length - 1;
+        return store.state.selectedConnectivityPaths[0].vertices.length + 1;
       }
       return store.state.selectedConnectivityPaths[0].vertices.length;
     });
