@@ -66,6 +66,7 @@ const {
     selectedConnectivityPaths: [],
     showPathTable: false,
     maxIntConnections: -1,
+    intAggregatedBy: 'none',
   } as State,
 
   getters: {
@@ -285,6 +286,10 @@ const {
 
     setMaxIntConnections(state, maxIntConnections) {
       state.maxIntConnections = maxIntConnections;
+    },
+
+    setIntAggregatedBy(state, intAggregatedBy: string) {
+      state.intAggregatedBy = intAggregatedBy;
     },
   },
 

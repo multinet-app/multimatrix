@@ -8,6 +8,7 @@ import {
 import { select, selectAll } from 'd3-selection';
 import store from '@/store';
 import { ConnectivityCell } from '@/types';
+import { group } from 'd3-array';
 
 export default defineComponent({
   name: 'IntermediaryNodes',
@@ -28,6 +29,7 @@ export default defineComponent({
       },
     });
     let selectedCell = '';
+    const intAggregatedBy = computed(() => store.state.intAggregatedBy);
 
     watchEffect(() => {
       if (showTable.value === false) { selectAll('.connectivityCell').classed('clicked', false); }
@@ -54,11 +56,15 @@ export default defineComponent({
       if (network.value !== null && connectivityPaths.value.nodes.length > 0) {
         const hops = edgeLength.value - 1;
         matrix = [];
+        let sortConnectivityPaths = [];
+        const sortKey = intAggregatedBy.value === 'none' ? '_key' : intAggregatedBy.value;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        sortConnectivityPaths = connectivityPaths.value.nodes.sort((a: any, b: any) => (a[sortKey] > b[sortKey] ? 1 : -1));
 
         // Set up matrix intermediate nodes x # of hops
-        sortOrder.value.forEach((rowNode, i) => {
+        sortConnectivityPaths.forEach((rowNode, i) => {
           matrix[i] = [...Array(hops).keys()].slice(0).map((j) => ({
-            cellName: `${rowNode}`,
+            cellName: `${rowNode._key}`,
             nodePosition: j + 1,
             startingNode: '',
             endingNode: '',
@@ -66,6 +72,8 @@ export default defineComponent({
             y: i,
             z: 0,
             paths: [],
+            label: `${rowNode[sortKey]}`,
+            keys: [`${rowNode._key}`],
           }));
         });
 
@@ -82,16 +90,44 @@ export default defineComponent({
             });
           });
         });
-      }
 
-      //   Update opacity
-      const allPaths = matrix.map((row) => row.map((cell) => cell.z)).flat();
-      const maxPath = allPaths.reduce((a, b) => Math.max(a, b));
-      store.commit.setMaxIntConnections(maxPath);
-      opacity.domain([
-        0,
-        maxPath,
-      ]);
+        //   Update opacity
+        const allPaths = matrix.map((row) => row.map((cell) => cell.z)).flat();
+        const maxPath = allPaths.reduce((a, b) => Math.max(a, b));
+        store.commit.setMaxIntConnections(maxPath);
+        opacity.domain([
+          0,
+          maxPath,
+        ]);
+
+        // Aggregate by label
+        if (intAggregatedBy.value !== 'none') {
+          const newMatrix: ConnectivityCell[][] = [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const arrayColumn = (arr: any, n: number) => arr.map((x: any) => x[n]);
+
+          [...Array(hops).keys()].slice(0).forEach((i) => {
+            const colConsolidated: [] = arrayColumn(matrix, i);
+            const groupedCol = Object.fromEntries(group(colConsolidated, (d: ConnectivityCell) => d.label));
+            const keys = Object.keys(groupedCol);
+
+            newMatrix[i] = keys.map((key: string, j: number) => ({
+              cellName: key,
+              nodePosition: j + 1,
+              startingNode: '',
+              endingNode: '',
+              x: j,
+              y: i,
+              z: groupedCol[key].map((cell) => cell.paths).flat().length,
+              paths: groupedCol[key].map((cell) => cell.paths).flat(),
+              label: key,
+              keys: groupedCol[key].map((cell) => cell.keys).flat(),
+            }));
+          });
+          // Transpose matrix
+          matrix = newMatrix[0].map((_, colIndex) => newMatrix.map((row) => row[colIndex]));
+        }
+      }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,12 +159,11 @@ export default defineComponent({
         }
       });
 
-      cell.append('title').text((d) => `${d.cellName} in ${d.z} paths`);
+      cell.append('title').text((d) => `${d.label} in ${d.z} paths`);
     }
 
     function buildIntView() {
       if (matrix.length > 0) {
-        console.log(matrix);
         const headerPadding = 5;
         const circleRadius = cellSize.value / 2;
         const cellFontSize = cellSize.value * 0.8;
@@ -204,7 +239,7 @@ export default defineComponent({
           .style('font-size', `${cellFontSize}px`)
           .attr('dominant-baseline', 'hanging')
           .attr('x', -20)
-          .text((_, i) => sortOrder.value[i]);
+          .text((d) => d[0].label);
       }
     }
 
@@ -217,7 +252,7 @@ export default defineComponent({
       buildIntView();
     });
 
-    watch([connectivityPaths, cellSize], () => {
+    watch([connectivityPaths, cellSize, intAggregatedBy], () => {
       processData();
       teardownOldView();
       buildIntView();

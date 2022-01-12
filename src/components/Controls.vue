@@ -62,7 +62,14 @@ export default defineComponent({
 
     // Intermediate node table template objects
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
-    const intAggregatedBy = ref('none');
+    const intAggregatedBy = computed({
+      get() {
+        return store.state.intAggregatedBy;
+      },
+      set(value: string) {
+        store.commit.setIntAggregatedBy(value);
+      },
+    });
     const maxIntConnections = computed(() => store.state.maxIntConnections);
     const intTableColorScale = computed(() => store.getters.intTableColorScale);
 
@@ -130,6 +137,11 @@ export default defineComponent({
         aggregateBy.value = 'none';
       }
     });
+    watchEffect(() => {
+      if (!showIntNodeVis.value) {
+        intAggregatedBy.value = 'none';
+      }
+    });
 
     function toggleProvVis() {
       store.commit.toggleShowProvenanceVis();
@@ -138,10 +150,6 @@ export default defineComponent({
     function aggregateNetwork(varName: string) {
       store.dispatch.aggregateNetwork(varName);
     }
-
-    // function aggregateIntTable(varName: string) {
-    //   store.dispatch.aggregateIntTable(varName);
-    // }
 
     return {
       connectivityQueryToggle,
@@ -369,7 +377,6 @@ export default defineComponent({
                   :items="['none', ...nodeVariableItems]"
                   hint="Variable to aggregate by"
                   persistent-hint
-                  @change="aggregateNetwork"
                 />
               </v-list-item-content>
             </v-list-item>
