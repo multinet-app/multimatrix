@@ -87,6 +87,7 @@ export default defineComponent({
       //   Update opacity
       const allPaths = matrix.map((row) => row.map((cell) => cell.z)).flat();
       const maxPath = allPaths.reduce((a, b) => Math.max(a, b));
+      store.commit.setMaxIntConnections(maxPath);
       opacity.domain([
         0,
         maxPath,
@@ -127,6 +128,7 @@ export default defineComponent({
 
     function buildIntView() {
       if (matrix.length > 0) {
+        console.log(matrix);
         const headerPadding = 5;
         const circleRadius = cellSize.value / 2;
         const cellFontSize = cellSize.value * 0.8;

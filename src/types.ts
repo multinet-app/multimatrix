@@ -91,6 +91,7 @@ export interface State {
   connectivityMatrixPaths: {nodes: Node[]; paths: ArangoPath[]};
   selectedConnectivityPaths: ArangoPath[];
   showPathTable: boolean;
+  maxIntConnections: number;
 }
 
 export type ProvenanceEventTypes =
