@@ -138,16 +138,19 @@ export default defineComponent({
         .enter()
         .append('rect')
         .attr('class', 'connectivityCell')
+        .attr('id', (d, j) => `cell_${d.cellName}_)${j}`)
         .attr('x', (_, i) => (i + 1.5) * cellSize.value)
         .attr('width', cellSize.value)
         .attr('height', cellSize.value)
         .style('fill-opacity', (d) => opacity(d.z))
         .style('fill', 'blue');
 
-      cell.on('click', () => {
+      cell.on('click', (d) => {
         if (selectedCell !== rowData[0].cellName || !showTable.value) {
-          selectedCell = rowData[0].cellName;
-          store.commit.setSelectedConnectivityPaths(rowData);
+          selectedCell = d.target.id;
+          // eslint-disable-next-line radix
+          const selectedCellCol: ConnectivityCell = rowData[parseInt(selectedCell.slice(-1))];
+          store.commit.setSelectedConnectivityPaths([selectedCellCol]);
           showTable.value = true;
 
           // Remove prior selections
