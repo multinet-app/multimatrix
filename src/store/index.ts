@@ -65,8 +65,8 @@ const {
     connectivityMatrixPaths: { nodes: [], paths: [] },
     selectedConnectivityPaths: [],
     showPathTable: false,
-    maxIntConnections: -1,
-    intAggregatedBy: 'none',
+    maxIntConnections: 0,
+    intAggregatedBy: '',
   } as State,
 
   getters: {

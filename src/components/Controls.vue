@@ -166,7 +166,6 @@ export default defineComponent({
       showIntNodeVis,
       intAggregatedBy,
       maxIntConnections,
-      intTableColorScale,
       exportNetwork,
       updateLegend,
       toggleProvVis,

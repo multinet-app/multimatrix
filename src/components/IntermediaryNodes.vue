@@ -93,7 +93,7 @@ export default defineComponent({
 
         //   Update opacity
         const allPaths = matrix.map((row) => row.map((cell) => cell.z)).flat();
-        const maxPath = allPaths.reduce((a, b) => Math.max(a, b));
+        const maxPath = Math.max(...allPaths);
         store.commit.setMaxIntConnections(maxPath);
         opacity.domain([
           0,
