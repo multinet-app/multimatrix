@@ -46,6 +46,8 @@ export interface ConnectivityCell {
   cellName: string;
   nodePosition: number;
   paths: number[];
+  label: string;
+  keys: string[];
 }
 
 export interface LoadError {
@@ -91,6 +93,8 @@ export interface State {
   connectivityMatrixPaths: {nodes: Node[]; paths: ArangoPath[]};
   selectedConnectivityPaths: ArangoPath[];
   showPathTable: boolean;
+  maxIntConnections: number;
+  intAggregatedBy: string;
 }
 
 export type ProvenanceEventTypes =

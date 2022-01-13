@@ -60,6 +60,19 @@ export default defineComponent({
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
     const maxConnections = computed(() => store.state.maxConnections);
 
+    // Intermediate node table template objects
+    const showIntNodeVis = computed(() => store.state.showIntNodeVis);
+    const intAggregatedBy = computed({
+      get() {
+        return store.state.intAggregatedBy;
+      },
+      set(value: string) {
+        store.commit.setIntAggregatedBy(value);
+      },
+    });
+    const maxIntConnections = computed(() => store.state.maxIntConnections);
+    const intTableColorScale = computed(() => store.getters.intTableColorScale);
+
     // Non-template objects
     const network = computed(() => store.state.network);
 
@@ -94,12 +107,14 @@ export default defineComponent({
       a.click();
     }
 
-    function updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr') {
+    function updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr' | 'intTable') {
       let legendSVG;
       if (legendName === 'parent') {
         legendSVG = select('#parent-matrix-legend');
-      } else {
+      } else if (legendName === 'unAggr') {
         legendSVG = select('#matrix-legend');
+      } else {
+        legendSVG = select('#int-matrix-legend');
       }
 
       // construct the legend and format the labels to have 0 decimal places
@@ -116,9 +131,15 @@ export default defineComponent({
 
     watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
     watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
+    watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
     watchEffect(() => {
       if (!aggregated.value) {
         aggregateBy.value = 'none';
+      }
+    });
+    watchEffect(() => {
+      if (!showIntNodeVis.value) {
+        intAggregatedBy.value = 'none';
       }
     });
 
@@ -142,6 +163,9 @@ export default defineComponent({
       parentColorScale,
       nodeVariableItems,
       maxConnections,
+      showIntNodeVis,
+      intAggregatedBy,
+      maxIntConnections,
       exportNetwork,
       updateLegend,
       toggleProvVis,
@@ -333,6 +357,46 @@ export default defineComponent({
             </svg>
           </v-list-item>
         </div>
+
+        <!-- Int Table Controls + Legend -->
+        <div v-if="showIntNodeVis">
+          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+            Intermediate Node Table
+          </v-subheader>
+
+          <div class="pa-4">
+            <!-- Aggregation Variable Selection -->
+            <v-list-item
+              class="pa-0 ma-0"
+            >
+              <v-list-item-content class="pa-0 ma-0">
+                <v-autocomplete
+                  v-model="intAggregatedBy"
+                  class="pa-0 ma-0"
+                  :items="['none', ...nodeVariableItems]"
+                  hint="Variable to aggregate by"
+                  persistent-hint
+                />
+              </v-list-item-content>
+            </v-list-item>
+
+            <!-- Matrix Legend -->
+            <v-list-item
+              class="pb-0 px-0"
+              :style="`display: flex; max-height: 50px; opacity: ${maxIntConnections > 0 ? 1 : 0}`"
+            >
+              {{ 'Legend' }}
+              <svg id="int-matrix-legend">
+                <g
+                  class="legendLinear"
+                  transform="translate(10, 60)"
+                />
+              </svg>
+            </v-list-item>
+          </div>
+        </div>
+
+        <!-- Connectivity Query -->
         <div v-if="connectivityQueryToggle">
           <v-subheader class="grey darken-3 mt-6 py-0 white--text">
             Connectivity Query

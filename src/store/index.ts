@@ -65,6 +65,8 @@ const {
     connectivityMatrixPaths: { nodes: [], paths: [] },
     selectedConnectivityPaths: [],
     showPathTable: false,
+    maxIntConnections: 0,
+    intAggregatedBy: '',
   } as State,
 
   getters: {
@@ -78,6 +80,12 @@ const {
       return scaleLinear<string, number>()
         .domain([0, state.maxConnections.parent])
         .range(['#dcedfa', '#0066cc']);
+    },
+
+    intTableColorScale(state): ScaleLinear<string, number> {
+      return scaleLinear<string, number>()
+        .domain([0, state.maxIntConnections])
+        .range(['white', 'blue']);
     },
 
     nodeVariableItems(state): string[] {
@@ -274,6 +282,14 @@ const {
 
     setCellSize(state, cellSize: number) {
       state.cellSize = cellSize;
+    },
+
+    setMaxIntConnections(state, maxIntConnections) {
+      state.maxIntConnections = maxIntConnections;
+    },
+
+    setIntAggregatedBy(state, intAggregatedBy: string) {
+      state.intAggregatedBy = intAggregatedBy;
     },
   },
 
