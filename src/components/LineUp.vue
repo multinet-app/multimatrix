@@ -5,6 +5,7 @@ import {
 } from '@vue/composition-api';
 import LineUp, { DataBuilder } from 'lineupjs';
 import { select } from 'd3-selection';
+import { isInternalField } from '@/lib/typeUtils';
 
 export default defineComponent({
   name: 'LineUp',
@@ -67,7 +68,7 @@ export default defineComponent({
       const lineupDiv = document.getElementById('lineup');
 
       if (network.value !== null && lineupDiv !== null) {
-        const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())];
+        const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column) || column === '_key');
 
         builder.value = new DataBuilder(network.value.nodes);
 
