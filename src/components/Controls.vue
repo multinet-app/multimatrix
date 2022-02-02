@@ -295,13 +295,13 @@ export default defineComponent({
             <v-list-item-content> Enable Connectivity Query </v-list-item-content>
           </v-list-item>
 
-          <v-list-item>
+          <v-list-item class="px-0">
             <v-select
               v-model="labelVariable"
               label="Label Variable"
               :items="Array.from(multiVariableList)"
               :hide-details="true"
-              class="mt-3"
+              class="mt-2"
               clearable
               outlined
               dense
