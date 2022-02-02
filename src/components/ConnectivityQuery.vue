@@ -1,7 +1,7 @@
 <template>
   <div class="pa-0">
     <v-card
-      color="grey lighten-3"
+      color="grey darken-2"
       flat
       tile
     >

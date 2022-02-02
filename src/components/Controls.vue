@@ -20,7 +20,8 @@ export default defineComponent({
 
   setup() {
     // Template objects
-    const connectivityQueryToggle = ref(false);
+    const showTabs = ref(false);
+    const tab = ref(false);
     const aggregateBy = ref('none');
     const directionalEdges = computed({
       get() {
@@ -152,7 +153,8 @@ export default defineComponent({
     }
 
     return {
-      connectivityQueryToggle,
+      showTabs,
+      tab,
       aggregateBy,
       directionalEdges,
       selectNeighbors,
@@ -253,18 +255,6 @@ export default defineComponent({
               />
             </v-list-item-action>
             <v-list-item-content> Directional Edges </v-list-item-content>
-          </v-list-item>
-
-          <!-- Connectivity Query List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="connectivityQueryToggle"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content> Enable Connectivity Query </v-list-item-content>
           </v-list-item>
 
           <!-- Connectivity Query List Item -->
@@ -397,12 +387,60 @@ export default defineComponent({
         </div>
 
         <!-- Connectivity Query -->
-        <div v-if="connectivityQueryToggle">
-          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+        <v-list class="pa-0">
+          <v-subheader class="grey darken-3 py-0 pr-0 white--text">
             Connectivity Query
+
+            <v-spacer />
+
+            <v-btn
+              :min-width="40"
+              :height="48"
+              depressed
+              tile
+              :class="showTabs? `grey darken-2 pa-0` : `grey darken-3 pa-0`"
+              @click="showTabs = !showTabs"
+            >
+              <v-icon color="white">
+                mdi-cog
+              </v-icon>
+            </v-btn>
           </v-subheader>
-          <connectivity-query />
-        </div>
+
+          <v-tabs
+            v-if="showTabs"
+            v-model="tab"
+            background-color="grey darken-2"
+            dark
+            grow
+            slider-color="blue darken-1"
+          >
+            <v-tab>
+              Basic
+            </v-tab>
+            <v-tab>
+              Advanced
+            </v-tab>
+          </v-tabs>
+
+          <v-tabs-items
+            v-if="showTabs"
+            v-model="tab"
+            dark
+          >
+            <v-tab-item>
+              <v-card
+                flat
+                color="grey darken-3"
+                class="pb-4 pt-2"
+              >
+                <connectivity-query />
+              </v-card>
+            </v-tab-item>
+
+            <v-tab-item />
+          </v-tabs-items>
+        </v-list>
       </v-list>
     </v-navigation-drawer>
   </div>
