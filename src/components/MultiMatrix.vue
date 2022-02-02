@@ -73,6 +73,7 @@ export default defineComponent({
     const sortKey = ref('');
     const finishedMounting = ref(false);
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
+    const labelVariable = computed(() => store.state.labelVariable);
 
     const cellSize = computed(() => store.state.cellSize);
     const selectedNodes = computed(() => store.state.selectedNodes);
@@ -518,7 +519,8 @@ export default defineComponent({
       // Update existing foreignObjects
       edges.value
         .selectAll('.colForeign')
-        .attr('height', cellSize.value);
+        .attr('height', cellSize.value)
+        .text((d: Node) => d[labelVariable.value || '_key']);
 
       edges.value
         .selectAll('.colForeign')
@@ -564,7 +566,7 @@ export default defineComponent({
         .attr('width', labelWidth)
         .attr('height', cellSize.value)
         .append('xhtml:p')
-        .text((d: Node) => d._key)
+        .text((d: Node) => d[labelVariable.value || '_key'])
         .style('color', (d: Node) => {
           if (d.type === 'node') {
             return '#aaa';
@@ -635,7 +637,8 @@ export default defineComponent({
       // Update existing foreignObjects
       edges.value
         .selectAll('.rowForeign')
-        .attr('height', cellSize.value);
+        .attr('height', cellSize.value)
+        .text((d: Node) => d[labelVariable.value || '_key']);
 
       edges.value
         .selectAll('.rowForeign')
@@ -675,7 +678,7 @@ export default defineComponent({
         .attr('height', cellSize.value)
         .classed('rowForeign', true)
         .append('xhtml:p')
-        .text((d: Node) => d._key)
+        .text((d: Node) => d[labelVariable.value || '_key'])
         .style('color', (d: Node) => {
           if (d.type === 'node') {
             return '#aaa';
@@ -919,7 +922,7 @@ export default defineComponent({
       finishedMounting.value = true;
     });
 
-    watch([orderingScale, showGridLines, network, directionalEdges], () => initializeEdges());
+    watch([orderingScale, showGridLines, network, directionalEdges, labelVariable], () => initializeEdges());
 
     return {
       finishedMounting,
