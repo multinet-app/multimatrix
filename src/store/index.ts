@@ -67,6 +67,7 @@ const {
     showPathTable: false,
     maxIntConnections: 0,
     intAggregatedBy: '',
+    labelVariable: undefined,
   } as State,
 
   getters: {
@@ -290,6 +291,14 @@ const {
 
     setIntAggregatedBy(state, intAggregatedBy: string) {
       state.intAggregatedBy = intAggregatedBy;
+    },
+
+    setLabelVariable(state, labelVariable: string | undefined) {
+      state.labelVariable = labelVariable;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Label Variable');
+      }
     },
   },
 

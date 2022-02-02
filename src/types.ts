@@ -95,6 +95,7 @@ export interface State {
   showPathTable: boolean;
   maxIntConnections: number;
   intAggregatedBy: string;
+  labelVariable: string | undefined;
 }
 
 export type ProvenanceEventTypes =
@@ -104,7 +105,8 @@ export type ProvenanceEventTypes =
   'Select Cell' |
   'De-Select Cell' |
   'Select Node' |
-  'De-Select Node';
+  'De-Select Node' |
+  'Set Label Variable';
 
 export const internalFieldNames = ['_from', '_to', '_id', '_rev'] as const;
 export type InternalField = (typeof internalFieldNames)[number];
