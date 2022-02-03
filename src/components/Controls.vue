@@ -263,7 +263,7 @@ export default defineComponent({
             @click="showMenu = !showMenu"
           >
             <v-icon color="white">
-              mdi-cog
+              {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
             </v-icon>
           </v-btn>
         </v-subheader>
