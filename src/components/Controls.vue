@@ -369,10 +369,13 @@ export default defineComponent({
             style="display: flex; max-height: 50px"
           >
             Aggregate Legend
-            <svg id="parent-matrix-legend">
+            <svg
+              id="parent-matrix-legend"
+              height="50"
+            >
               <g
                 class="legendLinear"
-                transform="translate(10, 60)"
+                transform="translate(10, 10)"
               />
             </svg>
           </v-list-item>
@@ -383,10 +386,13 @@ export default defineComponent({
             :style="`display: flex; max-height: 50px; opacity: ${maxConnections.unAggr > 0 ? 1 : 0}`"
           >
             {{ aggregated ? 'Child Legend' : 'Matrix Legend' }}
-            <svg id="matrix-legend">
+            <svg
+              id="matrix-legend"
+              height="50"
+            >
               <g
                 class="legendLinear"
-                transform="translate(10, 60)"
+                transform="translate(10, 10)"
               />
             </svg>
           </v-list-item>
@@ -421,10 +427,13 @@ export default defineComponent({
               :style="`display: flex; max-height: 50px; opacity: ${maxIntConnections > 0 ? 1 : 0}`"
             >
               {{ 'Legend' }}
-              <svg id="int-matrix-legend">
+              <svg
+                id="int-matrix-legend"
+                height="50"
+              >
                 <g
                   class="legendLinear"
-                  transform="translate(10, 60)"
+                  transform="translate(10, 10)"
                 />
               </svg>
             </v-list-item>
