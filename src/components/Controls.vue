@@ -21,7 +21,7 @@ export default defineComponent({
 
   setup() {
     // Template objects
-    const aggregateBy = ref('none');
+    const aggregateBy = ref(undefined);
     const directionalEdges = computed({
       get() {
         return store.state.directionalEdges;
@@ -74,7 +74,7 @@ export default defineComponent({
       get() {
         return store.state.intAggregatedBy;
       },
-      set(value: string) {
+      set(value: string | undefined) {
         store.commit.setIntAggregatedBy(value);
       },
     });
@@ -159,7 +159,7 @@ export default defineComponent({
     watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
     watchEffect(() => {
       if (!aggregated.value) {
-        aggregateBy.value = 'none';
+        aggregateBy.value = undefined;
       }
     });
     watch(aggregated, () => {
@@ -171,7 +171,7 @@ export default defineComponent({
     });
     watchEffect(() => {
       if (!showIntNodeVis.value) {
-        intAggregatedBy.value = 'none';
+        intAggregatedBy.value = undefined;
       }
     });
 
@@ -407,9 +407,10 @@ export default defineComponent({
                 <v-autocomplete
                   v-model="intAggregatedBy"
                   class="pa-0 ma-0"
-                  :items="['none', ...nodeVariableItems]"
+                  :items="nodeVariableItems"
                   hint="Variable to aggregate by"
                   persistent-hint
+                  clearable
                 />
               </v-list-item-content>
             </v-list-item>

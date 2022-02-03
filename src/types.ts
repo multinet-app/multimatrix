@@ -94,7 +94,7 @@ export interface State {
   selectedConnectivityPaths: ArangoPath[];
   showPathTable: boolean;
   maxIntConnections: number;
-  intAggregatedBy: string;
+  intAggregatedBy: string | undefined;
   labelVariable: string | undefined;
 }
 
