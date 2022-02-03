@@ -21,7 +21,6 @@ export default defineComponent({
 
   setup() {
     // Template objects
-    const connectivityQueryToggle = ref(false);
     const aggregateBy = ref('none');
     const directionalEdges = computed({
       get() {
@@ -185,7 +184,6 @@ export default defineComponent({
     }
 
     return {
-      connectivityQueryToggle,
       aggregateBy,
       directionalEdges,
       selectNeighbors,
@@ -288,18 +286,6 @@ export default defineComponent({
               />
             </v-list-item-action>
             <v-list-item-content> Directional Edges </v-list-item-content>
-          </v-list-item>
-
-          <!-- Connectivity Query List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="connectivityQueryToggle"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content> Enable Connectivity Query </v-list-item-content>
           </v-list-item>
 
           <v-list-item class="px-0">
@@ -445,7 +431,7 @@ export default defineComponent({
         </div>
 
         <!-- Connectivity Query -->
-        <div v-if="connectivityQueryToggle">
+        <div>
           <v-subheader class="grey darken-3 mt-6 py-0 white--text">
             Connectivity Query
           </v-subheader>
