@@ -66,7 +66,7 @@ const {
     selectedConnectivityPaths: [],
     showPathTable: false,
     maxIntConnections: 0,
-    intAggregatedBy: '',
+    intAggregatedBy: undefined,
     labelVariable: undefined,
   } as State,
 
@@ -289,7 +289,7 @@ const {
       state.maxIntConnections = maxIntConnections;
     },
 
-    setIntAggregatedBy(state, intAggregatedBy: string) {
+    setIntAggregatedBy(state, intAggregatedBy: string | undefined) {
       state.intAggregatedBy = intAggregatedBy;
     },
 
@@ -458,7 +458,7 @@ const {
       document.addEventListener('keydown', (event) => undoRedoKeyHandler(event, storeState));
     },
 
-    aggregateNetwork(context, varName: string) {
+    aggregateNetwork(context, varName: string | undefined) {
       const { state, commit, dispatch } = rootActionContext(context);
 
       if (state.network !== null) {
@@ -483,7 +483,7 @@ const {
         }
 
         // Aggregate the network if the varName is not none
-        if (varName !== 'none') {
+        if (varName !== undefined) {
           // Calculate edges
           const aggregatedEdges = state.network.edges.map((edge) => {
             const fromNode = state.network && state.network.nodes.find((node) => node._id === edge._from);

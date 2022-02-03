@@ -21,8 +21,8 @@ export default defineComponent({
 
   setup() {
     // Template objects
-    const connectivityQueryToggle = ref(false);
-    const aggregateBy = ref('none');
+    const showMenu = ref(false);
+    const aggregateBy = ref(undefined);
     const directionalEdges = computed({
       get() {
         return store.state.directionalEdges;
@@ -75,7 +75,7 @@ export default defineComponent({
       get() {
         return store.state.intAggregatedBy;
       },
-      set(value: string) {
+      set(value: string | undefined) {
         store.commit.setIntAggregatedBy(value);
       },
     });
@@ -160,7 +160,7 @@ export default defineComponent({
     watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
     watchEffect(() => {
       if (!aggregated.value) {
-        aggregateBy.value = 'none';
+        aggregateBy.value = undefined;
       }
     });
     watch(aggregated, () => {
@@ -172,7 +172,7 @@ export default defineComponent({
     });
     watchEffect(() => {
       if (!showIntNodeVis.value) {
-        intAggregatedBy.value = 'none';
+        intAggregatedBy.value = undefined;
       }
     });
 
@@ -185,7 +185,6 @@ export default defineComponent({
     }
 
     return {
-      connectivityQueryToggle,
       aggregateBy,
       directionalEdges,
       selectNeighbors,
@@ -205,6 +204,7 @@ export default defineComponent({
       aggregateNetwork,
       labelVariable,
       multiVariableList,
+      showMenu,
     };
   },
 });
@@ -249,74 +249,96 @@ export default defineComponent({
       </v-toolbar>
 
       <v-list class="pa-0">
-        <v-subheader class="grey darken-3 py-0 white--text">
-          Controls
+        <v-subheader class="grey darken-3 py-0 pr-0 white--text">
+          Visualization Options
+
+          <v-spacer />
+
+          <v-btn
+            :min-width="40"
+            :height="48"
+            depressed
+            tile
+            class="grey darken-3 pa-0"
+            @click="showMenu = !showMenu"
+          >
+            <v-icon color="white">
+              {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+            </v-icon>
+          </v-btn>
         </v-subheader>
 
-        <div class="pa-4">
-          <!-- Auto-Select Neighbors List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="selectNeighbors"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
-          </v-list-item>
-
-          <!-- Gridline Toggle List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="showGridLines"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content> Show GridLines </v-list-item-content>
-          </v-list-item>
-
-          <!-- Directional Edges Toggle Card -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="directionalEdges"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content> Directional Edges </v-list-item-content>
-          </v-list-item>
-
-          <!-- Connectivity Query List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
-              <v-switch
-                v-model="connectivityQueryToggle"
-                class="ma-0"
-                hide-details
-              />
-            </v-list-item-action>
-            <v-list-item-content> Enable Connectivity Query </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item class="px-0">
-            <v-select
+        <v-card
+          v-if="showMenu"
+          dark
+          tile
+          flat
+          color="grey darken-3"
+          class="pb-4 pt-0"
+        >
+          <v-list-item>
+            <v-autocomplete
               v-model="labelVariable"
               label="Label Variable"
-              :items="Array.from(multiVariableList)"
+              :items="nodeVariableItems"
               :hide-details="true"
-              class="mt-2"
+              class="mt-3"
               clearable
               outlined
               dense
             />
           </v-list-item>
+          <v-list-item>
+            <v-autocomplete
+              v-model="aggregateBy"
+              label="Aggregation Variable"
+              :items="nodeVariableItems"
+              :hide-details="true"
+              class="mt-3"
+              clearable
+              outlined
+              dense
+              @change="aggregateNetwork"
+            />
+          </v-list-item>
 
-          <!-- Connectivity Query List Item -->
-          <v-list-item class="px-0">
+          <!-- Auto-Select Neighbors List Item -->
+          <v-list-item>
+            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
+            <v-list-item-action>
+              <v-switch
+                v-model="selectNeighbors"
+                hide-details
+                color="blue darken-1"
+              />
+            </v-list-item-action>
+          </v-list-item>
+
+          <!-- Gridline Toggle List Item -->
+          <v-list-item>
+            <v-list-item-content> Show GridLines </v-list-item-content>
+            <v-list-item-action>
+              <v-switch
+                v-model="showGridLines"
+                hide-details
+                color="blue darken-1"
+              />
+            </v-list-item-action>
+          </v-list-item>
+
+          <!-- Directional Edges Toggle Card -->
+          <v-list-item>
+            <v-list-item-content> Directional Edges </v-list-item-content>
+            <v-list-item-action>
+              <v-switch
+                v-model="directionalEdges"
+                hide-details
+                color="blue darken-1"
+              />
+            </v-list-item-action>
+          </v-list-item>
+
+          <v-list-item>
             Cell Size
             <v-slider
               v-model="cellSize"
@@ -330,46 +352,28 @@ export default defineComponent({
             />
           </v-list-item>
 
-          <!-- Aggregation Variable Selection -->
-          <v-list-item
-            class="pa-0 ma-0"
-          >
-            <v-list-item-content class="pa-0 ma-0">
-              <v-autocomplete
-                v-model="aggregateBy"
-                class="pa-0 ma-0"
-                :items="['none', ...nodeVariableItems]"
-                hint="Variable to aggregate by"
-                persistent-hint
-                @change="aggregateNetwork"
-              />
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item class="px-0">
+          <v-list-item>
             <v-btn
-              block
-              class="ml-0 mt-4"
               color="primary"
-              depressed
-              @click="exportNetwork"
-            >
-              Export Network
-            </v-btn>
-          </v-list-item>
-
-          <v-list-item class="px-0">
-            <v-btn
               block
-              class="ml-0 mt-4"
-              color="primary"
               depressed
               @click="toggleProvVis"
             >
               Provenance Vis
             </v-btn>
           </v-list-item>
-        </div>
+
+          <v-list-item>
+            <v-btn
+              block
+              color="grey darken-2 white--text"
+              depressed
+              @click="exportNetwork"
+            >
+              Export Network
+            </v-btn>
+          </v-list-item>
+        </v-card>
 
         <v-subheader class="grey darken-3 mt-6 py-0 white--text">
           Color Scale Legend
@@ -383,10 +387,13 @@ export default defineComponent({
             style="display: flex; max-height: 50px"
           >
             Aggregate Legend
-            <svg id="parent-matrix-legend">
+            <svg
+              id="parent-matrix-legend"
+              height="50"
+            >
               <g
                 class="legendLinear"
-                transform="translate(10, 60)"
+                transform="translate(10, 10)"
               />
             </svg>
           </v-list-item>
@@ -397,10 +404,13 @@ export default defineComponent({
             :style="`display: flex; max-height: 50px; opacity: ${maxConnections.unAggr > 0 ? 1 : 0}`"
           >
             {{ aggregated ? 'Child Legend' : 'Matrix Legend' }}
-            <svg id="matrix-legend">
+            <svg
+              id="matrix-legend"
+              height="50"
+            >
               <g
                 class="legendLinear"
-                transform="translate(10, 60)"
+                transform="translate(10, 10)"
               />
             </svg>
           </v-list-item>
@@ -421,9 +431,10 @@ export default defineComponent({
                 <v-autocomplete
                   v-model="intAggregatedBy"
                   class="pa-0 ma-0"
-                  :items="['none', ...nodeVariableItems]"
+                  :items="nodeVariableItems"
                   hint="Variable to aggregate by"
                   persistent-hint
+                  clearable
                 />
               </v-list-item-content>
             </v-list-item>
@@ -434,10 +445,13 @@ export default defineComponent({
               :style="`display: flex; max-height: 50px; opacity: ${maxIntConnections > 0 ? 1 : 0}`"
             >
               {{ 'Legend' }}
-              <svg id="int-matrix-legend">
+              <svg
+                id="int-matrix-legend"
+                height="50"
+              >
                 <g
                   class="legendLinear"
-                  transform="translate(10, 60)"
+                  transform="translate(10, 10)"
                 />
               </svg>
             </v-list-item>
@@ -445,7 +459,7 @@ export default defineComponent({
         </div>
 
         <!-- Connectivity Query -->
-        <div v-if="connectivityQueryToggle">
+        <div>
           <v-subheader class="grey darken-3 mt-6 py-0 white--text">
             Connectivity Query
           </v-subheader>
