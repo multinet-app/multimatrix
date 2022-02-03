@@ -404,7 +404,7 @@ export default defineComponent({
           </v-list-item>
         </div>
 
-        <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+        <v-subheader class="grey darken-3 py-0 white--text">
           Color Scale Legend
         </v-subheader>
 
@@ -447,7 +447,7 @@ export default defineComponent({
 
         <!-- Int Table Controls + Legend -->
         <div v-if="showIntNodeVis">
-          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+          <v-subheader class="grey darken-3 py-0 white--text">
             Intermediate Node Table
           </v-subheader>
 
@@ -489,7 +489,7 @@ export default defineComponent({
 
         <!-- Connectivity Query -->
         <div>
-          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+          <v-subheader class="grey darken-3 py-0 white--text">
             Connectivity Query
           </v-subheader>
           <connectivity-query />
