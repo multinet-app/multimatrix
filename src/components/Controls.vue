@@ -8,7 +8,7 @@ import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import {
-  computed, defineComponent, ref, watch, watchEffect,
+  computed, defineComponent, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
 
 export default defineComponent({
@@ -83,6 +83,18 @@ export default defineComponent({
 
     // Non-template objects
     const network = computed(() => store.state.network);
+
+    const searchTerm = ref('');
+    const searchErrors: Ref<string[]> = ref([]);
+    const searchItems = computed(() => {
+      if (network.value !== null && labelVariable.value !== undefined) {
+        return network.value.nodes.map((node) => (node[labelVariable.value || '']));
+      }
+      if (network.value !== null && labelVariable.value === undefined) {
+        return network.value.nodes.map((node) => (node._key));
+      }
+      return [];
+    });
 
     function exportNetwork() {
       if (network.value === null) {
@@ -166,6 +178,21 @@ export default defineComponent({
       store.dispatch.aggregateNetwork(varName);
     }
 
+    function search() {
+      searchErrors.value = [];
+      if (network.value !== null) {
+        const nodeIDsToSelect = network.value.nodes
+          .filter((node) => (labelVariable.value !== undefined ? node[labelVariable.value] === searchTerm.value : node._key === searchTerm.value))
+          .map((node) => node._id);
+
+        if (nodeIDsToSelect.length > 0) {
+          nodeIDsToSelect.forEach((id) => store.commit.clickElement(id));
+        } else {
+          searchErrors.value.push('Enter a valid node to search');
+        }
+      }
+    }
+
     return {
       aggregateBy,
       directionalEdges,
@@ -186,6 +213,10 @@ export default defineComponent({
       aggregateNetwork,
       labelVariable,
       showMenu,
+      search,
+      searchTerm,
+      searchErrors,
+      searchItems,
     };
   },
 });
@@ -355,6 +386,23 @@ export default defineComponent({
             </v-btn>
           </v-list-item>
         </v-card>
+
+        <div class="px-4">
+          <v-list-item class="px-0">
+            <v-autocomplete
+              v-model="searchTerm"
+              label="Search for Node"
+              :items="searchItems"
+              :error-messages="searchErrors"
+              no-data-text="Select a label variable"
+              class="pt-4"
+              auto-select-first
+              outlined
+              dense
+              @input="search"
+            />
+          </v-list-item>
+        </div>
 
         <v-subheader class="grey darken-3 mt-6 py-0 white--text">
           Color Scale Legend
