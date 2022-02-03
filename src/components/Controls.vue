@@ -21,6 +21,7 @@ export default defineComponent({
 
   setup() {
     // Template objects
+    const showMenu = ref(false);
     const aggregateBy = ref(undefined);
     const directionalEdges = computed({
       get() {
@@ -203,6 +204,7 @@ export default defineComponent({
       aggregateNetwork,
       labelVariable,
       multiVariableList,
+      showMenu,
     };
   },
 });
@@ -247,11 +249,33 @@ export default defineComponent({
       </v-toolbar>
 
       <v-list class="pa-0">
-        <v-subheader class="grey darken-3 py-0 white--text">
-          Controls
+        <v-subheader class="grey darken-3 py-0 pr-0 white--text">
+          Visualization Options
+
+          <v-spacer />
+
+          <v-btn
+            :min-width="40"
+            :height="48"
+            depressed
+            tile
+            class="grey darken-3 pa-0"
+            @click="showMenu = !showMenu"
+          >
+            <v-icon color="white">
+              mdi-cog
+            </v-icon>
+          </v-btn>
         </v-subheader>
 
-        <div class="pa-4">
+        <v-card
+          v-if="showMenu"
+          dark
+          tile
+          flat
+          color="grey darken-3"
+          class="pb-4 pt-0"
+        >
           <!-- Auto-Select Neighbors List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
@@ -355,7 +379,7 @@ export default defineComponent({
               Provenance Vis
             </v-btn>
           </v-list-item>
-        </div>
+        </v-card>
 
         <v-subheader class="grey darken-3 mt-6 py-0 white--text">
           Color Scale Legend
