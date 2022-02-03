@@ -520,6 +520,7 @@ export default defineComponent({
       edges.value
         .selectAll('.colForeign')
         .attr('height', cellSize.value)
+        .select('p')
         .text((d: Node) => d[labelVariable.value || '_key']);
 
       edges.value
@@ -638,6 +639,7 @@ export default defineComponent({
       edges.value
         .selectAll('.rowForeign')
         .attr('height', cellSize.value)
+        .select('p')
         .text((d: Node) => d[labelVariable.value || '_key']);
 
       edges.value
