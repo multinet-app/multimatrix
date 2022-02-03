@@ -10,7 +10,6 @@ import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import {
   computed, defineComponent, ref, watch, watchEffect,
 } from '@vue/composition-api';
-import { internalFieldNames, Node } from '@/types';
 
 export default defineComponent({
   components: {
@@ -84,23 +83,6 @@ export default defineComponent({
 
     // Non-template objects
     const network = computed(() => store.state.network);
-
-    const multiVariableList = computed(() => {
-      if (network.value !== null) {
-        // Loop through all nodes, flatten the 2d array, and turn it into a set
-        const allVars: Set<string> = new Set();
-        network.value.nodes.forEach((node: Node) => Object.keys(node).forEach((key) => allVars.add(key)));
-
-        internalFieldNames.forEach((field) => allVars.delete(field));
-        allVars.delete('vx');
-        allVars.delete('vy');
-        allVars.delete('x');
-        allVars.delete('y');
-        allVars.delete('index');
-        return allVars;
-      }
-      return new Set();
-    });
 
     function exportNetwork() {
       if (network.value === null) {
@@ -203,7 +185,6 @@ export default defineComponent({
       toggleProvVis,
       aggregateNetwork,
       labelVariable,
-      multiVariableList,
       showMenu,
     };
   },
