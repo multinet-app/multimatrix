@@ -8,7 +8,7 @@ import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import {
-  computed, defineComponent, ref, watchEffect,
+  computed, defineComponent, ref, watch, watchEffect,
 } from '@vue/composition-api';
 import { internalFieldNames, Node } from '@/types';
 
@@ -161,6 +161,13 @@ export default defineComponent({
     watchEffect(() => {
       if (!aggregated.value) {
         aggregateBy.value = 'none';
+      }
+    });
+    watch(aggregated, () => {
+      if (!aggregated.value) {
+        labelVariable.value = '_key';
+      } else {
+        labelVariable.value = aggregateBy.value;
       }
     });
     watchEffect(() => {
