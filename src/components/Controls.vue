@@ -303,43 +303,42 @@ export default defineComponent({
           </v-list-item>
 
           <!-- Auto-Select Neighbors List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
+          <v-list-item>
+            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
+            <v-list-item-action>
               <v-switch
                 v-model="selectNeighbors"
-                class="ma-0"
                 hide-details
+                color="blue darken-1"
               />
             </v-list-item-action>
-            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
           </v-list-item>
 
           <!-- Gridline Toggle List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
+          <v-list-item>
+            <v-list-item-content> Show GridLines </v-list-item-content>
+            <v-list-item-action>
               <v-switch
                 v-model="showGridLines"
-                class="ma-0"
                 hide-details
+                color="blue darken-1"
               />
             </v-list-item-action>
-            <v-list-item-content> Show GridLines </v-list-item-content>
           </v-list-item>
 
           <!-- Directional Edges Toggle Card -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
+          <v-list-item>
+            <v-list-item-content> Directional Edges </v-list-item-content>
+            <v-list-item-action>
               <v-switch
                 v-model="directionalEdges"
-                class="ma-0"
                 hide-details
+                color="blue darken-1"
               />
             </v-list-item-action>
-            <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
-          <!-- Connectivity Query List Item -->
-          <v-list-item class="px-0">
+          <v-list-item>
             Cell Size
             <v-slider
               v-model="cellSize"
@@ -353,27 +352,25 @@ export default defineComponent({
             />
           </v-list-item>
 
-          <v-list-item class="px-0">
+          <v-list-item>
             <v-btn
-              block
-              class="ml-0 mt-4"
               color="primary"
-              depressed
-              @click="exportNetwork"
-            >
-              Export Network
-            </v-btn>
-          </v-list-item>
-
-          <v-list-item class="px-0">
-            <v-btn
               block
-              class="ml-0 mt-4"
-              color="primary"
               depressed
               @click="toggleProvVis"
             >
               Provenance Vis
+            </v-btn>
+          </v-list-item>
+
+          <v-list-item>
+            <v-btn
+              block
+              color="grey darken-2 white--text"
+              depressed
+              @click="exportNetwork"
+            >
+              Export Network
             </v-btn>
           </v-list-item>
         </v-card>
