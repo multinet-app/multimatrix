@@ -108,5 +108,5 @@ export type ProvenanceEventTypes =
   'De-Select Node' |
   'Set Label Variable';
 
-export const internalFieldNames = ['_from', '_to', '_id', '_rev', 'neighbors', '_key'] as const;
+export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children'] as const;
 export type InternalField = (typeof internalFieldNames)[number];
