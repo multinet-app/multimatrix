@@ -8,8 +8,9 @@ import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import {
-  computed, defineComponent, ref, watchEffect,
+  computed, defineComponent, ref, watch, watchEffect,
 } from '@vue/composition-api';
+import { internalFieldNames, Node } from '@/types';
 
 export default defineComponent({
   components: {
@@ -54,6 +55,14 @@ export default defineComponent({
         store.commit.setCellSize(value);
       },
     });
+    const labelVariable = computed({
+      get() {
+        return store.state.labelVariable;
+      },
+      set(value: string | undefined) {
+        store.commit.setLabelVariable(value);
+      },
+    });
     const aggregated = computed(() => store.state.aggregated);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
@@ -75,6 +84,23 @@ export default defineComponent({
 
     // Non-template objects
     const network = computed(() => store.state.network);
+
+    const multiVariableList = computed(() => {
+      if (network.value !== null) {
+        // Loop through all nodes, flatten the 2d array, and turn it into a set
+        const allVars: Set<string> = new Set();
+        network.value.nodes.forEach((node: Node) => Object.keys(node).forEach((key) => allVars.add(key)));
+
+        internalFieldNames.forEach((field) => allVars.delete(field));
+        allVars.delete('vx');
+        allVars.delete('vy');
+        allVars.delete('x');
+        allVars.delete('y');
+        allVars.delete('index');
+        return allVars;
+      }
+      return new Set();
+    });
 
     function exportNetwork() {
       if (network.value === null) {
@@ -137,6 +163,13 @@ export default defineComponent({
         aggregateBy.value = 'none';
       }
     });
+    watch(aggregated, () => {
+      if (!aggregated.value) {
+        labelVariable.value = '_key';
+      } else {
+        labelVariable.value = aggregateBy.value;
+      }
+    });
     watchEffect(() => {
       if (!showIntNodeVis.value) {
         intAggregatedBy.value = 'none';
@@ -170,6 +203,8 @@ export default defineComponent({
       updateLegend,
       toggleProvVis,
       aggregateNetwork,
+      labelVariable,
+      multiVariableList,
     };
   },
 });
@@ -265,6 +300,19 @@ export default defineComponent({
               />
             </v-list-item-action>
             <v-list-item-content> Enable Connectivity Query </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item class="px-0">
+            <v-select
+              v-model="labelVariable"
+              label="Label Variable"
+              :items="Array.from(multiVariableList)"
+              :hide-details="true"
+              class="mt-2"
+              clearable
+              outlined
+              dense
+            />
           </v-list-item>
 
           <!-- Connectivity Query List Item -->

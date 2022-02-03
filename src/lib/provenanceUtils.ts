@@ -15,6 +15,8 @@ export function updateProvenanceState(vuexState: State, label: ProvenanceEventTy
       provState.selectedCell = newProvState.selectedCell;
     } else if (label === 'Select Node' || label === 'De-Select Node') {
       provState.selectedNodes = newProvState.selectedNodes;
+    } else if (label === 'Set Label Variable') {
+      provState.labelVariable = newProvState.labelVariable;
     }
 
     /* eslint-enable no-param-reassign */
