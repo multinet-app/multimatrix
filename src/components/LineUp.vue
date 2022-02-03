@@ -80,7 +80,12 @@ export default defineComponent({
         }));
 
         // Make the vis
-        lineup.value = builder.value.deriveColumns(columns).deriveColors().defaultRanking().build(lineupDiv);
+        lineup.value = builder.value
+          .deriveColumns(columns)
+          .deriveColors()
+          .defaultRanking()
+          .sidePanel(true, true) // enable: true, collapsed: true
+          .build(lineupDiv);
 
         // Add an event watcher to update selected nodes
         lineup.value.on('selectionChanged', (dataindices: number[]) => {
