@@ -276,6 +276,32 @@ export default defineComponent({
           color="grey darken-3"
           class="pb-4 pt-0"
         >
+          <v-list-item>
+            <v-autocomplete
+              v-model="labelVariable"
+              label="Label Variable"
+              :items="nodeVariableItems"
+              :hide-details="true"
+              class="mt-3"
+              clearable
+              outlined
+              dense
+            />
+          </v-list-item>
+          <v-list-item>
+            <v-autocomplete
+              v-model="aggregateBy"
+              label="Aggregation Variable"
+              :items="nodeVariableItems"
+              :hide-details="true"
+              class="mt-3"
+              clearable
+              outlined
+              dense
+              @change="aggregateNetwork"
+            />
+          </v-list-item>
+
           <!-- Auto-Select Neighbors List Item -->
           <v-list-item class="px-0">
             <v-list-item-action class="mr-3">
@@ -312,19 +338,6 @@ export default defineComponent({
             <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
-          <v-list-item class="px-0">
-            <v-select
-              v-model="labelVariable"
-              label="Label Variable"
-              :items="Array.from(multiVariableList)"
-              :hide-details="true"
-              class="mt-2"
-              clearable
-              outlined
-              dense
-            />
-          </v-list-item>
-
           <!-- Connectivity Query List Item -->
           <v-list-item class="px-0">
             Cell Size
@@ -338,22 +351,6 @@ export default defineComponent({
               hide-details
               color="blue darken-1"
             />
-          </v-list-item>
-
-          <!-- Aggregation Variable Selection -->
-          <v-list-item
-            class="pa-0 ma-0"
-          >
-            <v-list-item-content class="pa-0 ma-0">
-              <v-autocomplete
-                v-model="aggregateBy"
-                class="pa-0 ma-0"
-                :items="['none', ...nodeVariableItems]"
-                hint="Variable to aggregate by"
-                persistent-hint
-                @change="aggregateNetwork"
-              />
-            </v-list-item-content>
           </v-list-item>
 
           <v-list-item class="px-0">
