@@ -186,7 +186,7 @@ export default defineComponent({
           .map((node) => node._id);
 
         if (nodeIDsToSelect.length > 0) {
-          nodeIDsToSelect.forEach((id) => store.commit.clickElement(id));
+          store.commit.addSelectedNode(nodeIDsToSelect);
         } else {
           searchErrors.value.push('Enter a valid node to search');
         }

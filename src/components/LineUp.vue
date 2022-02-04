@@ -101,7 +101,7 @@ export default defineComponent({
           differentIDs = differentIDs.filter((ID) => hoveredNodes.value.indexOf(ID) === -1);
 
           // Click on the elements that are different to add/remove them from the store
-          differentIDs.forEach((nodeID) => store.commit.clickElement(nodeID));
+          differentIDs.forEach((nodeID) => store.dispatch.clickElement(nodeID));
         });
 
         let lastHovered = '';

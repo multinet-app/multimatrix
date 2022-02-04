@@ -141,19 +141,25 @@ const {
       state.userInfo = userInfo;
     },
 
-    clickElement(state, elementID: string) {
-      if (state.selectedNodes.indexOf(elementID) === -1) {
-        state.selectedNodes.push(elementID);
+    addSelectedNode(state, nodesToAdd: string[]) {
+      // If no nodes, do nothing
+      if (nodesToAdd.length === 0) {
+        return;
+      }
 
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'Select Node');
-        }
-      } else {
-        state.selectedNodes = state.selectedNodes.filter((arrayElementID) => arrayElementID !== elementID);
+      state.selectedNodes = new Set([...state.selectedNodes, ...nodesToAdd]);
 
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'De-Select Node');
-        }
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Select Node(s)');
+      }
+    },
+
+    removeSelectedNode(state, nodeID: string) {
+      state.selectedNodes.delete(nodeID);
+      state.selectedNodes = new Set(state.selectedNodes);
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'De-select Node(s)');
       }
     },
 
@@ -612,6 +618,15 @@ const {
           .filter((edge): edge is Edge => edge !== null);
 
         dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
+      }
+    },
+
+    clickElement(context, elementID: string) {
+      const { state, commit } = rootActionContext(context);
+      if (!state.selectedNodes.has(elementID)) {
+        commit.addSelectedNode([elementID]);
+      } else {
+        commit.removeSelectedNode(elementID);
       }
     },
   },

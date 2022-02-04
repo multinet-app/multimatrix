@@ -548,7 +548,7 @@ export default defineComponent({
         .attr('height', orderingScale.value.bandwidth())
         .attr('fill-opacity', 0)
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
+          store.dispatch.clickElement(matrixElement._id);
         })
         .on('mouseover', (event: MouseEvent, node: Node) => {
           showToolTip(event, node);
@@ -661,7 +661,7 @@ export default defineComponent({
         .attr('height', orderingScale.value.bandwidth())
         .attr('fill-opacity', 0)
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
+          store.dispatch.clickElement(matrixElement._id);
         })
         .on('mouseover', (event: MouseEvent, node: Node) => {
           showToolTip(event, node);
@@ -756,7 +756,7 @@ export default defineComponent({
               store.dispatch.expandAggregatedNode(node._id);
             }
           } else {
-            store.commit.clickElement(node._id);
+            store.dispatch.clickElement(node._id);
           }
         });
 
