@@ -71,7 +71,7 @@ export interface State {
   loadError: LoadError;
   userInfo: UserSpec | null;
   cellSize: number;
-  selectedNodes: string[];
+  selectedNodes: Set<string>;
   selectedCell: Cell | null;
   hoveredNodes: string[];
   sortOrder: number[];

@@ -41,7 +41,7 @@ const {
     },
     userInfo: null,
     cellSize: 15,
-    selectedNodes: [],
+    selectedNodes: new Set(),
     selectedCell: null,
     hoveredNodes: [],
     sortOrder: [],

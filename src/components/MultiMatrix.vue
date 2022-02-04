@@ -294,24 +294,24 @@ export default defineComponent({
       // Apply column highlight
       selectAll('.topoCol')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply column label highlight
       selectAll('.colLabels')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply row highlight
       selectAll('.topoRow')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply row label highlight
       selectAll('.rowLabels')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
-      const neighborsOfClicked = selectedNodes.value.map((nodeID) => {
+      const neighborsOfClicked = [...selectedNodes.value.values()].map((nodeID) => {
         if (network.value !== null) {
           const foundNode = network.value.nodes.find((node) => node._id === nodeID);
           return foundNode !== undefined ? foundNode.neighbors : [];

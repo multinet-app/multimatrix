@@ -94,8 +94,8 @@ export default defineComponent({
 
           // Find the symmetric difference between the ids here and those in the store
           function diffFunction<T>(arr1: Array<T>, arr2: Array<T>): Array<T> { return arr1.filter((x) => arr2.indexOf(x) === -1); }
-          let differentIDs = diffFunction<string>(clickedIDs, selectedNodes.value)
-            .concat(diffFunction(selectedNodes.value, clickedIDs));
+          let differentIDs = diffFunction<string>(clickedIDs, [...selectedNodes.value.values()])
+            .concat(diffFunction([...selectedNodes.value.values()], clickedIDs));
 
           // Filter out only the hovered nodes
           differentIDs = differentIDs.filter((ID) => hoveredNodes.value.indexOf(ID) === -1);
@@ -132,7 +132,7 @@ export default defineComponent({
     // Update selection/hover from matrix
     watchEffect(() => {
       // Convert the ids to indices
-      const indices = [...new Set(idsToIndices([...selectedNodes.value, ...hoveredNodes.value]))];
+      const indices = [...new Set(idsToIndices([...selectedNodes.value.values(), ...hoveredNodes.value]))];
 
       if (lineup.value !== null) {
         lineup.value.setSelection(indices);
