@@ -96,6 +96,11 @@ export interface State {
   maxIntConnections: number;
   intAggregatedBy: string | undefined;
   labelVariable: string | undefined;
+  rightClickMenu: {
+    show: boolean;
+    top: number;
+    left: number;
+  };
 }
 
 export type ProvenanceEventTypes =
@@ -106,6 +111,7 @@ export type ProvenanceEventTypes =
   'De-Select Cell' |
   'Select Node(s)' |
   'De-select Node(s)' |
+  'Clear Selection' |
   'Set Label Variable';
 
 export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children'] as const;

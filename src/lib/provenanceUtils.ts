@@ -13,7 +13,7 @@ export function updateProvenanceState(vuexState: State, label: ProvenanceEventTy
       provState.directionalEdges = newProvState.directionalEdges;
     } else if (label === 'Select Cell' || label === 'De-Select Cell') {
       provState.selectedCell = newProvState.selectedCell;
-    } else if (label === 'Select Node(s)' || label === 'De-select Node(s)') {
+    } else if (label === 'Select Node(s)' || label === 'De-select Node(s)' || label === 'Clear Selection') {
       provState.selectedNodes = newProvState.selectedNodes;
     } else if (label === 'Set Label Variable') {
       provState.labelVariable = newProvState.labelVariable;
