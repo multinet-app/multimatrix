@@ -8,9 +8,8 @@ import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import {
-  computed, defineComponent, ref, watch, watchEffect,
+  computed, defineComponent, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
-import { internalFieldNames, Node } from '@/types';
 
 export default defineComponent({
   components: {
@@ -85,21 +84,16 @@ export default defineComponent({
     // Non-template objects
     const network = computed(() => store.state.network);
 
-    const multiVariableList = computed(() => {
-      if (network.value !== null) {
-        // Loop through all nodes, flatten the 2d array, and turn it into a set
-        const allVars: Set<string> = new Set();
-        network.value.nodes.forEach((node: Node) => Object.keys(node).forEach((key) => allVars.add(key)));
-
-        internalFieldNames.forEach((field) => allVars.delete(field));
-        allVars.delete('vx');
-        allVars.delete('vy');
-        allVars.delete('x');
-        allVars.delete('y');
-        allVars.delete('index');
-        return allVars;
+    const searchTerm = ref('');
+    const searchErrors: Ref<string[]> = ref([]);
+    const searchItems = computed(() => {
+      if (network.value !== null && labelVariable.value !== undefined) {
+        return network.value.nodes.map((node) => (node[labelVariable.value || '']));
       }
-      return new Set();
+      if (network.value !== null && labelVariable.value === undefined) {
+        return network.value.nodes.map((node) => (node._key));
+      }
+      return [];
     });
 
     function exportNetwork() {
@@ -184,6 +178,21 @@ export default defineComponent({
       store.dispatch.aggregateNetwork(varName);
     }
 
+    function search() {
+      searchErrors.value = [];
+      if (network.value !== null) {
+        const nodeIDsToSelect = network.value.nodes
+          .filter((node) => (labelVariable.value !== undefined ? node[labelVariable.value] === searchTerm.value : node._key === searchTerm.value))
+          .map((node) => node._id);
+
+        if (nodeIDsToSelect.length > 0) {
+          nodeIDsToSelect.forEach((id) => store.commit.clickElement(id));
+        } else {
+          searchErrors.value.push('Enter a valid node to search');
+        }
+      }
+    }
+
     return {
       aggregateBy,
       directionalEdges,
@@ -203,8 +212,11 @@ export default defineComponent({
       toggleProvVis,
       aggregateNetwork,
       labelVariable,
-      multiVariableList,
       showMenu,
+      search,
+      searchTerm,
+      searchErrors,
+      searchItems,
     };
   },
 });
@@ -375,7 +387,24 @@ export default defineComponent({
           </v-list-item>
         </v-card>
 
-        <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+        <div class="px-4">
+          <v-list-item class="px-0">
+            <v-autocomplete
+              v-model="searchTerm"
+              label="Search for Node"
+              :items="searchItems"
+              :error-messages="searchErrors"
+              no-data-text="Select a label variable"
+              class="pt-4"
+              auto-select-first
+              outlined
+              dense
+              @input="search"
+            />
+          </v-list-item>
+        </div>
+
+        <v-subheader class="grey darken-3 py-0 white--text">
           Color Scale Legend
         </v-subheader>
 
@@ -418,7 +447,7 @@ export default defineComponent({
 
         <!-- Int Table Controls + Legend -->
         <div v-if="showIntNodeVis">
-          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+          <v-subheader class="grey darken-3 py-0 white--text">
             Intermediate Node Table
           </v-subheader>
 
@@ -460,7 +489,7 @@ export default defineComponent({
 
         <!-- Connectivity Query -->
         <div>
-          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+          <v-subheader class="grey darken-3 py-0 white--text">
             Connectivity Query
           </v-subheader>
           <connectivity-query />
