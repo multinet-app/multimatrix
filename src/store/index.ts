@@ -9,6 +9,7 @@ import { initProvenance, Provenance } from '@visdesignlab/trrack';
 import api from '@/api';
 import oauthClient from '@/oauth';
 import {
+  ColumnTypes,
   NetworkSpec, UserSpec,
 } from 'multinet';
 import {
@@ -67,6 +68,7 @@ const {
     showPathTable: false,
     maxIntConnections: 0,
     intAggregatedBy: undefined,
+    columnTypes: null,
     labelVariable: undefined,
     rightClickMenu: {
       show: false,
@@ -304,6 +306,10 @@ const {
       state.intAggregatedBy = intAggregatedBy;
     },
 
+    setColumnTypes(state, columnTypes: ColumnTypes) {
+      state.columnTypes = columnTypes;
+    },
+
     setLabelVariable(state, labelVariable: string | undefined) {
       state.labelVariable = labelVariable;
 
@@ -385,6 +391,22 @@ const {
       }
 
       const networkTables = await api.networkTables(workspaceName, networkName);
+      const metadataPromises: Promise<ColumnTypes>[] = [];
+      networkTables.forEach((table) => {
+        metadataPromises.push(api.columnTypes(workspaceName, table.name));
+      });
+
+      // Resolve network metadata promises
+      const resolvedMetadataPromises = await Promise.all(metadataPromises);
+
+      // Combine all network metadata
+      const columnTypes: ColumnTypes = {};
+      resolvedMetadataPromises.forEach((types) => {
+        Object.assign(columnTypes, types);
+      });
+
+      commit.setColumnTypes(columnTypes);
+
       commit.setNodeTableNames(networkTables.filter((table) => !table.edge).map((table) => table.name));
       commit.setEdgeTableName(networkTables.filter((table) => table.edge).map((table) => table.name)[0]);
 

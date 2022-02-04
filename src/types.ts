@@ -1,4 +1,4 @@
-import { TableRow, UserSpec } from 'multinet';
+import { ColumnTypes, TableRow, UserSpec } from 'multinet';
 import { Provenance } from '@visdesignlab/trrack';
 
 export interface Dimensions {
@@ -95,6 +95,7 @@ export interface State {
   showPathTable: boolean;
   maxIntConnections: number;
   intAggregatedBy: string | undefined;
+  columnTypes: ColumnTypes | null;
   labelVariable: string | undefined;
   rightClickMenu: {
     show: boolean;
