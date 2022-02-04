@@ -432,17 +432,9 @@ const {
 
           const { selectedNodes, selectedCell } = provenanceState;
 
-          // Helper function
-          const setsAreEqual = (a: Set<unknown>, b: Set<unknown>) => a.size === b.size && [...a].every((value) => b.has(value));
-
-          // If the sets are not equal (happens when provenance is updated through provenance vis),
-          // update the store's selectedNodes to match the provenance state
-          if (!setsAreEqual(new Set(selectedNodes), new Set(storeState.selectedNodes))) {
-            storeState.selectedNodes = selectedNodes instanceof Array ? selectedNodes : [];
-          }
-
           // Update selectedCell
           storeState.selectedCell = selectedCell;
+          storeState.selectedNodes = selectedNodes;
 
           // Iterate through vars with primitive data types
           [
