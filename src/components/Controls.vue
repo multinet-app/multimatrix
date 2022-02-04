@@ -66,6 +66,13 @@ export default defineComponent({
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
+    const columnTypes = computed(() => store.state.columnTypes);
+    const aggregationItems = computed(() => store.getters.nodeVariableItems.filter((varName) => {
+      if (columnTypes.value !== null) {
+        return columnTypes.value[varName] === 'category';
+      }
+      return true;
+    }));
     const maxConnections = computed(() => store.state.maxConnections);
 
     // Intermediate node table template objects
@@ -203,6 +210,7 @@ export default defineComponent({
       cellColorScale,
       parentColorScale,
       nodeVariableItems,
+      aggregationItems,
       maxConnections,
       showIntNodeVis,
       intAggregatedBy,
@@ -304,7 +312,7 @@ export default defineComponent({
             <v-autocomplete
               v-model="aggregateBy"
               label="Aggregation Variable"
-              :items="nodeVariableItems"
+              :items="aggregationItems"
               :hide-details="true"
               class="mt-3"
               clearable
