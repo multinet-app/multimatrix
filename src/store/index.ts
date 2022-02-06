@@ -41,7 +41,7 @@ const {
     },
     userInfo: null,
     cellSize: 15,
-    selectedNodes: [],
+    selectedNodes: new Set(),
     selectedCell: null,
     hoveredNodes: [],
     sortOrder: [],
@@ -141,19 +141,25 @@ const {
       state.userInfo = userInfo;
     },
 
-    clickElement(state, elementID: string) {
-      if (state.selectedNodes.indexOf(elementID) === -1) {
-        state.selectedNodes.push(elementID);
+    addSelectedNode(state, nodesToAdd: string[]) {
+      // If no nodes, do nothing
+      if (nodesToAdd.length === 0) {
+        return;
+      }
 
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'Select Node');
-        }
-      } else {
-        state.selectedNodes = state.selectedNodes.filter((arrayElementID) => arrayElementID !== elementID);
+      state.selectedNodes = new Set([...state.selectedNodes, ...nodesToAdd]);
 
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'De-Select Node');
-        }
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Select Node(s)');
+      }
+    },
+
+    removeSelectedNode(state, nodeID: string) {
+      state.selectedNodes.delete(nodeID);
+      state.selectedNodes = new Set(state.selectedNodes);
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'De-select Node(s)');
       }
     },
 
@@ -426,17 +432,9 @@ const {
 
           const { selectedNodes, selectedCell } = provenanceState;
 
-          // Helper function
-          const setsAreEqual = (a: Set<unknown>, b: Set<unknown>) => a.size === b.size && [...a].every((value) => b.has(value));
-
-          // If the sets are not equal (happens when provenance is updated through provenance vis),
-          // update the store's selectedNodes to match the provenance state
-          if (!setsAreEqual(new Set(selectedNodes), new Set(storeState.selectedNodes))) {
-            storeState.selectedNodes = selectedNodes instanceof Array ? selectedNodes : [];
-          }
-
           // Update selectedCell
           storeState.selectedCell = selectedCell;
+          storeState.selectedNodes = selectedNodes;
 
           // Iterate through vars with primitive data types
           [
@@ -612,6 +610,15 @@ const {
           .filter((edge): edge is Edge => edge !== null);
 
         dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
+      }
+    },
+
+    clickElement(context, elementID: string) {
+      const { state, commit } = rootActionContext(context);
+      if (!state.selectedNodes.has(elementID)) {
+        commit.addSelectedNode([elementID]);
+      } else {
+        commit.removeSelectedNode(elementID);
       }
     },
   },

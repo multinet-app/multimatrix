@@ -294,24 +294,24 @@ export default defineComponent({
       // Apply column highlight
       selectAll('.topoCol')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply column label highlight
       selectAll('.colLabels')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply row highlight
       selectAll('.topoRow')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply row label highlight
       selectAll('.rowLabels')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
-      const neighborsOfClicked = selectedNodes.value.map((nodeID) => {
+      const neighborsOfClicked = [...selectedNodes.value.values()].map((nodeID) => {
         if (network.value !== null) {
           const foundNode = network.value.nodes.find((node) => node._id === nodeID);
           return foundNode !== undefined ? foundNode.neighbors : [];
@@ -548,7 +548,7 @@ export default defineComponent({
         .attr('height', orderingScale.value.bandwidth())
         .attr('fill-opacity', 0)
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
+          store.dispatch.clickElement(matrixElement._id);
         })
         .on('mouseover', (event: MouseEvent, node: Node) => {
           showToolTip(event, node);
@@ -661,7 +661,7 @@ export default defineComponent({
         .attr('height', orderingScale.value.bandwidth())
         .attr('fill-opacity', 0)
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
+          store.dispatch.clickElement(matrixElement._id);
         })
         .on('mouseover', (event: MouseEvent, node: Node) => {
           showToolTip(event, node);
@@ -756,7 +756,7 @@ export default defineComponent({
               store.dispatch.expandAggregatedNode(node._id);
             }
           } else {
-            store.commit.clickElement(node._id);
+            store.dispatch.clickElement(node._id);
           }
         });
 

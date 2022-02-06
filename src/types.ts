@@ -71,7 +71,7 @@ export interface State {
   loadError: LoadError;
   userInfo: UserSpec | null;
   cellSize: number;
-  selectedNodes: string[];
+  selectedNodes: Set<string>;
   selectedCell: Cell | null;
   hoveredNodes: string[];
   sortOrder: number[];
@@ -104,8 +104,8 @@ export type ProvenanceEventTypes =
   'Set Directional Edges' |
   'Select Cell' |
   'De-Select Cell' |
-  'Select Node' |
-  'De-Select Node' |
+  'Select Node(s)' |
+  'De-select Node(s)' |
   'Set Label Variable';
 
 export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children'] as const;
