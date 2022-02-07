@@ -640,6 +640,15 @@ const {
         commit.removeSelectedNode(elementID);
       }
     },
+
+    clearSelection(context) {
+      const { state, commit } = rootActionContext(context);
+
+      commit.setSelected(new Set());
+      if (state.selectedCell !== null) {
+        commit.clickCell(state.selectedCell);
+      }
+    },
   },
 });
 

@@ -7,7 +7,7 @@ import {
 export default defineComponent({
   setup() {
     function clearSelection() {
-      store.commit.setSelected(new Set());
+      store.dispatch.clearSelection();
     }
 
     const rightClickMenu = computed(() => store.state.rightClickMenu);
