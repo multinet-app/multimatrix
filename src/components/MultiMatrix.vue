@@ -16,6 +16,7 @@ import { transition } from 'd3-transition';
 import store from '@/store';
 import LineUp from '@/components/LineUp.vue';
 import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
+import ContextMenu from '@/components/ContextMenu.vue';
 
 import 'science';
 import 'reorder.js';
@@ -32,6 +33,7 @@ export default defineComponent({
     LineUp,
     IntermediaryNodes,
     PathTable,
+    ContextMenu,
   },
 
   setup() {
@@ -187,6 +189,16 @@ export default defineComponent({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .transition(transition().delay(100).duration(200) as any)
         .style('opacity', 0);
+    }
+
+    function showContextMenu(event: MouseEvent) {
+      store.commit.updateRightClickMenu({
+        show: true,
+        top: event.y,
+        left: event.x,
+      });
+
+      event.preventDefault();
     }
 
     function sortObserver(type: string, isNode = false) {
@@ -933,6 +945,7 @@ export default defineComponent({
       matrixHeight,
       tooltip,
       showPathTable,
+      showContextMenu,
     };
   },
 
@@ -949,6 +962,7 @@ export default defineComponent({
           :width="matrixWidth"
           :height="matrixHeight"
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
+          @contextmenu="showContextMenu"
         />
       </div>
       <intermediary-nodes v-if="finishedMounting && showIntNodeVis" />
@@ -960,6 +974,7 @@ export default defineComponent({
       ref="tooltip"
     />
     <path-table v-if="showPathTable" />
+    <context-menu />
   </div>
 </template>
 

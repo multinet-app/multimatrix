@@ -68,6 +68,11 @@ const {
     maxIntConnections: 0,
     intAggregatedBy: undefined,
     labelVariable: undefined,
+    rightClickMenu: {
+      show: false,
+      top: 0,
+      left: 0,
+    },
   } as State,
 
   getters: {
@@ -304,6 +309,20 @@ const {
 
       if (state.provenance !== null) {
         updateProvenanceState(state, 'Set Label Variable');
+      }
+    },
+
+    updateRightClickMenu(state, payload: { show: boolean; top: number; left: number }) {
+      state.rightClickMenu = payload;
+    },
+
+    setSelected(state, selectedNodes: Set<string>) {
+      state.selectedNodes = selectedNodes;
+
+      if (state.provenance !== null) {
+        if (selectedNodes.size === 0) {
+          updateProvenanceState(state, 'Clear Selection');
+        }
       }
     },
   },
@@ -619,6 +638,15 @@ const {
         commit.addSelectedNode([elementID]);
       } else {
         commit.removeSelectedNode(elementID);
+      }
+    },
+
+    clearSelection(context) {
+      const { state, commit } = rootActionContext(context);
+
+      commit.setSelected(new Set());
+      if (state.selectedCell !== null) {
+        commit.clickCell(state.selectedCell);
       }
     },
   },
