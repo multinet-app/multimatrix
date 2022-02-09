@@ -20,7 +20,7 @@ export default defineComponent({
 
   setup() {
     // Template objects
-    const showTabs = ref(false);
+    const showQuery = ref(false);
     const tab = ref(false);
     const showMenu = ref(false);
     const aggregateBy = ref(undefined);
@@ -196,7 +196,7 @@ export default defineComponent({
     }
 
     return {
-      showTabs,
+      showQuery,
       tab,
       aggregateBy,
       directionalEdges,
@@ -503,48 +503,19 @@ export default defineComponent({
               :height="48"
               depressed
               tile
-              :class="showTabs? `grey darken-2 pa-0` : `grey darken-3 pa-0`"
-              @click="showTabs = !showTabs"
+              :class="showQuery? `grey darken-2 pa-0` : `grey darken-3 pa-0`"
+              @click="showQuery = !showQuery"
             >
               <v-icon color="white">
                 mdi-cog
               </v-icon>
             </v-btn>
           </v-subheader>
-
-          <v-tabs
-            v-if="showTabs"
-            v-model="tab"
-            background-color="grey darken-2"
-            dark
-            grow
-            slider-color="blue darken-1"
+          <v-div
+            v-if="showQuery"
           >
-            <v-tab>
-              Basic
-            </v-tab>
-            <v-tab>
-              Advanced
-            </v-tab>
-          </v-tabs>
-
-          <v-tabs-items
-            v-if="showTabs"
-            v-model="tab"
-            dark
-          >
-            <v-tab-item>
-              <v-card
-                flat
-                color="grey darken-3"
-                class="pb-4 pt-2"
-              >
-                <connectivity-query />
-              </v-card>
-            </v-tab-item>
-
-            <v-tab-item />
-          </v-tabs-items>
+            <connectivity-query />
+          </v-div>
         </div>
       </v-list>
     </v-navigation-drawer>
