@@ -5,6 +5,7 @@ import {
 } from '@vue/composition-api';
 import LineUp, { DataBuilder } from 'lineupjs';
 import { select } from 'd3-selection';
+import { isInternalField } from '@/lib/typeUtils';
 
 export default defineComponent({
   name: 'LineUp',
@@ -67,7 +68,7 @@ export default defineComponent({
       const lineupDiv = document.getElementById('lineup');
 
       if (network.value !== null && lineupDiv !== null) {
-        const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())];
+        const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column) || column === '_key');
 
         builder.value = new DataBuilder(network.value.nodes);
 
@@ -79,7 +80,12 @@ export default defineComponent({
         }));
 
         // Make the vis
-        lineup.value = builder.value.deriveColumns(columns).deriveColors().defaultRanking().build(lineupDiv);
+        lineup.value = builder.value
+          .deriveColumns(columns)
+          .deriveColors()
+          .defaultRanking()
+          .sidePanel(true, true) // enable: true, collapsed: true
+          .build(lineupDiv);
 
         // Add an event watcher to update selected nodes
         lineup.value.on('selectionChanged', (dataindices: number[]) => {
@@ -88,14 +94,14 @@ export default defineComponent({
 
           // Find the symmetric difference between the ids here and those in the store
           function diffFunction<T>(arr1: Array<T>, arr2: Array<T>): Array<T> { return arr1.filter((x) => arr2.indexOf(x) === -1); }
-          let differentIDs = diffFunction<string>(clickedIDs, selectedNodes.value)
-            .concat(diffFunction(selectedNodes.value, clickedIDs));
+          let differentIDs = diffFunction<string>(clickedIDs, [...selectedNodes.value.values()])
+            .concat(diffFunction([...selectedNodes.value.values()], clickedIDs));
 
           // Filter out only the hovered nodes
           differentIDs = differentIDs.filter((ID) => hoveredNodes.value.indexOf(ID) === -1);
 
           // Click on the elements that are different to add/remove them from the store
-          differentIDs.forEach((nodeID) => store.commit.clickElement(nodeID));
+          differentIDs.forEach((nodeID) => store.dispatch.clickElement(nodeID));
         });
 
         let lastHovered = '';
@@ -126,7 +132,7 @@ export default defineComponent({
     // Update selection/hover from matrix
     watchEffect(() => {
       // Convert the ids to indices
-      const indices = [...new Set(idsToIndices([...selectedNodes.value, ...hoveredNodes.value]))];
+      const indices = [...new Set(idsToIndices([...selectedNodes.value.values(), ...hoveredNodes.value]))];
 
       if (lineup.value !== null) {
         lineup.value.setSelection(indices);

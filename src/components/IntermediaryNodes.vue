@@ -57,7 +57,7 @@ export default defineComponent({
         const hops = edgeLength.value - 1;
         matrix = [];
         let sortConnectivityPaths = [];
-        const sortKey = intAggregatedBy.value === 'none' ? '_key' : intAggregatedBy.value;
+        const sortKey = intAggregatedBy.value === undefined ? '_key' : intAggregatedBy.value;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         sortConnectivityPaths = connectivityPaths.value.nodes.sort((a: any, b: any) => (a[sortKey] > b[sortKey] ? 1 : -1));
 
@@ -101,7 +101,7 @@ export default defineComponent({
         ]);
 
         // Aggregate by label
-        if (intAggregatedBy.value !== 'none') {
+        if (intAggregatedBy.value !== undefined) {
           const newMatrix: ConnectivityCell[][] = [];
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const arrayColumn = (arr: any, n: number) => arr.map((x: any) => x[n]);

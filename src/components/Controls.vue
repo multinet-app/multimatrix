@@ -8,7 +8,7 @@ import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import {
-  computed, defineComponent, ref, watchEffect,
+  computed, defineComponent, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
 
 export default defineComponent({
@@ -22,7 +22,8 @@ export default defineComponent({
     // Template objects
     const showTabs = ref(false);
     const tab = ref(false);
-    const aggregateBy = ref('none');
+    const showMenu = ref(false);
+    const aggregateBy = ref(undefined);
     const directionalEdges = computed({
       get() {
         return store.state.directionalEdges;
@@ -55,6 +56,14 @@ export default defineComponent({
         store.commit.setCellSize(value);
       },
     });
+    const labelVariable = computed({
+      get() {
+        return store.state.labelVariable;
+      },
+      set(value: string | undefined) {
+        store.commit.setLabelVariable(value);
+      },
+    });
     const aggregated = computed(() => store.state.aggregated);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
@@ -67,7 +76,7 @@ export default defineComponent({
       get() {
         return store.state.intAggregatedBy;
       },
-      set(value: string) {
+      set(value: string | undefined) {
         store.commit.setIntAggregatedBy(value);
       },
     });
@@ -76,6 +85,18 @@ export default defineComponent({
 
     // Non-template objects
     const network = computed(() => store.state.network);
+
+    const searchTerm = ref('');
+    const searchErrors: Ref<string[]> = ref([]);
+    const searchItems = computed(() => {
+      if (network.value !== null && labelVariable.value !== undefined) {
+        return network.value.nodes.map((node) => (node[labelVariable.value || '']));
+      }
+      if (network.value !== null && labelVariable.value === undefined) {
+        return network.value.nodes.map((node) => (node._key));
+      }
+      return [];
+    });
 
     function exportNetwork() {
       if (network.value === null) {
@@ -135,12 +156,19 @@ export default defineComponent({
     watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
     watchEffect(() => {
       if (!aggregated.value) {
-        aggregateBy.value = 'none';
+        aggregateBy.value = undefined;
+      }
+    });
+    watch(aggregated, () => {
+      if (!aggregated.value) {
+        labelVariable.value = '_key';
+      } else {
+        labelVariable.value = aggregateBy.value;
       }
     });
     watchEffect(() => {
       if (!showIntNodeVis.value) {
-        intAggregatedBy.value = 'none';
+        intAggregatedBy.value = undefined;
       }
     });
 
@@ -150,6 +178,21 @@ export default defineComponent({
 
     function aggregateNetwork(varName: string) {
       store.dispatch.aggregateNetwork(varName);
+    }
+
+    function search() {
+      searchErrors.value = [];
+      if (network.value !== null) {
+        const nodeIDsToSelect = network.value.nodes
+          .filter((node) => (labelVariable.value !== undefined ? node[labelVariable.value] === searchTerm.value : node._key === searchTerm.value))
+          .map((node) => node._id);
+
+        if (nodeIDsToSelect.length > 0) {
+          store.commit.addSelectedNode(nodeIDsToSelect);
+        } else {
+          searchErrors.value.push('Enter a valid node to search');
+        }
+      }
     }
 
     return {
@@ -172,6 +215,12 @@ export default defineComponent({
       updateLegend,
       toggleProvVis,
       aggregateNetwork,
+      labelVariable,
+      showMenu,
+      search,
+      searchTerm,
+      searchErrors,
+      searchItems,
     };
   },
 });
@@ -216,49 +265,96 @@ export default defineComponent({
       </v-toolbar>
 
       <v-list class="pa-0">
-        <v-subheader class="grey darken-3 py-0 white--text">
-          Controls
+        <v-subheader class="grey darken-3 py-0 pr-0 white--text">
+          Visualization Options
+
+          <v-spacer />
+
+          <v-btn
+            :min-width="40"
+            :height="48"
+            depressed
+            tile
+            class="grey darken-3 pa-0"
+            @click="showMenu = !showMenu"
+          >
+            <v-icon color="white">
+              {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+            </v-icon>
+          </v-btn>
         </v-subheader>
 
-        <div class="pa-4">
+        <v-card
+          v-if="showMenu"
+          dark
+          tile
+          flat
+          color="grey darken-3"
+          class="pb-4 pt-0"
+        >
+          <v-list-item>
+            <v-autocomplete
+              v-model="labelVariable"
+              label="Label Variable"
+              :items="nodeVariableItems"
+              :hide-details="true"
+              class="mt-3"
+              clearable
+              outlined
+              dense
+            />
+          </v-list-item>
+          <v-list-item>
+            <v-autocomplete
+              v-model="aggregateBy"
+              label="Aggregation Variable"
+              :items="nodeVariableItems"
+              :hide-details="true"
+              class="mt-3"
+              clearable
+              outlined
+              dense
+              @change="aggregateNetwork"
+            />
+          </v-list-item>
+
           <!-- Auto-Select Neighbors List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
+          <v-list-item>
+            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
+            <v-list-item-action>
               <v-switch
                 v-model="selectNeighbors"
-                class="ma-0"
                 hide-details
+                color="blue darken-1"
               />
             </v-list-item-action>
-            <v-list-item-content> Autoselect Neighbors </v-list-item-content>
           </v-list-item>
 
           <!-- Gridline Toggle List Item -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
+          <v-list-item>
+            <v-list-item-content> Show GridLines </v-list-item-content>
+            <v-list-item-action>
               <v-switch
                 v-model="showGridLines"
-                class="ma-0"
                 hide-details
+                color="blue darken-1"
               />
             </v-list-item-action>
-            <v-list-item-content> Show GridLines </v-list-item-content>
           </v-list-item>
 
           <!-- Directional Edges Toggle Card -->
-          <v-list-item class="px-0">
-            <v-list-item-action class="mr-3">
+          <v-list-item>
+            <v-list-item-content> Directional Edges </v-list-item-content>
+            <v-list-item-action>
               <v-switch
                 v-model="directionalEdges"
-                class="ma-0"
                 hide-details
+                color="blue darken-1"
               />
             </v-list-item-action>
-            <v-list-item-content> Directional Edges </v-list-item-content>
           </v-list-item>
 
-          <!-- Connectivity Query List Item -->
-          <v-list-item class="px-0">
+          <v-list-item>
             Cell Size
             <v-slider
               v-model="cellSize"
@@ -272,48 +368,47 @@ export default defineComponent({
             />
           </v-list-item>
 
-          <!-- Aggregation Variable Selection -->
-          <v-list-item
-            class="pa-0 ma-0"
-          >
-            <v-list-item-content class="pa-0 ma-0">
-              <v-autocomplete
-                v-model="aggregateBy"
-                class="pa-0 ma-0"
-                :items="['none', ...nodeVariableItems]"
-                hint="Variable to aggregate by"
-                persistent-hint
-                @change="aggregateNetwork"
-              />
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item class="px-0">
+          <v-list-item>
             <v-btn
-              block
-              class="ml-0 mt-4"
               color="primary"
-              depressed
-              @click="exportNetwork"
-            >
-              Export Network
-            </v-btn>
-          </v-list-item>
-
-          <v-list-item class="px-0">
-            <v-btn
               block
-              class="ml-0 mt-4"
-              color="primary"
               depressed
               @click="toggleProvVis"
             >
               Provenance Vis
             </v-btn>
           </v-list-item>
+
+          <v-list-item>
+            <v-btn
+              block
+              color="grey darken-2 white--text"
+              depressed
+              @click="exportNetwork"
+            >
+              Export Network
+            </v-btn>
+          </v-list-item>
+        </v-card>
+
+        <div class="px-4">
+          <v-list-item class="px-0">
+            <v-autocomplete
+              v-model="searchTerm"
+              label="Search for Node"
+              :items="searchItems"
+              :error-messages="searchErrors"
+              no-data-text="Select a label variable"
+              class="pt-4"
+              auto-select-first
+              outlined
+              dense
+              @input="search"
+            />
+          </v-list-item>
         </div>
 
-        <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+        <v-subheader class="grey darken-3 py-0 white--text">
           Color Scale Legend
         </v-subheader>
 
@@ -325,10 +420,13 @@ export default defineComponent({
             style="display: flex; max-height: 50px"
           >
             Aggregate Legend
-            <svg id="parent-matrix-legend">
+            <svg
+              id="parent-matrix-legend"
+              height="50"
+            >
               <g
                 class="legendLinear"
-                transform="translate(10, 60)"
+                transform="translate(10, 10)"
               />
             </svg>
           </v-list-item>
@@ -339,10 +437,13 @@ export default defineComponent({
             :style="`display: flex; max-height: 50px; opacity: ${maxConnections.unAggr > 0 ? 1 : 0}`"
           >
             {{ aggregated ? 'Child Legend' : 'Matrix Legend' }}
-            <svg id="matrix-legend">
+            <svg
+              id="matrix-legend"
+              height="50"
+            >
               <g
                 class="legendLinear"
-                transform="translate(10, 60)"
+                transform="translate(10, 10)"
               />
             </svg>
           </v-list-item>
@@ -350,7 +451,7 @@ export default defineComponent({
 
         <!-- Int Table Controls + Legend -->
         <div v-if="showIntNodeVis">
-          <v-subheader class="grey darken-3 mt-6 py-0 white--text">
+          <v-subheader class="grey darken-3 py-0 white--text">
             Intermediate Node Table
           </v-subheader>
 
@@ -363,9 +464,10 @@ export default defineComponent({
                 <v-autocomplete
                   v-model="intAggregatedBy"
                   class="pa-0 ma-0"
-                  :items="['none', ...nodeVariableItems]"
+                  :items="nodeVariableItems"
                   hint="Variable to aggregate by"
                   persistent-hint
+                  clearable
                 />
               </v-list-item-content>
             </v-list-item>
@@ -376,10 +478,13 @@ export default defineComponent({
               :style="`display: flex; max-height: 50px; opacity: ${maxIntConnections > 0 ? 1 : 0}`"
             >
               {{ 'Legend' }}
-              <svg id="int-matrix-legend">
+              <svg
+                id="int-matrix-legend"
+                height="50"
+              >
                 <g
                   class="legendLinear"
-                  transform="translate(10, 60)"
+                  transform="translate(10, 10)"
                 />
               </svg>
             </v-list-item>
@@ -387,8 +492,8 @@ export default defineComponent({
         </div>
 
         <!-- Connectivity Query -->
-        <v-list class="pa-0">
-          <v-subheader class="grey darken-3 py-0 pr-0 white--text">
+        <div>
+          <v-subheader class="grey darken-3 py-0 white--text">
             Connectivity Query
 
             <v-spacer />
@@ -440,7 +545,7 @@ export default defineComponent({
 
             <v-tab-item />
           </v-tabs-items>
-        </v-list>
+        </div>
       </v-list>
     </v-navigation-drawer>
   </div>

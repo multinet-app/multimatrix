@@ -224,7 +224,7 @@ export default defineComponent({
             if (selectedHops.value > 1) store.commit.toggleShowIntNodeVis(true);
 
             // Update state with new network
-            store.dispatch.aggregateNetwork('none');
+            store.dispatch.aggregateNetwork(undefined);
             store.dispatch.updateNetwork({ network: newNetwork });
             loading.value = false;
             store.commit.setDirectionalEdges(true);

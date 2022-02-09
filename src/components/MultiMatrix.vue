@@ -16,6 +16,7 @@ import { transition } from 'd3-transition';
 import store from '@/store';
 import LineUp from '@/components/LineUp.vue';
 import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
+import ContextMenu from '@/components/ContextMenu.vue';
 
 import 'science';
 import 'reorder.js';
@@ -32,6 +33,7 @@ export default defineComponent({
     LineUp,
     IntermediaryNodes,
     PathTable,
+    ContextMenu,
   },
 
   setup() {
@@ -73,6 +75,7 @@ export default defineComponent({
     const sortKey = ref('');
     const finishedMounting = ref(false);
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
+    const labelVariable = computed(() => store.state.labelVariable);
 
     const cellSize = computed(() => store.state.cellSize);
     const selectedNodes = computed(() => store.state.selectedNodes);
@@ -188,6 +191,16 @@ export default defineComponent({
         .style('opacity', 0);
     }
 
+    function showContextMenu(event: MouseEvent) {
+      store.commit.updateRightClickMenu({
+        show: true,
+        top: event.y,
+        left: event.x,
+      });
+
+      event.preventDefault();
+    }
+
     function sortObserver(type: string, isNode = false) {
       if (network.value === null) { return; }
 
@@ -293,24 +306,24 @@ export default defineComponent({
       // Apply column highlight
       selectAll('.topoCol')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply column label highlight
       selectAll('.colLabels')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply row highlight
       selectAll('.topoRow')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
       // Apply row label highlight
       selectAll('.rowLabels')
         .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.indexOf(node._id) !== -1);
+        .classed('clicked', (node) => selectedNodes.value.has(node._id));
 
-      const neighborsOfClicked = selectedNodes.value.map((nodeID) => {
+      const neighborsOfClicked = [...selectedNodes.value.values()].map((nodeID) => {
         if (network.value !== null) {
           const foundNode = network.value.nodes.find((node) => node._id === nodeID);
           return foundNode !== undefined ? foundNode.neighbors : [];
@@ -518,7 +531,9 @@ export default defineComponent({
       // Update existing foreignObjects
       edges.value
         .selectAll('.colForeign')
-        .attr('height', cellSize.value);
+        .attr('height', cellSize.value)
+        .select('p')
+        .text((d: Node) => d[labelVariable.value || '_key']);
 
       edges.value
         .selectAll('.colForeign')
@@ -545,7 +560,7 @@ export default defineComponent({
         .attr('height', orderingScale.value.bandwidth())
         .attr('fill-opacity', 0)
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
+          store.dispatch.clickElement(matrixElement._id);
         })
         .on('mouseover', (event: MouseEvent, node: Node) => {
           showToolTip(event, node);
@@ -564,7 +579,7 @@ export default defineComponent({
         .attr('width', labelWidth)
         .attr('height', cellSize.value)
         .append('xhtml:p')
-        .text((d: Node) => d._key)
+        .text((d: Node) => d[labelVariable.value || '_key'])
         .style('color', (d: Node) => {
           if (d.type === 'node') {
             return '#aaa';
@@ -635,7 +650,9 @@ export default defineComponent({
       // Update existing foreignObjects
       edges.value
         .selectAll('.rowForeign')
-        .attr('height', cellSize.value);
+        .attr('height', cellSize.value)
+        .select('p')
+        .text((d: Node) => d[labelVariable.value || '_key']);
 
       edges.value
         .selectAll('.rowForeign')
@@ -656,7 +673,7 @@ export default defineComponent({
         .attr('height', orderingScale.value.bandwidth())
         .attr('fill-opacity', 0)
         .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.commit.clickElement(matrixElement._id);
+          store.dispatch.clickElement(matrixElement._id);
         })
         .on('mouseover', (event: MouseEvent, node: Node) => {
           showToolTip(event, node);
@@ -675,7 +692,7 @@ export default defineComponent({
         .attr('height', cellSize.value)
         .classed('rowForeign', true)
         .append('xhtml:p')
-        .text((d: Node) => d._key)
+        .text((d: Node) => d[labelVariable.value || '_key'])
         .style('color', (d: Node) => {
           if (d.type === 'node') {
             return '#aaa';
@@ -751,7 +768,7 @@ export default defineComponent({
               store.dispatch.expandAggregatedNode(node._id);
             }
           } else {
-            store.commit.clickElement(node._id);
+            store.dispatch.clickElement(node._id);
           }
         });
 
@@ -919,7 +936,7 @@ export default defineComponent({
       finishedMounting.value = true;
     });
 
-    watch([orderingScale, showGridLines, network, directionalEdges], () => initializeEdges());
+    watch([orderingScale, showGridLines, network, directionalEdges, labelVariable], () => initializeEdges());
 
     return {
       finishedMounting,
@@ -928,6 +945,7 @@ export default defineComponent({
       matrixHeight,
       tooltip,
       showPathTable,
+      showContextMenu,
     };
   },
 
@@ -944,6 +962,7 @@ export default defineComponent({
           :width="matrixWidth"
           :height="matrixHeight"
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
+          @contextmenu="showContextMenu"
         />
       </div>
       <intermediary-nodes v-if="finishedMounting && showIntNodeVis" />
@@ -955,6 +974,7 @@ export default defineComponent({
       ref="tooltip"
     />
     <path-table v-if="showPathTable" />
+    <context-menu />
   </div>
 </template>
 

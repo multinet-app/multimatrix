@@ -41,7 +41,7 @@ const {
     },
     userInfo: null,
     cellSize: 15,
-    selectedNodes: [],
+    selectedNodes: new Set(),
     selectedCell: null,
     hoveredNodes: [],
     sortOrder: [],
@@ -66,7 +66,13 @@ const {
     selectedConnectivityPaths: [],
     showPathTable: false,
     maxIntConnections: 0,
-    intAggregatedBy: '',
+    intAggregatedBy: undefined,
+    labelVariable: undefined,
+    rightClickMenu: {
+      show: false,
+      top: 0,
+      left: 0,
+    },
   } as State,
 
   getters: {
@@ -140,19 +146,25 @@ const {
       state.userInfo = userInfo;
     },
 
-    clickElement(state, elementID: string) {
-      if (state.selectedNodes.indexOf(elementID) === -1) {
-        state.selectedNodes.push(elementID);
+    addSelectedNode(state, nodesToAdd: string[]) {
+      // If no nodes, do nothing
+      if (nodesToAdd.length === 0) {
+        return;
+      }
 
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'Select Node');
-        }
-      } else {
-        state.selectedNodes = state.selectedNodes.filter((arrayElementID) => arrayElementID !== elementID);
+      state.selectedNodes = new Set([...state.selectedNodes, ...nodesToAdd]);
 
-        if (state.provenance !== null) {
-          updateProvenanceState(state, 'De-Select Node');
-        }
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Select Node(s)');
+      }
+    },
+
+    removeSelectedNode(state, nodeID: string) {
+      state.selectedNodes.delete(nodeID);
+      state.selectedNodes = new Set(state.selectedNodes);
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'De-select Node(s)');
       }
     },
 
@@ -288,8 +300,30 @@ const {
       state.maxIntConnections = maxIntConnections;
     },
 
-    setIntAggregatedBy(state, intAggregatedBy: string) {
+    setIntAggregatedBy(state, intAggregatedBy: string | undefined) {
       state.intAggregatedBy = intAggregatedBy;
+    },
+
+    setLabelVariable(state, labelVariable: string | undefined) {
+      state.labelVariable = labelVariable;
+
+      if (state.provenance !== null) {
+        updateProvenanceState(state, 'Set Label Variable');
+      }
+    },
+
+    updateRightClickMenu(state, payload: { show: boolean; top: number; left: number }) {
+      state.rightClickMenu = payload;
+    },
+
+    setSelected(state, selectedNodes: Set<string>) {
+      state.selectedNodes = selectedNodes;
+
+      if (state.provenance !== null) {
+        if (selectedNodes.size === 0) {
+          updateProvenanceState(state, 'Clear Selection');
+        }
+      }
     },
   },
 
@@ -417,17 +451,9 @@ const {
 
           const { selectedNodes, selectedCell } = provenanceState;
 
-          // Helper function
-          const setsAreEqual = (a: Set<unknown>, b: Set<unknown>) => a.size === b.size && [...a].every((value) => b.has(value));
-
-          // If the sets are not equal (happens when provenance is updated through provenance vis),
-          // update the store's selectedNodes to match the provenance state
-          if (!setsAreEqual(new Set(selectedNodes), new Set(storeState.selectedNodes))) {
-            storeState.selectedNodes = selectedNodes instanceof Array ? selectedNodes : [];
-          }
-
           // Update selectedCell
           storeState.selectedCell = selectedCell;
+          storeState.selectedNodes = selectedNodes;
 
           // Iterate through vars with primitive data types
           [
@@ -449,7 +475,7 @@ const {
       document.addEventListener('keydown', (event) => undoRedoKeyHandler(event, storeState));
     },
 
-    aggregateNetwork(context, varName: string) {
+    aggregateNetwork(context, varName: string | undefined) {
       const { state, commit, dispatch } = rootActionContext(context);
 
       if (state.network !== null) {
@@ -474,7 +500,7 @@ const {
         }
 
         // Aggregate the network if the varName is not none
-        if (varName !== 'none') {
+        if (varName !== undefined) {
           // Calculate edges
           const aggregatedEdges = state.network.edges.map((edge) => {
             const fromNode = state.network && state.network.nodes.find((node) => node._id === edge._from);
@@ -603,6 +629,24 @@ const {
           .filter((edge): edge is Edge => edge !== null);
 
         dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
+      }
+    },
+
+    clickElement(context, elementID: string) {
+      const { state, commit } = rootActionContext(context);
+      if (!state.selectedNodes.has(elementID)) {
+        commit.addSelectedNode([elementID]);
+      } else {
+        commit.removeSelectedNode(elementID);
+      }
+    },
+
+    clearSelection(context) {
+      const { state, commit } = rootActionContext(context);
+
+      commit.setSelected(new Set());
+      if (state.selectedCell !== null) {
+        commit.clickCell(state.selectedCell);
       }
     },
   },
