@@ -13,7 +13,7 @@ export default defineComponent({
   name: 'EdgeSlicing',
 
   setup() {
-    const showOptions = ref(false);
+    const showMenu = ref(false);
     const sliceRules = (value: string) => !Number.isNaN(parseFloat(value)) || 'Please type a number';
     const calMenu = ref([false, false]);
     const dateFormatted: Ref<string[]> = ref([]);
@@ -196,7 +196,7 @@ export default defineComponent({
     }
 
     return {
-      showOptions,
+      showMenu,
       sliceRules,
       startEdgeVar,
       endEdgeVar,
@@ -226,17 +226,17 @@ export default defineComponent({
           :height="48"
           depressed
           tile
-          :class="showOptions? `grey darken-2 pa-0` : `grey darken-3 pa-0`"
-          @click="showOptions = !showOptions"
+          class="grey darken-3 pa-0"
+          @click="showMenu = !showMenu"
         >
           <v-icon color="white">
-            mdi-cog
+            {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
           </v-icon>
         </v-btn>
       </v-subheader>
 
       <v-card
-        v-if="showOptions"
+        v-if="showMenu"
         flat
         color="white"
         class="pb-4 pt-2"
