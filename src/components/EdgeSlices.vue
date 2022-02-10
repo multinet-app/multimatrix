@@ -2,7 +2,7 @@
 import { select, selectAll } from 'd3-selection';
 import store from '@/store';
 import {
-  computed, defineComponent, ref,
+  computed, defineComponent, getCurrentInstance, ref,
 } from '@vue/composition-api';
 import { extent } from 'd3-array';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
@@ -13,7 +13,8 @@ export default defineComponent({
   setup() {
     const slicedNetwork = computed(() => store.state.slicedNetwork);
     const isDate = computed(() => store.state.isDate);
-    const svgWidth = computed(() => parseFloat(select('svg#matrix').attr('width')));
+    const currentInstance = getCurrentInstance();
+    const svgWidth = computed(() => (currentInstance !== null ? currentInstance.proxy.$vuetify.breakpoint.width - store.state.controlsWidth : 0));
 
     const currentTime = computed(() => {
       const times: { timeRanges: {[key: number]: number[] | Date[]} ; current: number ; slices: number } = { timeRanges: {}, current: 0, slices: 0 };

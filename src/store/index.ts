@@ -78,6 +78,7 @@ const {
     columnTypes: null,
     slicedNetwork: [],
     isDate: false,
+    controlsWidth: 256,
   } as State,
 
   getters: {
