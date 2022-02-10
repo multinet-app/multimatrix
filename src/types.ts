@@ -1,4 +1,4 @@
-import { TableRow, UserSpec } from 'multinet';
+import { TableRow, UserSpec, ColumnTypes } from 'multinet';
 import { Provenance } from '@visdesignlab/trrack';
 
 export interface Dimensions {
@@ -64,9 +64,18 @@ export interface ArangoPath {
   edges: Edge[];
 }
 
+export interface SlicedNetwork {
+  network: Network;
+  slice: number;
+  time: number[] | Date[];
+}
+
 export interface State {
   workspaceName: string | null;
   networkName: string | null;
+  networkOnLoad: Network | null;
+  slicedNetwork: SlicedNetwork[];
+  columnTypes: ColumnTypes | null;
   network: Network | null;
   loadError: LoadError;
   userInfo: UserSpec | null;
@@ -101,6 +110,7 @@ export interface State {
     top: number;
     left: number;
   };
+  isDate: boolean;
 }
 
 export type ProvenanceEventTypes =

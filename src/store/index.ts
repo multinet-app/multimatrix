@@ -9,6 +9,7 @@ import { initProvenance, Provenance } from '@visdesignlab/trrack';
 import api from '@/api';
 import oauthClient from '@/oauth';
 import {
+  ColumnTypes,
   NetworkSpec, UserSpec,
 } from 'multinet';
 import {
@@ -16,7 +17,7 @@ import {
   ArangoPath,
   Cell,
   ConnectivityCell,
-  Edge, LoadError, Network, Node, ProvenanceEventTypes, State,
+  Edge, LoadError, Network, Node, ProvenanceEventTypes, State, SlicedNetwork,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
 import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
@@ -73,6 +74,10 @@ const {
       top: 0,
       left: 0,
     },
+    networkOnLoad: null,
+    columnTypes: null,
+    slicedNetwork: [],
+    isDate: false,
   } as State,
 
   getters: {
@@ -316,6 +321,22 @@ const {
       state.rightClickMenu = payload;
     },
 
+    setIsDate(state, isDate: boolean) {
+      state.isDate = isDate;
+    },
+
+    setSlicedNetwork(state, slicedNetwork: SlicedNetwork[]) {
+      state.slicedNetwork = slicedNetwork;
+    },
+
+    setNetworkOnLoad(state, network: Network) {
+      state.networkOnLoad = network;
+    },
+
+    setColumnTypes(state, columnTypes: ColumnTypes) {
+      state.columnTypes = columnTypes;
+    },
+
     setSelected(state, selectedNodes: Set<string>) {
       state.selectedNodes = selectedNodes;
 
@@ -405,6 +426,32 @@ const {
         nodes: nodes as Node[],
         edges: edges.results as Edge[],
       };
+
+      // Get the network metadata promises
+      const metadataPromises: Promise<ColumnTypes>[] = [];
+      networkTables.forEach((table) => {
+        metadataPromises.push(api.columnTypes(workspaceName, table.name));
+      });
+
+      // Resolve network metadata promises
+      const resolvedMetadataPromises = await Promise.all(metadataPromises);
+
+      // Combine all network metadata
+      const columnTypes: ColumnTypes = {};
+      resolvedMetadataPromises.forEach((types) => {
+        Object.assign(columnTypes, types);
+      });
+
+      commit.setColumnTypes(columnTypes);
+
+      // Guess the best label variable and set it
+      const allVars: Set<string> = new Set();
+      networkElements.nodes.map((node: Node) => Object.keys(node).forEach((key) => allVars.add(key)));
+
+      const bestLabelVar = [...allVars]
+        .find((colName) => !isInternalField(colName) && context.state.columnTypes[colName] === 'label');
+      commit.setLabelVariable(bestLabelVar);
+
       commit.setAttributeValues(networkElements);
       dispatch.updateNetwork({ network: networkElements });
     },
@@ -412,6 +459,8 @@ const {
     updateNetwork(context, payload: { network: Network }) {
       const { commit } = rootActionContext(context);
       commit.setNetwork(payload.network);
+      // Store copy of original network
+      commit.setNetworkOnLoad(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
     },
 
