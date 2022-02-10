@@ -13,83 +13,125 @@
         />
       </v-card-text>
     </v-card>
-    <v-list dense>
-      <v-list-item
-        v-for="(_, i) in displayedHops"
-        :key="i"
-        class="pa-0"
-      >
-        <v-list-item-avatar class="mr-0">
-          <v-icon size="18">
-            {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
-          </v-icon>
-        </v-list-item-avatar>
-        <v-list-item-content class="pa-0 pr-1">
-          <v-row no-gutters>
-            <v-col
-              cols="12"
-              sm="5"
-              class="pa-1"
-            >
-              <v-autocomplete
-                v-model="selectedVariables[i]"
-                :items="i % 2 ? edgeVariableItems : nodeVariableItems"
-                dense
-              />
-            </v-col>
-            <v-col
-              cols="12"
-              sm="3"
-              class="pa-1"
-            >
-              <v-autocomplete
-                v-model="selectedQueryOptions[i]"
-                :items="queryOptionItems"
-                dense
-              />
-            </v-col>
-            <v-col
-              cols="12"
-              sm="4"
-              class="pa-1"
-            >
-              <v-autocomplete
-                v-if="selectedQueryOptions[i] === '=='"
-                v-model="selectedVariableValue[i]"
-                :items="variableValueItems[i]"
-                dense
-              />
-              <v-text-field
-                v-else
-                v-model="selectedVariableValue[i]"
-                dense
-              />
-            </v-col>
-          </v-row>
-        </v-list-item-content>
-      </v-list-item>
 
-      <v-list-item>
-        <v-btn
-          block
-          class="ml-0 mt-4"
-          color="primary"
-          depressed
-          :loading="loading"
-          @click="submitQuery"
+    <v-card
+      v-for="(inputs, i) in queryInput"
+      :key="i"
+      flat
+      color="white"
+      class="pb-4 pt-2"
+    >
+      <v-list dense>
+        <v-list-item
+          v-for="(values, j) in inputs.value"
+          :key="j"
+          class="pa-0"
         >
-          Submit Query
-        </v-btn>
-      </v-list-item>
-    </v-list>
+          <v-list-item class="pa-0">
+            <v-list-item-avatar class="mr-0">
+              <v-icon size="18">
+                {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
+              </v-icon>
+            </v-list-item-avatar>
+            <v-list-item-content class="pa-0 pr-1">
+              <v-row no-gutters>
+                <v-col
+                  cols="12"
+                  sm="4"
+                  class="pa-1"
+                >
+                  <v-autocomplete
+                    v-model="values.label"
+                    :items="i % 2 ? edgeVariableItems : nodeVariableItems"
+                    dense
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  sm="3"
+                  class="pa-1"
+                >
+                  <v-autocomplete
+                    v-model="values.operator"
+                    :items="queryOptionItems"
+                    dense
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  sm="3"
+                  class="pa-1"
+                >
+                  <v-autocomplete
+                    v-if="values.operator === '=='"
+                    v-model="values.input"
+                    :items="i % 2 ? variableValueItems.node[values.label] : variableValueItems.edge[values.label]"
+                    dense
+                  />
+                  <v-text-field
+                    v-else
+                    v-model="values.input"
+                    dense
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  sm="2"
+                  class="mt-3"
+                >
+                  <!-- Add button -->
+                  <v-btn
+                    icon
+                    x-small
+                    color="primary"
+                    @click="addField(i)"
+                  >
+                    <v-icon>
+                      mdi-plus
+                    </v-icon>
+                  </v-btn>
+                  <!-- Remove button -->
+                  <v-btn
+                    v-show="values.length > 1"
+                    icon
+                    x-small
+                    color="red"
+                    @click="removeField(i, j)"
+                  >
+                    <v-icon>
+                      mdi-minus
+                    </v-icon>
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-item>
+      </v-list>
+    </v-card>
+
+    <v-list-item>
+      <v-btn
+        block
+        class="ml-0 mt-4"
+        color="primary"
+        depressed
+        :loading="loading"
+        @click="submitQuery"
+      >
+        Submit Query
+      </v-btn>
+    </v-list-item>
   </div>
 </template>
 
 <script lang="ts">
 import store from '@/store';
-import { Node, Edge, Network } from '@/types';
 import {
-  computed, defineComponent, ref, Ref, watchEffect,
+  Node, Edge, Network,
+} from '@/types';
+import {
+  computed, defineComponent, ref, Ref,
 } from '@vue/composition-api';
 import api from '@/api';
 
@@ -110,7 +152,35 @@ export default defineComponent({
     const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
 
     const selectedVariableValue: Ref<string[]> = ref([]);
-    const variableValueItems: Ref<string[][]> = ref([]);
+    // const variableValueItems: Ref<string[][]> = ref([]);
+    const variableValueItems = computed(() => {
+      const variableItems = { node: [], edge: [] };
+      if (store.state.network !== null) {
+        nodeVariableItems.value.forEach((nodeVariable) => {
+          const obj = {
+            [nodeVariable]: store.state.nodeAttributes[nodeVariable].map((value) => `${value}`),
+          };
+          variableItems.node.push(obj);
+        });
+        edgeVariableItems.value.forEach((edgeVariable) => {
+          const obj = {
+            [edgeVariable]: store.state.edgeAttributes[edgeVariable].map((value) => `${value}`),
+          };
+          variableItems.edge.push(obj);
+        });
+      }
+      console.log(variableItems);
+      return variableItems;
+    });
+
+    // Create the object for storing input data
+    const queryInput = computed(() => [...Array(displayedHops.value).keys()].map((i: number) => {
+      if (i % 2 && store.state.workspaceName === 'marclab') {
+        return { key: i, value: [{ label: 'Type', operator: '', input: '' }], logic: '' };
+      }
+      return { key: i, value: [{ label: 'Label', operator: '', input: '' }], logic: '' };
+    }));
+    console.log(queryInput.value);
 
     // 21 = 2n + 1 for n = 5 (max number of hops allowed above)
     Array(21).fill(1).forEach(() => {
@@ -119,16 +189,26 @@ export default defineComponent({
     });
 
     // For each selected node variable, fill in possible values for autocomplete
-    watchEffect(() => {
-      selectedVariables.value.forEach((variable: string, i: number) => {
-        if (store.state.network !== null) {
-          const currentData = i % 2 ? store.state.edgeAttributes : store.state.nodeAttributes;
-          if (variable) {
-            variableValueItems.value[i] = currentData[variable].map((value) => `${value}`);
-          }
-        }
-      });
-    });
+    // watchEffect(() => {
+    //   queryInput.value.forEach((input, i: number) => {
+    //     if (store.state.network !== null) {
+    //       const currentData = i % 2 ? store.state.edgeAttributes : store.state.nodeAttributes;
+    //       if (variable) {
+    //         variableValueItems.value[i] = currentData[variable].map((value) => `${value}`);
+    //       }
+    //     }
+    //   });
+    // });
+
+    function addField(index: number) {
+      queryInput.value[index].value.push({ input: '', label: '', operator: 'AND' });
+      console.log(queryInput.value);
+    }
+
+    function removeField(index: number, field: number) {
+      queryInput.value[index].value.splice(field, 1);
+      console.log(queryInput.value);
+    }
 
     function isTextComparison(operator: string) {
       return ['==', '=~'].includes(operator);
@@ -245,6 +325,9 @@ export default defineComponent({
       variableValueItems,
       submitQuery,
       loading,
+      addField,
+      removeField,
+      queryInput,
     };
   },
 });
