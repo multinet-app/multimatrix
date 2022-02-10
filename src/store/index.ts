@@ -97,6 +97,9 @@ const {
     },
 
     nodeVariableItems(state): string[] {
+      if (state.network !== null && state.columnTypes !== null && Object.keys(state.columnTypes).length > 0) {
+        return Object.keys(state.columnTypes).filter((varName) => !isInternalField(varName));
+      }
       if (state.network !== null) {
         return Object.keys(state.nodeAttributes).filter((varName) => !isInternalField(varName));
       }
