@@ -7,6 +7,7 @@ import {
   computed, defineComponent, Ref, ref, watch,
 } from '@vue/composition-api';
 import { scaleLinear, scaleTime } from 'd3-scale';
+import { select } from 'd3-selection';
 
 export default defineComponent({
   name: 'EdgeSlicing',
