@@ -57,6 +57,7 @@ export default defineComponent({
       networkOptions,
       workspace,
       workspaceOptions,
+      edgeTableName: computed(() => store.state.edgeTableName),
     };
   },
 });
@@ -123,7 +124,7 @@ export default defineComponent({
     </v-alert>
 
     <filter-overlay
-      v-if="loadError.message === 'The network you are loading is too large'"
+      v-if="loadError.message === 'The network you are loading is too large' && edgeTableName !== null"
     />
   </div>
 </template>
