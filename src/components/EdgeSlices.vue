@@ -52,7 +52,7 @@ export default defineComponent({
 
     function showTooltip(slice: number[], key: number, event: MouseEvent) {
       tooltipPosition.value = {
-        x: event.clientX - controlsWidth.value,
+        x: event.clientX - controlsWidth.value - 20,
         y: event.clientY + 20,
       };
       if (isDate.value) {
