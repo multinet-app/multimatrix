@@ -8,10 +8,7 @@ import { initProvenance, Provenance } from '@visdesignlab/trrack';
 
 import api from '@/api';
 import oauthClient from '@/oauth';
-import {
-  ColumnTypes,
-  NetworkSpec, UserSpec,
-} from 'multinet';
+import { ColumnTypes, NetworkSpec, UserSpec } from 'multinet';
 import {
   ArangoAttributes,
   ArangoPath,

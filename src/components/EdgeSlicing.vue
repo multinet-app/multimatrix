@@ -1,9 +1,8 @@
 <script lang="ts">
+import { isInternalField } from '@/lib/typeUtils';
 import { formatShortDate } from '@/lib/utils';
 import store from '@/store';
-import {
-  internalFieldNames, Edge, SlicedNetwork,
-} from '@/types';
+import { Edge, SlicedNetwork } from '@/types';
 import {
   computed, defineComponent, Ref, ref, watch,
 } from '@vue/composition-api';
@@ -20,9 +19,8 @@ export default defineComponent({
 
     const network = computed(() => store.state.network);
     const originalNetwork = computed(() => store.state.networkOnLoad);
-    const columnTypes = computed(() => store.state.columnTypes);
-    const startEdgeVar = ref('');
-    const endEdgeVar = ref('');
+    const startEdgeVar: Ref<string> = ref('');
+    const endEdgeVar: Ref<string> = ref('');
     const edgeSliceNumber = ref(1);
     const isDate = computed({
       get() {
@@ -39,29 +37,7 @@ export default defineComponent({
       return `${year}-${month}-${day}`;
     }
 
-    function cleanVariableList(list: Set<string>): Set<string> {
-      const cleanedVariables = new Set<string>();
-
-      list.forEach((variable) => {
-        if (columnTypes.value !== null && columnTypes.value[variable] !== 'label') {
-          cleanedVariables.add(variable);
-        }
-      });
-      return cleanedVariables;
-    }
-
-    const cleanedEdgeVariables = computed(() => {
-      if (originalNetwork.value !== null) {
-        // Loop through all edges, flatten the 2d array, and turn it into a set
-        const allVars: Set<string> = new Set();
-        originalNetwork.value.edges.map((edge: Edge) => Object.keys(edge).forEach((key) => allVars.add(key)));
-
-        internalFieldNames.forEach((field) => allVars.delete(field));
-
-        return cleanVariableList(allVars);
-      }
-      return new Set();
-    });
+    const cleanedEdgeVariables = computed(() => Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)));
 
     // Compute the min and max times
     const varRange = computed(() => {
@@ -70,8 +46,8 @@ export default defineComponent({
         // Loop through all edges, return min and max time values
         originalNetwork.value.edges.forEach((edge: Edge, i: number) => {
           // Check for dates
-          let startVar: number | Date = edge[startEdgeVar.value];
-          let endVar: number | Date = edge[endEdgeVar.value];
+          let startVar = edge[startEdgeVar.value];
+          let endVar = edge[endEdgeVar.value];
           if (isDate.value) {
             startVar = Date.parse(edge[startEdgeVar.value]);
             endVar = Date.parse(edge[endEdgeVar.value]);
@@ -248,7 +224,7 @@ export default defineComponent({
           <v-select
             v-model="startEdgeVar"
             label="Start Variable"
-            :items="Array.from(cleanedEdgeVariables)"
+            :items="cleanedEdgeVariables"
             :hide-details="true"
             class="mt-3"
             clearable
@@ -263,7 +239,7 @@ export default defineComponent({
           <v-select
             v-model="endEdgeVar"
             label="End Variable"
-            :items="Array.from(cleanedEdgeVariables)"
+            :items="cleanedEdgeVariables"
             :hide-details="true"
             class="mt-3"
             clearable

@@ -161,6 +161,7 @@ export default defineComponent({
           if (aqlNetwork.nodes.length !== 0) {
           // Update state with new network
             store.dispatch.updateNetwork({ network: aqlNetwork });
+            store.commit.setNetworkOnLoad(aqlNetwork);
             store.commit.setLoadError({
               message: '',
               href: '',
