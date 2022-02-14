@@ -66,13 +66,14 @@ export default defineComponent({
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
-    const columnTypes = computed(() => store.state.columnTypes);
-    const aggregationItems = computed(() => store.getters.nodeVariableItems.filter((varName) => {
-      if (columnTypes.value !== null) {
-        return columnTypes.value[varName] === 'category';
-      }
-      return true;
-    }));
+    const aggregationItems = computed(() => {
+      // Rebuild column types but just for node columns
+      const nodeColumnTypes = store.state.columnTypes !== null ? Object.fromEntries(Object.entries(store.state.columnTypes).filter(([tableName]) => store.getters.nodeTableNames.includes(tableName))) : {};
+
+      // Get the varName of all node variables that are type category
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
+    });
     const maxConnections = computed(() => store.state.maxConnections);
 
     // Intermediate node table template objects

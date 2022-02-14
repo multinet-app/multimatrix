@@ -57,7 +57,7 @@ export default defineComponent({
       networkOptions,
       workspace,
       workspaceOptions,
-      edgeTableName: computed(() => store.state.edgeTableName),
+      edgeTableName: computed(() => store.getters.edgeTableName),
     };
   },
 });

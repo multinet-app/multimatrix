@@ -67,10 +67,10 @@ export default defineComponent({
 
     function getAttributes() {
       const aqlQuery = `
-      let nodeValues = (FOR doc IN ${store.state.nodeTableNames}[**] RETURN VALUES(doc))
-      let edgeValues = (FOR doc IN ${store.state.edgeTableName} RETURN VALUES(doc))
-      let nodeAttr = (FOR doc IN ${store.state.nodeTableNames}[**] LIMIT 1 RETURN doc)
-      let edgeAttr = (FOR doc IN ${store.state.edgeTableName} LIMIT 1 RETURN doc)
+      let nodeValues = (FOR doc IN ${store.getters.nodeTableNames}[**] RETURN VALUES(doc))
+      let edgeValues = (FOR doc IN ${store.getters.edgeTableName} RETURN VALUES(doc))
+      let nodeAttr = (FOR doc IN ${store.getters.nodeTableNames}[**] LIMIT 1 RETURN doc)
+      let edgeAttr = (FOR doc IN ${store.getters.edgeTableName} LIMIT 1 RETURN doc)
       RETURN {nodeAttributes: nodeAttr, nodeValues: nodeValues, edgeAttributes: edgeAttr, edgeValues: edgeValues}
       `;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,7 +124,7 @@ export default defineComponent({
         return;
       }
 
-      const aqlQuery = `let nodes = (FOR n in [${store.state.nodeTableNames}][**] LIMIT ${subsetAmount.value} RETURN n) let edges = (FOR e in ${store.state.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e)
+      const aqlQuery = `let nodes = (FOR n in [${store.getters.nodeTableNames}][**] LIMIT ${subsetAmount.value} RETURN n) let edges = (FOR e in ${store.getters.edgeTableName} filter e._from in nodes[**]._id && e._to in nodes[**]._id RETURN e)
       RETURN {"nodes": nodes[**], edges}`;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
