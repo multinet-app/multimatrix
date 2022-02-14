@@ -67,9 +67,9 @@ export default defineComponent({
 
     function getAttributes() {
       const aqlQuery = `
-      let nodeValues = (FOR doc IN ${store.getters.nodeTableNames}[**] RETURN VALUES(doc))
+      let nodeValues = (FOR doc IN [${store.getters.nodeTableNames}][**] RETURN VALUES(doc))
       let edgeValues = (FOR doc IN ${store.getters.edgeTableName} RETURN VALUES(doc))
-      let nodeAttr = (FOR doc IN ${store.getters.nodeTableNames}[**] LIMIT 1 RETURN doc)
+      let nodeAttr = (FOR doc IN [${store.getters.nodeTableNames}][**] LIMIT 1 RETURN doc)
       let edgeAttr = (FOR doc IN ${store.getters.edgeTableName} LIMIT 1 RETURN doc)
       RETURN {nodeAttributes: nodeAttr, nodeValues: nodeValues, edgeAttributes: edgeAttr, edgeValues: edgeValues}
       `;
