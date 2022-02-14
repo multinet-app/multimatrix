@@ -139,6 +139,15 @@ export default defineComponent({
         id="edgeslices"
         transform="translate(0,2)"
       >
+        <foreignObject
+          class="sliceLabels"
+          :width="textSpacer"
+          :x="0"
+          y="0"
+          height="20"
+        >
+          {{ isDate ? formatShortDate(timeExtent[0]) : timeExtent[0] }}
+        </foreignObject>
         <g
           v-for="(slice, key, index) of currentSlice.timeRanges"
           :key="`edgeSlice_${key}`"
@@ -166,10 +175,10 @@ export default defineComponent({
           />
         </g>
         <foreignObject
-          fill="black"
-          :x="isDate ? svgWidth - textSpacer + 2 : svgWidth - (textSpacer / 2)"
-          y="0"
+          class="sliceLabels"
           :width="textSpacer"
+          :x="svgWidth - textSpacer"
+          y="0"
           height="20"
         >
           {{ isDate ? formatShortDate(timeExtent[1]) : timeExtent[1] }}
