@@ -41,7 +41,7 @@ export default defineComponent({
     const timeRangesLength = computed(() => currentSlice.value.slices);
 
     // Heightscale for numeric attributes
-    const heightScale = computed(() => scaleLinear<number, number>().domain([0, max(currentSlice.value.sumEdges)]).range([0, rectHeight.value]));
+    const heightScale = computed(() => scaleLinear<number, number>().domain([0, max(currentSlice.value.sumEdges) || 0]).range([0, rectHeight.value]));
     // Width of rect
     const rectWidth = computed(() => (svgWidth.value - (textSpacer.value * 2) - ((timeRangesLength.value - 1) * 4)) / timeRangesLength.value);
 

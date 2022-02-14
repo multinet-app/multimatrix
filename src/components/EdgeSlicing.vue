@@ -35,7 +35,9 @@ export default defineComponent({
     // Check if selected variable is numeric
     function checkType() {
       // eslint-disable-next-line no-unused-expressions
-      Number.isNaN(parseFloat(originalNetwork.value.edges[0][startEdgeVar.value])) ? isNumeric.value = false : isNumeric.value = true;
+      if (originalNetwork.value !== null) {
+        isNumeric.value = !Number.isNaN(parseFloat(`${originalNetwork.value.edges[0][startEdgeVar.value]}`));
+      }
     }
 
     function formatDate(date: Date) {
@@ -53,11 +55,11 @@ export default defineComponent({
         // Loop through all edges, return min and max time values
         originalNetwork.value.edges.forEach((edge: Edge, i: number) => {
           // Check for dates
-          let startVar = edge[startEdgeVar.value];
-          let endVar = edge[endEdgeVar.value];
+          let startVar: string | number = `${edge[startEdgeVar.value]}`;
+          let endVar: string | number = `${edge[endEdgeVar.value]}`;
           if (isDate.value) {
-            startVar = Date.parse(edge[startEdgeVar.value]);
-            endVar = Date.parse(edge[endEdgeVar.value]);
+            startVar = Date.parse(`${edge[startEdgeVar.value]}`);
+            endVar = Date.parse(`${edge[endEdgeVar.value]}`);
           }
           if (i === 0) {
             range[0] = startVar;
@@ -113,7 +115,7 @@ export default defineComponent({
               const timeIntervals = scaleTime().domain(slicedRange).range([0, edgeSliceNumber.value]);
               currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
               originalNetwork.value.edges.forEach((edge: Edge) => {
-                if (timeIntervals(new Date(edge[startEdgeVar.value])) >= i && timeIntervals(new Date(edge[startEdgeVar.value])) < i + 1) {
+                if (timeIntervals(new Date(`${edge[startEdgeVar.value]}`)) >= i && timeIntervals(new Date(`${edge[startEdgeVar.value]}`)) < i + 1) {
                   currentSlice.network.edges.push(edge);
                 }
               });
@@ -121,7 +123,7 @@ export default defineComponent({
               const timeIntervals = scaleLinear().domain(slicedRange).range([0, edgeSliceNumber.value]);
               currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
               originalNetwork.value.edges.forEach((edge: Edge) => {
-                if (timeIntervals(parseFloat(edge[startEdgeVar.value])) >= i && timeIntervals(parseFloat(edge[startEdgeVar.value])) < i + 1) {
+                if (timeIntervals(parseFloat(`${edge[startEdgeVar.value]}`)) >= i && timeIntervals(parseFloat(`${edge[startEdgeVar.value]}`)) < i + 1) {
                   currentSlice.network.edges.push(edge);
                 }
               });
@@ -130,17 +132,19 @@ export default defineComponent({
           }
         } else {
           // Create slicing for categories
-          const categoricalValues = new Set(originalNetwork.value.edges.map((edge: Edge) => edge[startEdgeVar.value]));
-          [...categoricalValues].forEach((attr: string, i: number) => {
-            const currentSlice: SlicedNetwork = {
-              slice: i + 1, time: [], network: { nodes: originalNetwork.value.nodes, edges: [] }, category: attr,
-            };
-            originalNetwork.value.edges.forEach((edge: Edge) => {
-              if (edge[startEdgeVar.value] === attr) {
-                currentSlice.network.edges.push(edge);
-              }
-            });
-            slicedNetwork.push(currentSlice);
+          const categoricalValues = new Set(originalNetwork.value.edges.map((edge: Edge) => `${edge[startEdgeVar.value]}`));
+          [...categoricalValues].forEach((attr, i) => {
+            if (originalNetwork.value !== null) {
+              const currentSlice: SlicedNetwork = {
+                slice: i + 1, time: [], network: { nodes: originalNetwork.value.nodes, edges: [] }, category: attr,
+              };
+              originalNetwork.value.edges.forEach((edge: Edge) => {
+                if (edge[startEdgeVar.value] === attr) {
+                  currentSlice.network.edges.push(edge);
+                }
+              });
+              slicedNetwork.push(currentSlice);
+            }
           });
         }
         store.commit.setSlicedNetwork(slicedNetwork);
