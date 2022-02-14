@@ -4,7 +4,7 @@ import store from '@/store';
 import {
   computed, defineComponent, getCurrentInstance, onMounted, ref, watch,
 } from '@vue/composition-api';
-import { extent } from 'd3-array';
+import { extent, max } from 'd3-array';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
 import { format } from 'd3-format';
 import { scaleLinear } from 'd3-scale';
@@ -15,31 +15,33 @@ export default defineComponent({
   setup() {
     const slicedNetwork = computed(() => store.state.slicedNetwork);
     const isDate = computed(() => store.state.isDate);
+    const isNumeric = computed(() => (slicedNetwork.value[0].category === ''));
     const currentInstance = getCurrentInstance();
     const svgWidth = computed(() => (currentInstance !== null ? currentInstance.proxy.$vuetify.breakpoint.width - store.state.controlsWidth : 0));
     const rectHeight = ref(20);
 
-    const currentTime = computed(() => {
-      const times: { timeRanges: {[key: number]: number[] | Date[]} ; current: number ; slices: number; sumEdges: number[] } = {
-        timeRanges: {}, current: 0, slices: 0, sumEdges: [],
+    const currentSlice = computed(() => {
+      const slices: { timeRanges: {[key: number]: number[] | Date[]} ; current: number ; slices: number; sumEdges: number[]; categories: {[key: number]: string} } = {
+        timeRanges: {}, current: 0, slices: 0, sumEdges: [], categories: {},
       };
       slicedNetwork.value.forEach((slice, i) => {
-        times.timeRanges[i] = slice.time;
-        times.slices = i + 1;
-        times.sumEdges[i] = slice.network.edges.length;
+        slices.slices = i + 1;
+        slices.sumEdges[i] = slice.network.edges.length;
+        if (isNumeric.value) {
+          slices.timeRanges[i] = slice.time;
+        } else {
+          slices.categories[i] = slice.category;
+        }
       });
-      return times;
+      return slices;
     });
-    const timeExtent = computed(() => extent(Object.values(currentTime.value.timeRanges).flat()));
-    const textSpacer = ref(50);
+    const timeExtent = computed(() => extent(Object.values(currentSlice.value.timeRanges).flat()));
+    const textSpacer = ref(70);
 
-    const timeRangesLength = computed(() => currentTime.value.slices);
+    const timeRangesLength = computed(() => currentSlice.value.slices);
 
-    // Colorscale
-    const colorScale = computed(() => scaleLinear<string, number>().domain(extent(currentTime.value.sumEdges)).range(['white', 'black']));
-
-    // Heightscale
-    const heightScale = computed(() => scaleLinear<number, number>().domain(extent(currentTime.value.sumEdges)).range([0, rectHeight.value]));
+    // Heightscale for numeric attributes
+    const heightScale = computed(() => scaleLinear<number, number>().domain([0, max(currentSlice.value.sumEdges)]).range([0, rectHeight.value]));
     // Width of rect
     const rectWidth = computed(() => (svgWidth.value - (textSpacer.value * 2) - ((timeRangesLength.value - 1) * 4)) / timeRangesLength.value);
 
@@ -50,20 +52,26 @@ export default defineComponent({
     const tooltipStyle = computed(() => `left: ${tooltipPosition.value.x}px; top: ${tooltipPosition.value.y}px; white-space: pre-line;`);
     const controlsWidth = computed(() => store.state.controlsWidth);
 
-    function showTooltip(slice: number[], key: number, event: MouseEvent) {
+    function showTooltip(key: number, event: MouseEvent) {
       tooltipPosition.value = {
         x: event.clientX - controlsWidth.value - 20,
         y: event.clientY + 20,
       };
-      if (isDate.value) {
-        tooltipMessage.value = `Slice: ${key}
-      Range: ${formatLongDate(slice[0])} - ${formatLongDate(slice[1])}
-      Total Edges: ${currentTime.value.sumEdges[key]}`;
-        toggleTooltip.value = true;
+      if (isNumeric.value) {
+        if (isDate.value) {
+          tooltipMessage.value = `Slice: ${key}
+      Range: ${formatLongDate(currentSlice.value[key].timeRanges[0])} - ${formatLongDate(currentSlice.value[key].timeRanges[1])}
+      Total Edges: ${currentSlice.value.sumEdges[key]}`;
+          toggleTooltip.value = true;
+        } else {
+          tooltipMessage.value = `Slice: ${key}
+      Range: ${format('.2s')(currentSlice.value[key].timeRanges[0])} - ${format('.2s')(currentSlice.value[key].timeRanges[1])}
+      Total Edges: ${currentSlice.value.sumEdges[key]}`;
+          toggleTooltip.value = true;
+        }
       } else {
-        tooltipMessage.value = `Slice: ${key}
-      Range: ${format('.2s')(slice[0])} - ${format('.2s')(slice[1])}
-      Total Edges: ${currentTime.value.sumEdges[key]}`;
+        tooltipMessage.value = `Category: ${currentSlice.value.categories[key]}
+      Total Edges: ${currentSlice.value.sumEdges[key]}`;
         toggleTooltip.value = true;
       }
     }
@@ -75,7 +83,7 @@ export default defineComponent({
 
     // Update sliced view and network
     function updateSlice(selection: number) {
-      currentTime.value.current = selection;
+      currentSlice.value.current = selection;
       selectAll('.edgeSliceRectClass').classed('selected', false);
       select(`#edgeSlice_${selection}`).classed('selected', true);
 
@@ -95,7 +103,7 @@ export default defineComponent({
 
     return {
       svgWidth,
-      currentTime,
+      currentSlice,
       timeRangesLength,
       showTooltip,
       hideTooltip,
@@ -107,10 +115,10 @@ export default defineComponent({
       updateSlice,
       isDate,
       formatShortDate,
-      colorScale,
       heightScale,
       rectHeight,
       rectWidth,
+      isNumeric,
     };
   },
 });
@@ -125,24 +133,17 @@ export default defineComponent({
       :width="svgWidth"
       :height="50"
     >
+      <!-- Numeric + Date Visualization -->
       <g
+        v-if="isNumeric"
         id="edgeslices"
         transform="translate(0,2)"
       >
-        <foreignObject
-          fill="black"
-          :x="isDate ? 0 : textSpacer / 2"
-          y="0"
-          :width="textSpacer"
-          height="20"
-        >
-          {{ isDate ? formatShortDate(timeExtent[0]) : timeExtent[0] }}
-        </foreignObject>
         <g
-          v-for="(slice, key, index) of currentTime.timeRanges"
+          v-for="(slice, key, index) of currentSlice.timeRanges"
           :key="`edgeSlice_${key}`"
           class="edgeSliceGroup"
-          @mouseover="showTooltip(slice, key, $event)"
+          @mouseover="showTooltip(key, $event)"
           @mouseout="hideTooltip"
           @click="updateSlice(key)"
         >
@@ -157,7 +158,7 @@ export default defineComponent({
           />
           <rect
             :width="rectWidth"
-            :height="rectHeight - heightScale(currentTime.sumEdges[key])"
+            :height="rectHeight - heightScale(currentSlice.sumEdges[key])"
             class="edgeSliceRectClass"
             y="0"
             fill="white"
@@ -166,13 +167,55 @@ export default defineComponent({
         </g>
         <foreignObject
           fill="black"
-          :x="isDate ? svgWidth - (textSpacer) : svgWidth - (textSpacer / 2)"
+          :x="isDate ? svgWidth - textSpacer + 2 : svgWidth - (textSpacer / 2)"
           y="0"
           :width="textSpacer"
           height="20"
         >
           {{ isDate ? formatShortDate(timeExtent[1]) : timeExtent[1] }}
         </foreignObject>
+      </g>
+      <!-- Categorical Visualization -->
+      <g
+        v-else
+        id="edgeSlices"
+        transform="translate(0,2)"
+      >
+        <g
+          v-for="(slice, key, index) of currentSlice.categories"
+          :key="`edgeSlice_${key}`"
+          class="edgeSliceGroup"
+          @mouseover="showTooltip(key, $event)"
+          @mouseout="hideTooltip"
+          @click="updateSlice(key)"
+        >
+          <rect
+            :id="`edgeSlice_${key}`"
+            class="edgeSliceRectClass"
+            :width="rectWidth"
+            :height="rectHeight"
+            y="0"
+            fill="lightgrey"
+            :x="textSpacer + (4 * index) + (rectWidth * index)"
+          />
+          <rect
+            :width="rectWidth"
+            :height="rectHeight - heightScale(currentSlice.sumEdges[key])"
+            class="edgeSliceRectClass"
+            y="0"
+            fill="white"
+            :x="textSpacer + (4 * index) + (rectWidth * index)"
+          />
+          <foreignObject
+            class="sliceLabels"
+            :width="rectWidth"
+            :x="textSpacer + (4 * index) + (rectWidth * index)"
+            y="30"
+            height="20"
+          >
+            {{ slice }}
+          </foreignObject>
+        </g>
       </g>
     </svg>
 
@@ -205,14 +248,23 @@ export default defineComponent({
 }
 
 .edgeSliceRectClass {
-  stroke: black;
+  stroke: darkgray;
   stroke-width: 1px;
   position: absolute;
 }
 
 .selected {
+  stroke: black;
   fill: #f99f31;
   stroke-width: 2px;
 }
 
+svg >>> .sliceLabels {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  z-index: 100;
+  margin: 0;
+  fill: black !important;
+  text-align: center;
+}
 </style>

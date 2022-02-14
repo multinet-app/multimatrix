@@ -68,6 +68,7 @@ export interface SlicedNetwork {
   network: Network;
   slice: number;
   time: number[] | Date[];
+  category: string;
 }
 
 export interface State {

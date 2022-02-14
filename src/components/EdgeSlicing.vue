@@ -7,7 +7,6 @@ import {
   computed, defineComponent, Ref, ref, watch,
 } from '@vue/composition-api';
 import { scaleLinear, scaleTime } from 'd3-scale';
-import { select } from 'd3-selection';
 
 export default defineComponent({
   name: 'EdgeSlicing',
@@ -31,6 +30,13 @@ export default defineComponent({
         return store.commit.setIsDate(value);
       },
     });
+    const isNumeric = ref(true);
+
+    // Check if selected variable is numeric
+    function checkType() {
+      // eslint-disable-next-line no-unused-expressions
+      Number.isNaN(parseFloat(originalNetwork.value.edges[0][startEdgeVar.value])) ? isNumeric.value = false : isNumeric.value = true;
+    }
 
     function formatDate(date: Date) {
       const dateString = formatShortDate(date);
@@ -40,7 +46,7 @@ export default defineComponent({
 
     const cleanedEdgeVariables = computed(() => Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)));
 
-    // Compute the min and max times
+    // Compute the min and max times for numbers or date
     const varRange = computed(() => {
       const range: Date[] | number[] | string[] = [];
       if (startEdgeVar.value !== null && endEdgeVar.value !== null && originalNetwork.value !== null) {
@@ -81,45 +87,61 @@ export default defineComponent({
 
     function sliceNetwork() {
       // Resets to original network view when variable slice is 1
-      if (originalNetwork.value !== null && edgeSliceNumber.value === 1) {
+      if ((originalNetwork.value !== null && edgeSliceNumber.value === 1 && isNumeric.value) || (originalNetwork.value !== null && startEdgeVar.value === undefined)) {
         store.commit.setSlicedNetwork([]);
         store.commit.setNetwork(originalNetwork.value);
       }
-      // Generates sliced networks based on time slices
-      if (originalNetwork.value !== null && edgeSliceNumber.value !== 1) {
+      if ((originalNetwork.value !== null && edgeSliceNumber.value !== 1) || (originalNetwork.value !== null && !isNumeric.value)) {
         const slicedNetwork: SlicedNetwork[] = [];
-        const slicedRange = [];
-        if (isDate.value) {
-          slicedRange[0] = new Date(varRange.value[0]).getTime();
-          slicedRange[1] = new Date(varRange.value[1]).getTime();
-        } else {
-          slicedRange[0] = parseFloat(varRange.value[0].toString());
-          slicedRange[1] = parseFloat(varRange.value[1].toString());
-        }
-        // Generate sliced network
-        // eslint-disable-next-line no-plusplus
-        for (let i = 0; i < edgeSliceNumber.value; i++) {
-          const currentSlice: SlicedNetwork = { slice: i + 1, time: [], network: { nodes: [], edges: [] } };
+        // Generates sliced networks based on time slices or numeric input
+        if (isNumeric.value) {
+          const slicedRange = [];
           if (isDate.value) {
-            const timeIntervals = scaleTime().domain(slicedRange).range([0, edgeSliceNumber.value]);
-            currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
-            currentSlice.network.nodes = originalNetwork.value.nodes;
-            originalNetwork.value.edges.forEach((edge: Edge) => {
-              if (timeIntervals(new Date(edge[startEdgeVar.value])) >= i && timeIntervals(new Date(edge[startEdgeVar.value])) < i + 1) {
-                currentSlice.network.edges.push(edge);
-              }
-            });
+            slicedRange[0] = new Date(varRange.value[0]).getTime();
+            slicedRange[1] = new Date(varRange.value[1]).getTime();
           } else {
-            const timeIntervals = scaleLinear().domain(slicedRange).range([0, edgeSliceNumber.value]);
-            currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
-            currentSlice.network.nodes = originalNetwork.value.nodes;
+            slicedRange[0] = parseFloat(varRange.value[0].toString());
+            slicedRange[1] = parseFloat(varRange.value[1].toString());
+          }
+          // Generate sliced network
+          // eslint-disable-next-line no-plusplus
+          for (let i = 0; i < edgeSliceNumber.value; i++) {
+            const currentSlice: SlicedNetwork = {
+              slice: i + 1, time: [], network: { nodes: originalNetwork.value.nodes, edges: [] }, category: '',
+            };
+            if (isDate.value) {
+              const timeIntervals = scaleTime().domain(slicedRange).range([0, edgeSliceNumber.value]);
+              currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
+              originalNetwork.value.edges.forEach((edge: Edge) => {
+                if (timeIntervals(new Date(edge[startEdgeVar.value])) >= i && timeIntervals(new Date(edge[startEdgeVar.value])) < i + 1) {
+                  currentSlice.network.edges.push(edge);
+                }
+              });
+            } else {
+              const timeIntervals = scaleLinear().domain(slicedRange).range([0, edgeSliceNumber.value]);
+              currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
+              originalNetwork.value.edges.forEach((edge: Edge) => {
+                if (timeIntervals(parseFloat(edge[startEdgeVar.value])) >= i && timeIntervals(parseFloat(edge[startEdgeVar.value])) < i + 1) {
+                  currentSlice.network.edges.push(edge);
+                }
+              });
+            }
+            slicedNetwork.push(currentSlice);
+          }
+        } else {
+          // Create slicing for categories
+          const categoricalValues = new Set(originalNetwork.value.edges.map((edge: Edge) => edge[startEdgeVar.value]));
+          [...categoricalValues].forEach((attr: string, i: number) => {
+            const currentSlice: SlicedNetwork = {
+              slice: i + 1, time: [], network: { nodes: originalNetwork.value.nodes, edges: [] }, category: attr,
+            };
             originalNetwork.value.edges.forEach((edge: Edge) => {
-              if (timeIntervals(parseFloat(edge[startEdgeVar.value])) >= i && timeIntervals(parseFloat(edge[startEdgeVar.value])) < i + 1) {
+              if (edge[startEdgeVar.value] === attr) {
                 currentSlice.network.edges.push(edge);
               }
             });
-          }
-          slicedNetwork.push(currentSlice);
+            slicedNetwork.push(currentSlice);
+          });
         }
         store.commit.setSlicedNetwork(slicedNetwork);
         store.commit.setNetwork(slicedNetwork[0].network);
@@ -185,6 +207,8 @@ export default defineComponent({
       isDate,
       calMenu,
       dateFormatted,
+      checkType,
+      isNumeric,
     };
   },
 });
@@ -231,10 +255,11 @@ export default defineComponent({
             clearable
             outlined
             dense
+            @change="checkType"
           />
         </v-list-item>
         <v-list-item>
-          <v-icon color="blue">
+          <v-icon :color="isNumeric ? 'blue' : 'grey'">
             mdi-numeric-2-circle
           </v-icon>
           <v-select
@@ -246,16 +271,17 @@ export default defineComponent({
             clearable
             outlined
             dense
+            :disabled="!isNumeric"
           />
         </v-list-item>
-        <v-list-item>
+        <v-list-item v-if="isNumeric">
           <v-checkbox
             v-model="isDate"
             label="Date format"
           />
         </v-list-item>
         <!-- Date Picker -->
-        <v-list-item v-if="isDate">
+        <v-list-item v-if="isDate && isNumeric">
           <v-menu
             :ref="calMenu[0]"
             v-model="calMenu[0]"
@@ -310,7 +336,7 @@ export default defineComponent({
           </v-menu>
         </v-list-item>
         <!-- Numeric Picker -->
-        <v-list-item v-else>
+        <v-list-item v-if="isNumeric && !isDate">
           <v-icon color="blue">
             mdi-numeric-3-circle
           </v-icon>
@@ -329,7 +355,7 @@ export default defineComponent({
             />
           </v-col>
         </v-list-item>
-        <v-list-item>
+        <v-list-item v-if="isNumeric">
           <v-icon color="blue">
             mdi-numeric-4-circle
           </v-icon>
