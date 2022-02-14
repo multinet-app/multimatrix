@@ -498,12 +498,7 @@ export default defineComponent({
         </div>
 
         <!-- Connectivity Query -->
-        <div>
-          <v-subheader class="grey darken-3 py-0 white--text">
-            Connectivity Query
-          </v-subheader>
-          <connectivity-query />
-        </div>
+        <connectivity-query />
       </v-list>
     </v-navigation-drawer>
   </div>
