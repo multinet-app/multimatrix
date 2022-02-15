@@ -172,6 +172,9 @@ export default defineComponent({
         labelVariable.value = aggregateBy.value;
       }
     });
+    watch(aggregateBy, () => {
+      labelVariable.value = aggregateBy.value;
+    });
     watchEffect(() => {
       if (!showIntNodeVis.value) {
         intAggregatedBy.value = undefined;

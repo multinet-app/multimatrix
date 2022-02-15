@@ -533,7 +533,11 @@ export default defineComponent({
         .selectAll('.colForeign')
         .attr('height', cellSize.value)
         .select('p')
-        .text((d: Node) => d[labelVariable.value || '_key']);
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d._key;
+          } return d[labelVariable.value || '_key'];
+        });
 
       edges.value
         .selectAll('.colForeign')
@@ -579,7 +583,11 @@ export default defineComponent({
         .attr('width', labelWidth)
         .attr('height', cellSize.value)
         .append('xhtml:p')
-        .text((d: Node) => d[labelVariable.value || '_key'])
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d._key;
+          } return d[labelVariable.value || '_key'];
+        })
         .style('color', (d: Node) => {
           if (d.type === 'node') {
             return '#aaa';
@@ -652,7 +660,11 @@ export default defineComponent({
         .selectAll('.rowForeign')
         .attr('height', cellSize.value)
         .select('p')
-        .text((d: Node) => d[labelVariable.value || '_key']);
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d._key;
+          } return d[labelVariable.value || '_key'];
+        });
 
       edges.value
         .selectAll('.rowForeign')
@@ -692,7 +704,11 @@ export default defineComponent({
         .attr('height', cellSize.value)
         .classed('rowForeign', true)
         .append('xhtml:p')
-        .text((d: Node) => d[labelVariable.value || '_key'])
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d._key;
+          } return d[labelVariable.value || '_key'];
+        })
         .style('color', (d: Node) => {
           if (d.type === 'node') {
             return '#aaa';
