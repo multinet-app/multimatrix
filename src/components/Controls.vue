@@ -66,6 +66,14 @@ export default defineComponent({
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
+    const aggregationItems = computed(() => {
+      // Rebuild column types but just for node columns
+      const nodeColumnTypes = store.state.columnTypes !== null ? Object.fromEntries(Object.entries(store.state.columnTypes).filter(([tableName]) => store.getters.nodeTableNames.includes(tableName))) : {};
+
+      // Get the varName of all node variables that are type category
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
+    });
     const maxConnections = computed(() => store.state.maxConnections);
 
     // Intermediate node table template objects
@@ -160,9 +168,10 @@ export default defineComponent({
     watch(aggregated, () => {
       if (!aggregated.value) {
         labelVariable.value = '_key';
-      } else {
-        labelVariable.value = aggregateBy.value;
       }
+    });
+    watch(aggregateBy, () => {
+      labelVariable.value = aggregateBy.value;
     });
     watchEffect(() => {
       if (!showIntNodeVis.value) {
@@ -203,6 +212,7 @@ export default defineComponent({
       cellColorScale,
       parentColorScale,
       nodeVariableItems,
+      aggregationItems,
       maxConnections,
       showIntNodeVis,
       intAggregatedBy,
@@ -304,7 +314,7 @@ export default defineComponent({
             <v-autocomplete
               v-model="aggregateBy"
               label="Aggregation Variable"
-              :items="nodeVariableItems"
+              :items="aggregationItems"
               :hide-details="true"
               class="mt-3"
               clearable

@@ -9,7 +9,7 @@ import { initProvenance, Provenance } from '@visdesignlab/trrack';
 import api from '@/api';
 import oauthClient from '@/oauth';
 import {
-  NetworkSpec, UserSpec,
+  ColumnTypes, NetworkSpec, Table, UserSpec,
 } from 'multinet';
 import {
   ArangoAttributes,
@@ -55,8 +55,6 @@ const {
       unAggr: 0,
       parent: 0,
     },
-    nodeTableNames: [],
-    edgeTableName: null,
     provenance: null,
     showProvenanceVis: false,
     nodeAttributes: {},
@@ -67,6 +65,8 @@ const {
     showPathTable: false,
     maxIntConnections: 0,
     intAggregatedBy: undefined,
+    networkTables: [],
+    columnTypes: null,
     labelVariable: undefined,
     rightClickMenu: {
       show: false,
@@ -94,18 +94,34 @@ const {
         .range(['white', 'blue']);
     },
 
-    nodeVariableItems(state): string[] {
-      if (state.network !== null) {
-        return Object.keys(state.nodeAttributes).filter((varName) => !isInternalField(varName));
+    nodeVariableItems(state, getters): string[] {
+      // Get the name of all columns from the columnTypes
+      let nodeColumnNames: string[] = getters.nodeTableNames.map((nodeTableName: string) => (state.columnTypes !== null ? Object.keys(state.columnTypes[nodeTableName]) : [])).flat();
+
+      // Make the column names unique, no duplicates
+      nodeColumnNames = [...new Set(nodeColumnNames)];
+
+      // Filter the internal fields from the column names
+      nodeColumnNames = nodeColumnNames.filter((varName) => !isInternalField(varName));
+
+      return nodeColumnNames;
+    },
+
+    edgeVariableItems(state, getters): string[] {
+      if (getters.edgeTableName !== undefined && state.columnTypes !== null) {
+        Object.keys(state.columnTypes[getters.edgeTableName]).filter((varName) => !isInternalField(varName));
       }
       return [];
     },
 
-    edgeVariableItems(state): string[] {
-      if (state.network !== null) {
-        return Object.keys(state.edgeAttributes).filter((varName) => !isInternalField(varName));
-      }
-      return [];
+    nodeTableNames(state) {
+      return state.networkTables.filter((table) => !table.edge).map((table) => table.name);
+    },
+
+    edgeTableName(state) {
+      const edgeTables = state.networkTables.filter((table) => table.edge);
+
+      return edgeTables.length > 0 ? edgeTables[0].name : undefined;
     },
   },
 
@@ -194,14 +210,6 @@ const {
 
     clearHoveredNodes(state) {
       state.hoveredNodes = [];
-    },
-
-    setNodeTableNames(state, nodeTableNames: string[]) {
-      state.nodeTableNames = nodeTableNames;
-    },
-
-    setEdgeTableName(state, edgeTableName: string | null) {
-      state.edgeTableName = edgeTableName;
     },
 
     setDirectionalEdges(state, directionalEdges: boolean) {
@@ -304,6 +312,14 @@ const {
       state.intAggregatedBy = intAggregatedBy;
     },
 
+    setNetworkTables(state, networkTables: Table[]) {
+      state.networkTables = networkTables;
+    },
+
+    setColumnTypes(state, columnTypes: { [tableName: string]: ColumnTypes }) {
+      state.columnTypes = columnTypes;
+    },
+
     setLabelVariable(state, labelVariable: string | undefined) {
       state.labelVariable = labelVariable;
 
@@ -385,8 +401,22 @@ const {
       }
 
       const networkTables = await api.networkTables(workspaceName, networkName);
-      commit.setNodeTableNames(networkTables.filter((table) => !table.edge).map((table) => table.name));
-      commit.setEdgeTableName(networkTables.filter((table) => table.edge).map((table) => table.name)[0]);
+      commit.setNetworkTables(networkTables);
+      const metadataPromises: Promise<ColumnTypes>[] = [];
+      networkTables.forEach((table) => {
+        metadataPromises.push(api.columnTypes(workspaceName, table.name));
+      });
+
+      // Resolve network metadata promises
+      const resolvedMetadataPromises = await Promise.all(metadataPromises);
+
+      // Combine all network metadata
+      let columnTypes: { [tableName: string]: ColumnTypes } = {};
+      resolvedMetadataPromises.forEach((types, i) => {
+        columnTypes = { ...columnTypes, [networkTables[i].name]: types };
+      });
+
+      commit.setColumnTypes(columnTypes);
 
       if (store.state.loadError.message !== '') {
         return;
