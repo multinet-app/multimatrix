@@ -168,8 +168,6 @@ export default defineComponent({
     watch(aggregated, () => {
       if (!aggregated.value) {
         labelVariable.value = '_key';
-      } else {
-        labelVariable.value = aggregateBy.value;
       }
     });
     watch(aggregateBy, () => {

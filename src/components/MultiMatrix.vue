@@ -536,7 +536,8 @@ export default defineComponent({
         .text((d: Node) => {
           if (d.type === 'supernode') {
             return d._key;
-          } return d[labelVariable.value || '_key'];
+          }
+          return d[labelVariable.value || '_key'];
         });
 
       edges.value
@@ -586,7 +587,8 @@ export default defineComponent({
         .text((d: Node) => {
           if (d.type === 'supernode') {
             return d._key;
-          } return d[labelVariable.value || '_key'];
+          }
+          return d[labelVariable.value || '_key'];
         })
         .style('color', (d: Node) => {
           if (d.type === 'node') {
@@ -663,7 +665,8 @@ export default defineComponent({
         .text((d: Node) => {
           if (d.type === 'supernode') {
             return d._key;
-          } return d[labelVariable.value || '_key'];
+          }
+          return d[labelVariable.value || '_key'];
         });
 
       edges.value
@@ -707,7 +710,8 @@ export default defineComponent({
         .text((d: Node) => {
           if (d.type === 'supernode') {
             return d._key;
-          } return d[labelVariable.value || '_key'];
+          }
+          return d[labelVariable.value || '_key'];
         })
         .style('color', (d: Node) => {
           if (d.type === 'node') {
