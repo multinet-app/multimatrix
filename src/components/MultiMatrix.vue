@@ -442,47 +442,6 @@ export default defineComponent({
       });
     }
 
-    function drawGridLines(): void {
-      selectAll('.gridLines').remove();
-      const gridLines = edges.value
-        .append('g')
-        .attr('class', 'gridLines')
-        .style('opacity', showGridLines.value ? 1 : 0);
-
-      const lines = gridLines
-        .selectAll('line')
-        .data(matrix.value)
-        .enter();
-
-      // vertical grid lines
-      lines
-        .append('line')
-        .attr('transform', (d: unknown, i: number) => `translate(${orderingScale.value(i)},0)rotate(-90)`)
-        .attr('x1', -orderingScale.value.range()[1]);
-
-      // horizontal grid lines
-      lines
-        .append('line')
-        .attr('transform', (d: unknown, i: number) => `translate(0,${orderingScale.value(i)})`)
-        .attr('x2', orderingScale.value.range()[1]);
-
-      // vertical grid line edges
-      gridLines
-        .append('line')
-        .attr('x1', orderingScale.value.range()[1])
-        .attr('x2', orderingScale.value.range()[1])
-        .attr('y1', 0)
-        .attr('y2', orderingScale.value.range()[1]);
-
-      // horizontal grid line edges
-      gridLines
-        .append('line')
-        .attr('x1', 0)
-        .attr('x2', orderingScale.value.range()[1])
-        .attr('y1', orderingScale.value.range()[1])
-        .attr('y2', orderingScale.value.range()[1]);
-    }
-
     function initializeEdges(): void {
       if (network.value === null) {
         return;
@@ -797,8 +756,6 @@ export default defineComponent({
 
       edgeRows.value.merge(rowEnter);
 
-      drawGridLines();
-
       // Draw cells
       cells.value = selectAll('.cellsGroup')
         .selectAll('.cell')
@@ -906,7 +863,6 @@ export default defineComponent({
 
     onMounted(() => {
       edges.value = select('#matrix')
-        .append('g')
         .attr(
           'transform',
           `translate(${visMargins.value.left},${visMargins.value.top})`,
@@ -958,6 +914,7 @@ export default defineComponent({
     watch([orderingScale, showGridLines, network, directionalEdges, labelVariable], () => initializeEdges());
 
     return {
+      network,
       finishedMounting,
       showIntNodeVis,
       matrixWidth,
@@ -965,6 +922,8 @@ export default defineComponent({
       tooltip,
       showPathTable,
       showContextMenu,
+      showGridLines,
+      orderingScale,
     };
   },
 
@@ -976,13 +935,35 @@ export default defineComponent({
     <v-container class="d-inline-flex">
       <div>
         <svg
-          id="matrix"
           ref="matrix"
           :width="matrixWidth"
           :height="matrixHeight"
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
           @contextmenu="showContextMenu"
-        />
+        >
+          <g id="matrix" />
+          <g
+            v-if="showGridLines"
+            class="gridLines"
+            transform="translate(75,110)"
+          >
+            <!-- Vertical grid lines -->
+            <line
+              v-for="node, i of network.nodes"
+              :key="`${node._id}_vertical_gridline`"
+              :transform="`translate(${orderingScale(i)},0)rotate(-90)`"
+              :x1="-orderingScale.range()[1]"
+            />
+
+            <!-- Horizontal grid lines -->
+            <line
+              v-for="node, i of network.nodes"
+              :key="`${node._id}_horizontal_gridline`"
+              :transform="`translate(0,${orderingScale(i)})`"
+              :x2="orderingScale.range()[1]"
+            />
+          </g>
+        </svg>
       </div>
       <intermediary-nodes v-if="finishedMounting && showIntNodeVis" />
       <line-up v-if="finishedMounting" />
