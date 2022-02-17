@@ -55,8 +55,8 @@ export default defineComponent({
         // Loop through all edges, return min and max time values
         originalNetwork.value.edges.forEach((edge: Edge, i: number) => {
           // Check for dates
-          let startVar: string | number = `${edge[startEdgeVar.value]}`;
-          let endVar: string | number = `${edge[endEdgeVar.value]}`;
+          let startVar: number = parseFloat(`${edge[startEdgeVar.value]}`);
+          let endVar: number = parseFloat(`${edge[endEdgeVar.value]}`);
           if (isDate.value) {
             startVar = Date.parse(`${edge[startEdgeVar.value]}`);
             endVar = Date.parse(`${edge[endEdgeVar.value]}`);
@@ -111,11 +111,12 @@ export default defineComponent({
             const currentSlice: SlicedNetwork = {
               slice: i + 1, time: [], network: { nodes: originalNetwork.value.nodes, edges: [] }, category: '',
             };
+            // Create slices for dates
             if (isDate.value) {
               const timeIntervals = scaleTime().domain(slicedRange).range([0, edgeSliceNumber.value]);
               currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
               originalNetwork.value.edges.forEach((edge: Edge) => {
-                if (timeIntervals(new Date(`${edge[startEdgeVar.value]}`)) >= i && timeIntervals(new Date(`${edge[startEdgeVar.value]}`)) < i + 1) {
+                if (timeIntervals(new Date(`${edge[startEdgeVar.value]}`)) >= i && timeIntervals(new Date(`${edge[endEdgeVar.value]}`)) < i + 1) {
                   currentSlice.network.edges.push(edge);
                 }
               });
@@ -123,15 +124,15 @@ export default defineComponent({
               const timeIntervals = scaleLinear().domain(slicedRange).range([0, edgeSliceNumber.value]);
               currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
               originalNetwork.value.edges.forEach((edge: Edge) => {
-                if (timeIntervals(parseFloat(`${edge[startEdgeVar.value]}`)) >= i && timeIntervals(parseFloat(`${edge[startEdgeVar.value]}`)) < i + 1) {
+                if (timeIntervals(parseFloat(`${edge[startEdgeVar.value]}`)) >= i && timeIntervals(parseFloat(`${edge[endEdgeVar.value]}`)) < i + 1) {
                   currentSlice.network.edges.push(edge);
                 }
               });
             }
             slicedNetwork.push(currentSlice);
           }
+        // Create slicing for categories
         } else {
-          // Create slicing for categories
           const categoricalValues = new Set(originalNetwork.value.edges.map((edge: Edge) => `${edge[startEdgeVar.value]}`));
           [...categoricalValues].forEach((attr, i) => {
             if (originalNetwork.value !== null) {

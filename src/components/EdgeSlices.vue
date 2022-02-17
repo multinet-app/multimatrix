@@ -119,6 +119,7 @@ export default defineComponent({
       rectHeight,
       rectWidth,
       isNumeric,
+      format,
     };
   },
 });
@@ -171,7 +172,7 @@ export default defineComponent({
             y="30"
             height="20"
           >
-            {{ isDate ? `${formatShortDate(timeExtent[0])} - ${formatShortDate(timeExtent[1])}` : `${timeExtent[0]} - ${timeExtent[1]}` }}
+            {{ isDate ? `${formatShortDate(timeExtent[0])} - ${formatShortDate(timeExtent[1])}` : `${format('.2s')(timeExtent[0])} - ${format('.2s')(timeExtent[1])}` }}
           </foreignObject>
         </g>
       </g>
