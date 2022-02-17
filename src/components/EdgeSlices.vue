@@ -126,9 +126,9 @@ export default defineComponent({
 
 <template>
   <div>
-    <h3>
+    <h4 class="pl-2 pt-2">
       Edge Slices
-    </h3>
+    </h4>
     <svg
       :width="svgWidth"
       :height="50"
