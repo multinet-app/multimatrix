@@ -60,12 +60,12 @@ export default defineComponent({
       if (isNumeric.value) {
         if (isDate.value) {
           tooltipMessage.value = `Slice: ${key}
-      Range: ${formatLongDate(currentSlice.value[key].timeRanges[0])} - ${formatLongDate(currentSlice.value[key].timeRanges[1])}
+      Range: ${formatLongDate(`${currentSlice.value.timeRanges[key][0]}`)} - ${formatLongDate(`${currentSlice.value.timeRanges[key][1]}`)}
       Total Edges: ${currentSlice.value.sumEdges[key]}`;
           toggleTooltip.value = true;
         } else {
           tooltipMessage.value = `Slice: ${key}
-      Range: ${format('.2s')(currentSlice.value[key].timeRanges[0])} - ${format('.2s')(currentSlice.value[key].timeRanges[1])}
+      Range: ${format('.2s')(currentSlice.value.timeRanges[key][0])} - ${format('.2s')(currentSlice.value.timeRanges[key][1])}
       Total Edges: ${currentSlice.value.sumEdges[key]}`;
           toggleTooltip.value = true;
         }
