@@ -209,6 +209,7 @@ export default defineComponent({
       endEdgeVar.value = '';
       isDate.value = false;
       isNumeric.value = true;
+      edgeSliceNumber.value = 1;
     }
 
     return {
