@@ -217,6 +217,7 @@ export default defineComponent({
       isDate.value = false;
       isNumeric.value = true;
       edgeSliceNumber.value = 1;
+      isTime.value = false;
     }
 
     return {
@@ -292,7 +293,6 @@ export default defineComponent({
             clearable
             outlined
             dense
-            :disabled="!isNumeric"
           />
         </v-list-item>
         <v-list-item v-if="isNumeric">
