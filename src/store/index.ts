@@ -460,6 +460,7 @@ const {
       commit.setNetwork(payload.network);
       commit.setNetworkOnLoad(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
+      commit.setSlicedNetwork([]);
     },
 
     async fetchUserInfo(context) {

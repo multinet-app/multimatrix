@@ -254,8 +254,6 @@ export default defineComponent({
             store.dispatch.updateNetwork({ network: newNetwork });
             loading.value = false;
             store.commit.setDirectionalEdges(true);
-            // remove sliced network
-            store.commit.setSlicedNetwork([]);
           }
         });
       }
