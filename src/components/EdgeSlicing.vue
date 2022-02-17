@@ -22,6 +22,7 @@ export default defineComponent({
     const startEdgeVar: Ref<string> = ref('');
     const endEdgeVar: Ref<string> = ref('');
     const edgeSliceNumber = ref(1);
+    const isTime = ref(false);
     const isDate = computed({
       get() {
         return store.state.isDate;
@@ -45,6 +46,11 @@ export default defineComponent({
       const [month, day, year] = dateString.split('/');
       return `${year}-${month}-${day}`;
     }
+
+    // Assume start var + end are the same
+    watch([startEdgeVar], () => {
+      endEdgeVar.value = startEdgeVar.value;
+    });
 
     const cleanedEdgeVariables = computed(() => Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)));
 
@@ -229,6 +235,7 @@ export default defineComponent({
       checkType,
       isNumeric,
       resetNetwork,
+      isTime,
     };
   },
 });
@@ -263,12 +270,9 @@ export default defineComponent({
         class="pb-4 pt-2"
       >
         <v-list-item>
-          <v-icon color="blue">
-            mdi-numeric-1-circle
-          </v-icon>
           <v-select
             v-model="startEdgeVar"
-            label="Start Variable"
+            :label="isTime ? `Start Variable` : `Edge Variable`"
             :items="cleanedEdgeVariables"
             :hide-details="true"
             class="mt-3"
@@ -278,10 +282,7 @@ export default defineComponent({
             @change="checkType"
           />
         </v-list-item>
-        <v-list-item>
-          <v-icon :color="isNumeric ? 'blue' : 'grey'">
-            mdi-numeric-2-circle
-          </v-icon>
+        <v-list-item v-if="isTime">
           <v-select
             v-model="endEdgeVar"
             label="End Variable"
@@ -295,10 +296,21 @@ export default defineComponent({
           />
         </v-list-item>
         <v-list-item v-if="isNumeric">
-          <v-checkbox
-            v-model="isDate"
-            label="Date format"
-          />
+          <v-row>
+            <v-col>
+              <v-checkbox
+                v-model="isTime"
+                label="Time Variable"
+              />
+            </v-col>
+            <v-col>
+              <v-checkbox
+                v-if="isTime"
+                v-model="isDate"
+                label="Date format"
+              />
+            </v-col>
+          </v-row>
         </v-list-item>
         <!-- Date Picker -->
         <v-list-item v-if="isDate && isNumeric">
@@ -357,9 +369,6 @@ export default defineComponent({
         </v-list-item>
         <!-- Numeric Picker -->
         <v-list-item v-if="isNumeric && !isDate">
-          <v-icon color="blue">
-            mdi-numeric-3-circle
-          </v-icon>
           <v-col>
             <v-text-field
               v-model="varRange[0]"
@@ -376,9 +385,6 @@ export default defineComponent({
           </v-col>
         </v-list-item>
         <v-list-item v-if="isNumeric">
-          <v-icon color="blue">
-            mdi-numeric-4-circle
-          </v-icon>
           <v-text-field
             v-model="edgeSliceNumber"
             label="Edge Slices"

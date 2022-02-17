@@ -172,7 +172,7 @@ export default defineComponent({
             y="30"
             height="20"
           >
-            {{ isDate ? `${formatShortDate(timeExtent[0])} - ${formatShortDate(timeExtent[1])}` : `${format('.2s')(timeExtent[0])} - ${format('.2s')(timeExtent[1])}` }}
+            {{ isDate ? `${formatShortDate(slice[0])} - ${formatShortDate(slice[1])}` : `${format('.2s')(slice[0])} - ${format('.2s')(slice[1])}` }}
           </foreignObject>
         </g>
       </g>
