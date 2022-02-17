@@ -198,6 +198,19 @@ export default defineComponent({
       a.click();
     }
 
+    function resetNetwork() {
+      // Reset network
+      if (originalNetwork.value !== null) {
+        store.commit.setSlicedNetwork([]);
+        store.commit.setNetwork(originalNetwork.value);
+      }
+      // Reset form
+      startEdgeVar.value = '';
+      endEdgeVar.value = '';
+      isDate.value = false;
+      isNumeric.value = true;
+    }
+
     return {
       showMenu,
       sliceRules,
@@ -213,6 +226,7 @@ export default defineComponent({
       dateFormatted,
       checkType,
       isNumeric,
+      resetNetwork,
     };
   },
 });
@@ -387,14 +401,33 @@ export default defineComponent({
                 Generate Slices
               </v-btn>
             </v-col>
-            <v-col>
+            <v-col
+              cols="12"
+              sm="6"
+            >
               <v-btn
                 color="primary"
                 block
                 depressed
                 @click="exportEdges"
               >
-                Export Edge Table
+                Export
+                <v-icon right>
+                  mdi-download
+                </v-icon>
+              </v-btn>
+            </v-col>
+            <v-col sm="6">
+              <v-btn
+                color="primary"
+                block
+                depressed
+                @click="resetNetwork"
+              >
+                Reset
+                <v-icon right>
+                  mdi-refresh
+                </v-icon>
               </v-btn>
             </v-col>
           </v-row>
