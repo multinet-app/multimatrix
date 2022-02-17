@@ -1,87 +1,112 @@
 <template>
   <div class="pa-0">
+    <v-subheader class="grey darken-3 py-0 pr-0 white--text">
+      Connectivity Query
+
+      <v-spacer />
+
+      <v-btn
+        :min-width="40"
+        :height="48"
+        depressed
+        tile
+        class="grey darken-3 pa-0"
+        @click="showMenu = !showMenu"
+      >
+        <v-icon color="white">
+          {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+        </v-icon>
+      </v-btn>
+    </v-subheader>
+
     <v-card
-      color="grey lighten-3"
+      v-if="showMenu"
       flat
       tile
     >
-      <v-card-text class="pt-2 pb-1">
-        <v-select
-          v-model="selectedHops"
-          label="Hops"
-          :items="hopsSelection"
-        />
-      </v-card-text>
-    </v-card>
-    <v-list dense>
-      <v-list-item
-        v-for="(_, i) in displayedHops"
-        :key="i"
-        class="pa-0"
+      <v-card
+        color="grey lighten-3"
+        flat
+        tile
       >
-        <v-list-item-avatar class="mr-0">
-          <v-icon size="18">
-            {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
-          </v-icon>
-        </v-list-item-avatar>
-        <v-list-item-content class="pa-0 pr-1">
-          <v-row no-gutters>
-            <v-col
-              cols="12"
-              sm="5"
-              class="pa-1"
-            >
-              <v-autocomplete
-                v-model="selectedVariables[i]"
-                :items="i % 2 ? edgeVariableItems : nodeVariableItems"
-                dense
-              />
-            </v-col>
-            <v-col
-              cols="12"
-              sm="3"
-              class="pa-1"
-            >
-              <v-autocomplete
-                v-model="selectedQueryOptions[i]"
-                :items="queryOptionItems"
-                dense
-              />
-            </v-col>
-            <v-col
-              cols="12"
-              sm="4"
-              class="pa-1"
-            >
-              <v-autocomplete
-                v-if="selectedQueryOptions[i] === '=='"
-                v-model="selectedVariableValue[i]"
-                :items="variableValueItems[i]"
-                dense
-              />
-              <v-text-field
-                v-else
-                v-model="selectedVariableValue[i]"
-                dense
-              />
-            </v-col>
-          </v-row>
-        </v-list-item-content>
-      </v-list-item>
-
-      <v-list-item>
-        <v-btn
-          block
-          class="ml-0 mt-4"
-          color="primary"
-          depressed
-          :loading="loading"
-          @click="submitQuery"
+        <v-card-text class="pt-2 pb-1">
+          <v-select
+            v-model="selectedHops"
+            label="Hops"
+            :items="hopsSelection"
+          />
+        </v-card-text>
+      </v-card>
+      <v-list dense>
+        <v-list-item
+          v-for="(_, i) in displayedHops"
+          :key="i"
+          class="pa-0"
         >
-          Submit Query
-        </v-btn>
-      </v-list-item>
-    </v-list>
+          <v-list-item-avatar class="mr-0">
+            <v-icon size="18">
+              {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
+            </v-icon>
+          </v-list-item-avatar>
+          <v-list-item-content class="pa-0 pr-1">
+            <v-row no-gutters>
+              <v-col
+                cols="12"
+                sm="5"
+                class="pa-1"
+              >
+                <v-autocomplete
+                  v-model="selectedVariables[i]"
+                  :items="i % 2 ? edgeVariableItems : nodeVariableItems"
+                  dense
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="3"
+                class="pa-1"
+              >
+                <v-autocomplete
+                  v-model="selectedQueryOptions[i]"
+                  :items="queryOptionItems"
+                  dense
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="4"
+                class="pa-1"
+              >
+                <v-autocomplete
+                  v-if="selectedQueryOptions[i] === '=='"
+                  v-model="selectedVariableValue[i]"
+                  :items="variableValueItems[i]"
+                  dense
+                />
+                <v-text-field
+                  v-else
+                  v-model="selectedVariableValue[i]"
+                  dense
+                />
+              </v-col>
+            </v-row>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item>
+          <v-btn
+            block
+            class="ml-0 mt-4"
+            color="primary"
+            depressed
+            :loading="loading"
+            @click="submitQuery"
+          >
+            Submit Query
+          </v-btn>
+        </v-list-item>
+      </v-list>
+    </v-card>
   </div>
 </template>
 
@@ -97,6 +122,7 @@ export default defineComponent({
   name: 'ConnectivityQuery',
 
   setup() {
+    const showMenu = ref(false);
     const hopsSelection = [1, 2, 3, 4, 5];
     const selectedHops: Ref<number> = ref(1);
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
@@ -123,7 +149,7 @@ export default defineComponent({
       selectedVariables.value.forEach((variable: string, i: number) => {
         if (store.state.network !== null) {
           const currentData = i % 2 ? store.state.edgeAttributes : store.state.nodeAttributes;
-          if (variable) {
+          if (variable && Object.keys(currentData).length > 0) {
             variableValueItems.value[i] = currentData[variable].map((value) => `${value}`);
           }
         }
@@ -163,7 +189,7 @@ export default defineComponent({
 
       const startNode = isTextComparison(selectedQueryOptions.value[0]) ? `UPPER(n.${selectedVariables.value[0]})` : `TO_NUMBER(n.${selectedVariables.value[0]})`;
       const aqlQuery = `
-        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER ${startNode} ${selectedQueryOptions.value[0]} ${valueInQuery[0]} RETURN n)
+        let startNodes = (FOR n in [${store.getters.nodeTableNames}][**] FILTER ${startNode} ${selectedQueryOptions.value[0]} ${valueInQuery[0]} RETURN n)
         let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
         RETURN {paths: paths[**].paths}
       `;
@@ -235,6 +261,7 @@ export default defineComponent({
       }
     }
     return {
+      showMenu,
       hopsSelection,
       selectedHops,
       displayedHops,

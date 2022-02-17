@@ -1,4 +1,6 @@
-import { TableRow, UserSpec, ColumnTypes } from 'multinet';
+import {
+  ColumnTypes, Table, TableRow, UserSpec,
+} from 'multinet';
 import { Provenance } from '@visdesignlab/trrack';
 
 export interface Dimensions {
@@ -76,7 +78,6 @@ export interface State {
   networkName: string | null;
   networkOnLoad: Network | null;
   slicedNetwork: SlicedNetwork[];
-  columnTypes: ColumnTypes | null;
   network: Network | null;
   loadError: LoadError;
   userInfo: UserSpec | null;
@@ -93,8 +94,6 @@ export interface State {
     unAggr: number;
     parent: number;
   };
-  nodeTableNames: string[];
-  edgeTableName: string | null;
   provenance: Provenance<State, ProvenanceEventTypes, unknown> | null;
   showProvenanceVis: boolean;
   nodeAttributes: ArangoAttributes;
@@ -105,6 +104,8 @@ export interface State {
   showPathTable: boolean;
   maxIntConnections: number;
   intAggregatedBy: string | undefined;
+  networkTables: Table[];
+  columnTypes: { [tableName: string]: ColumnTypes } | null;
   labelVariable: string | undefined;
   rightClickMenu: {
     show: boolean;
