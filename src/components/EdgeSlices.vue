@@ -4,7 +4,7 @@ import store from '@/store';
 import {
   computed, defineComponent, getCurrentInstance, onMounted, ref, watch,
 } from '@vue/composition-api';
-import { extent, max } from 'd3-array';
+import { max } from 'd3-array';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
 import { format } from 'd3-format';
 import { scaleLinear } from 'd3-scale';
@@ -35,7 +35,6 @@ export default defineComponent({
       });
       return slices;
     });
-    const timeExtent = computed(() => extent(Object.values(currentSlice.value.timeRanges).flat()));
     const textSpacer = ref(70);
 
     const timeRangesLength = computed(() => currentSlice.value.slices);
@@ -104,13 +103,11 @@ export default defineComponent({
     return {
       svgWidth,
       currentSlice,
-      timeRangesLength,
       showTooltip,
       hideTooltip,
       tooltipStyle,
       toggleTooltip,
       tooltipMessage,
-      timeExtent,
       textSpacer,
       updateSlice,
       isDate,
