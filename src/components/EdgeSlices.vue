@@ -1,8 +1,7 @@
 <script lang="ts">
-import { select, selectAll } from 'd3-selection';
 import store from '@/store';
 import {
-  computed, defineComponent, getCurrentInstance, onMounted, ref, watch,
+  computed, ComputedRef, defineComponent, getCurrentInstance, ref, watch,
 } from '@vue/composition-api';
 import { max } from 'd3-array';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
@@ -38,6 +37,14 @@ export default defineComponent({
     const textSpacer = ref(70);
 
     const timeRangesLength = computed(() => currentSlice.value.slices);
+
+    // Update sliced view and network
+    const selectedArray: ComputedRef<boolean[]> = computed(() => Array.from(Array(timeRangesLength.value), (_, x: number) => (x === 0)));
+    function isSelected(key: number) {
+      selectedArray.value.fill(false);
+      selectedArray.value[key] = true;
+      store.commit.setNetwork(slicedNetwork.value[key].network);
+    }
 
     // Heightscale for numeric attributes
     const heightScale = computed(() => scaleLinear<number, number>().domain([0, max(currentSlice.value.sumEdges) || 0]).range([0, rectHeight.value]));
@@ -80,24 +87,9 @@ export default defineComponent({
       toggleTooltip.value = false;
     }
 
-    // Update sliced view and network
-    function updateSlice(selection: number) {
-      currentSlice.value.current = selection;
-      selectAll('.edgeSliceRectClass').classed('selected', false);
-      select(`#edgeSlice_${selection}`).classed('selected', true);
-
-      store.commit.setNetwork(slicedNetwork.value[selection].network);
-    }
-
-    // Select the first slice on initial load
-    onMounted(() => {
-      select('#edgeSlice_0').classed('selected', true);
-    });
-
     // Select the first slice on when slices are changed load
     watch([slicedNetwork], () => {
-      selectAll('.edgeSliceRectClass').classed('selected', false);
-      select('#edgeSlice_0').classed('selected', true);
+      isSelected(0);
     });
 
     return {
@@ -109,7 +101,6 @@ export default defineComponent({
       toggleTooltip,
       tooltipMessage,
       textSpacer,
-      updateSlice,
       isDate,
       formatShortDate,
       heightScale,
@@ -117,6 +108,8 @@ export default defineComponent({
       rectWidth,
       isNumeric,
       format,
+      isSelected,
+      selectedArray,
     };
   },
 });
@@ -143,11 +136,11 @@ export default defineComponent({
           class="edgeSliceGroup"
           @mouseover="showTooltip(key, $event)"
           @mouseout="hideTooltip"
-          @click="updateSlice(key)"
+          @click="isSelected(key)"
         >
           <rect
             :id="`edgeSlice_${key}`"
-            class="edgeSliceRectClass"
+            :class="selectedArray[key] ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
             :width="rectWidth"
             :height="rectHeight"
             y="0"
@@ -185,11 +178,11 @@ export default defineComponent({
           class="edgeSliceGroup"
           @mouseover="showTooltip(key, $event)"
           @mouseout="hideTooltip"
-          @click="updateSlice(key)"
+          @click="isSelected(key)"
         >
           <rect
             :id="`edgeSlice_${key}`"
-            class="edgeSliceRectClass"
+            :class="selectedArray[key] ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
             :width="rectWidth"
             :height="rectHeight"
             y="0"
