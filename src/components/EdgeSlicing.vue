@@ -19,6 +19,7 @@ export default defineComponent({
 
     const network = computed(() => store.state.network);
     const originalNetwork = computed(() => store.state.networkOnLoad);
+    const isSliced = computed(() => store.state.slicedNetwork.length === 0);
     const startEdgeVar: Ref<string> = ref('');
     const endEdgeVar: Ref<string> = ref('');
     const edgeSliceNumber = ref(1);
@@ -237,6 +238,7 @@ export default defineComponent({
       isNumeric,
       resetNetwork,
       isTime,
+      isSliced,
     };
   },
 });
@@ -417,6 +419,7 @@ export default defineComponent({
                 color="primary"
                 block
                 depressed
+                :disabled="isSliced"
                 @click="exportEdges"
               >
                 Export
@@ -430,6 +433,7 @@ export default defineComponent({
                 color="primary"
                 block
                 depressed
+                :disabled="isSliced"
                 @click="resetNetwork"
               >
                 Reset
