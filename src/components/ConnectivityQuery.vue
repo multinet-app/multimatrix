@@ -16,32 +16,47 @@
 
     <v-card
       v-for="(inputs, i) in queryInput"
-      :key="i"
+      :key="`input${i}`"
       flat
       color="white"
-      class="pb-4 pt-2"
+      class="p-0"
     >
       <v-list dense>
         <v-list-item
-          v-for="(values, j) in inputs.value"
-          :key="j"
+          v-for="(val, j) in inputs.value"
+          :key="`val-${i}-${j}`"
           class="pa-0"
         >
           <v-list-item class="pa-0">
-            <v-list-item-avatar class="mr-0">
+            <v-list-item-avatar
+              v-if="j === 0"
+              class="mr-0"
+            >
               <v-icon size="18">
                 {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
               </v-icon>
             </v-list-item-avatar>
-            <v-list-item-content class="pa-0 pr-1">
-              <v-row no-gutters>
+            <v-row no-gutters>
+              <v-col
+                v-if="j > 0"
+                cols="12"
+                sm="2"
+                class="pt-3"
+              >
+                <v-autocomplete
+                  v-model="inputs.operator"
+                  :items="operatorOptionItems"
+                  dense
+                />
+              </v-col>
+              <v-list-item-content class="pa-0 pr-1">
                 <v-col
                   cols="12"
-                  sm="4"
+                  sm="3"
                   class="pa-1"
                 >
                   <v-autocomplete
-                    v-model="values.label"
+                    v-model="val.label"
                     :items="i % 2 ? edgeVariableItems : nodeVariableItems"
                     dense
                   />
@@ -52,7 +67,7 @@
                   class="pa-1"
                 >
                   <v-autocomplete
-                    v-model="values.operator"
+                    v-model="val.operator"
                     :items="queryOptionItems"
                     dense
                   />
@@ -63,20 +78,20 @@
                   class="pa-1"
                 >
                   <v-autocomplete
-                    v-if="values.operator === '=='"
-                    v-model="values.input"
-                    :items="i % 2 ? variableValueItems.node[values.label] : variableValueItems.edge[values.label]"
+                    v-if="val.operator === '=='"
+                    v-model="val.input"
+                    :items="i % 2 ? variableValueItems.node[val.label] : variableValueItems.edge[val.label]"
                     dense
                   />
                   <v-text-field
                     v-else
-                    v-model="values.input"
+                    v-model="val.input"
                     dense
                   />
                 </v-col>
                 <v-col
                   cols="12"
-                  sm="2"
+                  sm="1"
                   class="mt-3"
                 >
                   <!-- Add button -->
@@ -92,7 +107,7 @@
                   </v-btn>
                   <!-- Remove button -->
                   <v-btn
-                    v-show="values.length > 1"
+                    v-show="j > 0"
                     icon
                     x-small
                     color="red"
@@ -103,8 +118,8 @@
                     </v-icon>
                   </v-btn>
                 </v-col>
-              </v-row>
-            </v-list-item-content>
+              </v-list-item-content>
+            </v-row>
           </v-list-item>
         </v-list-item>
       </v-list>
@@ -131,7 +146,7 @@ import {
   Node, Edge, Network,
 } from '@/types';
 import {
-  computed, defineComponent, ref, Ref,
+  computed, defineComponent, onMounted, ref, Ref, watch,
 } from '@vue/composition-api';
 import api from '@/api';
 
@@ -150,6 +165,7 @@ export default defineComponent({
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
     const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
+    const operatorOptionItems = ['AND', 'OR', 'NOT'];
 
     const selectedVariableValue: Ref<string[]> = ref([]);
     // const variableValueItems: Ref<string[][]> = ref([]);
@@ -169,18 +185,37 @@ export default defineComponent({
           variableItems.edge.push(obj);
         });
       }
-      console.log(variableItems);
       return variableItems;
     });
 
     // Create the object for storing input data
-    const queryInput = computed(() => [...Array(displayedHops.value).keys()].map((i: number) => {
-      if (i % 2 && store.state.workspaceName === 'marclab') {
-        return { key: i, value: [{ label: 'Type', operator: '', input: '' }], logic: '' };
-      }
-      return { key: i, value: [{ label: 'Label', operator: '', input: '' }], logic: '' };
-    }));
-    console.log(queryInput.value);
+    const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; logic: string }[]> = ref([{ key: 1, value: [{ label: '', operator: '', input: '' }], logic: '' }]);
+
+    watch([displayedHops], () => {
+      queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
+        if (i % 2 && store.state.workspaceName === 'marclab') {
+          return {
+            key: i, value: [{ label: 'Type', operator: '', input: '' }], logic: '',
+          };
+        }
+        return {
+          key: i, value: [{ label: 'Label', operator: '', input: '' }], logic: '',
+        };
+      });
+    });
+
+    onMounted(() => {
+      queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
+        if (i % 2 && store.state.workspaceName === 'marclab') {
+          return {
+            key: i, value: [{ label: 'Type', operator: '', input: '' }], logic: '',
+          };
+        }
+        return {
+          key: i, value: [{ label: 'Label', operator: '', input: '' }], logic: '',
+        };
+      });
+    });
 
     // 21 = 2n + 1 for n = 5 (max number of hops allowed above)
     Array(21).fill(1).forEach(() => {
@@ -202,12 +237,10 @@ export default defineComponent({
 
     function addField(index: number) {
       queryInput.value[index].value.push({ input: '', label: '', operator: 'AND' });
-      console.log(queryInput.value);
     }
 
     function removeField(index: number, field: number) {
       queryInput.value[index].value.splice(field, 1);
-      console.log(queryInput.value);
     }
 
     function isTextComparison(operator: string) {
@@ -328,6 +361,7 @@ export default defineComponent({
       addField,
       removeField,
       queryInput,
+      operatorOptionItems,
     };
   },
 });
