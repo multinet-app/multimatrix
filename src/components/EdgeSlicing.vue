@@ -4,7 +4,11 @@ import { formatShortDate } from '@/lib/utils';
 import store from '@/store';
 import { Edge, SlicedNetwork } from '@/types';
 import {
-  computed, defineComponent, Ref, ref, watch,
+  computed,
+  defineComponent,
+  Ref,
+  ref,
+  watch,
 } from '@vue/composition-api';
 import { scaleLinear, scaleTime } from 'd3-scale';
 
@@ -15,7 +19,7 @@ export default defineComponent({
     const showMenu = ref(false);
     const sliceRules = (value: string) => !Number.isNaN(parseFloat(value)) || 'Please type a number';
     const calMenu = ref([false, false]);
-    const dateFormatted: Ref<string[]> = ref([]);
+    // const dateFormatted: Ref<string[]> = ref([]);
 
     const network = computed(() => store.state.network);
     const originalNetwork = computed(() => store.state.networkOnLoad);
@@ -23,6 +27,7 @@ export default defineComponent({
     const startEdgeVar: Ref<string> = ref('');
     const endEdgeVar: Ref<string> = ref('');
     const edgeSliceNumber = ref(1);
+    const inputRange: Ref<(Date | number | string)[]> = ref([]);
     const isTime = ref(false);
     const isDate = computed({
       get() {
@@ -38,7 +43,9 @@ export default defineComponent({
     function checkType() {
       // eslint-disable-next-line no-unused-expressions
       if (originalNetwork.value !== null) {
-        isNumeric.value = !Number.isNaN(parseFloat(`${originalNetwork.value.edges[0][startEdgeVar.value]}`));
+        isNumeric.value = !Number.isNaN(
+          parseFloat(`${originalNetwork.value.edges[0][startEdgeVar.value]}`),
+        );
       }
     }
 
@@ -50,15 +57,29 @@ export default defineComponent({
 
     // Assume start var + end are the same
     watch([startEdgeVar], () => {
-      endEdgeVar.value = startEdgeVar.value;
+      if (isNumeric.value) {
+        endEdgeVar.value = startEdgeVar.value;
+      // if new start variable is categorical, reset values
+      } else {
+        endEdgeVar.value = '';
+        isDate.value = false;
+        edgeSliceNumber.value = 1;
+        isTime.value = false;
+      }
     });
 
-    const cleanedEdgeVariables = computed(() => Object.keys(store.state.edgeAttributes).filter((varName) => !isInternalField(varName)));
+    const cleanedEdgeVariables = computed(() => Object.keys(store.state.edgeAttributes).filter(
+      (varName) => !isInternalField(varName),
+    ));
 
     // Compute the min and max times for numbers or date
-    const varRange = computed(() => {
-      const range: Date[] | number[] | string[] = [];
-      if (startEdgeVar.value !== null && endEdgeVar.value !== null && originalNetwork.value !== null) {
+    const validRange = computed(() => {
+      const range: (Date | number | string)[] = [0, 0];
+      if (
+        startEdgeVar.value !== null
+          && endEdgeVar.value !== null
+          && originalNetwork.value !== null
+      ) {
         // Loop through all edges, return min and max time values
         originalNetwork.value.edges.forEach((edge: Edge, i: number) => {
           // Check for dates
@@ -81,70 +102,116 @@ export default defineComponent({
         });
       }
       // Format date
-      if (isDate) {
-        dateFormatted.value = [formatDate(new Date(range[0])), formatDate(new Date(range[1]))];
+      if (isDate.value) {
+        range[0] = formatDate(new Date(range[0]));
+        range[1] = formatDate(new Date(range[1]));
       }
       return range;
     });
+    const minRules = (value: number) => value >= validRange.value[0] || `Must be >= ${validRange.value[0]}`;
+    const maxRules = (value: number) => value <= validRange.value[1] || `Must be >= ${validRange.value[1]}`;
 
-    watch([dateFormatted], () => {
-      if (isDate.value) {
-        varRange.value[0] = new Date(dateFormatted.value[0]);
-        varRange.value[1] = new Date(dateFormatted.value[1]);
+    // Update input values when start or end variable updates
+    watch([validRange], () => {
+      inputRange.value = [...validRange.value];
+    });
+
+    // Check if input is valid
+    const isValidRange = ref(false);
+
+    watch([inputRange], () => {
+      if (!isDate.value) {
+        isValidRange.value = parseFloat(inputRange.value[0].toString()) >= validRange.value[0]
+        && parseFloat(inputRange.value[1].toString()) <= validRange.value[1];
       }
     });
 
     function sliceNetwork() {
       // Resets to original network view when variable slice is 1
-      if ((originalNetwork.value !== null && edgeSliceNumber.value === 1 && isNumeric.value) || (originalNetwork.value !== null && startEdgeVar.value === undefined)) {
+      if (
+        (originalNetwork.value !== null
+          && edgeSliceNumber.value === 1
+          && isNumeric.value)
+        || (originalNetwork.value !== null && startEdgeVar.value === undefined)
+      ) {
         store.commit.setSlicedNetwork([]);
         store.commit.setNetwork(originalNetwork.value);
       }
-      if ((originalNetwork.value !== null && edgeSliceNumber.value !== 1) || (originalNetwork.value !== null && !isNumeric.value)) {
+      if (
+        (originalNetwork.value !== null && edgeSliceNumber.value !== 1)
+        || (originalNetwork.value !== null && !isNumeric.value)
+      ) {
         const slicedNetwork: SlicedNetwork[] = [];
         // Generates sliced networks based on time slices or numeric input
         if (isNumeric.value) {
           const slicedRange = [];
           if (isDate.value) {
-            slicedRange[0] = new Date(varRange.value[0]).getTime();
-            slicedRange[1] = new Date(varRange.value[1]).getTime();
+            slicedRange[0] = new Date(inputRange.value[0]).getTime();
+            slicedRange[1] = new Date(inputRange.value[1]).getTime();
           } else {
-            slicedRange[0] = parseFloat(varRange.value[0].toString());
-            slicedRange[1] = parseFloat(varRange.value[1].toString());
+            slicedRange[0] = parseFloat(inputRange.value[0].toString());
+            slicedRange[1] = parseFloat(inputRange.value[1].toString());
           }
           // Generate sliced network
           // eslint-disable-next-line no-plusplus
           for (let i = 0; i < edgeSliceNumber.value; i++) {
             const currentSlice: SlicedNetwork = {
-              slice: i + 1, time: [], network: { nodes: originalNetwork.value.nodes, edges: [] }, category: '',
+              slice: i + 1,
+              time: [],
+              network: { nodes: originalNetwork.value.nodes, edges: [] },
+              category: '',
             };
             // Create slices for dates
             if (isDate.value) {
-              const timeIntervals = scaleTime().domain(slicedRange).range([0, edgeSliceNumber.value]);
-              currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
+              const timeIntervals = scaleTime()
+                .domain(slicedRange)
+                .range([0, edgeSliceNumber.value]);
+              currentSlice.time = [
+                timeIntervals.invert(i),
+                timeIntervals.invert(i + 1),
+              ];
               originalNetwork.value.edges.forEach((edge: Edge) => {
-                if (timeIntervals(new Date(`${edge[startEdgeVar.value]}`)) >= i && timeIntervals(new Date(`${edge[endEdgeVar.value]}`)) < i + 1) {
+                if (
+                  timeIntervals(new Date(`${edge[startEdgeVar.value]}`)) >= i
+                  && timeIntervals(new Date(`${edge[endEdgeVar.value]}`)) < i + 1
+                ) {
                   currentSlice.network.edges.push(edge);
                 }
               });
             } else {
-              const timeIntervals = scaleLinear().domain(slicedRange).range([0, edgeSliceNumber.value]);
-              currentSlice.time = [timeIntervals.invert(i), timeIntervals.invert(i + 1)];
+              const timeIntervals = scaleLinear()
+                .domain(slicedRange)
+                .range([0, edgeSliceNumber.value]);
+              currentSlice.time = [
+                timeIntervals.invert(i),
+                timeIntervals.invert(i + 1),
+              ];
               originalNetwork.value.edges.forEach((edge: Edge) => {
-                if (timeIntervals(parseFloat(`${edge[startEdgeVar.value]}`)) >= i && timeIntervals(parseFloat(`${edge[endEdgeVar.value]}`)) < i + 1) {
+                if (
+                  timeIntervals(parseFloat(`${edge[startEdgeVar.value]}`))
+                    >= i
+                  && timeIntervals(parseFloat(`${edge[endEdgeVar.value]}`)) < i + 1
+                ) {
                   currentSlice.network.edges.push(edge);
                 }
               });
             }
             slicedNetwork.push(currentSlice);
           }
-        // Create slicing for categories
+          // Create slicing for categories
         } else {
-          const categoricalValues = new Set(originalNetwork.value.edges.map((edge: Edge) => `${edge[startEdgeVar.value]}`));
+          const categoricalValues = new Set(
+            originalNetwork.value.edges.map(
+              (edge: Edge) => `${edge[startEdgeVar.value]}`,
+            ),
+          );
           [...categoricalValues].forEach((attr, i) => {
             if (originalNetwork.value !== null) {
               const currentSlice: SlicedNetwork = {
-                slice: i + 1, time: [], network: { nodes: originalNetwork.value.nodes, edges: [] }, category: attr,
+                slice: i + 1,
+                time: [],
+                network: { nodes: originalNetwork.value.nodes, edges: [] },
+                category: attr,
               };
               originalNetwork.value.edges.forEach((edge: Edge) => {
                 if (edge[startEdgeVar.value] === attr) {
@@ -173,7 +240,11 @@ export default defineComponent({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const edges: any[] = [];
       slicedNetwork.forEach((slice) => {
-        const timeObj = { slice: slice.slice, timeStart: slice.time[0], timeFinish: slice.time[1] };
+        const timeObj = {
+          slice: slice.slice,
+          timeStart: slice.time[0],
+          timeFinish: slice.time[1],
+        };
         slice.network.edges.forEach((edge) => {
           const rowObj = { ...edge, ...timeObj };
           edges.push(rowObj);
@@ -183,18 +254,20 @@ export default defineComponent({
       // Formate edge data for CSV
       const separator = ',';
       const keys = Object.keys(edges[0]);
-      const edgeTable = `${keys.join(separator)
-      }\n${
-        edges.map((edge) => keys.map((k) => {
-          let cell = edge[k] === null || edge[k] === undefined ? '' : edge[k];
-          cell = cell instanceof Date
-            ? cell.toLocaleString()
-            : cell.toString().replace(/"/g, '""');
-          if (cell.search(/("|,|\n)/g) >= 0) {
-            cell = `"${cell}"`;
-          }
-          return cell;
-        }).join(separator)).join('\n')}`;
+      const edgeTable = `${keys.join(separator)}\n${edges
+        .map((edge) => keys
+          .map((k) => {
+            let cell = edge[k] === null || edge[k] === undefined ? '' : edge[k];
+            cell = cell instanceof Date
+              ? cell.toLocaleString()
+              : cell.toString().replace(/"/g, '""');
+            if (cell.search(/("|,|\n)/g) >= 0) {
+              cell = `"${cell}"`;
+            }
+            return cell;
+          })
+          .join(separator))
+        .join('\n')}`;
 
       const a = document.createElement('a');
       a.href = URL.createObjectURL(
@@ -230,15 +303,18 @@ export default defineComponent({
       cleanedEdgeVariables,
       sliceNetwork,
       exportEdges,
-      varRange,
+      inputRange,
       isDate,
       calMenu,
-      dateFormatted,
       checkType,
       isNumeric,
       resetNetwork,
       isTime,
       isSliced,
+      isValidRange,
+      validRange,
+      minRules,
+      maxRules,
     };
   },
 });
@@ -261,7 +337,7 @@ export default defineComponent({
           @click="showMenu = !showMenu"
         >
           <v-icon color="white">
-            {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+            {{ showMenu ? "mdi-chevron-up" : "mdi-chevron-down" }}
           </v-icon>
         </v-btn>
       </v-subheader>
@@ -327,7 +403,7 @@ export default defineComponent({
           >
             <template #activator="{ on, attrs }">
               <v-text-field
-                v-model="dateFormatted[0]"
+                v-model="inputRange[0]"
                 label="Start Date"
                 hint="YYYY-MM-DD"
                 persistent-hint
@@ -337,8 +413,10 @@ export default defineComponent({
               />
             </template>
             <v-date-picker
-              v-model="dateFormatted[0]"
+              v-model="inputRange[0]"
               no-title
+              :min="validRange[0]"
+              :max="validRange[1]"
               @input="calMenu[0] = false"
             />
           </v-menu>
@@ -353,7 +431,7 @@ export default defineComponent({
           >
             <template #activator="{ on, attrs }">
               <v-text-field
-                v-model="dateFormatted[1]"
+                v-model="inputRange[1]"
                 label="End Date"
                 hint="YYYY-MM-DD"
                 persistent-hint
@@ -363,7 +441,9 @@ export default defineComponent({
               />
             </template>
             <v-date-picker
-              v-model="dateFormatted[1]"
+              v-model="inputRange[1]"
+              :min="validRange[0]"
+              :max="validRange[1]"
               no-title
               @input="calMenu[1] = false"
             />
@@ -373,14 +453,18 @@ export default defineComponent({
         <v-list-item v-if="isNumeric && !isDate">
           <v-col>
             <v-text-field
-              v-model="varRange[0]"
+              v-model="inputRange[0]"
               label="Min"
+              :rules="[minRules]"
+              hide-details="auto"
               outlined
             />
           </v-col>
           <v-col>
             <v-text-field
-              v-model="varRange[1]"
+              v-model="inputRange[1]"
+              :rules="[maxRules]"
+              hide-details="auto"
               label="Max"
               outlined
             />
@@ -406,6 +490,7 @@ export default defineComponent({
                 color="primary"
                 block
                 depressed
+                :disabled="!isValidRange && !isDate"
                 @click="sliceNetwork"
               >
                 Generate Slices
