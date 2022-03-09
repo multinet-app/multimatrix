@@ -7,6 +7,7 @@ import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
+import EdgeSlicing from '@/components/EdgeSlicing.vue';
 import {
   computed, defineComponent, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
@@ -16,6 +17,7 @@ export default defineComponent({
     AboutDialog,
     LoginMenu,
     ConnectivityQuery,
+    EdgeSlicing,
   },
 
   setup() {
@@ -496,6 +498,8 @@ export default defineComponent({
             </v-list-item>
           </div>
         </div>
+        <!-- Edge Slicing -->
+        <EdgeSlicing />
 
         <!-- Connectivity Query -->
         <connectivity-query />

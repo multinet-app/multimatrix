@@ -66,9 +66,18 @@ export interface ArangoPath {
   edges: Edge[];
 }
 
+export interface SlicedNetwork {
+  network: Network;
+  slice: number;
+  time: number[] | Date[];
+  category: string;
+}
+
 export interface State {
   workspaceName: string | null;
   networkName: string | null;
+  networkOnLoad: Network | null;
+  slicedNetwork: SlicedNetwork[];
   network: Network | null;
   loadError: LoadError;
   userInfo: UserSpec | null;
@@ -103,6 +112,8 @@ export interface State {
     top: number;
     left: number;
   };
+  isDate: boolean;
+  controlsWidth: number;
 }
 
 export type ProvenanceEventTypes =
