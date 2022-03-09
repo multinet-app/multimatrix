@@ -15,7 +15,7 @@ import {
   ArangoAttributes,
   ArangoPath,
   Cell,
-  Edge, LoadError, Network, Node, ProvenanceEventTypes, State,
+  Edge, LoadError, Network, Node, ProvenanceEventTypes, State, SlicedNetwork,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
 import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
@@ -72,6 +72,10 @@ const {
       top: 0,
       left: 0,
     },
+    networkOnLoad: null,
+    slicedNetwork: [],
+    isDate: false,
+    controlsWidth: 256,
   } as State,
 
   getters: {
@@ -331,6 +335,18 @@ const {
       state.rightClickMenu = payload;
     },
 
+    setIsDate(state, isDate: boolean) {
+      state.isDate = isDate;
+    },
+
+    setSlicedNetwork(state, slicedNetwork: SlicedNetwork[]) {
+      state.slicedNetwork = slicedNetwork;
+    },
+
+    setNetworkOnLoad(state, network: Network) {
+      state.networkOnLoad = network;
+    },
+
     setSelected(state, selectedNodes: Set<string>) {
       state.selectedNodes = selectedNodes;
 
@@ -441,7 +457,9 @@ const {
     updateNetwork(context, payload: { network: Network }) {
       const { commit } = rootActionContext(context);
       commit.setNetwork(payload.network);
+      commit.setNetworkOnLoad(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
+      commit.setSlicedNetwork([]);
     },
 
     async fetchUserInfo(context) {
