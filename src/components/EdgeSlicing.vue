@@ -38,6 +38,7 @@ export default defineComponent({
       },
     });
     const isNumeric = ref(true);
+    const isValidRange = ref(true);
 
     // Check if selected variable is numeric
     function checkType() {
@@ -65,6 +66,7 @@ export default defineComponent({
         isDate.value = false;
         edgeSliceNumber.value = 1;
         isTime.value = false;
+        isValidRange.value = true;
       }
     });
 
@@ -117,7 +119,6 @@ export default defineComponent({
     });
 
     // Check if input is valid
-    const isValidRange = ref(false);
 
     watch([inputRange], () => {
       if (!isDate.value) {
@@ -490,7 +491,7 @@ export default defineComponent({
                 color="primary"
                 block
                 depressed
-                :disabled="!isValidRange && !isDate"
+                :disabled="!isValidRange && !isDate && isNumeric"
                 @click="sliceNetwork"
               >
                 Generate Slices
