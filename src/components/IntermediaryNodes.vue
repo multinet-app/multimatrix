@@ -192,7 +192,7 @@ export default defineComponent({
         <foreignObject
           class="rowLabels"
           :width="margin.left - 2"
-          :height="cellFontSize + 2"
+          :height="cellFontSize + 8"
           :font-size="cellFontSize"
           :y="cellSize * i"
           x="0"
