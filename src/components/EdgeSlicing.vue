@@ -19,8 +19,6 @@ export default defineComponent({
     const showMenu = ref(false);
     const sliceRules = (value: string) => !Number.isNaN(parseFloat(value)) || 'Please type a number';
     const calMenu = ref([false, false]);
-    // const dateFormatted: Ref<string[]> = ref([]);
-
     const network = computed(() => store.state.network);
     const originalNetwork = computed(() => store.state.networkOnLoad);
     const isSliced = computed(() => store.state.slicedNetwork.length === 0);
@@ -375,7 +373,7 @@ export default defineComponent({
             dense
           />
         </v-list-item>
-        <v-list-item v-if="isNumeric">
+        <v-list-item v-if="isNumeric && startEdgeVar">
           <v-row>
             <v-col>
               <v-checkbox
