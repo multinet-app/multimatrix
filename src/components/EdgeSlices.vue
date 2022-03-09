@@ -1,7 +1,7 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  computed, ComputedRef, defineComponent, getCurrentInstance, ref, watch,
+  computed, defineComponent, getCurrentInstance, ref, watch,
 } from '@vue/composition-api';
 import { max } from 'd3-array';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
@@ -39,7 +39,12 @@ export default defineComponent({
     const timeRangesLength = computed(() => currentSlice.value.slices);
 
     // Update sliced view and network
-    const selectedArray: ComputedRef<boolean[]> = computed(() => Array.from(Array(timeRangesLength.value), (_, x: number) => (x === 0)));
+    const selectedArray = ref([true]);
+
+    watch([timeRangesLength], () => {
+      selectedArray.value = Array.from(Array(timeRangesLength.value), (_, x: number) => (x === 0));
+    });
+
     function isSelected(key: number) {
       selectedArray.value.fill(false);
       selectedArray.value[key] = true;
