@@ -293,6 +293,7 @@ export default defineComponent({
       isNumeric.value = true;
       edgeSliceNumber.value = 1;
       isTime.value = false;
+      inputRange.value = [];
     }
 
     return {
@@ -451,7 +452,7 @@ export default defineComponent({
           </v-menu>
         </v-list-item>
         <!-- Numeric Picker -->
-        <v-list-item v-if="isNumeric && !isDate">
+        <v-list-item v-if="isNumeric && !isDate && startEdgeVar">
           <v-col>
             <v-text-field
               v-model="inputRange[0]"
@@ -491,7 +492,7 @@ export default defineComponent({
                 color="primary"
                 block
                 depressed
-                :disabled="!isValidRange && !isDate && isNumeric"
+                :disabled="!isValidRange && !isDate && isNumeric && !startEdgeVar"
                 @click="sliceNetwork"
               >
                 Generate Slices
