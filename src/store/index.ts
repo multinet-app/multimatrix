@@ -108,7 +108,7 @@ const {
 
     edgeVariableItems(state, getters): string[] {
       if (getters.edgeTableName !== undefined && state.columnTypes !== null) {
-        Object.keys(state.columnTypes[getters.edgeTableName]).filter((varName) => !isInternalField(varName));
+        return Object.keys(state.columnTypes[getters.edgeTableName]).filter((varName) => !isInternalField(varName));
       }
       return [];
     },
