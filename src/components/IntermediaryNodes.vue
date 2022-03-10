@@ -36,7 +36,7 @@ export default defineComponent({
     });
 
     const margin = {
-      top: 80,
+      top: 110,
       right: 50,
       bottom: 0,
       left: 40,
@@ -220,14 +220,9 @@ export default defineComponent({
 </template>
 
 <style scoped>
-svg >>> .gridLines {
-  pointer-events: none;
-  stroke: #BBBBBB;
-}
-
 svg >>> .circleIcons {
-    stroke: black;
-    stroke-width: 1;
+  stroke: black;
+  stroke-width: 1;
 }
 
 svg >>> .rowLabels {
@@ -241,11 +236,6 @@ svg >>> .rowLabels {
 
 svg >>> .connectivityCell:hover {
   cursor: pointer;
-  stroke-width: 1px;
-  stroke: black;
-}
-
-svg >>> .connectivityCell.clicked {
   stroke-width: 1px;
   stroke: black;
 }
