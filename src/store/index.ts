@@ -76,6 +76,7 @@ const {
     slicedNetwork: [],
     isDate: false,
     controlsWidth: 256,
+    selectedHops: 1,
   } as State,
 
   getters: {
@@ -297,6 +298,10 @@ const {
 
     setSelectedConnectivityPaths(state, payload: number[]) {
       state.selectedConnectivityPaths = payload.map((path: number) => state.connectivityMatrixPaths.paths[path]);
+    },
+
+    setSelectedHops(state, selectedHops: number) {
+      state.selectedHops = selectedHops;
     },
 
     setShowPathTable(state, showPathTable: boolean) {

@@ -114,6 +114,7 @@ export interface State {
   };
   isDate: boolean;
   controlsWidth: number;
+  selectedHops: number;
 }
 
 export type ProvenanceEventTypes =

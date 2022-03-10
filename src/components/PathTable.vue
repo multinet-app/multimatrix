@@ -100,13 +100,8 @@ export default defineComponent({
 
   setup() {
     const search = ref('');
-    const pathLength = computed(() => {
-      // Add extra node in even paths
-      if (store.state.selectedConnectivityPaths[0].vertices.length % 2 === 0) {
-        return store.state.selectedConnectivityPaths[0].vertices.length + 1;
-      }
-      return store.state.selectedConnectivityPaths[0].vertices.length;
-    });
+    const selectedConnectivityPaths = computed(() => store.state.selectedConnectivityPaths);
+    const pathLength = computed(() => selectedConnectivityPaths.value[0].vertices.length);
 
     const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
     const headerEdgeSelections = computed(() => store.getters.edgeVariableItems);
@@ -142,7 +137,7 @@ export default defineComponent({
 
     const tableData = computed(() => {
       const toReturn: { [key: string]: string }[] = [];
-      store.state.selectedConnectivityPaths.forEach((path) => {
+      selectedConnectivityPaths.value.forEach((path) => {
         const tablePath: { [key: string]: string } = {};
         headers.value.forEach((header) => {
           // eslint-disable-next-line no-unused-expressions
