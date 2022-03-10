@@ -206,6 +206,8 @@ export default defineComponent({
             :height="cellSize"
             fill="blue"
             :fill-opacity="opacity(cell.z)"
+            stroke="white"
+            stroke-width="1"
             @click="displayTable(cell.paths)"
           />
         </g>
@@ -233,5 +235,6 @@ svg >>> .connectivityCell:hover {
   cursor: pointer;
   stroke-width: 1px;
   stroke: black;
+  z-index: 100;
 }
 </style>
