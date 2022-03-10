@@ -1,11 +1,10 @@
 <script lang="ts">
 import {
-  computed, defineComponent, watchEffect,
+  computed, defineComponent,
 } from '@vue/composition-api';
 import {
   scaleLinear,
 } from 'd3-scale';
-import { selectAll } from 'd3-selection';
 import store from '@/store';
 import { ConnectivityCell } from '@/types';
 import { group } from 'd3-array';
@@ -30,10 +29,6 @@ export default defineComponent({
     const circleRadius = computed(() => cellSize.value / 2);
     const cellFontSize = computed(() => cellSize.value * 0.8);
     const intAggregatedBy = computed(() => store.state.intAggregatedBy);
-
-    watchEffect(() => {
-      if (showTable.value === false) { selectAll('.connectivityCell').classed('clicked', false); }
-    });
 
     const margin = {
       top: 110,
