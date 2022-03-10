@@ -162,60 +162,58 @@ export default defineComponent({
       id="intNode"
       :width="intNodeWidth"
       :height="matrixHeight"
-      :transform="`translate(0, ${margin.top})`"
     >
       <g
-        v-for="(_, c) in pathLength"
-        :key="`circles${c}`"
-        :transform="`translate(${circleRadius / 2 + 25}, ${cellSize + 2})`"
+        :transform="`translate(${margin.left},${margin.top})`"
       >
-        <circle
-          class="circleIcons"
-          :r="circleRadius"
-          :fill="(c !== 0 && c !== (pathLength - 1) ? 'lightgrey' : 'none')"
-          :cy="-circleRadius"
-          :cx="cellSize + xScale(c)"
-        />
-        <text
-          :y="-circleRadius/2"
-          :x="cellSize + xScale(c)"
-          :font-size="cellFontSize"
-          text-anchor="middle"
+        <g
+          v-for="(_, c) in pathLength"
+          :key="`circles${c}`"
+          :transform="`translate(${cellSize + xScale(c)}, ${(-circleRadius) - 5})`"
         >
-          {{ c + 1 }}
-        </text>
-      </g>
-      <g
-        v-for="(row, i) in matrixData"
-        :key="`row${i}`"
-      >
-        <foreignObject
-          class="rowLabels"
-          :width="margin.left - 2"
-          :height="cellFontSize + 8"
-          :font-size="cellFontSize"
-          :y="cellSize * i"
-          x="0"
-          :transform="`translate(${margin.right - (margin.left)}, ${cellSize * 2})`"
+          <circle
+            class="circleIcons"
+            :r="circleRadius"
+            :fill="(c !== 0 && c !== (pathLength - 1) ? 'lightgrey' : 'none')"
+          />
+          <text
+            :y="circleRadius/2"
+            :font-size="`${cellFontSize}px`"
+            text-anchor="middle"
+          >
+            {{ c + 1 }}
+          </text>
+        </g>
+        <g
+          v-for="(row, i) in matrixData"
+          :key="`row${i}`"
+          :transform="`translate(0, ${yScale(i)})`"
         >
-          {{ row[0].label.length === 0 ? `--` : `${row[0].label}` }}
-        </foreignObject>
-        <rect
-          v-for="(cell, j) in row"
-          :id="`cell_${cell.cellName}_${j}`"
-          :key="`cell${j}`"
-          class="connectivityCell"
-          :x="j * cellSize"
-          :y="i * cellSize"
-          :width="cellSize"
-          :height="cellSize"
-          fill="blue"
-          :fill-opacity="opacity(cell.z)"
-          stroke="#BBBBBB"
-          stroke-width="1"
-          :transform="`translate(${margin.right}, ${cellSize * 2})`"
-          @click="displayTable(cell.paths)"
-        />
+          <foreignObject
+            :width="(0.5 * cellSize) + xScale(1) + cellSize"
+            :height="cellSize"
+            x="-20"
+          >
+            <p
+              class="rowLabels"
+              :style="`font-size: ${cellFontSize}px; margin-top: ${cellSize * -0.1}px;`"
+            >
+              {{ row[0].label.length === 0 ? `--` : `${row[0].label}` }}
+            </p>
+          </foreignObject>
+          <rect
+            v-for="(cell, j) in row"
+            :id="`cell_${cell.cellName}_${j}`"
+            :key="`cell${j}`"
+            class="connectivityCell"
+            :x="(0.5 * cellSize) + xScale(1) + (j * cellSize)"
+            :width="cellSize"
+            :height="cellSize"
+            fill="blue"
+            :fill-opacity="opacity(cell.z)"
+            @click="displayTable(cell.paths)"
+          />
+        </g>
       </g>
     </svg>
   </div>
@@ -235,7 +233,7 @@ svg >>> .circleIcons {
 svg >>> .rowLabels {
   text-overflow: ellipsis;
   overflow: hidden;
-  z-index: 1000;
+  white-space: nowrap;
   margin: 0;
   fill: black !important;
   text-align: left;
