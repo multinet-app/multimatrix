@@ -48,10 +48,9 @@
             <v-list-item dense>
               <v-row>
                 <v-col
-                  v-for="(path, i) in (pathLength + 2)"
+                  v-for="(path, i) in (pathLength * 2 + 1)"
                   :key="i"
                   class="py-0"
-                  :cols="`${Math.ceil(12 % (pathLength - 1))}`"
                 >
                   <v-autocomplete
                     v-model="selectedHeader[i]"
@@ -91,7 +90,7 @@
 
 <script lang="ts">
 import {
-  computed, ref, Ref, defineComponent,
+  computed, ref, Ref, defineComponent, watch,
 } from '@vue/composition-api';
 import store from '@/store';
 
@@ -101,14 +100,21 @@ export default defineComponent({
   setup() {
     const search = ref('');
     const selectedConnectivityPaths = computed(() => store.state.selectedConnectivityPaths);
-    const pathLength = computed(() => selectedConnectivityPaths.value[0].vertices.length);
+    const pathLength = computed(() => selectedConnectivityPaths.value[0].edges.length);
 
     const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
     const headerEdgeSelections = computed(() => store.getters.edgeVariableItems);
     const selectedHeader: Ref<string[][]> = ref([]);
 
-    Array(pathLength.value + 2).fill(1).forEach(() => {
+    Array(pathLength.value * 2 + 1).fill(1).forEach(() => {
       selectedHeader.value.push(['_key']);
+    });
+
+    watch([pathLength], () => {
+      selectedHeader.value = [];
+      Array(pathLength.value * 2 + 1).fill(1).forEach(() => {
+        selectedHeader.value.push(['_key']);
+      });
     });
 
     const headers = computed(() => {
