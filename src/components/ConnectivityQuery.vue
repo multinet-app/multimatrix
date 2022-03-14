@@ -123,7 +123,7 @@ export default defineComponent({
 
   setup() {
     const showMenu = ref(false);
-    const hopsSelection = [1, 2, 3, 4, 5];
+    const hopsSelection = [1, 2, 3];
     const selectedHops = computed({
       get() {
         return store.state.selectedHops;
