@@ -1,5 +1,4 @@
 <script lang="ts">
-import { isInternalField } from '@/lib/typeUtils';
 import { formatShortDate } from '@/lib/utils';
 import store from '@/store';
 import { Edge, SlicedNetwork } from '@/types';
@@ -68,9 +67,7 @@ export default defineComponent({
       }
     });
 
-    const cleanedEdgeVariables = computed(() => Object.keys(store.state.edgeAttributes).filter(
-      (varName) => !isInternalField(varName),
-    ));
+    const cleanedEdgeVariables = computed(() => store.getters.edgeVariableItems);
 
     // Compute the min and max times for numbers or date
     const validRange = computed(() => {

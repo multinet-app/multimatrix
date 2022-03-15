@@ -123,8 +123,15 @@ export default defineComponent({
 
   setup() {
     const showMenu = ref(false);
-    const hopsSelection = [1, 2, 3, 4, 5];
-    const selectedHops: Ref<number> = ref(1);
+    const hopsSelection = [1, 2, 3];
+    const selectedHops = computed({
+      get() {
+        return store.state.selectedHops;
+      },
+      set(value: number) {
+        store.commit.setSelectedHops(value);
+      },
+    });
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
     const loading: Ref<boolean> = ref(false);
 

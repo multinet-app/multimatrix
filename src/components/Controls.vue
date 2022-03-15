@@ -115,7 +115,6 @@ export default defineComponent({
         nodes: network.value.nodes.map((node) => {
           const newNode = { ...node };
           newNode.id = newNode._key;
-          delete newNode._key;
 
           return newNode;
         }),

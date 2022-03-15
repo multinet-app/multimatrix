@@ -15,7 +15,6 @@ import {
   ArangoAttributes,
   ArangoPath,
   Cell,
-  ConnectivityCell,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State, SlicedNetwork,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
@@ -77,6 +76,7 @@ const {
     slicedNetwork: [],
     isDate: false,
     controlsWidth: 256,
+    selectedHops: 1,
   } as State,
 
   getters: {
@@ -113,7 +113,7 @@ const {
 
     edgeVariableItems(state, getters): string[] {
       if (getters.edgeTableName !== undefined && state.columnTypes !== null) {
-        Object.keys(state.columnTypes[getters.edgeTableName]).filter((varName) => !isInternalField(varName));
+        return Object.keys(state.columnTypes[getters.edgeTableName]).filter((varName) => !isInternalField(varName));
       }
       return [];
     },
@@ -296,8 +296,12 @@ const {
       state.connectivityMatrixPaths = payload;
     },
 
-    setSelectedConnectivityPaths(state, payload: ConnectivityCell[] | [{[key: string]: number[]}]) {
-      state.selectedConnectivityPaths = payload[0].paths.map((path: number) => state.connectivityMatrixPaths.paths[path]);
+    setSelectedConnectivityPaths(state, payload: number[]) {
+      state.selectedConnectivityPaths = payload.map((path: number) => state.connectivityMatrixPaths.paths[path]);
+    },
+
+    setSelectedHops(state, selectedHops: number) {
+      state.selectedHops = selectedHops;
     },
 
     setShowPathTable(state, showPathTable: boolean) {
