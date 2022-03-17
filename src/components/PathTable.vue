@@ -48,10 +48,9 @@
             <v-list-item dense>
               <v-row>
                 <v-col
-                  v-for="(path, i) in (pathLength + 2)"
+                  v-for="(path, i) in (pathLength * 2 + 1)"
                   :key="i"
                   class="py-0"
-                  :cols="`${Math.ceil(12 % (pathLength - 1))}`"
                 >
                   <v-autocomplete
                     v-model="selectedHeader[i]"
@@ -91,7 +90,7 @@
 
 <script lang="ts">
 import {
-  computed, ref, Ref, defineComponent,
+  computed, ref, Ref, defineComponent, watch,
 } from '@vue/composition-api';
 import store from '@/store';
 
@@ -100,20 +99,22 @@ export default defineComponent({
 
   setup() {
     const search = ref('');
-    const pathLength = computed(() => {
-      // Add extra node in even paths
-      if (store.state.selectedConnectivityPaths[0].vertices.length % 2 === 0) {
-        return store.state.selectedConnectivityPaths[0].vertices.length + 1;
-      }
-      return store.state.selectedConnectivityPaths[0].vertices.length;
-    });
+    const selectedConnectivityPaths = computed(() => store.state.selectedConnectivityPaths);
+    const pathLength = computed(() => selectedConnectivityPaths.value[0].edges.length);
 
     const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
     const headerEdgeSelections = computed(() => store.getters.edgeVariableItems);
     const selectedHeader: Ref<string[][]> = ref([]);
 
-    Array(pathLength.value + 2).fill(1).forEach(() => {
+    Array(pathLength.value * 2 + 1).fill(1).forEach(() => {
       selectedHeader.value.push(['_key']);
+    });
+
+    watch([pathLength], () => {
+      selectedHeader.value = [];
+      Array(pathLength.value * 2 + 1).fill(1).forEach(() => {
+        selectedHeader.value.push(['_key']);
+      });
     });
 
     const headers = computed(() => {
@@ -142,7 +143,7 @@ export default defineComponent({
 
     const tableData = computed(() => {
       const toReturn: { [key: string]: string }[] = [];
-      store.state.selectedConnectivityPaths.forEach((path) => {
+      selectedConnectivityPaths.value.forEach((path) => {
         const tablePath: { [key: string]: string } = {};
         headers.value.forEach((header) => {
           // eslint-disable-next-line no-unused-expressions

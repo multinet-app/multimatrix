@@ -53,6 +53,7 @@ export default defineComponent({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cells: Ref<any> = ref(undefined);
     const expandedSuperNodes = ref(new Set<string>());
+    const selectedHops = computed(() => store.state.selectedHops);
     const icons: Ref<{ [key: string]: { d: string} }> = ref({
       quant: {
         d:
@@ -533,7 +534,12 @@ export default defineComponent({
         .selectAll('.colForeign')
         .attr('height', cellSize.value)
         .select('p')
-        .text((d: Node) => d[labelVariable.value || '_key']);
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d._key;
+          }
+          return d[labelVariable.value || '_key'];
+        });
 
       edges.value
         .selectAll('.colForeign')
@@ -579,7 +585,12 @@ export default defineComponent({
         .attr('width', labelWidth)
         .attr('height', cellSize.value)
         .append('xhtml:p')
-        .text((d: Node) => d[labelVariable.value || '_key'])
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d._key;
+          }
+          return d[labelVariable.value || '_key'];
+        })
         .style('color', (d: Node) => {
           if (d.type === 'node') {
             return '#aaa';
@@ -652,7 +663,12 @@ export default defineComponent({
         .selectAll('.rowForeign')
         .attr('height', cellSize.value)
         .select('p')
-        .text((d: Node) => d[labelVariable.value || '_key']);
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d._key;
+          }
+          return d[labelVariable.value || '_key'];
+        });
 
       edges.value
         .selectAll('.rowForeign')
@@ -692,7 +708,12 @@ export default defineComponent({
         .attr('height', cellSize.value)
         .classed('rowForeign', true)
         .append('xhtml:p')
-        .text((d: Node) => d[labelVariable.value || '_key'])
+        .text((d: Node) => {
+          if (d.type === 'supernode') {
+            return d._key;
+          }
+          return d[labelVariable.value || '_key'];
+        })
         .style('color', (d: Node) => {
           if (d.type === 'node') {
             return '#aaa';
@@ -811,14 +832,13 @@ export default defineComponent({
         .on('click', (event: MouseEvent, matrixElement: Cell) => {
           // Create path data if connectivity query
           if (connectivityMatrixPaths.value.paths.length > 0) {
-            const pathIdList: [{[key: string]: number[]}] = [{ paths: [] }];
-            store.state.connectivityMatrixPaths.paths.forEach((path: ArangoPath, i: number) => {
-              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[1]._id === matrixElement.colID) {
-                pathIdList[0].paths.push(i);
+            const pathIdList: number[] = [];
+            connectivityMatrixPaths.value.paths.forEach((path: ArangoPath, i: number) => {
+              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[selectedHops.value]._id === matrixElement.colID) {
+                pathIdList.push(i);
               }
             });
-
-            if (pathIdList[0].paths.length > 0) {
+            if (pathIdList.length > 0) {
               store.commit.setSelectedConnectivityPaths(pathIdList);
               showTable.value = true;
             } else {
@@ -863,14 +883,13 @@ export default defineComponent({
         .on('click', (event: MouseEvent, matrixElement: Cell) => {
           // Create path data if connectivity query
           if (connectivityMatrixPaths.value.paths.length > 0) {
-            const pathIdList: [{[key: string]: number[]}] = [{ paths: [] }];
-            store.state.connectivityMatrixPaths.paths.forEach((path: ArangoPath, i: number) => {
-              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[1]._id === matrixElement.colID) {
-                pathIdList[0].paths.push(i);
+            const pathIdList: number[] = [];
+            connectivityMatrixPaths.value.paths.forEach((path: ArangoPath, i: number) => {
+              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[selectedHops.value]._id === matrixElement.colID) {
+                pathIdList.push(i);
               }
             });
-
-            if (pathIdList[0].paths.length > 0) {
+            if (pathIdList.length > 0) {
               store.commit.setSelectedConnectivityPaths(pathIdList);
               showTable.value = true;
             } else {

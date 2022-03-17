@@ -7,6 +7,7 @@ import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
+import EdgeSlicing from '@/components/EdgeSlicing.vue';
 import {
   computed, defineComponent, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
@@ -16,6 +17,7 @@ export default defineComponent({
     AboutDialog,
     LoginMenu,
     ConnectivityQuery,
+    EdgeSlicing,
   },
 
   setup() {
@@ -68,6 +70,14 @@ export default defineComponent({
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
+    const aggregationItems = computed(() => {
+      // Rebuild column types but just for node columns
+      const nodeColumnTypes = store.state.columnTypes !== null ? Object.fromEntries(Object.entries(store.state.columnTypes).filter(([tableName]) => store.getters.nodeTableNames.includes(tableName))) : {};
+
+      // Get the varName of all node variables that are type category
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
+    });
     const maxConnections = computed(() => store.state.maxConnections);
 
     // Intermediate node table template objects
@@ -107,7 +117,6 @@ export default defineComponent({
         nodes: network.value.nodes.map((node) => {
           const newNode = { ...node };
           newNode.id = newNode._key;
-          delete newNode._key;
 
           return newNode;
         }),
@@ -162,9 +171,10 @@ export default defineComponent({
     watch(aggregated, () => {
       if (!aggregated.value) {
         labelVariable.value = '_key';
-      } else {
-        labelVariable.value = aggregateBy.value;
       }
+    });
+    watch(aggregateBy, () => {
+      labelVariable.value = aggregateBy.value;
     });
     watchEffect(() => {
       if (!showIntNodeVis.value) {
@@ -207,6 +217,7 @@ export default defineComponent({
       cellColorScale,
       parentColorScale,
       nodeVariableItems,
+      aggregationItems,
       maxConnections,
       showIntNodeVis,
       intAggregatedBy,
@@ -308,7 +319,7 @@ export default defineComponent({
             <v-autocomplete
               v-model="aggregateBy"
               label="Aggregation Variable"
-              :items="nodeVariableItems"
+              :items="aggregationItems"
               :hide-details="true"
               class="mt-3"
               clearable
@@ -490,33 +501,11 @@ export default defineComponent({
             </v-list-item>
           </div>
         </div>
+        <!-- Edge Slicing -->
+        <EdgeSlicing />
 
         <!-- Connectivity Query -->
-        <div>
-          <v-subheader class="grey darken-3 py-0 white--text">
-            Connectivity Query
-
-            <v-spacer />
-
-            <v-btn
-              :min-width="40"
-              :height="48"
-              depressed
-              tile
-              :class="showQuery? `grey darken-2 pa-0` : `grey darken-3 pa-0`"
-              @click="showQuery = !showQuery"
-            >
-              <v-icon color="white">
-                mdi-cog
-              </v-icon>
-            </v-btn>
-          </v-subheader>
-          <v-div
-            v-if="showQuery"
-          >
-            <connectivity-query />
-          </v-div>
-        </div>
+        <connectivity-query />
       </v-list>
     </v-navigation-drawer>
   </div>

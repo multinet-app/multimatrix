@@ -1,142 +1,162 @@
 <template>
   <div class="pa-0">
-    <v-card
-      color="grey darken-2"
-      flat
-      tile
-    >
-      <v-card-text class="pt-2 pb-1">
-        <v-select
-          v-model="selectedHops"
-          label="Hops"
-          :items="hopsSelection"
-        />
-      </v-card-text>
-    </v-card>
+    <v-subheader class="grey darken-3 py-0 pr-0 white--text">
+      Connectivity Query
 
-    <v-card
-      v-for="(inputs, i) in queryInput"
-      :key="`input${i}`"
-      flat
-      color="white"
-      class="p-0"
-    >
-      <v-list dense>
-        <v-list-item
-          v-for="(val, j) in inputs.value"
-          :key="`val-${i}-${j}`"
-          class="pa-0"
-        >
-          <v-list-item class="pa-0">
-            <v-list-item-avatar
-              v-if="j === 0"
-              class="mr-0"
-            >
-              <v-icon size="18">
-                {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
-              </v-icon>
-            </v-list-item-avatar>
-            <v-row no-gutters>
-              <v-col
-                v-if="j > 0"
-                cols="12"
-                sm="2"
-                class="pt-3"
-              >
-                <v-autocomplete
-                  v-model="inputs.operator"
-                  :items="operatorOptionItems"
-                  dense
-                />
-              </v-col>
-              <v-list-item-content class="pa-0 pr-1">
-                <v-col
-                  cols="12"
-                  sm="3"
-                  class="pa-1"
-                >
-                  <v-autocomplete
-                    v-model="val.label"
-                    :items="i % 2 ? edgeVariableItems : nodeVariableItems"
-                    dense
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  sm="3"
-                  class="pa-1"
-                >
-                  <v-autocomplete
-                    v-model="val.operator"
-                    :items="queryOptionItems"
-                    dense
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  sm="3"
-                  class="pa-1"
-                >
-                  <v-autocomplete
-                    v-if="val.operator === '=='"
-                    v-model="val.input"
-                    :items="i % 2 ? variableValueItems.node[val.label] : variableValueItems.edge[val.label]"
-                    dense
-                  />
-                  <v-text-field
-                    v-else
-                    v-model="val.input"
-                    dense
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  sm="1"
-                  class="mt-3"
-                >
-                  <!-- Add button -->
-                  <v-btn
-                    icon
-                    x-small
-                    color="primary"
-                    @click="addField(i)"
-                  >
-                    <v-icon>
-                      mdi-plus
-                    </v-icon>
-                  </v-btn>
-                  <!-- Remove button -->
-                  <v-btn
-                    v-show="j > 0"
-                    icon
-                    x-small
-                    color="red"
-                    @click="removeField(i, j)"
-                  >
-                    <v-icon>
-                      mdi-minus
-                    </v-icon>
-                  </v-btn>
-                </v-col>
-              </v-list-item-content>
-            </v-row>
-          </v-list-item>
-        </v-list-item>
-      </v-list>
-    </v-card>
+      <v-spacer />
 
-    <v-list-item>
       <v-btn
-        block
-        class="ml-0 mt-4"
-        color="primary"
+        :min-width="40"
+        :height="48"
         depressed
-        :loading="loading"
-        @click="submitQuery"
+        tile
+        class="grey darken-3 pa-0"
+        @click="showMenu = !showMenu"
       >
-        Submit Query
+        <v-icon color="white">
+          {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+        </v-icon>
       </v-btn>
-    </v-list-item>
+    </v-subheader>
+
+    <div v-if="showMenu">
+      <v-card
+        flat
+        tile
+      >
+        <v-card-text class="pt-2 pb-1">
+          <v-select
+            v-model="selectedHops"
+            label="Hops"
+            :items="hopsSelection"
+          />
+        </v-card-text>
+      </v-card>
+
+      <v-card
+        v-for="(inputs, i) in queryInput"
+        :key="`input${i}`"
+        flat
+        color="white"
+        class="p-0"
+      >
+        <v-list dense>
+          <v-list-item
+            v-for="(val, j) in inputs.value"
+            :key="`val-${i}-${j}`"
+            class="pa-0"
+          >
+            <v-list-item class="pa-0">
+              <v-list-item-avatar
+                v-if="j === 0"
+                class="mr-0"
+              >
+                <v-icon size="18">
+                  {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
+                </v-icon>
+              </v-list-item-avatar>
+              <v-row no-gutters>
+                <v-col
+                  v-if="j > 0"
+                  cols="12"
+                  sm="2"
+                  class="pt-3"
+                >
+                  <v-autocomplete
+                    v-model="inputs.operator"
+                    :items="operatorOptionItems"
+                    dense
+                  />
+                </v-col>
+                <v-list-item-content class="pa-0 pr-1">
+                  <v-col
+                    cols="12"
+                    sm="3"
+                    class="pa-1"
+                  >
+                    <v-autocomplete
+                      v-model="val.label"
+                      :items="i % 2 ? edgeVariableItems : nodeVariableItems"
+                      dense
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    sm="3"
+                    class="pa-1"
+                  >
+                    <v-autocomplete
+                      v-model="val.operator"
+                      :items="queryOptionItems"
+                      dense
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    sm="3"
+                    class="pa-1"
+                  >
+                    <v-autocomplete
+                      v-if="val.operator === '=='"
+                      v-model="val.input"
+                      :items="i % 2 ? variableValueItems.edge[val.label] : variableValueItems.node[val.label]"
+                      dense
+                    />
+                    <v-text-field
+                      v-else
+                      v-model="val.input"
+                      dense
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    sm="1"
+                    class="mt-3"
+                  >
+                    <!-- Add button -->
+                    <v-btn
+                      icon
+                      x-small
+                      color="primary"
+                      @click="addField(i)"
+                    >
+                      <v-icon>
+                        mdi-plus
+                      </v-icon>
+                    </v-btn>
+                    <!-- Remove button -->
+                    <v-btn
+                      v-show="j > 0"
+                      icon
+                      x-small
+                      color="red"
+                      @click="removeField(i, j)"
+                    >
+                      <v-icon>
+                        mdi-minus
+                      </v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-list-item-content>
+              </v-row>
+            </v-list-item>
+          </v-list-item>
+        </v-list>
+      </v-card>
+
+      <v-list-item>
+        <v-btn
+          block
+          class="ml-0 mt-4"
+          color="primary"
+          depressed
+          :loading="loading"
+          @click="submitQuery"
+        >
+          Submit Query
+        </v-btn>
+      </v-list-item>
+    </div>
   </div>
 </template>
 
@@ -154,8 +174,16 @@ export default defineComponent({
   name: 'ConnectivityQuery',
 
   setup() {
-    const hopsSelection = [1, 2, 3, 4, 5];
-    const selectedHops: Ref<number> = ref(1);
+    const showMenu = ref(false);
+    const hopsSelection = [1, 2, 3];
+    const selectedHops = computed({
+      get() {
+        return store.state.selectedHops;
+      },
+      set(value: number) {
+        store.commit.setSelectedHops(value);
+      },
+    });
     const displayedHops = computed(() => 2 * selectedHops.value + 1);
     const loading: Ref<boolean> = ref(false);
 
@@ -168,21 +196,15 @@ export default defineComponent({
     const operatorOptionItems = ['AND', 'OR', 'NOT'];
 
     const selectedVariableValue: Ref<string[]> = ref([]);
-    // const variableValueItems: Ref<string[][]> = ref([]);
+
     const variableValueItems = computed(() => {
       const variableItems = { node: [], edge: [] };
       if (store.state.network !== null) {
-        nodeVariableItems.value.forEach((nodeVariable) => {
-          const obj = {
-            [nodeVariable]: store.state.nodeAttributes[nodeVariable].map((value) => `${value}`),
-          };
-          variableItems.node.push(obj);
+        nodeVariableItems.value.forEach((nodeVariable: string) => {
+          variableItems.node[nodeVariable] = store.state.nodeAttributes[nodeVariable].map((value) => `${value}`);
         });
-        edgeVariableItems.value.forEach((edgeVariable) => {
-          const obj = {
-            [edgeVariable]: store.state.edgeAttributes[edgeVariable].map((value) => `${value}`),
-          };
-          variableItems.edge.push(obj);
+        edgeVariableItems.value.forEach((edgeVariable: string) => {
+          variableItems.edge[edgeVariable] = store.state.edgeAttributes[edgeVariable].map((value) => `${value}`);
         });
       }
       return variableItems;
@@ -217,23 +239,11 @@ export default defineComponent({
       });
     });
 
-    // 21 = 2n + 1 for n = 5 (max number of hops allowed above)
-    Array(21).fill(1).forEach(() => {
+    // 7 = 2n + 1 for n = 3 (max number of hops allowed above)
+    Array(7).fill(1).forEach(() => {
       selectedVariables.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
       selectedQueryOptions.value.push('=~');
     });
-
-    // For each selected node variable, fill in possible values for autocomplete
-    // watchEffect(() => {
-    //   queryInput.value.forEach((input, i: number) => {
-    //     if (store.state.network !== null) {
-    //       const currentData = i % 2 ? store.state.edgeAttributes : store.state.nodeAttributes;
-    //       if (variable) {
-    //         variableValueItems.value[i] = currentData[variable].map((value) => `${value}`);
-    //       }
-    //     }
-    //   });
-    // });
 
     function addField(index: number) {
       queryInput.value[index].value.push({ input: '', label: '', operator: 'AND' });
@@ -276,7 +286,7 @@ export default defineComponent({
 
       const startNode = isTextComparison(selectedQueryOptions.value[0]) ? `UPPER(n.${selectedVariables.value[0]})` : `TO_NUMBER(n.${selectedVariables.value[0]})`;
       const aqlQuery = `
-        let startNodes = (FOR n in [${store.state.nodeTableNames}][**] FILTER ${startNode} ${selectedQueryOptions.value[0]} ${valueInQuery[0]} RETURN n)
+        let startNodes = (FOR n in [${store.getters.nodeTableNames}][**] FILTER ${startNode} ${selectedQueryOptions.value[0]} ${valueInQuery[0]} RETURN n)
         let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
         RETURN {paths: paths[**].paths}
       `;
@@ -346,6 +356,7 @@ export default defineComponent({
       }
     }
     return {
+      showMenu,
       hopsSelection,
       selectedHops,
       displayedHops,

@@ -4,6 +4,7 @@ import { computed } from '@vue/composition-api';
 import ProvVis from '@/components/ProvVis.vue';
 import Controls from '@/components/Controls.vue';
 import MultiMatrix from '@/components/MultiMatrix.vue';
+import EdgeSlices from '@/components/EdgeSlices.vue';
 import { getUrlVars } from '@/lib/utils';
 import store from '@/store';
 
@@ -15,6 +16,7 @@ export default {
     Controls,
     MultiMatrix,
     ProvVis,
+    EdgeSlices,
   },
 
   setup() {
@@ -32,10 +34,13 @@ export default {
 
     const showProvenanceVis = computed(() => store.state.showProvenanceVis);
 
+    const slicedNetwork = computed(() => store.state.slicedNetwork.length > 1);
+
     return {
       loadError,
       network,
       showProvenanceVis,
+      slicedNetwork,
     };
   },
 };
@@ -45,7 +50,9 @@ export default {
   <v-app>
     <v-content>
       <controls />
-
+      <edge-slices
+        v-if="network !== null && slicedNetwork"
+      />
       <multi-matrix v-if="network !== null" />
 
       <alert v-if="loadError.message !== ''" />
