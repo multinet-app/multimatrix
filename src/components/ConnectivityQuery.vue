@@ -196,9 +196,9 @@ export default defineComponent({
     const operatorOptionItems = ['AND', 'OR', 'NOT'];
 
     const variableValueItems = computed(() => {
-      const variableItems = { node: [], edge: [] };
+      const variableItems: { node: { [key: string]: string[] }; edge: { [key: string]: string[] } } = { node: {}, edge: {} };
       if (store.state.network !== null) {
-        nodeVariableItems.value.forEach((nodeVariable: string) => {
+        nodeVariableItems.value.forEach((nodeVariable) => {
           variableItems.node[nodeVariable] = store.state.nodeAttributes[nodeVariable].map((value) => `${value}`);
         });
         edgeVariableItems.value.forEach((edgeVariable: string) => {
