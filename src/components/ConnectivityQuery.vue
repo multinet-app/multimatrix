@@ -269,7 +269,12 @@ export default defineComponent({
         // Loop through each query piece
         input.value.forEach((queryPiece, index) => {
           // Add the right operator (AND for edge then node else, whatever op is defined)
-          currentString += `${index === 0 ? 'AND (' : input.operator} `;
+          const operator = input.operator === 'NOT' ? 'OR' : input.operator;
+          if (index === 0) {
+            currentString += input.operator === 'NOT' ? 'AND NOT ( ' : 'AND ( ';
+          } else {
+            currentString += `${operator} `;
+          }
 
           // If no filter, do nothing
           if (queryPiece.label === '') {
