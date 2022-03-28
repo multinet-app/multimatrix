@@ -269,9 +269,10 @@ export default defineComponent({
         // Loop through each query piece
         input.value.forEach((queryPiece, index) => {
           // Add the right operator (AND for edge then node else, whatever op is defined)
-          const operator = input.operator === 'NOT' ? 'OR' : input.operator;
+          const operator = input.operator === 'NOT' ? 'AND NOT (' : input.operator;
+
           if (index === 0) {
-            currentString += input.operator === 'NOT' ? 'AND NOT ( ' : 'AND ( ';
+            currentString += 'AND ( ';
           } else {
             currentString += `${operator} `;
           }
@@ -284,6 +285,10 @@ export default defineComponent({
             property = isTextComparison(queryPiece.operator) ? `UPPER(${property})` : `TO_NUMBER(${property})`;
             const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
             currentString += `${property} ${queryPiece.operator} ${value} `;
+          }
+
+          if (index !== 0 && input.operator === 'NOT') {
+            currentString += ')';
           }
         });
         currentString += ') ';
