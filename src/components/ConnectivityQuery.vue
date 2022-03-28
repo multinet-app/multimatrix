@@ -195,8 +195,6 @@ export default defineComponent({
     const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
     const operatorOptionItems = ['AND', 'OR', 'NOT'];
 
-    const selectedVariableValue: Ref<string[]> = ref([]);
-
     const variableValueItems = computed(() => {
       const variableItems = { node: [], edge: [] };
       if (store.state.network !== null) {
@@ -382,7 +380,6 @@ export default defineComponent({
       queryOptionItems,
       selectedVariables,
       selectedQueryOptions,
-      selectedVariableValue,
       nodeVariableItems,
       edgeVariableItems,
       variableValueItems,
