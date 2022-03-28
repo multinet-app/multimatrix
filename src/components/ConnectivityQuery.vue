@@ -256,40 +256,60 @@ export default defineComponent({
     function isTextComparison(operator: string) {
       return ['==', '=~'].includes(operator);
     }
+
     function submitQuery() {
       loading.value = true;
-      let pathQueryText = '';
+      const pathQueryTextComponents: string[] = [];
 
-      // If we're doing a text comparison use UPPER('...') else, just the value
-      const valueInQuery = selectedVariableValue.value.map((value, index) => (isTextComparison(selectedQueryOptions.value[index]) ? `UPPER('${value}')` : `TO_NUMBER(${value})`));
+      // Loop through nodes and edges
+      queryInput.value.forEach((input) => {
+        // Add the starting string of each line of the query
+        let currentString = '';
+        const thisRoundIsNode = input.key % 2 === 0;
+        const nodeOrEdgeNum = Math.floor(input.key / 2);
 
-      pathQueryText += 'FILTER 1==1';
-      for (let i = 0; i < displayedHops.value; i += 1) {
-        const queryOperator = selectedQueryOptions.value[i];
-
-        if (selectedVariableValue.value[i] !== undefined) {
-          if (i % 2 === 0) {
-            // Nodes
-            const variableinQuery = valueInQuery[i].startsWith('UPPER')
-              ? `UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]})`
-              : `TO_NUMBER(p.vertices[${i / 2}].${selectedVariables.value[i]})`;
-            pathQueryText += ` AND ${variableinQuery} ${queryOperator} ${valueInQuery[i]}`;
-          } else {
-            // Edges
-            const variableinQuery = valueInQuery[i].startsWith('UPPER')
-              ? `UPPER(p.edges[${(i - 1) / 2}].${selectedVariables.value[i]})`
-              : `TO_NUMBER(p.edges[${(i - 1) / 2}].${selectedVariables.value[i]})`;
-            pathQueryText += ` AND ${variableinQuery} ${queryOperator} ${valueInQuery[i]}`;
-          }
+        if (input.key === 0) {
+          currentString += `LET start_nodes = (FOR n0 in [${store.getters.nodeTableNames}][**] FILTER `;
+        } else if (!thisRoundIsNode) {
+          currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER `;
         }
-      }
 
-      const startNode = isTextComparison(selectedQueryOptions.value[0]) ? `UPPER(n.${selectedVariables.value[0]})` : `TO_NUMBER(n.${selectedVariables.value[0]})`;
-      const aqlQuery = `
-        let startNodes = (FOR n in [${store.getters.nodeTableNames}][**] FILTER ${startNode} ${selectedQueryOptions.value[0]} ${valueInQuery[0]} RETURN n)
-        let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
-        RETURN {paths: paths[**].paths}
-      `;
+        // Loop through each query piece
+        input.value.forEach((queryPiece, index) => {
+          // If no filter, do nothing
+          if (queryPiece.label === '') {
+            if (!thisRoundIsNode || index !== input.value.length - 1) {
+              currentString += '1==1 AND ';
+            } else {
+              currentString += '1==1 ';
+            }
+          } else {
+            let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.${queryPiece.label}` : `e${nodeOrEdgeNum}.${queryPiece.label}`;
+            property = isTextComparison(queryPiece.operator) ? `UPPER(${property})` : `TO_NUMBER(${property})`;
+            const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
+
+            if (index !== input.value.length - 1) {
+              currentString += `${property} ${queryPiece.operator} ${value} ${input.operator} `;
+            } else {
+              currentString += `${property} ${queryPiece.operator} ${value} `;
+            }
+          }
+        });
+
+        // Append any last required string
+        if (input.key === 0) {
+          currentString += 'RETURN n0) \nFOR n0 in start_nodes';
+        }
+
+        pathQueryTextComponents.push(currentString);
+      });
+
+      // Add return statement
+      const itemsToReturn = Array(selectedHops.value).fill(0).map((_, index) => `e${index + 1}, n${index + 1}`).join(', ');
+      pathQueryTextComponents.push(`RETURN [n0, ${itemsToReturn}]`);
+
+      // Join each line of the query together
+      const aqlQuery = pathQueryTextComponents.join('\n');
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
