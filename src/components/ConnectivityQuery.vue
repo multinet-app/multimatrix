@@ -211,17 +211,17 @@ export default defineComponent({
     });
 
     // Create the object for storing input data
-    const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; logic: string }[]> = ref([{ key: 1, value: [{ label: '', operator: '', input: '' }], logic: '' }]);
+    const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]> = ref([]);
 
     watch([displayedHops], () => {
       queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
         if (i % 2 && store.state.workspaceName === 'marclab') {
           return {
-            key: i, value: [{ label: 'Type', operator: '', input: '' }], logic: '',
+            key: i, value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
           };
         }
         return {
-          key: i, value: [{ label: 'Label', operator: '', input: '' }], logic: '',
+          key: i, value: [{ label: '', operator: '=~', input: '' }], operator: '',
         };
       });
     });
@@ -230,23 +230,17 @@ export default defineComponent({
       queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
         if (i % 2 && store.state.workspaceName === 'marclab') {
           return {
-            key: i, value: [{ label: 'Type', operator: '', input: '' }], logic: '',
+            key: i, value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
           };
         }
         return {
-          key: i, value: [{ label: 'Label', operator: '', input: '' }], logic: '',
+          key: i, value: [{ label: '', operator: '=~', input: '' }], operator: '',
         };
       });
     });
 
-    // 7 = 2n + 1 for n = 3 (max number of hops allowed above)
-    Array(7).fill(1).forEach(() => {
-      selectedVariables.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
-      selectedQueryOptions.value.push('=~');
-    });
-
     function addField(index: number) {
-      queryInput.value[index].value.push({ input: '', label: '', operator: 'AND' });
+      queryInput.value[index].value.push({ input: '', label: '', operator: '=~' });
     }
 
     function removeField(index: number, field: number) {
