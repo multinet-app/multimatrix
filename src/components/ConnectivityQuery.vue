@@ -163,7 +163,7 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  Node, Edge, Network,
+  Node, Edge, Network, ArangoPath,
 } from '@/types';
 import {
   computed, defineComponent, onMounted, ref, Ref, watch,
@@ -318,45 +318,60 @@ export default defineComponent({
       }
       if (newAQLNetwork !== undefined) {
         newAQLNetwork.then((promise) => {
-          const aqlResults = promise[0];
-          if (aqlResults.paths.length !== 0) {
+          if (promise.length !== 0) {
             // some data manipulation to show only start + end nodes
             const newNetwork: Network = { nodes: [], edges: [] };
             const endsNodesSet = new Set();
             const middleNodesSet = new Set();
             const middleNodesList: Node[] = [];
+            const reconstructedPaths: ArangoPath[] = [];
 
-            aqlResults.paths.forEach((path: { edges: Edge[]; vertices: Node[] }, val: number) => {
+            promise.forEach((path: (Node | Edge)[], val: number) => {
               const newPath: Edge = {
                 _from: '', _to: '', _key: '', _id: '', _rev: '',
               };
+              const reconstructedPath: ArangoPath = {
+                vertices: [],
+                edges: [],
+              };
 
-              for (let i = 0; i < selectedHops.value + 1; i += 1) {
-                if (i === 0) {
-                  newPath._from = path.vertices[i]._id;
-                  if (!endsNodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
-                  endsNodesSet.add(path.vertices[i]._id);
-                } else if (i > 0 && i < selectedHops.value) {
-                  if (!middleNodesSet.has(path.vertices[i]._id)) { middleNodesList.push(path.vertices[i]); }
-                  middleNodesSet.add(path.vertices[i]._id);
-                } else {
-                  newPath._to = path.vertices[i]._id;
-                  if (!endsNodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
-                  endsNodesSet.add(path.vertices[i]._id);
+              path.forEach((nodeOrEdge, index) => {
+                // Edges
+                if (index % 2 !== 0) {
+                  reconstructedPath.edges.push(nodeOrEdge as Edge);
                 }
-              }
+
+                if (index % 2 === 0) {
+                  reconstructedPath.vertices.push(nodeOrEdge as Node);
+
+                  if (index === 0) {
+                    newPath._from = nodeOrEdge._id;
+                    if (!endsNodesSet.has(nodeOrEdge._id)) { newNetwork.nodes.push(nodeOrEdge as Node); }
+                    endsNodesSet.add(nodeOrEdge._id);
+                  } else if (index < path.length - 1) {
+                    if (!middleNodesSet.has(nodeOrEdge._id)) { middleNodesList.push(nodeOrEdge as Node); }
+                    middleNodesSet.add(nodeOrEdge._id);
+                  } else {
+                    newPath._to = nodeOrEdge._id;
+                    if (!endsNodesSet.has(nodeOrEdge._id)) { newNetwork.nodes.push(nodeOrEdge as Node); }
+                    endsNodesSet.add(nodeOrEdge._id);
+                  }
+                }
+              });
 
               // generate _key and _id
               newPath._key = val.toString();
               newPath._id = val.toString();
               newNetwork.edges.push(newPath);
+
+              reconstructedPaths.push(reconstructedPath);
             });
 
-            // Update state for use in intermediate node vis
-            store.commit.setConnectivityMatrixPaths({ nodes: middleNodesList, paths: aqlResults.paths });
+            // Update state for use in intermediate node vis TODO
+            store.commit.setConnectivityMatrixPaths({ nodes: middleNodesList, paths: reconstructedPaths });
 
             // Update state for showing intermediate node vis
-            if (selectedHops.value > 1) store.commit.toggleShowIntNodeVis(true);
+            store.commit.toggleShowIntNodeVis(selectedHops.value > 1);
 
             // Update state with new network
             store.dispatch.aggregateNetwork(undefined);
