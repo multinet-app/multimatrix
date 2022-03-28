@@ -261,32 +261,25 @@ export default defineComponent({
         const nodeOrEdgeNum = Math.floor(input.key / 2);
 
         if (input.key === 0) {
-          currentString += `LET start_nodes = (FOR n0 in [${store.getters.nodeTableNames}][**] FILTER `;
+          currentString += `LET start_nodes = (FOR n0 in [${store.getters.nodeTableNames}][**] FILTER 1==1 `;
         } else if (!thisRoundIsNode) {
-          currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER `;
+          currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER 1==1 `;
         }
 
         // Loop through each query piece
         input.value.forEach((queryPiece, index) => {
+          // Add the right operator (AND for edge then node else, whatever op is defined)
+          currentString += `${index === 0 ? 'AND (' : input.operator} `;
+
           // If no filter, do nothing
-          if (queryPiece.label === '') {
-            if (!thisRoundIsNode || index !== input.value.length - 1) {
-              currentString += '1==1 AND ';
-            } else {
-              currentString += '1==1 ';
-            }
-          } else {
-            let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.${queryPiece.label}` : `e${nodeOrEdgeNum}.${queryPiece.label}`;
+          if (queryPiece.label !== '') {
+            let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.${queryPiece.label}` : `e${nodeOrEdgeNum + 1}.${queryPiece.label}`;
             property = isTextComparison(queryPiece.operator) ? `UPPER(${property})` : `TO_NUMBER(${property})`;
             const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
-
-            if (index !== input.value.length - 1) {
-              currentString += `${property} ${queryPiece.operator} ${value} ${input.operator} `;
-            } else {
-              currentString += `${property} ${queryPiece.operator} ${value} `;
-            }
+            currentString += `${property} ${queryPiece.operator} ${value} `;
           }
         });
+        currentString += ') ';
 
         // Append any last required string
         if (input.key === 0) {
