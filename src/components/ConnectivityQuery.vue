@@ -349,9 +349,14 @@ export default defineComponent({
             // Update state with new network
             store.dispatch.aggregateNetwork(undefined);
             store.dispatch.updateNetwork({ network: newNetwork });
-            loading.value = false;
-            store.commit.setDirectionalEdges(true);
+          } else {
+            // Update state with empty network
+            store.dispatch.aggregateNetwork(undefined);
+            store.dispatch.updateNetwork({ network: { nodes: [], edges: [] } });
+            store.commit.toggleShowIntNodeVis(false);
           }
+
+          loading.value = false;
         });
       }
     }
