@@ -272,7 +272,9 @@ export default defineComponent({
           currentString += `${index === 0 ? 'AND (' : input.operator} `;
 
           // If no filter, do nothing
-          if (queryPiece.label !== '') {
+          if (queryPiece.label === '') {
+            currentString += '1==1 ';
+          } else {
             let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.${queryPiece.label}` : `e${nodeOrEdgeNum + 1}.${queryPiece.label}`;
             property = isTextComparison(queryPiece.operator) ? `UPPER(${property})` : `TO_NUMBER(${property})`;
             const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
