@@ -99,7 +99,7 @@
                     <v-autocomplete
                       v-if="val.operator === '=='"
                       v-model="val.input"
-                      :items="i % 2 ? variableValueItems.edge[val.label] : variableValueItems.node[val.label]"
+                      :items="i % 2 ? edgeAttributeItems[val.label] : nodeAttributeItems[val.label]"
                       dense
                     />
                     <v-text-field
@@ -190,23 +190,12 @@ export default defineComponent({
     const selectedVariables: Ref<string[]> = ref([]);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
     const edgeVariableItems = computed(() => store.getters.edgeVariableItems);
+    const nodeAttributeItems = computed(() => store.state.nodeAttributes);
+    const edgeAttributeItems = computed(() => store.state.edgeAttributes);
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
     const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
     const operatorOptionItems = ['AND', 'OR', 'NOT'];
-
-    const variableValueItems = computed(() => {
-      const variableItems: { node: { [key: string]: string[] }; edge: { [key: string]: string[] } } = { node: {}, edge: {} };
-      if (store.state.network !== null) {
-        nodeVariableItems.value.forEach((nodeVariable) => {
-          variableItems.node[nodeVariable] = store.state.nodeAttributes[nodeVariable].map((value) => `${value}`);
-        });
-        edgeVariableItems.value.forEach((edgeVariable: string) => {
-          variableItems.edge[edgeVariable] = store.state.edgeAttributes[edgeVariable].map((value) => `${value}`);
-        });
-      }
-      return variableItems;
-    });
 
     // Create the object for storing input data
     const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]> = ref([]);
@@ -219,7 +208,7 @@ export default defineComponent({
           };
         }
         return {
-          key: i, value: [{ label: '', operator: '=~', input: '' }], operator: '',
+          key: i, value: [{ label: 'Label', operator: '=~', input: '' }], operator: '',
         };
       });
     });
@@ -232,7 +221,7 @@ export default defineComponent({
           };
         }
         return {
-          key: i, value: [{ label: '', operator: '=~', input: '' }], operator: '',
+          key: i, value: [{ label: 'Label', operator: '=~', input: '' }], operator: '',
         };
       });
     });
@@ -402,7 +391,8 @@ export default defineComponent({
       selectedQueryOptions,
       nodeVariableItems,
       edgeVariableItems,
-      variableValueItems,
+      nodeAttributeItems,
+      edgeAttributeItems,
       submitQuery,
       loading,
       addField,
