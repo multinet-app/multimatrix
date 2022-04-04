@@ -197,6 +197,15 @@ export default defineComponent({
     const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
     const operatorOptionItems = ['AND', 'OR', 'NOT'];
 
+    const directionalEdges = computed({
+      get() {
+        return store.state.directionalEdges;
+      },
+      set(value: boolean) {
+        store.commit.setDirectionalEdges(value);
+      },
+    });
+
     // Create the object for storing input data
     const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]> = ref([]);
 
@@ -240,6 +249,7 @@ export default defineComponent({
 
     function submitQuery() {
       loading.value = true;
+      directionalEdges.value = true;
       const pathQueryTextComponents: string[] = [];
 
       // Loop through nodes and edges
