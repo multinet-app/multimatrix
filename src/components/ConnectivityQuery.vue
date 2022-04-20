@@ -40,9 +40,10 @@
         color="white"
         class="p-0"
       >
+        <!-- All of the query options -->
         <v-list dense>
           <v-list-item
-            v-for="(val, j) in inputs.value"
+            v-for="(val, j) in inputs.value[0]"
             :key="`val-${i}-${j}`"
             class="pa-0"
           >
@@ -142,6 +143,128 @@
             </v-list-item>
           </v-list-item>
         </v-list>
+        <!-- Let user query for another edge -->
+        <v-card-actions v-if="i === 1">
+          <v-btn
+            text
+          >
+            {{ showSecondEdge ? 'No other path with' : '' }}
+          </v-btn>
+
+          <v-spacer />
+          <v-tooltip right>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                icon
+                color="orange lighten-2"
+                v-bind="attrs"
+                @click="showSecondEdge = !showSecondEdge"
+                v-on="on"
+              >
+                <v-icon>{{ showSecondEdge ? 'mdi-minus' : 'mdi-plus' }}</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ showSecondEdge ? 'Remove edge' : 'Add new edge' }}</span>
+          </v-tooltip>
+        </v-card-actions>
+        <v-expand-transition>
+          <div v-show="showSecondEdge && i === 1">
+            <v-list dense>
+              <v-list-item
+                v-for="(val, k) in inputs.value[i]"
+                :key="`val-${i}-2-${k}`"
+                class="pa-0"
+              >
+                <v-list-item class="pa-0">
+                  <v-row no-gutters>
+                    <v-col
+                      v-if="k > 0"
+                      cols="12"
+                      sm="2"
+                      class="pt-3"
+                    >
+                      <v-autocomplete
+                        v-model="inputs.operator"
+                        :items="operatorOptionItems"
+                        dense
+                      />
+                    </v-col>
+                    <v-list-item-content class="pa-0 pr-1">
+                      <v-col
+                        cols="12"
+                        sm="3"
+                        class="pa-1"
+                      >
+                        <v-autocomplete
+                          v-model="val.label"
+                          :items="edgeVariableItems"
+                          dense
+                        />
+                      </v-col>
+                      <v-col
+                        cols="12"
+                        sm="3"
+                        class="pa-1"
+                      >
+                        <v-autocomplete
+                          v-model="val.operator"
+                          :items="queryOptionItems"
+                          dense
+                        />
+                      </v-col>
+                      <v-col
+                        cols="12"
+                        sm="3"
+                        class="pa-1"
+                      >
+                        <v-autocomplete
+                          v-if="val.operator === '=='"
+                          v-model="val.input"
+                          :items="edgeAttributeItems[val.label]"
+                          dense
+                        />
+                        <v-text-field
+                          v-else
+                          v-model="val.input"
+                          dense
+                        />
+                      </v-col>
+                      <v-col
+                        cols="12"
+                        sm="1"
+                        class="mt-3"
+                      >
+                        <!-- Add button -->
+                        <v-btn
+                          icon
+                          x-small
+                          color="primary"
+                          @click="addField(i, true)"
+                        >
+                          <v-icon>
+                            mdi-plus
+                          </v-icon>
+                        </v-btn>
+                        <!-- Remove button -->
+                        <v-btn
+                          v-show="k > 0"
+                          icon
+                          x-small
+                          color="red"
+                          @click="removeField(i, k, true)"
+                        >
+                          <v-icon>
+                            mdi-minus
+                          </v-icon>
+                        </v-btn>
+                      </v-col>
+                    </v-list-item-content>
+                  </v-row>
+                </v-list-item>
+              </v-list-item>
+            </v-list>
+          </div>
+        </v-expand-transition>
       </v-card>
 
       <v-list-item>
@@ -175,6 +298,7 @@ export default defineComponent({
 
   setup() {
     const showMenu = ref(false);
+    const showSecondEdge = ref(false);
     const hopsSelection = [1, 2, 3];
     const selectedHops = computed({
       get() {
@@ -207,40 +331,80 @@ export default defineComponent({
     });
 
     // Create the object for storing input data
-    const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]> = ref([]);
+    const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[][]; operator: string }[]> = ref([]);
 
     watch([displayedHops], () => {
       queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
-        if (i % 2 && store.state.workspaceName === 'marclab') {
+        if (store.state.workspaceName === 'marclab') {
+          if (i === 1) {
+            return {
+              key: i, value: [[{ label: 'Label', operator: '=~', input: '' }], [{ label: 'Label', operator: '=~', input: '' }]], operator: '',
+            };
+          }
+          if (i % 2) {
+            return {
+              key: i, value: [[{ label: 'Type', operator: '=~', input: '' }], []], operator: '',
+            };
+          }
           return {
-            key: i, value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
+            key: i, value: [[{ label: 'Label', operator: '=~', input: '' }], []], operator: '',
+          };
+        }
+
+        if (i === 1) {
+          return {
+            key: i, value: [[{ label: '', operator: '=~', input: '' }], [{ label: '', operator: '=~', input: '' }]], operator: '',
           };
         }
         return {
-          key: i, value: [{ label: 'Label', operator: '=~', input: '' }], operator: '',
+          key: i, value: [[{ label: '', operator: '=~', input: '' }], []], operator: '',
         };
       });
     });
 
     onMounted(() => {
       queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
-        if (i % 2 && store.state.workspaceName === 'marclab') {
+        if (store.state.workspaceName === 'marclab') {
+          if (i === 1) {
+            return {
+              key: i, value: [[{ label: 'Label', operator: '=~', input: '' }], [{ label: 'Label', operator: '=~', input: '' }]], operator: '',
+            };
+          }
+          if (i % 2) {
+            return {
+              key: i, value: [[{ label: 'Type', operator: '=~', input: '' }], []], operator: '',
+            };
+          }
           return {
-            key: i, value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
+            key: i, value: [[{ label: 'Label', operator: '=~', input: '' }], []], operator: '',
+          };
+        }
+
+        if (i === 1) {
+          return {
+            key: i, value: [[{ label: '', operator: '=~', input: '' }], [{ label: '', operator: '=~', input: '' }]], operator: '',
           };
         }
         return {
-          key: i, value: [{ label: 'Label', operator: '=~', input: '' }], operator: '',
+          key: i, value: [[{ label: '', operator: '=~', input: '' }], []], operator: '',
         };
       });
     });
 
-    function addField(index: number) {
-      queryInput.value[index].value.push({ input: '', label: '', operator: '=~' });
+    function addField(index: number, secondEdgeQuery: boolean) {
+      if (secondEdgeQuery) {
+        queryInput.value[index].value[1].push({ input: '', label: '', operator: '=~' });
+      } else {
+        queryInput.value[index].value[0].push({ input: '', label: '', operator: '=~' });
+      }
     }
 
-    function removeField(index: number, field: number) {
-      queryInput.value[index].value.splice(field, 1);
+    function removeField(index: number, field: number, secondEdgeQuery: boolean) {
+      if (secondEdgeQuery) {
+        queryInput.value[index].value[1].splice(field, 1);
+      } else {
+        queryInput.value[index].value[0].splice(field, 1);
+      }
     }
 
     function isTextComparison(operator: string) {
@@ -393,6 +557,7 @@ export default defineComponent({
     }
     return {
       showMenu,
+      showSecondEdge,
       hopsSelection,
       selectedHops,
       displayedHops,
