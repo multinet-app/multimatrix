@@ -11,6 +11,7 @@ export interface Dimensions {
 export interface Node extends TableRow {
   type: string;
   neighbors: string[];
+  degreeCount: number;
   children?: Node[];
   parentPosition?: number;
   [propName: string]: unknown;

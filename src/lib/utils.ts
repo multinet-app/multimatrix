@@ -26,6 +26,9 @@ export function defineNeighbors(nodes: any[], edges: Edge[]) {
     }
   });
 
+  // eslint-disable-next-line no-return-assign, no-param-reassign
+  nodes.forEach((d) => d.degreeCount = new Set(d.neighbors).size);
+
   return nodes;
 }
 
