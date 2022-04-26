@@ -77,6 +77,7 @@ const {
     isDate: false,
     controlsWidth: 256,
     selectedHops: 1,
+    degreeRange: [],
   } as State,
 
   getters: {
@@ -312,6 +313,10 @@ const {
       state.cellSize = cellSize;
     },
 
+    setDegreeRange(state, degreeRange: number[]) {
+      state.degreeRange = degreeRange;
+    },
+
     setMaxIntConnections(state, maxIntConnections) {
       state.maxIntConnections = maxIntConnections;
     },
@@ -464,6 +469,7 @@ const {
       commit.setNetwork(payload.network);
       commit.setNetworkOnLoad(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
+      commit.setDegreeRange([0, payload.network.nodes.length]);
       commit.setSlicedNetwork([]);
     },
 

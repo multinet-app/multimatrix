@@ -78,6 +78,17 @@ export default defineComponent({
     });
     const maxConnections = computed(() => store.state.maxConnections);
 
+    // Calculate node degrees
+    const degreeMax = computed(() => (store.state.network !== null ? store.state.network.nodes.length : 0));
+    const degreeRange = computed({
+      get() {
+        return store.state.degreeRange;
+      },
+      set(range: number[]) {
+        store.commit.setDegreeRange(range);
+      },
+    });
+
     // Intermediate node table template objects
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
     const intAggregatedBy = computed({
@@ -228,6 +239,8 @@ export default defineComponent({
       searchTerm,
       searchErrors,
       searchItems,
+      degreeMax,
+      degreeRange,
     };
   },
 });
@@ -373,6 +386,39 @@ export default defineComponent({
               hide-details
               color="blue darken-1"
             />
+          </v-list-item>
+
+          <v-list-item>
+            <v-list-item-content> Degree </v-list-item-content>
+            <v-range-slider
+              v-model="degreeRange"
+              :max="degreeMax"
+              :min="0"
+              hide-details
+              class="align-center"
+              color="blue darken-1"
+            >
+              <template v-slot:prepend>
+                <v-text-field
+                  v-model="degreeRange[0]"
+                  class="pa-0 ma-0"
+                  hide-details
+                  single-line
+                  type="number"
+                  style="width: 30px"
+                />
+              </template>
+              <template v-slot:append>
+                <v-text-field
+                  v-model="degreeRange[1]"
+                  class="pa-0 ma-0"
+                  hide-details
+                  single-line
+                  type="number"
+                  style="width: 30px"
+                />
+              </template>
+            </v-range-slider>
           </v-list-item>
 
           <v-list-item>
