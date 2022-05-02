@@ -426,7 +426,27 @@ export default defineComponent({
 
         // Append any last required string
         if (input.key === 0) {
-          currentString += 'RETURN n0) \nFOR n0 in start_nodes';
+          // Add mutual exclusion query line
+          if (showSecondEdge.value) {
+            currentString += `RETURN n0) \nLET excluded_nodes = (FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH '${store.state.networkName}' FILTER (`;
+
+            // Add mutual exclusion filters
+            const { operator } = edgeMutexs.value;
+            edgeMutexs.value.value.forEach((queryPiece) => {
+              const property = isTextComparison(queryPiece.operator) ? `UPPER(e1.${queryPiece.label})` : `TO_NUMBER(e1.${queryPiece.label})`;
+
+              const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
+
+              currentString += `${property} ${queryPiece.operator} ${value} ${operator} `;
+            });
+
+            // Add filter ending parenthesis
+            currentString += ') ';
+
+            currentString += 'RETURN p1)[**].vertices[0] \nFOR n0 in MINUS(start_nodes, excluded_nodes)';
+          } else {
+            currentString += 'RETURN n0) \nFOR n0 in start_nodes';
+          }
         }
 
         pathQueryTextComponents.push(currentString);
