@@ -43,7 +43,7 @@
         <!-- All of the query options -->
         <v-list dense>
           <v-list-item
-            v-for="(val, j) in inputs.value[0]"
+            v-for="(val, j) in inputs.value"
             :key="`val-${i}-${j}`"
             class="pa-0"
           >
@@ -143,6 +143,7 @@
             </v-list-item>
           </v-list-item>
         </v-list>
+
         <!-- Let user query for another edge -->
         <v-card-actions v-if="i === 1">
           <v-btn
@@ -171,7 +172,7 @@
           <div v-show="showSecondEdge && i === 1">
             <v-list dense>
               <v-list-item
-                v-for="(val, k) in inputs.value[i]"
+                v-for="(val, k) in edgeMutexs.value"
                 :key="`val-${i}-2-${k}`"
                 class="pa-0"
               >
@@ -184,7 +185,7 @@
                       class="pt-3"
                     >
                       <v-autocomplete
-                        v-model="inputs.operator"
+                        v-model="edgeMutexs.operator"
                         :items="operatorOptionItems"
                         dense
                       />
@@ -331,80 +332,47 @@ export default defineComponent({
     });
 
     // Create the object for storing input data
-    const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[][]; operator: string }[]> = ref([]);
+    const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]> = ref([]);
+    const edgeMutexs: Ref<{ value: { label: string; operator: string; input: string }[]; operator: string }> = ref({ value: [], operator: '' });
 
-    watch([displayedHops], () => {
+    function resetDefaultValues() {
       queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
         if (store.state.workspaceName === 'marclab') {
-          if (i === 1) {
-            return {
-              key: i, value: [[{ label: 'Label', operator: '=~', input: '' }], [{ label: 'Label', operator: '=~', input: '' }]], operator: '',
-            };
-          }
           if (i % 2) {
             return {
-              key: i, value: [[{ label: 'Type', operator: '=~', input: '' }], []], operator: '',
+              key: i, value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
             };
           }
           return {
-            key: i, value: [[{ label: 'Label', operator: '=~', input: '' }], []], operator: '',
-          };
-        }
-
-        if (i === 1) {
-          return {
-            key: i, value: [[{ label: '', operator: '=~', input: '' }], [{ label: '', operator: '=~', input: '' }]], operator: '',
+            key: i, value: [{ label: 'Label', operator: '=~', input: '' }], operator: '',
           };
         }
         return {
-          key: i, value: [[{ label: '', operator: '=~', input: '' }], []], operator: '',
+          key: i, value: [{ label: '', operator: '=~', input: '' }], operator: '',
         };
       });
-    });
 
-    onMounted(() => {
-      queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
-        if (store.state.workspaceName === 'marclab') {
-          if (i === 1) {
-            return {
-              key: i, value: [[{ label: 'Label', operator: '=~', input: '' }], [{ label: 'Label', operator: '=~', input: '' }]], operator: '',
-            };
-          }
-          if (i % 2) {
-            return {
-              key: i, value: [[{ label: 'Type', operator: '=~', input: '' }], []], operator: '',
-            };
-          }
-          return {
-            key: i, value: [[{ label: 'Label', operator: '=~', input: '' }], []], operator: '',
-          };
-        }
-
-        if (i === 1) {
-          return {
-            key: i, value: [[{ label: '', operator: '=~', input: '' }], [{ label: '', operator: '=~', input: '' }]], operator: '',
-          };
-        }
-        return {
-          key: i, value: [[{ label: '', operator: '=~', input: '' }], []], operator: '',
+      if (store.state.workspaceName === 'marclab') {
+        edgeMutexs.value = {
+          value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
         };
-      });
-    });
-
-    function addField(index: number, secondEdgeQuery: boolean) {
-      if (secondEdgeQuery) {
-        queryInput.value[index].value[1].push({ input: '', label: '', operator: '=~' });
       } else {
-        queryInput.value[index].value[0].push({ input: '', label: '', operator: '=~' });
+        edgeMutexs.value = {
+          value: [{ label: '', operator: '=~', input: '' }], operator: '',
+        };
       }
     }
 
-    function removeField(index: number, field: number, secondEdgeQuery: boolean) {
-      if (secondEdgeQuery) {
-        queryInput.value[index].value[1].splice(field, 1);
-      } else {
-        queryInput.value[index].value[0].splice(field, 1);
-      }
+    watch([displayedHops], () => resetDefaultValues());
+
+    onMounted(() => resetDefaultValues());
+
+    function addField(index: number) {
+      queryInput.value[index].value.push({ input: '', label: '', operator: '=~' });
+    }
+
+    function removeField(index: number, field: number) {
+      queryInput.value[index].value.splice(field, 1);
     }
 
     function isTextComparison(operator: string) {
@@ -574,6 +542,7 @@ export default defineComponent({
       removeField,
       queryInput,
       operatorOptionItems,
+      edgeMutexs,
     };
   },
 });
