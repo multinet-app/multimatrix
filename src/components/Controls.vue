@@ -24,6 +24,7 @@ export default defineComponent({
     // Template objects
     const showMenu = ref(false);
     const aggregateBy = ref(undefined);
+    const networkOnLoad = computed(() => store.state.networkOnLoad);
     const directionalEdges = computed({
       get() {
         return store.state.directionalEdges;
@@ -79,7 +80,7 @@ export default defineComponent({
     const maxConnections = computed(() => store.state.maxConnections);
 
     // Calculate node degrees
-    const degreeMax = computed(() => (store.state.network !== null ? store.state.network.nodes.length : 0));
+    const degreeMax = computed(() => (networkOnLoad.value !== null ? networkOnLoad.value.nodes.length : 0));
     const degreeRange = computed({
       get() {
         return store.state.degreeRange;
@@ -87,6 +88,48 @@ export default defineComponent({
       set(range: number[]) {
         store.commit.setDegreeRange(range);
       },
+    });
+
+    watch([degreeRange], () => {
+      // Restore network if min and max are restored
+      if (networkOnLoad.value !== null && degreeRange.value[0] === 0 && degreeRange.value[1] === networkOnLoad.value.nodes.length) {
+        store.dispatch.updateNetwork({ network: networkOnLoad.value });
+      } else {
+        let newNetwork = JSON.parse(JSON.stringify(networkOnLoad.value));
+        const remainingNodes = new Set([]);
+        let removedNodes = new Set([]);
+
+        newNetwork.nodes.forEach((node: Node) => {
+          if (node.degreeCount < degreeRange.value[0] || node.degreeCount > degreeRange.value[1]) {
+            removedNodes.add(node._id);
+          } else {
+            remainingNodes.add(node._id);
+          }
+        });
+        console.log('Before:', remainingNodes, removedNodes);
+
+        if (networkOnLoad.value !== null && removedNodes.size === networkOnLoad.value.nodes.length) {
+          newNetwork = { nodes: [], edges: [] };
+        } else {
+          const necessaryToNodes = new Set([]);
+          newNetwork.edges.forEach((edge: Edge, i: number) => {
+            if (removedNodes.has(edge._from)) {
+              newNetwork.edges.splice(i, 1);
+            } if (remainingNodes.has(edge._from) && removedNodes.has(edge._to)) {
+              necessaryToNodes.add(edge._to);
+            }
+          });
+          removedNodes = new Set([...removedNodes].filter((x) => !necessaryToNodes.has(x)));
+
+          newNetwork.nodes.forEach((node: Node, i: number) => {
+            if (removedNodes.has(node._id)) {
+              newNetwork.nodes.splice(i, 1);
+            }
+          });
+        }
+
+        store.dispatch.updateNetwork({ network: newNetwork });
+      }
     });
 
     // Intermediate node table template objects

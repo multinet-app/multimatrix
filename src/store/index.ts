@@ -461,15 +461,15 @@ const {
         edges: edges.results as Edge[],
       };
       commit.setAttributeValues(networkElements);
+      commit.setNetworkOnLoad(networkElements);
+      commit.setDegreeRange([0, networkElements.nodes.length]);
       dispatch.updateNetwork({ network: networkElements });
     },
 
     updateNetwork(context, payload: { network: Network }) {
       const { commit } = rootActionContext(context);
       commit.setNetwork(payload.network);
-      commit.setNetworkOnLoad(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
-      commit.setDegreeRange([0, payload.network.nodes.length]);
       commit.setSlicedNetwork([]);
     },
 
