@@ -433,7 +433,7 @@ export default defineComponent({
         if (input.key === 0) {
           // Add mutual exclusion query line
           if (showSecondEdge.value) {
-            currentString += `RETURN n0) \nLET excluded_nodes = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH '${store.state.networkName}' FILTER (`;
+            currentString += `RETURN n0) \nLET excluded_pairs = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH '${store.state.networkName}' FILTER (`;
 
             // Add mutual exclusion filters
             const { operator } = edgeMutexs.value;
