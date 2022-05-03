@@ -424,11 +424,16 @@ export default defineComponent({
         });
         currentString += ') ';
 
+        // Add to the filter for edge mutex
+        if (input.key === 1) {
+          currentString += 'AND (NOT POSITION(excluded_pairs, [n0, n1]))';
+        }
+
         // Append any last required string
         if (input.key === 0) {
           // Add mutual exclusion query line
           if (showSecondEdge.value) {
-            currentString += `RETURN n0) \nLET excluded_nodes = (FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH '${store.state.networkName}' FILTER (`;
+            currentString += `RETURN n0) \nLET excluded_nodes = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH '${store.state.networkName}' FILTER (`;
 
             // Add mutual exclusion filters
             const { operator } = edgeMutexs.value;
@@ -443,7 +448,7 @@ export default defineComponent({
             // Add filter ending parenthesis
             currentString += ') ';
 
-            currentString += 'RETURN p1)[**].vertices[0] \nFOR n0 in MINUS(start_nodes, excluded_nodes)';
+            currentString += 'RETURN p1.vertices) \nFOR n0 in start_nodes';
           } else {
             currentString += 'RETURN n0) \nFOR n0 in start_nodes';
           }
