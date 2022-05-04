@@ -63,6 +63,7 @@
                           v-if="j > 0"
                           v-model="inputs.operator"
                           :items="operatorOptionItems"
+                          clearable
                           dense
                         />
                         <div
@@ -79,6 +80,7 @@
                         <v-autocomplete
                           v-model="val.label"
                           :items="i % 2 ? edgeVariableItems : nodeVariableItems"
+                          clearable
                           dense
                         />
                       </v-col>
@@ -86,6 +88,7 @@
                         <v-autocomplete
                           v-model="val.operator"
                           :items="queryOptionItems"
+                          clearable
                           dense
                         />
                       </v-col>
@@ -96,6 +99,7 @@
                           v-if="val.operator === '=='"
                           v-model="val.input"
                           :items="i % 2 ? edgeAttributeItems[val.label] : nodeAttributeItems[val.label]"
+                          clearable
                           dense
                         />
                         <v-text-field
@@ -183,6 +187,7 @@
                               v-if="k > 0"
                               v-model="edgeMutexs.operator"
                               :items="operatorOptionItems"
+                              clearable
                               dense
                             />
                             <div
@@ -198,6 +203,7 @@
                             <v-autocomplete
                               v-model="val.label"
                               :items="edgeVariableItems"
+                              clearable
                               dense
                             />
                           </v-col>
@@ -205,6 +211,7 @@
                             <v-autocomplete
                               v-model="val.operator"
                               :items="queryOptionItems"
+                              clearable
                               dense
                             />
                           </v-col>
@@ -213,6 +220,7 @@
                               v-if="val.operator === '=='"
                               v-model="val.input"
                               :items="edgeAttributeItems[val.label]"
+                              clearable
                               dense
                             />
                             <v-text-field
