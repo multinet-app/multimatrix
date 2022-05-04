@@ -23,7 +23,7 @@
             v-on="on"
           >
             <v-icon>
-              mdi-arrow-right
+              mdi-cog
             </v-icon>
           </v-btn>
         </template>
@@ -141,27 +141,23 @@
             <!-- Let user query for another edge -->
             <v-list-item v-if="i === 1">
               <v-row>
-                <v-col
-                  class=""
-                >
-                  {{ showSecondEdge ? 'No other path with' : '' }}
+                <v-col>
+                  <v-list-item-title>
+                    {{ showSecondEdge ? 'NO OTHER PATH WITH' : '' }}
+                  </v-list-item-title>
                 </v-col>
-
-                <v-spacer />
-                <v-tooltip right>
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      color="orange lighten-2"
-                      v-bind="attrs"
-                      @click="showSecondEdge = !showSecondEdge"
-                      v-on="on"
-                    >
-                      <v-icon>{{ showSecondEdge ? 'mdi-minus' : 'mdi-plus' }}</v-icon>
-                    </v-btn>
-                  </template>
-                  <span>{{ showSecondEdge ? 'Remove edge' : 'Add new edge' }}</span>
-                </v-tooltip>
+                <v-btn
+                  v-bind="attrs"
+                  class="mb-2"
+                  depressed
+                  @click="showSecondEdge = !showSecondEdge"
+                  v-on="on"
+                >
+                  {{ showSecondEdge ? 'Remove second edge query' : 'Add second edge query' }}
+                  <v-icon right>
+                    {{ showSecondEdge ? 'mdi-minus' : 'mdi-plus' }}
+                  </v-icon>
+                </v-btn>
               </v-row>
             </v-list-item>
             <v-expand-transition>
