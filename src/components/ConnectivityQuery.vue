@@ -5,116 +5,289 @@
 
       <v-spacer />
 
-      <v-btn
-        :min-width="40"
-        :height="48"
-        depressed
-        tile
-        class="grey darken-3 pa-0"
-        @click="showMenu = !showMenu"
+      <v-dialog
+        v-model="dialog"
+        width="780px"
       >
-        <v-icon color="white">
-          {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
-        </v-icon>
-      </v-btn>
-    </v-subheader>
-
-    <v-card
-      v-if="showMenu"
-      flat
-      tile
-    >
-      <v-card
-        color="grey lighten-3"
-        flat
-        tile
-      >
-        <v-card-text class="pt-2 pb-1">
-          <v-select
-            v-model="selectedHops"
-            label="Hops"
-            :items="hopsSelection"
-          />
-        </v-card-text>
-      </v-card>
-      <v-list dense>
-        <v-list-item
-          v-for="(_, i) in displayedHops"
-          :key="i"
-          class="pa-0"
-        >
-          <v-list-item-avatar class="mr-0">
-            <v-icon size="18">
-              {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
-            </v-icon>
-          </v-list-item-avatar>
-          <v-list-item-content class="pa-0 pr-1">
-            <v-row no-gutters>
-              <v-col
-                cols="12"
-                sm="5"
-                class="pa-1"
-              >
-                <v-autocomplete
-                  v-model="selectedVariables[i]"
-                  :items="i % 2 ? edgeVariableItems : nodeVariableItems"
-                  dense
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                sm="3"
-                class="pa-1"
-              >
-                <v-autocomplete
-                  v-model="selectedQueryOptions[i]"
-                  :items="queryOptionItems"
-                  dense
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                class="pa-1"
-              >
-                <v-autocomplete
-                  v-if="selectedQueryOptions[i] === '=='"
-                  v-model="selectedVariableValue[i]"
-                  :items="variableValueItems[i]"
-                  dense
-                />
-                <v-text-field
-                  v-else
-                  v-model="selectedVariableValue[i]"
-                  dense
-                />
-              </v-col>
-            </v-row>
-          </v-list-item-content>
-        </v-list-item>
-
-        <v-list-item>
+        <template v-slot:activator="{ on, attrs }">
           <v-btn
-            block
-            class="ml-0 mt-4"
-            color="primary"
+            :min-width="40"
+            :height="48"
             depressed
+            tile
+            dark
+            color="grey darken-3"
+            class="pa-0"
             :loading="loading"
-            @click="submitQuery"
+            v-bind="attrs"
+            v-on="on"
           >
-            Submit Query
+            <v-icon>
+              mdi-cog
+            </v-icon>
           </v-btn>
-        </v-list-item>
-      </v-list>
-    </v-card>
+        </template>
+
+        <v-card>
+          <v-card-text class="pt-2 pb-1">
+            <v-select
+              v-model="selectedHops"
+              label="Hops"
+              :items="hopsSelection"
+            />
+          </v-card-text>
+
+          <v-card
+            v-for="(inputs, i) in queryInput"
+            :key="`input${i}`"
+            flat
+            color="white"
+            class="p-0"
+          >
+            <v-divider v-if="i % 2" />
+            <!-- All of the query options -->
+            <v-list dense>
+              <v-list-item
+                v-for="(val, j) in inputs.value"
+                :key="`val-${i}-${j}`"
+                class="pa-0"
+              >
+                <v-list-item class="pa-0">
+                  <v-list-item-content class="pa-0 pr-1">
+                    <v-row no-gutters>
+                      <v-col
+                        cols="1"
+                        class="pa-1"
+                      >
+                        <v-autocomplete
+                          v-if="j > 0"
+                          v-model="inputs.operator"
+                          :items="operatorOptionItems"
+                          clearable
+                          dense
+                        />
+                        <div
+                          v-else
+                          class="text-center pt-3"
+                        >
+                          <v-icon size="18">
+                            {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
+                          </v-icon>
+                        </div>
+                      </v-col>
+
+                      <v-col class="pa-1">
+                        <v-autocomplete
+                          v-model="val.label"
+                          :items="i % 2 ? edgeVariableItems : nodeVariableItems"
+                          clearable
+                          dense
+                        />
+                      </v-col>
+                      <v-col class="pa-1">
+                        <v-autocomplete
+                          v-model="val.operator"
+                          :items="queryOptionItems"
+                          clearable
+                          dense
+                        />
+                      </v-col>
+                      <v-col
+                        class="pa-1"
+                      >
+                        <v-autocomplete
+                          v-if="val.operator === '=='"
+                          v-model="val.input"
+                          :items="i % 2 ? edgeAttributeItems[val.label] : nodeAttributeItems[val.label]"
+                          clearable
+                          dense
+                        />
+                        <v-text-field
+                          v-else
+                          v-model="val.input"
+                          dense
+                        />
+                      </v-col>
+                      <v-col
+                        cols="1"
+                        class="mt-3"
+                      >
+                        <!-- Add button -->
+                        <v-btn
+                          icon
+                          x-small
+                          color="primary"
+                          @click="addField(i)"
+                        >
+                          <v-icon>
+                            mdi-plus
+                          </v-icon>
+                        </v-btn>
+                        <!-- Remove button -->
+                        <v-btn
+                          :disabled="j === 0"
+                          icon
+                          x-small
+                          color="red"
+                          @click="removeField(i, j)"
+                        >
+                          <v-icon>
+                            mdi-minus
+                          </v-icon>
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-item>
+            </v-list>
+
+            <!-- Let user query for another edge -->
+            <v-list-item v-if="i === 1">
+              <v-row>
+                <v-col>
+                  <v-list-item-title>
+                    {{ showSecondEdge ? 'NO OTHER PATH WITH' : '' }}
+                  </v-list-item-title>
+                </v-col>
+                <v-btn
+                  class="mb-2"
+                  depressed
+                  @click="showSecondEdge = !showSecondEdge"
+                  v-on="on"
+                >
+                  {{ showSecondEdge ? 'Remove second edge query' : 'Add second edge query' }}
+                  <v-icon right>
+                    {{ showSecondEdge ? 'mdi-minus' : 'mdi-plus' }}
+                  </v-icon>
+                </v-btn>
+              </v-row>
+            </v-list-item>
+            <v-expand-transition>
+              <div v-show="showSecondEdge && i === 1">
+                <v-list dense>
+                  <v-list-item
+                    v-for="(val, k) in edgeMutexs.value"
+                    :key="`val-${i}-2-${k}`"
+                    class="pa-0"
+                  >
+                    <v-list-item class="pa-0">
+                      <v-list-item-content class="pa-0 pr-1">
+                        <v-row no-gutters>
+                          <v-col
+                            cols="1"
+                            class="pa-1"
+                          >
+                            <v-autocomplete
+                              v-if="k > 0"
+                              v-model="edgeMutexs.operator"
+                              :items="operatorOptionItems"
+                              clearable
+                              dense
+                            />
+                            <div
+                              v-else
+                              class="text-center pt-3"
+                            >
+                              <v-icon size="18">
+                                mdi-swap-vertical
+                              </v-icon>
+                            </div>
+                          </v-col>
+                          <v-col class="pa-1">
+                            <v-autocomplete
+                              v-model="val.label"
+                              :items="edgeVariableItems"
+                              clearable
+                              dense
+                            />
+                          </v-col>
+                          <v-col class="pa-1">
+                            <v-autocomplete
+                              v-model="val.operator"
+                              :items="queryOptionItems"
+                              clearable
+                              dense
+                            />
+                          </v-col>
+                          <v-col class="pa-1">
+                            <v-autocomplete
+                              v-if="val.operator === '=='"
+                              v-model="val.input"
+                              :items="edgeAttributeItems[val.label]"
+                              clearable
+                              dense
+                            />
+                            <v-text-field
+                              v-else
+                              v-model="val.input"
+                              dense
+                            />
+                          </v-col>
+                          <v-col
+                            cols="12"
+                            sm="1"
+                            class="mt-3"
+                          >
+                            <!-- Add button -->
+                            <v-btn
+                              icon
+                              x-small
+                              color="primary"
+                              @click="addField(i, true)"
+                            >
+                              <v-icon>
+                                mdi-plus
+                              </v-icon>
+                            </v-btn>
+                            <!-- Remove button -->
+                            <v-btn
+                              :disabled="k === 0"
+                              icon
+                              x-small
+                              color="red"
+                              @click="removeField(i, k, true)"
+                            >
+                              <v-icon>
+                                mdi-minus
+                              </v-icon>
+                            </v-btn>
+                          </v-col>
+                        </v-row>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </v-list-item>
+                </v-list>
+              </div>
+            </v-expand-transition>
+            <v-divider v-if="i % 2" />
+          </v-card>
+
+          <v-list-item>
+            <v-btn
+              block
+              class="mb-2"
+              color="primary"
+              depressed
+              :loading="loading"
+              @click="() => { submitQuery(); dialog = false}"
+            >
+              Submit Query
+            </v-btn>
+          </v-list-item>
+        </v-card>
+      </v-dialog>
+    </v-subheader>
   </div>
 </template>
 
 <script lang="ts">
 import store from '@/store';
-import { Node, Edge, Network } from '@/types';
 import {
-  computed, defineComponent, ref, Ref, watchEffect,
+  Node, Edge, Network, ArangoPath,
+} from '@/types';
+import {
+  computed, defineComponent, onMounted, ref, Ref, watch,
 } from '@vue/composition-api';
 import api from '@/api';
 
@@ -123,6 +296,7 @@ export default defineComponent({
 
   setup() {
     const showMenu = ref(false);
+    const showSecondEdge = ref(false);
     const hopsSelection = [1, 2, 3];
     const selectedHops = computed({
       get() {
@@ -138,69 +312,165 @@ export default defineComponent({
     const selectedVariables: Ref<string[]> = ref([]);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
     const edgeVariableItems = computed(() => store.getters.edgeVariableItems);
+    const nodeAttributeItems = computed(() => store.state.nodeAttributes);
+    const edgeAttributeItems = computed(() => store.state.edgeAttributes);
 
     const selectedQueryOptions: Ref<string[]> = ref([]);
     const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
+    const operatorOptionItems = ['AND', 'OR', 'NOT'];
 
-    const selectedVariableValue: Ref<string[]> = ref([]);
-    const variableValueItems: Ref<string[][]> = ref([]);
-
-    // 21 = 2n + 1 for n = 5 (max number of hops allowed above)
-    Array(21).fill(1).forEach(() => {
-      selectedVariables.value.push(store.state.workspaceName === 'marclab' ? 'Label' : '');
-      selectedQueryOptions.value.push('=~');
+    const directionalEdges = computed({
+      get() {
+        return store.state.directionalEdges;
+      },
+      set(value: boolean) {
+        store.commit.setDirectionalEdges(value);
+      },
     });
 
-    // For each selected node variable, fill in possible values for autocomplete
-    watchEffect(() => {
-      selectedVariables.value.forEach((variable: string, i: number) => {
-        if (store.state.network !== null) {
-          const currentData = i % 2 ? store.state.edgeAttributes : store.state.nodeAttributes;
-          if (variable && Object.keys(currentData).length > 0) {
-            variableValueItems.value[i] = currentData[variable].map((value) => `${value}`);
+    // Create the object for storing input data
+    const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]> = ref([]);
+    const edgeMutexs: Ref<{ value: { label: string; operator: string; input: string }[]; operator: string }> = ref({ value: [], operator: '' });
+
+    function resetDefaultValues() {
+      queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
+        if (store.state.workspaceName === 'marclab') {
+          if (i % 2) {
+            return {
+              key: i, value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
+            };
           }
+          return {
+            key: i, value: [{ label: 'Label', operator: '=~', input: '' }], operator: '',
+          };
         }
+        return {
+          key: i, value: [{ label: '', operator: '=~', input: '' }], operator: '',
+        };
       });
-    });
+
+      if (store.state.workspaceName === 'marclab') {
+        edgeMutexs.value = {
+          value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
+        };
+      } else {
+        edgeMutexs.value = {
+          value: [{ label: '', operator: '=~', input: '' }], operator: '',
+        };
+      }
+    }
+
+    watch([displayedHops], () => resetDefaultValues());
+
+    onMounted(() => resetDefaultValues());
+
+    function addField(index: number, edgeMutex = false) {
+      if (edgeMutex) {
+        edgeMutexs.value.value.push({ input: '', label: '', operator: '=~' });
+      } else {
+        queryInput.value[index].value.push({ input: '', label: '', operator: '=~' });
+      }
+    }
+
+    function removeField(index: number, field: number, edgeMutex = false) {
+      if (edgeMutex) {
+        edgeMutexs.value.value.splice(field, 1);
+      } else {
+        queryInput.value[index].value.splice(field, 1);
+      }
+    }
 
     function isTextComparison(operator: string) {
       return ['==', '=~'].includes(operator);
     }
+
     function submitQuery() {
       loading.value = true;
-      let pathQueryText = '';
+      directionalEdges.value = true;
+      const pathQueryTextComponents: string[] = [];
 
-      // If we're doing a text comparison use UPPER('...') else, just the value
-      const valueInQuery = selectedVariableValue.value.map((value, index) => (isTextComparison(selectedQueryOptions.value[index]) ? `UPPER('${value}')` : `TO_NUMBER(${value})`));
+      // Loop through nodes and edges
+      queryInput.value.forEach((input) => {
+        // Add the starting string of each line of the query
+        let currentString = '';
+        const thisRoundIsNode = input.key % 2 === 0;
+        const nodeOrEdgeNum = Math.floor(input.key / 2);
 
-      pathQueryText += 'FILTER 1==1';
-      for (let i = 0; i < displayedHops.value; i += 1) {
-        const queryOperator = selectedQueryOptions.value[i];
+        if (input.key === 0) {
+          currentString += `LET start_nodes = (FOR n0 in [${store.getters.nodeTableNames}][**] FILTER 1==1 `;
+        } else if (!thisRoundIsNode) {
+          currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER 1==1 `;
+        }
 
-        if (selectedVariableValue.value[i] !== undefined) {
-          if (i % 2 === 0) {
-            // Nodes
-            const variableinQuery = valueInQuery[i].startsWith('UPPER')
-              ? `UPPER(p.vertices[${i / 2}].${selectedVariables.value[i]})`
-              : `TO_NUMBER(p.vertices[${i / 2}].${selectedVariables.value[i]})`;
-            pathQueryText += ` AND ${variableinQuery} ${queryOperator} ${valueInQuery[i]}`;
+        // Loop through each query piece
+        input.value.forEach((queryPiece, index) => {
+          // Add the right operator (AND for edge then node else, whatever op is defined)
+          const operator = input.operator === 'NOT' ? 'AND NOT (' : input.operator;
+
+          if (index === 0) {
+            currentString += 'AND ( ';
           } else {
-            // Edges
-            const variableinQuery = valueInQuery[i].startsWith('UPPER')
-              ? `UPPER(p.edges[${(i - 1) / 2}].${selectedVariables.value[i]})`
-              : `TO_NUMBER(p.edges[${(i - 1) / 2}].${selectedVariables.value[i]})`;
-            pathQueryText += ` AND ${variableinQuery} ${queryOperator} ${valueInQuery[i]}`;
+            currentString += `${operator} `;
+          }
+
+          // If no filter, do nothing
+          if (queryPiece.label === '') {
+            currentString += '1==1 ';
+          } else {
+            let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.${queryPiece.label}` : `e${nodeOrEdgeNum + 1}.${queryPiece.label}`;
+            property = isTextComparison(queryPiece.operator) ? `UPPER(${property})` : `TO_NUMBER(${property})`;
+            const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
+            currentString += `${property} ${queryPiece.operator} ${value} `;
+          }
+
+          if (index !== 0 && input.operator === 'NOT') {
+            currentString += ')';
+          }
+        });
+        currentString += ') ';
+
+        // Add to the filter for edge mutex
+        if (input.key === 1 && showSecondEdge.value) {
+          currentString += 'AND (NOT POSITION(excluded_pairs, [n0, n1]))';
+        }
+
+        // Append any last required string
+        if (input.key === 0) {
+          // Add mutual exclusion query line
+          if (showSecondEdge.value) {
+            currentString += `RETURN n0) \nLET excluded_pairs = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH '${store.state.networkName}' FILTER (`;
+
+            // Add mutual exclusion filters
+            const { operator } = edgeMutexs.value;
+            edgeMutexs.value.value.forEach((queryPiece, index) => {
+              if (index !== 0) {
+                currentString += `${operator} `;
+              }
+              const property = isTextComparison(queryPiece.operator) ? `UPPER(e1.${queryPiece.label})` : `TO_NUMBER(e1.${queryPiece.label})`;
+
+              const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
+
+              currentString += `${property} ${queryPiece.operator} ${value} `;
+            });
+
+            // Add filter ending parenthesis
+            currentString += ') ';
+
+            currentString += 'RETURN p1.vertices) \nFOR n0 in start_nodes';
+          } else {
+            currentString += 'RETURN n0) \nFOR n0 in start_nodes';
           }
         }
-      }
 
-      const startNode = isTextComparison(selectedQueryOptions.value[0]) ? `UPPER(n.${selectedVariables.value[0]})` : `TO_NUMBER(n.${selectedVariables.value[0]})`;
-      const aqlQuery = `
-        let startNodes = (FOR n in [${store.getters.nodeTableNames}][**] FILTER ${startNode} ${selectedQueryOptions.value[0]} ${valueInQuery[0]} RETURN n)
-        let paths = (FOR n IN startNodes FOR v, e, p IN 1..${selectedHops.value} ANY n GRAPH '${store.state.networkName}' ${pathQueryText} RETURN {paths: p})
-        RETURN {paths: paths[**].paths}
-      `;
+        pathQueryTextComponents.push(currentString);
+      });
 
+      // Add return statement
+      const itemsToReturn = Array(selectedHops.value).fill(0).map((_, index) => `e${index + 1}, n${index + 1}`).join(', ');
+      pathQueryTextComponents.push(`RETURN [n0, ${itemsToReturn}]`);
+
+      // Join each line of the query together
+      const aqlQuery = pathQueryTextComponents.join('\n');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
       try {
@@ -216,69 +486,95 @@ export default defineComponent({
       }
       if (newAQLNetwork !== undefined) {
         newAQLNetwork.then((promise) => {
-          const aqlResults = promise[0];
-          if (aqlResults.paths.length !== 0) {
+          if (promise.length !== 0) {
             // some data manipulation to show only start + end nodes
             const newNetwork: Network = { nodes: [], edges: [] };
             const endsNodesSet = new Set();
             const middleNodesSet = new Set();
             const middleNodesList: Node[] = [];
+            const reconstructedPaths: ArangoPath[] = [];
 
-            aqlResults.paths.forEach((path: { edges: Edge[]; vertices: Node[] }, val: number) => {
+            promise.forEach((path: (Node | Edge)[], val: number) => {
               const newPath: Edge = {
                 _from: '', _to: '', _key: '', _id: '', _rev: '',
               };
+              const reconstructedPath: ArangoPath = {
+                vertices: [],
+                edges: [],
+              };
 
-              for (let i = 0; i < selectedHops.value + 1; i += 1) {
-                if (i === 0) {
-                  newPath._from = path.vertices[i]._id;
-                  if (!endsNodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
-                  endsNodesSet.add(path.vertices[i]._id);
-                } else if (i > 0 && i < selectedHops.value) {
-                  if (!middleNodesSet.has(path.vertices[i]._id)) { middleNodesList.push(path.vertices[i]); }
-                  middleNodesSet.add(path.vertices[i]._id);
-                } else {
-                  newPath._to = path.vertices[i]._id;
-                  if (!endsNodesSet.has(path.vertices[i]._id)) { newNetwork.nodes.push(path.vertices[i]); }
-                  endsNodesSet.add(path.vertices[i]._id);
+              path.forEach((nodeOrEdge, index) => {
+                // Edges
+                if (index % 2 !== 0) {
+                  reconstructedPath.edges.push(nodeOrEdge as Edge);
                 }
-              }
+
+                if (index % 2 === 0) {
+                  reconstructedPath.vertices.push(nodeOrEdge as Node);
+
+                  if (index === 0) {
+                    newPath._from = nodeOrEdge._id;
+                    if (!endsNodesSet.has(nodeOrEdge._id)) { newNetwork.nodes.push(nodeOrEdge as Node); }
+                    endsNodesSet.add(nodeOrEdge._id);
+                  } else if (index < path.length - 1) {
+                    if (!middleNodesSet.has(nodeOrEdge._id)) { middleNodesList.push(nodeOrEdge as Node); }
+                    middleNodesSet.add(nodeOrEdge._id);
+                  } else {
+                    newPath._to = nodeOrEdge._id;
+                    if (!endsNodesSet.has(nodeOrEdge._id)) { newNetwork.nodes.push(nodeOrEdge as Node); }
+                    endsNodesSet.add(nodeOrEdge._id);
+                  }
+                }
+              });
 
               // generate _key and _id
               newPath._key = val.toString();
               newPath._id = val.toString();
               newNetwork.edges.push(newPath);
+
+              reconstructedPaths.push(reconstructedPath);
             });
 
-            // Update state for use in intermediate node vis
-            store.commit.setConnectivityMatrixPaths({ nodes: middleNodesList, paths: aqlResults.paths });
+            // Update state for use in intermediate node vis TODO
+            store.commit.setConnectivityMatrixPaths({ nodes: middleNodesList, paths: reconstructedPaths });
 
             // Update state for showing intermediate node vis
-            if (selectedHops.value > 1) store.commit.toggleShowIntNodeVis(true);
+            store.commit.toggleShowIntNodeVis(selectedHops.value > 1);
 
             // Update state with new network
             store.dispatch.aggregateNetwork(undefined);
             store.dispatch.updateNetwork({ network: newNetwork });
-            loading.value = false;
-            store.commit.setDirectionalEdges(true);
+          } else {
+            // Update state with empty network
+            store.dispatch.aggregateNetwork(undefined);
+            store.dispatch.updateNetwork({ network: { nodes: [], edges: [] } });
+            store.commit.toggleShowIntNodeVis(false);
           }
+
+          loading.value = false;
         });
       }
     }
     return {
       showMenu,
+      showSecondEdge,
       hopsSelection,
       selectedHops,
       displayedHops,
       queryOptionItems,
       selectedVariables,
       selectedQueryOptions,
-      selectedVariableValue,
       nodeVariableItems,
       edgeVariableItems,
-      variableValueItems,
+      nodeAttributeItems,
+      edgeAttributeItems,
       submitQuery,
       loading,
+      addField,
+      removeField,
+      queryInput,
+      operatorOptionItems,
+      edgeMutexs,
     };
   },
 });
