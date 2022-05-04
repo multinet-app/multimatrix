@@ -439,12 +439,15 @@ export default defineComponent({
 
             // Add mutual exclusion filters
             const { operator } = edgeMutexs.value;
-            edgeMutexs.value.value.forEach((queryPiece) => {
+            edgeMutexs.value.value.forEach((queryPiece, index) => {
+              if (index !== 0) {
+                currentString += `${operator} `;
+              }
               const property = isTextComparison(queryPiece.operator) ? `UPPER(e1.${queryPiece.label})` : `TO_NUMBER(e1.${queryPiece.label})`;
 
               const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
 
-              currentString += `${property} ${queryPiece.operator} ${value} ${operator} `;
+              currentString += `${property} ${queryPiece.operator} ${value} `;
             });
 
             // Add filter ending parenthesis
