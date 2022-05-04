@@ -151,7 +151,6 @@
                   </v-list-item-title>
                 </v-col>
                 <v-btn
-                  v-bind="attrs"
                   class="mb-2"
                   depressed
                   @click="showSecondEdge = !showSecondEdge"
