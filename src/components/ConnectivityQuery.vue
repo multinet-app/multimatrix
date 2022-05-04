@@ -7,7 +7,7 @@
 
       <v-dialog
         v-model="dialog"
-        max-width="600px"
+        width="780px"
       >
         <template v-slot:activator="{ on, attrs }">
           <v-btn
@@ -53,44 +53,36 @@
                 class="pa-0"
               >
                 <v-list-item class="pa-0">
-                  <v-list-item-avatar
-                    v-if="j === 0"
-                    class="mr-0"
-                  >
-                    <v-icon size="18">
-                      {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
-                    </v-icon>
-                  </v-list-item-avatar>
-                  <v-row no-gutters>
-                    <v-col
-                      v-if="j > 0"
-                      cols="12"
-                      sm="2"
-                      class="pt-3"
-                    >
-                      <v-autocomplete
-                        v-model="inputs.operator"
-                        :items="operatorOptionItems"
-                        dense
-                      />
-                    </v-col>
-                    <v-list-item-content class="pa-0 pr-1">
+                  <v-list-item-content class="pa-0 pr-1">
+                    <v-row no-gutters>
                       <v-col
-                        cols="12"
-                        sm="3"
+                        cols="1"
                         class="pa-1"
                       >
+                        <v-autocomplete
+                          v-if="j > 0"
+                          v-model="inputs.operator"
+                          :items="operatorOptionItems"
+                          dense
+                        />
+                        <div
+                          v-else
+                          class="text-center pt-3"
+                        >
+                          <v-icon size="18">
+                            {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
+                          </v-icon>
+                        </div>
+                      </v-col>
+
+                      <v-col class="pa-1">
                         <v-autocomplete
                           v-model="val.label"
                           :items="i % 2 ? edgeVariableItems : nodeVariableItems"
                           dense
                         />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="3"
-                        class="pa-1"
-                      >
+                      <v-col class="pa-1">
                         <v-autocomplete
                           v-model="val.operator"
                           :items="queryOptionItems"
@@ -98,8 +90,6 @@
                         />
                       </v-col>
                       <v-col
-                        cols="12"
-                        sm="3"
                         class="pa-1"
                       >
                         <v-autocomplete
@@ -115,8 +105,7 @@
                         />
                       </v-col>
                       <v-col
-                        cols="12"
-                        sm="1"
+                        cols="1"
                         class="mt-3"
                       >
                         <!-- Add button -->
@@ -132,7 +121,7 @@
                         </v-btn>
                         <!-- Remove button -->
                         <v-btn
-                          v-show="j > 0"
+                          :disabled="j === 0"
                           icon
                           x-small
                           color="red"
@@ -143,36 +132,38 @@
                           </v-icon>
                         </v-btn>
                       </v-col>
-                    </v-list-item-content>
-                  </v-row>
+                    </v-row>
+                  </v-list-item-content>
                 </v-list-item>
               </v-list-item>
             </v-list>
 
             <!-- Let user query for another edge -->
-            <v-card-actions v-if="i === 1">
-              <v-btn
-                text
-              >
-                {{ showSecondEdge ? 'No other path with' : '' }}
-              </v-btn>
+            <v-list-item v-if="i === 1">
+              <v-row>
+                <v-col
+                  class=""
+                >
+                  {{ showSecondEdge ? 'No other path with' : '' }}
+                </v-col>
 
-              <v-spacer />
-              <v-tooltip right>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    color="orange lighten-2"
-                    v-bind="attrs"
-                    @click="showSecondEdge = !showSecondEdge"
-                    v-on="on"
-                  >
-                    <v-icon>{{ showSecondEdge ? 'mdi-minus' : 'mdi-plus' }}</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ showSecondEdge ? 'Remove edge' : 'Add new edge' }}</span>
-              </v-tooltip>
-            </v-card-actions>
+                <v-spacer />
+                <v-tooltip right>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      icon
+                      color="orange lighten-2"
+                      v-bind="attrs"
+                      @click="showSecondEdge = !showSecondEdge"
+                      v-on="on"
+                    >
+                      <v-icon>{{ showSecondEdge ? 'mdi-minus' : 'mdi-plus' }}</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ showSecondEdge ? 'Remove edge' : 'Add new edge' }}</span>
+                </v-tooltip>
+              </v-row>
+            </v-list-item>
             <v-expand-transition>
               <div v-show="showSecondEdge && i === 1">
                 <v-list dense>
@@ -182,47 +173,42 @@
                     class="pa-0"
                   >
                     <v-list-item class="pa-0">
-                      <v-row no-gutters>
-                        <v-col
-                          v-if="k > 0"
-                          cols="12"
-                          sm="2"
-                          class="pt-3"
-                        >
-                          <v-autocomplete
-                            v-model="edgeMutexs.operator"
-                            :items="operatorOptionItems"
-                            dense
-                          />
-                        </v-col>
-                        <v-list-item-content class="pa-0 pr-1">
+                      <v-list-item-content class="pa-0 pr-1">
+                        <v-row no-gutters>
                           <v-col
-                            cols="12"
-                            sm="3"
+                            cols="1"
                             class="pa-1"
                           >
+                            <v-autocomplete
+                              v-if="k > 0"
+                              v-model="edgeMutexs.operator"
+                              :items="operatorOptionItems"
+                              dense
+                            />
+                            <div
+                              v-else
+                              class="text-center pt-3"
+                            >
+                              <v-icon size="18">
+                                mdi-swap-vertical
+                              </v-icon>
+                            </div>
+                          </v-col>
+                          <v-col class="pa-1">
                             <v-autocomplete
                               v-model="val.label"
                               :items="edgeVariableItems"
                               dense
                             />
                           </v-col>
-                          <v-col
-                            cols="12"
-                            sm="3"
-                            class="pa-1"
-                          >
+                          <v-col class="pa-1">
                             <v-autocomplete
                               v-model="val.operator"
                               :items="queryOptionItems"
                               dense
                             />
                           </v-col>
-                          <v-col
-                            cols="12"
-                            sm="3"
-                            class="pa-1"
-                          >
+                          <v-col class="pa-1">
                             <v-autocomplete
                               v-if="val.operator === '=='"
                               v-model="val.input"
@@ -253,7 +239,7 @@
                             </v-btn>
                             <!-- Remove button -->
                             <v-btn
-                              v-show="k > 0"
+                              :disabled="k === 0"
                               icon
                               x-small
                               color="red"
@@ -264,8 +250,8 @@
                               </v-icon>
                             </v-btn>
                           </v-col>
-                        </v-list-item-content>
-                      </v-row>
+                        </v-row>
+                      </v-list-item-content>
                     </v-list-item>
                   </v-list-item>
                 </v-list>
@@ -375,12 +361,20 @@ export default defineComponent({
 
     onMounted(() => resetDefaultValues());
 
-    function addField(index: number) {
-      queryInput.value[index].value.push({ input: '', label: '', operator: '=~' });
+    function addField(index: number, edgeMutex = false) {
+      if (edgeMutex) {
+        edgeMutexs.value.value.push({ input: '', label: '', operator: '=~' });
+      } else {
+        queryInput.value[index].value.push({ input: '', label: '', operator: '=~' });
+      }
     }
 
-    function removeField(index: number, field: number) {
-      queryInput.value[index].value.splice(field, 1);
+    function removeField(index: number, field: number, edgeMutex = false) {
+      if (edgeMutex) {
+        edgeMutexs.value.value.splice(field, 1);
+      } else {
+        queryInput.value[index].value.splice(field, 1);
+      }
     }
 
     function isTextComparison(operator: string) {
@@ -471,7 +465,6 @@ export default defineComponent({
 
       // Join each line of the query together
       const aqlQuery = pathQueryTextComponents.join('\n');
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let newAQLNetwork: Promise<any[]> | undefined;
       try {
