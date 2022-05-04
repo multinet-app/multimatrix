@@ -22,8 +22,6 @@ export default defineComponent({
 
   setup() {
     // Template objects
-    const showQuery = ref(false);
-    const tab = ref(false);
     const showMenu = ref(false);
     const aggregateBy = ref(undefined);
     const directionalEdges = computed({
@@ -206,8 +204,6 @@ export default defineComponent({
     }
 
     return {
-      showQuery,
-      tab,
       aggregateBy,
       directionalEdges,
       selectNeighbors,
