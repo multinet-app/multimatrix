@@ -95,37 +95,40 @@ export default defineComponent({
       if (networkOnLoad.value !== null && degreeRange.value[0] === 0 && degreeRange.value[1] === networkOnLoad.value.nodes.length) {
         store.dispatch.updateNetwork({ network: networkOnLoad.value });
       } else {
-        let newNetwork = JSON.parse(JSON.stringify(networkOnLoad.value));
-        const remainingNodes = new Set([]);
-        let removedNodes = new Set([]);
+        const newNetwork = JSON.parse(JSON.stringify(networkOnLoad.value));
+        const nodeSet = new Set([]);
 
-        newNetwork.nodes.forEach((node: Node) => {
-          if (node.degreeCount < degreeRange.value[0] || node.degreeCount > degreeRange.value[1]) {
-            removedNodes.add(node._id);
+        // Create dict of row nodes and max degrees
+        const nodeDegreeDict: {[key: string]: number } = {};
+        // eslint-disable-next-line no-return-assign
+        newNetwork.nodes.forEach((node: Node) => nodeDegreeDict[node._id] = node.degreeCount);
+
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < newNetwork.edges.length; i++) {
+          // Remove edges that don't match degree criteria
+          const edge = newNetwork.edges[i];
+          // eslint-disable-next-line radix
+          if (nodeDegreeDict[edge._from] < parseInt(degreeRange.value[0]) || nodeDegreeDict[edge._from] > parseInt(degreeRange.value[1])) {
+            newNetwork.edges.splice(i, 1);
+            // eslint-disable-next-line no-plusplus
+            i--;
           } else {
-            remainingNodes.add(node._id);
+            // Make a record of valid nodes
+            nodeSet.add(edge._from);
+            nodeSet.add(edge._to);
           }
-        });
-        console.log('Before:', remainingNodes, removedNodes);
+        }
 
-        if (networkOnLoad.value !== null && removedNodes.size === networkOnLoad.value.nodes.length) {
-          newNetwork = { nodes: [], edges: [] };
-        } else {
-          const necessaryToNodes = new Set([]);
-          newNetwork.edges.forEach((edge: Edge, i: number) => {
-            if (removedNodes.has(edge._from)) {
-              newNetwork.edges.splice(i, 1);
-            } if (remainingNodes.has(edge._from) && removedNodes.has(edge._to)) {
-              necessaryToNodes.add(edge._to);
-            }
-          });
-          removedNodes = new Set([...removedNodes].filter((x) => !necessaryToNodes.has(x)));
-
-          newNetwork.nodes.forEach((node: Node, i: number) => {
-            if (removedNodes.has(node._id)) {
-              newNetwork.nodes.splice(i, 1);
-            }
-          });
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < newNetwork.nodes.length; i++) {
+          // Remove nodes that don't have edges
+          const node = newNetwork.nodes[i];
+          // eslint-disable-next-line radix
+          if (!nodeSet.has(node._id)) {
+            newNetwork.nodes.splice(i, 1);
+            // eslint-disable-next-line no-plusplus
+            i--;
+          }
         }
 
         store.dispatch.updateNetwork({ network: newNetwork });
@@ -436,7 +439,7 @@ export default defineComponent({
             <v-range-slider
               v-model="degreeRange"
               :max="degreeMax"
-              :min="0"
+              min="0"
               hide-details
               class="align-center"
               color="blue darken-1"
