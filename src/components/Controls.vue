@@ -445,24 +445,20 @@ export default defineComponent({
               color="blue darken-1"
             >
               <template v-slot:prepend>
-                <v-text-field
-                  v-model="degreeRange[0]"
-                  class="pa-0 ma-0"
-                  hide-details
-                  single-line
-                  type="number"
-                  style="width: 30px"
-                />
+                <p
+                  class="pa-0 ma-0 text-center"
+                  style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
+                >
+                  {{ degreeRange[0] }}
+                </p>
               </template>
               <template v-slot:append>
-                <v-text-field
-                  v-model="degreeRange[1]"
-                  class="pa-0 ma-0"
-                  hide-details
-                  single-line
-                  type="number"
-                  style="width: 30px"
-                />
+                <p
+                  class="pa-0 ma-0 text-center"
+                  style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
+                >
+                  {{ degreeRange[1] }}
+                </p>
               </template>
             </v-range-slider>
           </v-list-item>
