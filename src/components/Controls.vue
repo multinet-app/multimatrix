@@ -11,6 +11,7 @@ import EdgeSlicing from '@/components/EdgeSlicing.vue';
 import {
   computed, defineComponent, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
+import { Edge } from '@/types';
 
 export default defineComponent({
   components: {
@@ -103,33 +104,18 @@ export default defineComponent({
         // eslint-disable-next-line no-return-assign
         newNetwork.nodes.forEach((node: Node) => nodeDegreeDict[node._id] = node.degreeCount);
 
-        // eslint-disable-next-line no-plusplus
-        for (let i = 0; i < newNetwork.edges.length; i++) {
-          // Remove edges that don't match degree criteria
-          const edge = newNetwork.edges[i];
-          // eslint-disable-next-line radix
-          if (nodeDegreeDict[edge._from] < parseInt(degreeRange.value[0]) || nodeDegreeDict[edge._from] > parseInt(degreeRange.value[1])) {
-            newNetwork.edges.splice(i, 1);
-            // eslint-disable-next-line no-plusplus
-            i--;
-          } else {
-            // Make a record of valid nodes
+        // Remove edges that don't match degree criteria
+        newNetwork.edges = newNetwork.edges.filter((edge: Edge) => {
+          if (nodeDegreeDict[edge._from] >= degreeRange.value[0] && nodeDegreeDict[edge._from] <= degreeRange.value[1]) {
             nodeSet.add(edge._from);
             nodeSet.add(edge._to);
+            return true;
           }
-        }
+          return false;
+        });
 
-        // eslint-disable-next-line no-plusplus
-        for (let i = 0; i < newNetwork.nodes.length; i++) {
-          // Remove nodes that don't have edges
-          const node = newNetwork.nodes[i];
-          // eslint-disable-next-line radix
-          if (!nodeSet.has(node._id)) {
-            newNetwork.nodes.splice(i, 1);
-            // eslint-disable-next-line no-plusplus
-            i--;
-          }
-        }
+        // Remove nodes that don't have edges
+        newNetwork.nodes = newNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
 
         store.dispatch.updateNetwork({ network: newNetwork });
       }
