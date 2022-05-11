@@ -15,6 +15,7 @@
   "dependencies": {
     "@girder/oauth-client": "^0.7.7",
     "@types/d3": "^5.7.2",
+    "@types/node": "^17.0.29",
     "@visdesignlab/trrack": "^2.0.0-alpha.10",
     "@visdesignlab/trrack-vis": "^2.0.0-alpha.12",
     "@vue/babel-preset-app": "^4.5.13",
