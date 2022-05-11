@@ -56,9 +56,12 @@
 
 <script lang="ts">
 import api from '@/api';
-import { ArangoAttributes, Network } from '@/types';
+import {
+  ArangoAttributes, Edge, Network, Node,
+} from '@/types';
 import store from '@/store';
 import { computed, defineComponent, ref } from '@vue/composition-api';
+import { defineNeighbors } from '@/lib/utils';
 
 export default defineComponent({
   setup() {
@@ -159,8 +162,18 @@ export default defineComponent({
           const aqlNetwork: Network = promise[0];
 
           if (aqlNetwork.nodes.length !== 0) {
-          // Update state with new network
-            store.dispatch.updateNetwork({ network: aqlNetwork });
+            const nodes = defineNeighbors(aqlNetwork.nodes, aqlNetwork.edges as Edge[]);
+
+            // Build the network object and set it as the network in the store
+            const aqlNetworkElements: Network = {
+              nodes: nodes as Node[],
+              edges: aqlNetwork.edges as Edge[],
+            };
+
+            // Update state with new network
+            store.commit.setNetworkOnLoad(aqlNetworkElements);
+            store.dispatch.updateNetwork({ network: aqlNetworkElements });
+            store.commit.setDegreeRange([0, aqlNetworkElements.nodes.length]);
             store.commit.setLoadError({
               message: '',
               href: '',
