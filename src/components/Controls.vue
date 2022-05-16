@@ -96,7 +96,8 @@ export default defineComponent({
       if (networkOnLoad.value !== null && degreeRange.value[0] === 0 && degreeRange.value[1] === networkOnLoad.value.nodes.length) {
         store.dispatch.updateNetwork({ network: networkOnLoad.value });
       } else {
-        const newNetwork = JSON.parse(JSON.stringify(networkOnLoad.value));
+        // eslint-disable-next-line no-undef
+        const newNetwork = structuredClone(networkOnLoad.value);
         const nodeSet = new Set([]);
 
         // Create dict of row nodes and max degrees
