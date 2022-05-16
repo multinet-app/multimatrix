@@ -3,6 +3,7 @@ import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
+import { max } from 'd3-array';
 import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
@@ -81,33 +82,38 @@ export default defineComponent({
     const maxConnections = computed(() => store.state.maxConnections);
 
     // Calculate node degrees
-    const degreeMax = computed(() => (networkOnLoad.value !== null ? networkOnLoad.value.nodes.length : 0));
-    const degreeRange = computed({
-      get() {
-        return store.state.degreeRange;
-      },
-      set(range: number[]) {
-        store.commit.setDegreeRange(range);
-      },
+    // Create dict of row nodes and max degrees
+    const nodeDegreeDict: {[key: string]: {[key: string]: number }} = {};
+
+    const degreeMax = computed(() => {
+      let maxCounter = 0;
+      if (networkOnLoad.value != null) {
+        networkOnLoad.value.nodes.forEach((node) => {
+        // eslint-disable-next-line no-return-assign, no-sequences, no-param-reassign
+          nodeDegreeDict[node._id] = node.neighbors.reduce((cnt: string, cur: string) => (cnt[cur] = cnt[cur] + 1 || 1, cnt), {});
+          const currentMax = max(Object.values(nodeDegreeDict[node._id]));
+          if (currentMax !== undefined && currentMax > maxCounter) {
+            maxCounter = currentMax;
+          }
+        });
+      }
+      return maxCounter;
     });
+
+    const degreeRange = ref([0, degreeMax.value]);
 
     function removeByDegree() {
       // Restore network if min and max are restored
-      if (networkOnLoad.value !== null && degreeRange.value[0] === 0 && degreeRange.value[1] === networkOnLoad.value.nodes.length) {
+      if (networkOnLoad.value !== null && degreeRange.value[0] === 0 && degreeRange.value[1] === degreeMax.value) {
         store.dispatch.updateNetwork({ network: networkOnLoad.value });
-      } else {
+      } else if (networkOnLoad.value !== null) {
         // eslint-disable-next-line no-undef
         const newNetwork = structuredClone(networkOnLoad.value);
         const nodeSet = new Set([]);
 
-        // Create dict of row nodes and max degrees
-        const nodeDegreeDict: {[key: string]: number } = {};
-        // eslint-disable-next-line no-return-assign
-        newNetwork.nodes.forEach((node: Node) => nodeDegreeDict[node._id] = node.degreeCount);
-
         // Remove edges that don't match degree criteria
         newNetwork.edges = newNetwork.edges.filter((edge: Edge) => {
-          if (nodeDegreeDict[edge._from] >= degreeRange.value[0] && nodeDegreeDict[edge._from] <= degreeRange.value[1]) {
+          if (nodeDegreeDict[edge._from][edge._to] >= degreeRange.value[0] && nodeDegreeDict[edge._from][edge._to] <= degreeRange.value[1]) {
             nodeSet.add(edge._from);
             nodeSet.add(edge._to);
             return true;

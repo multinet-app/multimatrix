@@ -116,7 +116,6 @@ export interface State {
   isDate: boolean;
   controlsWidth: number;
   selectedHops: number;
-  degreeRange: number[];
 }
 
 export type ProvenanceEventTypes =

@@ -77,7 +77,6 @@ const {
     isDate: false,
     controlsWidth: 256,
     selectedHops: 1,
-    degreeRange: [],
   } as State,
 
   getters: {
@@ -313,10 +312,6 @@ const {
       state.cellSize = cellSize;
     },
 
-    setDegreeRange(state, degreeRange: number[]) {
-      state.degreeRange = degreeRange;
-    },
-
     setMaxIntConnections(state, maxIntConnections) {
       state.maxIntConnections = maxIntConnections;
     },
@@ -462,7 +457,6 @@ const {
       };
       commit.setAttributeValues(networkElements);
       commit.setNetworkOnLoad(networkElements);
-      commit.setDegreeRange([0, networkElements.nodes.length]);
       dispatch.updateNetwork({ network: networkElements });
     },
 
