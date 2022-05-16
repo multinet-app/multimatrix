@@ -91,7 +91,7 @@ export default defineComponent({
       },
     });
 
-    watch([degreeRange], () => {
+    function removeByDegree() {
       // Restore network if min and max are restored
       if (networkOnLoad.value !== null && degreeRange.value[0] === 0 && degreeRange.value[1] === networkOnLoad.value.nodes.length) {
         store.dispatch.updateNetwork({ network: networkOnLoad.value });
@@ -120,7 +120,7 @@ export default defineComponent({
 
         store.dispatch.updateNetwork({ network: newNetwork });
       }
-    });
+    }
 
     // Intermediate node table template objects
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
@@ -274,6 +274,7 @@ export default defineComponent({
       searchItems,
       degreeMax,
       degreeRange,
+      removeByDegree,
     };
   },
 });
@@ -430,6 +431,7 @@ export default defineComponent({
               hide-details
               class="align-center"
               color="blue darken-1"
+              @change="removeByDegree"
             >
               <template v-slot:prepend>
                 <p
