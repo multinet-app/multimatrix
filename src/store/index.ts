@@ -371,11 +371,8 @@ const {
           state.nodeDegreeDict[node._id] = node.neighbors.length;
         });
       }
-      store.commit.setMaxDegree();
-    },
 
-    setMaxDegree(state) {
-      state.maxDegree = max(Object.values(state.nodeDegreeDict));
+      state.maxDegree = Math.max(...Object.values(state.nodeDegreeDict));
     },
 
     setDegreeNetwork(state, degreeRange: number[]) {
