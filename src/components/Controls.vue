@@ -3,7 +3,6 @@ import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
-import { max } from 'd3-array';
 import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
