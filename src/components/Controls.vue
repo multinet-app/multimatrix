@@ -12,7 +12,6 @@ import EdgeSlicing from '@/components/EdgeSlicing.vue';
 import {
   computed, defineComponent, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
-import { Edge } from '@/types';
 
 export default defineComponent({
   components: {
@@ -26,7 +25,6 @@ export default defineComponent({
     // Template objects
     const showMenu = ref(false);
     const aggregateBy = ref(undefined);
-    const networkOnLoad = computed(() => store.state.networkOnLoad);
     const directionalEdges = computed({
       get() {
         return store.state.directionalEdges;
@@ -80,53 +78,12 @@ export default defineComponent({
       return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
     });
     const maxConnections = computed(() => store.state.maxConnections);
+    const maxDegree = computed(() => store.state.maxDegree);
+    const degreeRange = ref([0, maxDegree.value]);
 
-    // Calculate node degrees
-    // Create dict of row nodes and max degrees
-    const nodeDegreeDict: {[key: string]: {[key: string]: number }} = {};
-
-    const degreeMax = computed(() => {
-      let maxCounter = 0;
-      if (networkOnLoad.value != null) {
-        networkOnLoad.value.nodes.forEach((node) => {
-        // eslint-disable-next-line no-return-assign, no-sequences, no-param-reassign
-          nodeDegreeDict[node._id] = node.neighbors.reduce((cnt: string, cur: string) => (cnt[cur] = cnt[cur] + 1 || 1, cnt), {});
-          const currentMax = max(Object.values(nodeDegreeDict[node._id]));
-          if (currentMax !== undefined && currentMax > maxCounter) {
-            maxCounter = currentMax;
-          }
-        });
-      }
-      return maxCounter;
+    watch([maxDegree], () => {
+      degreeRange.value = [0, maxDegree.value];
     });
-
-    const degreeRange = ref([0, degreeMax.value]);
-
-    function removeByDegree() {
-      // Restore network if min and max are restored
-      if (networkOnLoad.value !== null && degreeRange.value[0] === 0 && degreeRange.value[1] === degreeMax.value) {
-        store.dispatch.updateNetwork({ network: networkOnLoad.value });
-      } else if (networkOnLoad.value !== null) {
-        // eslint-disable-next-line no-undef
-        const newNetwork = structuredClone(networkOnLoad.value);
-        const nodeSet = new Set([]);
-
-        // Remove edges that don't match degree criteria
-        newNetwork.edges = newNetwork.edges.filter((edge: Edge) => {
-          if (nodeDegreeDict[edge._from][edge._to] >= degreeRange.value[0] && nodeDegreeDict[edge._from][edge._to] <= degreeRange.value[1]) {
-            nodeSet.add(edge._from);
-            nodeSet.add(edge._to);
-            return true;
-          }
-          return false;
-        });
-
-        // Remove nodes that don't have edges
-        newNetwork.nodes = newNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
-
-        store.dispatch.updateNetwork({ network: newNetwork });
-      }
-    }
 
     // Intermediate node table template objects
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
@@ -253,6 +210,10 @@ export default defineComponent({
       }
     }
 
+    function removeByDegree() {
+      store.commit.setDegreeNetwork(degreeRange.value);
+    }
+
     return {
       aggregateBy,
       directionalEdges,
@@ -278,8 +239,8 @@ export default defineComponent({
       searchTerm,
       searchErrors,
       searchItems,
-      degreeMax,
       degreeRange,
+      maxDegree,
       removeByDegree,
     };
   },
@@ -432,7 +393,7 @@ export default defineComponent({
             <v-list-item-content> Degree </v-list-item-content>
             <v-range-slider
               v-model="degreeRange"
-              :max="degreeMax"
+              :max="maxDegree"
               min="0"
               hide-details
               class="align-center"

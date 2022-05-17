@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
-import { group, range } from 'd3-array';
+import { group, range, max } from 'd3-array';
 import { scaleLinear, ScaleLinear } from 'd3-scale';
 import { initProvenance, Provenance } from '@visdesignlab/trrack';
 
@@ -77,6 +77,8 @@ const {
     isDate: false,
     controlsWidth: 256,
     selectedHops: 1,
+    nodeDegreeDict: {},
+    maxDegree: 0,
   } as State,
 
   getters: {
@@ -361,6 +363,46 @@ const {
         }
       }
     },
+
+    setNodeDegreeDict(state) {
+      // Create dict of row nodes and max degrees
+      if (state.networkOnLoad != null) {
+        state.networkOnLoad.nodes.forEach((node) => {
+          state.nodeDegreeDict[node._id] = node.neighbors.length;
+        });
+      }
+      store.commit.setMaxDegree();
+    },
+
+    setMaxDegree(state) {
+      state.maxDegree = max(Object.values(state.nodeDegreeDict));
+    },
+
+    setDegreeNetwork(state, degreeRange: number[]) {
+      // Restore network if min and max are restored
+      if (state.networkOnLoad !== null && degreeRange[0] === 0 && degreeRange[1] === state.maxDegree) {
+        store.dispatch.updateNetwork({ network: state.networkOnLoad });
+      } else if (state.networkOnLoad !== null) {
+        // eslint-disable-next-line no-undef
+        const newNetwork = structuredClone(state.networkOnLoad);
+        const nodeSet = new Set([]);
+
+        // Remove edges that don't match degree criteria
+        newNetwork.edges = newNetwork.edges.filter((edge: Edge) => {
+          if (state.nodeDegreeDict[edge._from] >= degreeRange[0] && state.nodeDegreeDict[edge._from] <= degreeRange[1]) {
+            nodeSet.add(edge._from);
+            nodeSet.add(edge._to);
+            return true;
+          }
+          return false;
+        });
+
+        // Remove nodes that don't have edges
+        newNetwork.nodes = newNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
+
+        store.dispatch.updateNetwork({ network: newNetwork });
+      }
+    },
   },
 
   actions: {
@@ -464,6 +506,7 @@ const {
       const { commit } = rootActionContext(context);
       commit.setNetwork(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
+      commit.setNodeDegreeDict();
       commit.setSlicedNetwork([]);
     },
 

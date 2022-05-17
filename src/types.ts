@@ -116,6 +116,8 @@ export interface State {
   isDate: boolean;
   controlsWidth: number;
   selectedHops: number;
+  nodeDegreeDict: { [key: string]: number };
+  maxDegree: number;
 }
 
 export type ProvenanceEventTypes =
