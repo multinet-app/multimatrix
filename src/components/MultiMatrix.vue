@@ -47,8 +47,6 @@ export default defineComponent({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const edges: Ref<any> = ref(undefined);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const edgeColumns: Ref<any> = ref(undefined);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const edgeRows: Ref<any> = ref(undefined);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cells: Ref<any> = ref(undefined);
@@ -453,140 +451,7 @@ export default defineComponent({
       const highlightLength = matrix.value.length * cellSize.value;
       const labelWidth = 60;
       const labelFontSize = cellSize.value * 0.8;
-      const sortIconWidth = 8.133; // Determined by path size and the scale factor applied to it (1/scalefactor)
-      const sortIconScaleFactor = 15;
       const invisibleRectSize = 11; // Actual size of the icon is 9 + 1 px each side for stroke width
-
-      // creates column groupings
-      edgeColumns.value = edges.value
-        .selectAll('.column')
-        .data(network.value.nodes, (d: Node) => d._id)
-        .attr('transform', (d: Node, i: number) => `translate(${orderingScale.value(i)})rotate(-90)`);
-
-      edgeColumns.value.exit().remove();
-
-      const columnEnter = edgeColumns.value
-        .enter()
-        .append('g')
-        .attr('class', 'column')
-        .attr('transform', (d: Node) => {
-          if (d.type !== 'supernode') {
-            return `translate(${orderingScale.value(parseInt(`${d.parentPosition}`, 10))})rotate(-90)`;
-          }
-          return 'translate(0, 0)rotate(-90)';
-        });
-
-      columnEnter
-        .transition()
-        .duration(1000)
-        .attr('transform', (d: Node, i: number) => `translate(${orderingScale.value(i)})rotate(-90)`);
-
-      // Update existing topoCols
-      edges.value
-        .selectAll('.topoCol')
-        .attr('width', highlightLength + visMargins.value.top + visMargins.value.bottom)
-        .attr('height', cellSize.value)
-        .attr('x', -highlightLength - visMargins.value.bottom);
-
-      // Update existing foreignObjects
-      edges.value
-        .selectAll('.colForeign')
-        .attr('height', cellSize.value)
-        .select('p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d._key;
-          }
-          return d[labelVariable.value || '_key'];
-        });
-
-      edges.value
-        .selectAll('.colForeign')
-        .selectAll('p')
-        .style('margin-top', `${cellSize.value * -0.1}px`)
-        .style('font-size', `${labelFontSize}px`);
-
-      // Update existing sorticons
-      edges.value
-        .selectAll('.sortIcon')
-        .attr('transform', `scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize.value - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`);
-
-      // add the highlight columns
-      columnEnter
-        .append('rect')
-        .classed('topoCol', true)
-        .attr('id', (d: Node) => `topoCol${d._id}`)
-        .attr('x', -highlightLength - visMargins.value.bottom)
-        .attr('y', 0)
-        .attr(
-          'width',
-          highlightLength + visMargins.value.top + visMargins.value.bottom,
-        )
-        .attr('height', orderingScale.value.bandwidth())
-        .attr('fill-opacity', 0)
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.dispatch.clickElement(matrixElement._id);
-        })
-        .on('mouseover', (event: MouseEvent, node: Node) => {
-          showToolTip(event, node);
-          hoverNode(node._id);
-        })
-        .on('mouseout', (event: MouseEvent, node: Node) => {
-          hideToolTip();
-          unHoverNode(node._id);
-        });
-
-      columnEnter
-        .append('foreignObject')
-        .classed('colForeign', true)
-        .attr('y', 0)
-        .attr('x', 20)
-        .attr('width', labelWidth)
-        .attr('height', cellSize.value)
-        .append('xhtml:p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d._key;
-          }
-          return d[labelVariable.value || '_key'];
-        })
-        .style('color', (d: Node) => {
-          if (d.type === 'node') {
-            return '#aaa';
-          }
-          return 'black';
-        })
-        .style('margin-top', `${cellSize.value * -0.1}px`)
-        .style('font-size', `${labelFontSize}px`)
-        .classed('colLabels', true);
-
-      columnEnter
-        .selectAll('p')
-        .style('color', (d: Node) => (aggregated.value && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
-
-      columnEnter
-        .append('path')
-        .attr('id', (d: Node) => `sortIcon${d._id}`)
-        .attr('class', 'sortIcon')
-        .attr('d', icons.value.cellSort.d)
-        .style('fill', (d: Node) => (d === orderType.value ? '#EBB769' : '#8B8B8B'))
-        .attr('transform', `scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize.value - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`)
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          sort(matrixElement._id);
-        });
-
-      columnEnter
-        .attr('cursor', 'pointer')
-        .on('mouseover', (event: MouseEvent, matrixElement: Node) => {
-          showToolTip(event, matrixElement);
-          hoverNode(matrixElement._id);
-        })
-        .on('mouseout', (event: MouseEvent, matrixElement: Node) => {
-          hideToolTip();
-          unHoverNode(matrixElement._id);
-        });
-
-      edgeColumns.value.merge(columnEnter);
 
       // Draw each row
       edgeRows.value = edges.value
@@ -913,6 +778,13 @@ export default defineComponent({
 
     watch([orderingScale, showGridLines, network, directionalEdges, labelVariable], () => initializeEdges());
 
+    const highlightLength = computed(() => matrix.value.length * cellSize.value);
+    const labelFontSize = computed(() => 0.8 * cellSize.value);
+
+    function clickElement(id: string) {
+      store.dispatch.clickElement(id);
+    }
+
     return {
       network,
       finishedMounting,
@@ -924,6 +796,23 @@ export default defineComponent({
       showContextMenu,
       showGridLines,
       orderingScale,
+      visMargins,
+      highlightLength,
+      cellSize,
+      labelVariable,
+      labelWidth: 60,
+      labelFontSize,
+      icons,
+      sortIconWidth: 8.133,
+      sortIconScaleFactor: 15,
+      clickElement,
+      showToolTip,
+      hideToolTip,
+      hoverNode,
+      unHoverNode,
+      aggregated,
+      orderType,
+      sort,
     };
   },
 
@@ -941,7 +830,43 @@ export default defineComponent({
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
           @contextmenu="showContextMenu"
         >
-          <g id="matrix" />
+          <g id="matrix">
+            <g
+              v-for="node, i of network.nodes"
+              :key="node._id"
+              :transform="`translate(${orderingScale(i)})rotate(-90)`"
+              class="column"
+            >
+              <rect
+                class="topoCol"
+                :width="highlightLength + visMargins.top + visMargins.bottom"
+                :height="cellSize"
+                :x="-highlightLength - visMargins.bottom"
+                fill-opacity="0"
+                @mouseover="(event) => {showToolTip(event, node); hoverNode(node._id);}"
+                @mouseout="(event) => {hideToolTip(); unHoverNode(node._id);}"
+                @click="clickElement(node._id)"
+              />
+              <foreignObject
+                :width="labelWidth"
+                :height="cellSize"
+                x="20"
+              >
+                <p
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && node.type !== 'supernode' ? '#AAAAAA' : '#000000'}`"
+                >
+                  {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+                </p>
+              </foreignObject>
+              <path
+                class="sortIcon"
+                :d="icons.cellSort.d"
+                :transform="`scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`"
+                :fill="node === orderType ? '#EBB769' : '#8B8B8B'"
+                @click="sort(node._id)"
+              />
+            </g>
+          </g>
           <g
             v-if="showGridLines"
             class="gridLines"
