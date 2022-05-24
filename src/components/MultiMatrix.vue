@@ -517,14 +517,16 @@ export default defineComponent({
               <rect
                 :width="visMargins.left - 5"
                 height="15"
-                fill="none"
+                fill="white"
                 stroke="gray"
                 stroke-width="1"
+                @click="sort(icon.sortName)"
               />
               <text
                 x="27"
                 y="10"
                 font-size="11"
+                style="pointer-events: none;"
               >
                 {{ icon.text }}
               </text>
@@ -532,6 +534,7 @@ export default defineComponent({
                 :d="icons[icon.iconName].d"
                 :fill="icon.sortName === orderType ? '#EBB769' : '#8B8B8B'"
                 transform="scale(0.1)translate(-195,-320)"
+                style="pointer-events: none;"
               />
             </g>
 
