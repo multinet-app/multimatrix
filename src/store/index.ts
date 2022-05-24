@@ -17,7 +17,7 @@ import {
   Cell,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State, SlicedNetwork,
 } from '@/types';
-import { defineNeighbors } from '@/lib/utils';
+import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
 import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
 import { isInternalField } from '@/lib/typeUtils';
 
@@ -221,7 +221,9 @@ const {
 
     setDirectionalEdges(state, directionalEdges: boolean) {
       state.directionalEdges = directionalEdges;
-
+      const degreeObject = setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.connectivityMatrixPaths, store.state.directionalEdges);
+      state.maxDegree = degreeObject.maxDegree;
+      state.nodeDegreeDict = degreeObject.nodeDegreeDict;
       if (state.provenance !== null) {
         updateProvenanceState(state, 'Set Directional Edges');
       }
@@ -369,32 +371,9 @@ const {
       state.networkPreFilter = networkPostQuery;
     },
 
-    setNodeDegreeDict(state) {
-      // Create dict of row nodes and max degrees
-      // Aggregated network
-      // if (state.aggregated && state.network != null) {
-      //   console.log(state.network.nodes);
-      //   state.network.nodes.forEach((node) => {
-      //     state.nodeDegreeDict[node._id] = node.neighbors.length;
-      //   });
-      // }
-      // ToDO: add the directional axis to it
-      console.log(state.network);
-      // Reset node dict
-      state.nodeDegreeDict = {};
-      // Query network
-      if (state.connectivityMatrixPaths.paths.length > 0 && state.networkPreFilter != null) {
-        state.networkPreFilter.nodes.forEach((node) => {
-          state.nodeDegreeDict[node._id] = node.neighbors.length;
-        });
-      //  "Regular network"
-      } else if (state.networkOnLoad !== null) {
-        state.networkOnLoad.nodes.forEach((node) => {
-          state.nodeDegreeDict[node._id] = node.neighbors.length;
-        });
-      }
-
-      state.maxDegree = Math.max(...Object.values(state.nodeDegreeDict));
+    setDegreeEntries(state, degreeObject: { maxDegree: number; nodeDegreeDict: {[key: string]: number}}) {
+      state.maxDegree = degreeObject.maxDegree;
+      state.nodeDegreeDict = degreeObject.nodeDegreeDict;
     },
 
     setDegreeNetwork(state, degreeRange: number[]) {
@@ -534,7 +513,7 @@ const {
       commit.setAttributeValues(networkElements);
       commit.setNetworkOnLoad(networkElements);
       dispatch.updateNetwork({ network: networkElements });
-      commit.setNodeDegreeDict();
+      commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.connectivityMatrixPaths, store.state.directionalEdges));
     },
 
     updateNetwork(context, payload: { network: Network }) {

@@ -61,7 +61,7 @@ import {
 } from '@/types';
 import store from '@/store';
 import { computed, defineComponent, ref } from '@vue/composition-api';
-import { defineNeighbors } from '@/lib/utils';
+import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
 
 export default defineComponent({
   setup() {
@@ -173,7 +173,7 @@ export default defineComponent({
             // Update state with new network
             store.commit.setNetworkOnLoad(aqlNetworkElements);
             store.dispatch.updateNetwork({ network: aqlNetworkElements });
-            store.commit.setNodeDegreeDict();
+            store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.connectivityMatrixPaths, store.state.directionalEdges));
             store.commit.setLoadError({
               message: '',
               href: '',
