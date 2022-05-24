@@ -64,7 +64,6 @@ export default defineComponent({
           'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
       },
     });
-    const orderType = ref(undefined);
     const sortKey = ref('');
     const finishedMounting = ref(false);
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
@@ -198,7 +197,12 @@ export default defineComponent({
       if (network.value === null) { return; }
 
       let order;
-      sortKey.value = type;
+      if (sortKey.value === type) {
+        sortKey.value = '';
+      } else {
+        sortKey.value = type;
+      }
+
       if (
         type === 'clusterSpectral'
         || type === 'clusterBary'
@@ -470,7 +474,6 @@ export default defineComponent({
       hoverEdge,
       unHoverEdge,
       aggregated,
-      orderType,
       sort,
       matrix,
       cellColorScale,
@@ -484,6 +487,7 @@ export default defineComponent({
       iconMeta,
       selectedNodes,
       clickedNeighborClass,
+      sortKey,
     };
   },
 
@@ -528,7 +532,7 @@ export default defineComponent({
               </text>
               <path
                 :d="icons[icon.iconName].d"
-                :fill="icon.sortName === orderType ? '#EBB769' : '#8B8B8B'"
+                :fill="icon.sortName === sortKey ? '#EBB769' : '#8B8B8B'"
                 transform="scale(0.1)translate(-195,-320)"
                 style="pointer-events: none;"
               />
@@ -568,7 +572,7 @@ export default defineComponent({
                 class="sortIcon"
                 :d="icons.cellSort.d"
                 :transform="`scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`"
-                :fill="node === orderType ? '#EBB769' : '#8B8B8B'"
+                :fill="node._id === sortKey ? '#EBB769' : '#8B8B8B'"
                 @click="sort(node._id)"
               />
             </g>
