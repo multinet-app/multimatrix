@@ -194,7 +194,7 @@ export default defineComponent({
       event.preventDefault();
     }
 
-    function sortObserver(type: string, isNode = false) {
+    function changeOrder(type: string, isNode = false) {
       if (network.value === null) { return; }
 
       let order;
@@ -275,10 +275,6 @@ export default defineComponent({
         });
       }
       sortOrder.value = order;
-    }
-
-    function changeOrder(type: string, node: boolean) {
-      sortObserver(type, node);
     }
 
     function sort(order: string): void {
