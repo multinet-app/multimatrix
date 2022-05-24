@@ -379,7 +379,7 @@ const {
       //   });
       // }
       // ToDO: add the directional axis to it
-
+      console.log(state.network);
       // Reset node dict
       state.nodeDegreeDict = {};
       // Query network
@@ -533,8 +533,8 @@ const {
       };
       commit.setAttributeValues(networkElements);
       commit.setNetworkOnLoad(networkElements);
-      commit.setNodeDegreeDict();
       dispatch.updateNetwork({ network: networkElements });
+      commit.setNodeDegreeDict();
     },
 
     updateNetwork(context, payload: { network: Network }) {

@@ -173,6 +173,7 @@ export default defineComponent({
             // Update state with new network
             store.commit.setNetworkOnLoad(aqlNetworkElements);
             store.dispatch.updateNetwork({ network: aqlNetworkElements });
+            store.commit.setNodeDegreeDict();
             store.commit.setLoadError({
               message: '',
               href: '',
