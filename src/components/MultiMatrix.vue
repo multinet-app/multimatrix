@@ -21,7 +21,7 @@ import ContextMenu from '@/components/ContextMenu.vue';
 import 'science';
 import 'reorder.js';
 import {
-  computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
+  computed, defineComponent, onMounted, Ref, ref, watch,
 } from '@vue/composition-api';
 import PathTable from '@/components/PathTable.vue';
 
@@ -290,85 +290,18 @@ export default defineComponent({
       changeOrder(order, nodeIDs.includes(order));
     }
 
-    // Watchers
-    watchEffect(() => {
-      if (network.value === null) {
-        return;
-      }
-
-      // Apply column highlight
-      selectAll('.topoCol')
-        .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.has(node._id));
-
-      // Apply column label highlight
-      selectAll('.colLabels')
-        .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.has(node._id));
-
-      // Apply row highlight
-      selectAll('.topoRow')
-        .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.has(node._id));
-
-      // Apply row label highlight
-      selectAll('.rowLabels')
-        .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.has(node._id));
-
-      const neighborsOfClicked = [...selectedNodes.value.values()].map((nodeID) => {
-        if (network.value !== null) {
-          const foundNode = network.value.nodes.find((node) => node._id === nodeID);
-          return foundNode !== undefined ? foundNode.neighbors : [];
-        }
-        return [];
-      }).flat();
-
-      // Apply column highlight
-      selectAll('.topoCol')
-        .data(network.value.nodes)
-        .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
-
-      // Apply column label highlight
-      selectAll('.colLabels')
-        .data(network.value.nodes)
-        .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
-
-      // Apply row highlight
-      selectAll('.topoRow')
-        .data(network.value.nodes)
-        .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
-
-      // Apply row label highlight
-      selectAll('.rowLabels')
-        .data(network.value.nodes)
-        .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
-    });
-
-    watch(selectedCell, () => {
-      // Apply cell highlight
-      selectAll('.cellsGroup')
-        .selectAll('.cell')
-        .classed('clicked', (cell) => {
-          if (isCell(cell) && selectedCell.value !== null) {
-            return selectedCell.value.cellName === cell.cellName;
-          }
-          return false;
-        });
-    });
-
     watch(hoveredNodes, () => {
       if (network.value === null) {
         return;
       }
 
       // Apply column highlight
-      selectAll('.topoCol')
+      selectAll('#matrix > .column')
         .data(network.value.nodes)
         .classed('hovered', (node) => hoveredNodes.value.indexOf(node._id) !== -1);
 
       // Apply row highlight
-      selectAll('.topoRow')
+      selectAll('#matrix > .row')
         .data(network.value.nodes)
         .classed('hovered', (node) => hoveredNodes.value.indexOf(node._id) !== -1);
     });
@@ -744,11 +677,7 @@ export default defineComponent({
 </template>
 
 <style scoped>
-svg >>> .baseCell {
-  fill-opacity: 0;
-}
-
-svg >>> .rowLabels, svg >>> .colLabels {
+svg >>> .label {
   max-width: 60px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -756,31 +685,41 @@ svg >>> .rowLabels, svg >>> .colLabels {
   margin: 0;
 }
 
+/* cell state */
 svg >>> .hoveredCell {
   stroke-width: 1px;
   stroke: darkgray;
 }
+svg >>> .cell.clicked {
+  stroke: red;
+  stroke-width: 3;
+}
 
-svg >>> .neighbor {
+/* highlightContainer state */
+svg >>> .hovered > .highlightContainer{
+  fill: #fde8ca;
+  fill-opacity: 1 !important;
+}
+svg >>> .clicked > .highlightContainer {
+  font-weight: 800;
+  fill: #f8cf91;
+  fill-opacity: 1;
+}
+svg >>> .neighbor > .highlightContainer {
   fill: #caffc7;
   fill-opacity: 1;
 }
 
-svg >>> .colLabel,
-svg >>> .rowLabel {
-  cursor: pointer;
+/* foreignObject state */
+svg >>> foreignObject {
+  pointer-events: none;
+}
+svg >>> .clicked > foreignObject {
+  font-weight: 650;
   fill: black !important;
 }
 
-svg >>> .highlightedCell {
-  fill: #fff4d3;
-  fill-opacity: 1 !important;
-}
-
-svg >>> .highlightCol {
-  pointer-events: auto;
-}
-
+/* Tooltip */
 #tooltip {
   position: absolute;
   opacity: 0;
@@ -795,41 +734,9 @@ svg >>> .highlightCol {
   z-index: 1;
 }
 
-svg >>> .hovered {
-  fill: #fde8ca;
-  fill-opacity: 1 !important;
-}
-
-svg >>> .clicked {
-  font-weight: 800;
-  fill: #f8cf91;
-  fill-opacity: 1;
-}
-
-svg >>> .cell.clicked {
-  stroke: red;
-  stroke-width: 3;
-}
-
-svg >>> text.hovered {
-  font-weight: 450;
-}
-
-svg >>> text.clicked {
-  font-weight: 650;
-  fill: black !important;
-}
-
+/* gridLines */
 svg >>> .gridLines {
   pointer-events: none;
   stroke: #BBBBBB;
-}
-
-svg >>> g.box line {
-  stroke: slategray;
-}
-
-svg >>> foreignObject {
-  pointer-events: none;
 }
 </style>
