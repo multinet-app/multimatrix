@@ -118,6 +118,7 @@ export interface State {
   selectedHops: number;
   nodeDegreeDict: { [key: string]: number };
   maxDegree: number;
+  networkPreFilter: Network | null;
 }
 
 export type ProvenanceEventTypes =

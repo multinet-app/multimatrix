@@ -79,6 +79,7 @@ const {
     selectedHops: 1,
     nodeDegreeDict: {},
     maxDegree: 0,
+    networkPreFilter: null,
   } as State,
 
   getters: {
@@ -364,9 +365,30 @@ const {
       }
     },
 
+    setNetworkPreFilter(state, networkPostQuery: Network) {
+      state.networkPreFilter = networkPostQuery;
+    },
+
     setNodeDegreeDict(state) {
       // Create dict of row nodes and max degrees
-      if (state.networkOnLoad != null) {
+      // Aggregated network
+      // if (state.aggregated && state.network != null) {
+      //   console.log(state.network.nodes);
+      //   state.network.nodes.forEach((node) => {
+      //     state.nodeDegreeDict[node._id] = node.neighbors.length;
+      //   });
+      // }
+      // ToDO: add the directional axis to it
+
+      // Reset node dict
+      state.nodeDegreeDict = {};
+      // Query network
+      if (state.connectivityMatrixPaths.paths.length > 0 && state.networkPreFilter != null) {
+        state.networkPreFilter.nodes.forEach((node) => {
+          state.nodeDegreeDict[node._id] = node.neighbors.length;
+        });
+      //  "Regular network"
+      } else if (state.networkOnLoad !== null) {
         state.networkOnLoad.nodes.forEach((node) => {
           state.nodeDegreeDict[node._id] = node.neighbors.length;
         });
@@ -379,17 +401,32 @@ const {
     },
 
     setDegreeNetwork(state, degreeRange: number[]) {
+      // Determine correct network to use
+      let baseNetwork: Network | null = { nodes: [], edges: [] };
+      if (state.networkPreFilter != null || state.networkOnLoad !== null) {
+        baseNetwork = state.connectivityMatrixPaths.paths.length > 0 ? structuredClone(state.networkPreFilter) : structuredClone(state.networkOnLoad);
+      }
       // Restore network if min and max are restored
-      if (state.networkOnLoad !== null && degreeRange[0] === 0 && degreeRange[1] === state.maxDegree) {
-        store.dispatch.updateNetwork({ network: state.networkOnLoad });
-      } else if (state.networkOnLoad !== null) {
+      if (state.networkOnLoad !== null && degreeRange[0] === 0 && degreeRange[1] === state.maxDegree && baseNetwork !== null) {
+        store.dispatch.updateNetwork({ network: baseNetwork });
+      } else
+      if (state.networkOnLoad !== null && baseNetwork !== null) {
         // eslint-disable-next-line no-undef
-        const newNetwork = structuredClone(state.networkOnLoad);
         const nodeSet = new Set([]);
 
         // Remove edges that don't match degree criteria
-        newNetwork.edges = newNetwork.edges.filter((edge: Edge) => {
-          if (state.nodeDegreeDict[edge._from] >= degreeRange[0] && state.nodeDegreeDict[edge._from] <= degreeRange[1]) {
+        baseNetwork.edges = baseNetwork.edges.filter((edge: Edge) => {
+          // If directional network
+          if (state.directionalEdges) {
+            if (state.nodeDegreeDict[edge._from] >= degreeRange[0] && state.nodeDegreeDict[edge._from] <= degreeRange[1]) {
+              nodeSet.add(edge._from);
+              nodeSet.add(edge._to);
+              return true;
+            }
+            return false;
+          }
+          // If not directional
+          if ((state.nodeDegreeDict[edge._from] >= degreeRange[0] && state.nodeDegreeDict[edge._from] <= degreeRange[1]) || (state.nodeDegreeDict[edge._to] >= degreeRange[0] && state.nodeDegreeDict[edge._to] <= degreeRange[1])) {
             nodeSet.add(edge._from);
             nodeSet.add(edge._to);
             return true;
@@ -398,9 +435,9 @@ const {
         });
 
         // Remove nodes that don't have edges
-        newNetwork.nodes = newNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
+        baseNetwork.nodes = baseNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
 
-        store.dispatch.updateNetwork({ network: newNetwork });
+        store.dispatch.updateNetwork({ network: baseNetwork });
       }
     },
   },
@@ -499,6 +536,7 @@ const {
       };
       commit.setAttributeValues(networkElements);
       commit.setNetworkOnLoad(networkElements);
+      commit.setNodeDegreeDict();
       dispatch.updateNetwork({ network: networkElements });
     },
 
@@ -506,7 +544,6 @@ const {
       const { commit } = rootActionContext(context);
       commit.setNetwork(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
-      commit.setNodeDegreeDict();
       commit.setSlicedNetwork([]);
     },
 

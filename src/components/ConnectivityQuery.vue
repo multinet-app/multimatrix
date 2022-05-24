@@ -117,6 +117,7 @@ import {
   computed, defineComponent, ref, Ref, watchEffect,
 } from '@vue/composition-api';
 import api from '@/api';
+import { defineNeighbors } from '@/lib/utils';
 
 export default defineComponent({
   name: 'ConnectivityQuery',
@@ -248,6 +249,7 @@ export default defineComponent({
               newPath._key = val.toString();
               newPath._id = val.toString();
               newNetwork.edges.push(newPath);
+              newNetwork.nodes = defineNeighbors(newNetwork.nodes, newNetwork.edges as Edge[]);
             });
 
             // Update state for use in intermediate node vis
@@ -259,6 +261,8 @@ export default defineComponent({
             // Update state with new network
             store.dispatch.aggregateNetwork(undefined);
             store.dispatch.updateNetwork({ network: newNetwork });
+            store.commit.setNetworkPreFilter(newNetwork);
+            store.commit.setNodeDegreeDict();
             loading.value = false;
             store.commit.setDirectionalEdges(true);
           }
