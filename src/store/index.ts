@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { createDirectStore } from 'direct-vuex';
 
-import { group, range, max } from 'd3-array';
+import { group, range } from 'd3-array';
 import { scaleLinear, ScaleLinear } from 'd3-scale';
 import { initProvenance, Provenance } from '@visdesignlab/trrack';
 
@@ -393,11 +393,8 @@ const {
           state.nodeDegreeDict[node._id] = node.neighbors.length;
         });
       }
-      store.commit.setMaxDegree();
-    },
 
-    setMaxDegree(state) {
-      state.maxDegree = max(Object.values(state.nodeDegreeDict));
+      state.maxDegree = Math.max(...Object.values(state.nodeDegreeDict));
     },
 
     setDegreeNetwork(state, degreeRange: number[]) {
@@ -412,7 +409,7 @@ const {
       } else
       if (state.networkOnLoad !== null && baseNetwork !== null) {
         // eslint-disable-next-line no-undef
-        const nodeSet = new Set([]);
+        const nodeSet: Set<string> = new Set([]);
 
         // Remove edges that don't match degree criteria
         baseNetwork.edges = baseNetwork.edges.filter((edge: Edge) => {
