@@ -83,7 +83,7 @@ export interface State {
   userInfo: UserSpec | null;
   cellSize: number;
   selectedNodes: Set<string>;
-  selectedCell: Cell | null;
+  selectedCell: string | null;
   hoveredNodes: string[];
   sortOrder: number[];
   directionalEdges: boolean;
