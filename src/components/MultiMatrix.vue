@@ -539,7 +539,7 @@ export default defineComponent({
             <g
               v-for="node, i of network.nodes"
               :key="`${node._id}_col`"
-              :transform="`translate(${orderingScale(i)})rotate(-90)`"
+              :transform="`translate(${i * cellSize})rotate(-90)`"
               class="column"
               :class="clickedNeighborClass(node)"
             >
@@ -626,7 +626,7 @@ export default defineComponent({
                 <rect
                   v-for="cell in matrix[i]"
                   :key="cell.cellName"
-                  :x="orderingScale(cell.x) + 1"
+                  :x="(cell.x * cellSize) + 1"
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
