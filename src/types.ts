@@ -119,6 +119,7 @@ export interface State {
   nodeDegreeDict: { [key: string]: number };
   maxDegree: number;
   networkPreFilter: Network | null;
+  queriedNetwork: boolean;
 }
 
 export type ProvenanceEventTypes =
