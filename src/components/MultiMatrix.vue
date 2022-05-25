@@ -193,7 +193,12 @@ export default defineComponent({
       event.preventDefault();
     }
 
-    function changeOrder(type: string, isNode = false) {
+    function sort(type: string): void {
+      if (network.value === null) {
+        return;
+      }
+      const isNode = network.value.nodes.map((node: Node) => node._id).includes(type);
+
       if (network.value === null) { return; }
 
       let order;
@@ -254,16 +259,17 @@ export default defineComponent({
 
           return firstValue - secondValue;
         });
-      } else if (isNode === true) {
-        order = range(network.value.nodes.length).sort((a, b) => {
-          if (network.value === null) { return 0; }
-          return network.value.nodes[a]._id.localeCompare(network.value.nodes[b]._id);
-        });
-        order = range(network.value.nodes.length).sort((a, b) => {
-          if (network.value === null) { return 0; }
-          return Number(network.value.nodes[b].neighbors.includes(type))
-            - Number(network.value.nodes[a].neighbors.includes(type));
-        });
+      } else if (isNode) {
+        if (sortKey.value === '') {
+          // Clear sort
+          order = range(network.value.nodes.length);
+        } else {
+          order = range(network.value.nodes.length).sort((a, b) => {
+            if (network.value === null) { return 0; }
+            return Number(network.value.nodes[b].neighbors.includes(type))
+              - Number(network.value.nodes[a].neighbors.includes(type));
+          });
+        }
       } else if (sortKey.value === 'shortName') {
         order = range(network.value.nodes.length).sort((a, b) => {
           if (network.value === null) { return 0; }
@@ -279,15 +285,6 @@ export default defineComponent({
         });
       }
       sortOrder.value = order;
-    }
-
-    function sort(order: string): void {
-      if (network.value === null) {
-        return;
-      }
-      const nodeIDs = network.value.nodes.map((node: Node) => node._id);
-
-      changeOrder(order, nodeIDs.includes(order));
     }
 
     watch(hoveredNodes, () => {
