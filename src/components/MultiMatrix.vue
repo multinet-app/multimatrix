@@ -499,9 +499,9 @@ export default defineComponent({
     <v-container class="d-inline-flex">
       <div>
         <svg
-          :width="matrixWidth"
-          :height="matrixHeight"
-          :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
+          :width="matrixWidth + 10"
+          :height="matrixHeight + 10"
+          :viewbox="`0 0 ${matrixWidth + 5} ${matrixHeight + 5}`"
           @contextmenu="showContextMenu"
         >
           <g
@@ -652,12 +652,22 @@ export default defineComponent({
               :transform="`translate(${orderingScale(i)},0)rotate(-90)`"
               :x1="-orderingScale.range()[1]"
             />
+            <!-- Add last vertical grid line -->
+            <line
+              :transform="`translate(${orderingScale.range()[1]},0)rotate(-90)`"
+              :x1="-orderingScale.range()[1]"
+            />
 
             <!-- Horizontal grid lines -->
             <line
               v-for="node, i of network.nodes"
               :key="`${node._id}_horizontal_gridline`"
               :transform="`translate(0,${orderingScale(i)})`"
+              :x2="orderingScale.range()[1]"
+            />
+            <!-- Add last horizontal grid line -->
+            <line
+              :transform="`translate(0,${orderingScale.range()[1]})`"
               :x2="orderingScale.range()[1]"
             />
           </g>
