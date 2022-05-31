@@ -41,7 +41,7 @@ export default defineComponent({
     const connectivityMatrixPaths = computed(() => store.state.connectivityMatrixPaths);
     const tooltip = ref(null);
     const visMargins = ref({
-      left: 75, top: 110, right: 0, bottom: 0,
+      left: 75, top: 110, right: 1, bottom: 1,
     });
     const matrix: Ref<Cell[][]> = ref([]);
     const expandedSuperNodes = ref(new Set<string>());
@@ -499,9 +499,9 @@ export default defineComponent({
     <v-container class="d-inline-flex">
       <div>
         <svg
-          :width="matrixWidth + 10"
-          :height="matrixHeight + 10"
-          :viewbox="`0 0 ${matrixWidth + 5} ${matrixHeight + 5}`"
+          :width="matrixWidth"
+          :height="matrixHeight"
+          :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
           @contextmenu="showContextMenu"
         >
           <g
