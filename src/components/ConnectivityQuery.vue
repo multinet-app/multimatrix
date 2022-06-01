@@ -154,7 +154,6 @@
                   class="mb-2"
                   depressed
                   @click="showSecondEdge = !showSecondEdge"
-                  v-on="on"
                 >
                   {{ showSecondEdge ? 'Remove second edge query' : 'Add second edge query' }}
                   <v-icon right>
@@ -555,6 +554,9 @@ export default defineComponent({
         });
       }
     }
+
+    const dialog = ref(false);
+
     return {
       showMenu,
       showSecondEdge,
@@ -575,6 +577,7 @@ export default defineComponent({
       queryInput,
       operatorOptionItems,
       edgeMutexs,
+      dialog,
     };
   },
 });
