@@ -21,7 +21,7 @@ import ContextMenu from '@/components/ContextMenu.vue';
 import 'science';
 import 'reorder.js';
 import {
-  computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
+  computed, defineComponent, onMounted, Ref, ref, watch,
 } from '@vue/composition-api';
 import PathTable from '@/components/PathTable.vue';
 
@@ -41,17 +41,9 @@ export default defineComponent({
     const connectivityMatrixPaths = computed(() => store.state.connectivityMatrixPaths);
     const tooltip = ref(null);
     const visMargins = ref({
-      left: 75, top: 110, right: 0, bottom: 0,
+      left: 75, top: 110, right: 1, bottom: 1,
     });
     const matrix: Ref<Cell[][]> = ref([]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const edges: Ref<any> = ref(undefined);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const edgeColumns: Ref<any> = ref(undefined);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const edgeRows: Ref<any> = ref(undefined);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cells: Ref<any> = ref(undefined);
     const expandedSuperNodes = ref(new Set<string>());
     const selectedHops = computed(() => store.state.selectedHops);
     const icons: Ref<{ [key: string]: { d: string} }> = ref({
@@ -298,85 +290,18 @@ export default defineComponent({
       changeOrder(order, nodeIDs.includes(order));
     }
 
-    // Watchers
-    watchEffect(() => {
-      if (network.value === null) {
-        return;
-      }
-
-      // Apply column highlight
-      selectAll('.topoCol')
-        .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.has(node._id));
-
-      // Apply column label highlight
-      selectAll('.colLabels')
-        .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.has(node._id));
-
-      // Apply row highlight
-      selectAll('.topoRow')
-        .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.has(node._id));
-
-      // Apply row label highlight
-      selectAll('.rowLabels')
-        .data(network.value.nodes)
-        .classed('clicked', (node) => selectedNodes.value.has(node._id));
-
-      const neighborsOfClicked = [...selectedNodes.value.values()].map((nodeID) => {
-        if (network.value !== null) {
-          const foundNode = network.value.nodes.find((node) => node._id === nodeID);
-          return foundNode !== undefined ? foundNode.neighbors : [];
-        }
-        return [];
-      }).flat();
-
-      // Apply column highlight
-      selectAll('.topoCol')
-        .data(network.value.nodes)
-        .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
-
-      // Apply column label highlight
-      selectAll('.colLabels')
-        .data(network.value.nodes)
-        .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
-
-      // Apply row highlight
-      selectAll('.topoRow')
-        .data(network.value.nodes)
-        .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
-
-      // Apply row label highlight
-      selectAll('.rowLabels')
-        .data(network.value.nodes)
-        .classed('neighbor', (node) => neighborsOfClicked.indexOf(node._id) !== -1 && selectNeighbors.value);
-    });
-
-    watch(selectedCell, () => {
-      // Apply cell highlight
-      selectAll('.cellsGroup')
-        .selectAll('.cell')
-        .classed('clicked', (cell) => {
-          if (isCell(cell) && selectedCell.value !== null) {
-            return selectedCell.value.cellName === cell.cellName;
-          }
-          return false;
-        });
-    });
-
     watch(hoveredNodes, () => {
       if (network.value === null) {
         return;
       }
 
       // Apply column highlight
-      selectAll('.topoCol')
+      selectAll('#matrix > .column')
         .data(network.value.nodes)
         .classed('hovered', (node) => hoveredNodes.value.indexOf(node._id) !== -1);
 
       // Apply row highlight
-      selectAll('.topoRow')
+      selectAll('#matrix > .row')
         .data(network.value.nodes)
         .classed('hovered', (node) => hoveredNodes.value.indexOf(node._id) !== -1);
     });
@@ -442,522 +367,87 @@ export default defineComponent({
       });
     }
 
-    function drawGridLines(): void {
-      selectAll('.gridLines').remove();
-      const gridLines = edges.value
-        .append('g')
-        .attr('class', 'gridLines')
-        .style('opacity', showGridLines.value ? 1 : 0);
-
-      const lines = gridLines
-        .selectAll('line')
-        .data(matrix.value)
-        .enter();
-
-      // vertical grid lines
-      lines
-        .append('line')
-        .attr('transform', (d: unknown, i: number) => `translate(${orderingScale.value(i)},0)rotate(-90)`)
-        .attr('x1', -orderingScale.value.range()[1]);
-
-      // horizontal grid lines
-      lines
-        .append('line')
-        .attr('transform', (d: unknown, i: number) => `translate(0,${orderingScale.value(i)})`)
-        .attr('x2', orderingScale.value.range()[1]);
-
-      // vertical grid line edges
-      gridLines
-        .append('line')
-        .attr('x1', orderingScale.value.range()[1])
-        .attr('x2', orderingScale.value.range()[1])
-        .attr('y1', 0)
-        .attr('y2', orderingScale.value.range()[1]);
-
-      // horizontal grid line edges
-      gridLines
-        .append('line')
-        .attr('x1', 0)
-        .attr('x2', orderingScale.value.range()[1])
-        .attr('y1', orderingScale.value.range()[1])
-        .attr('y2', orderingScale.value.range()[1]);
-    }
-
-    function initializeEdges(): void {
-      if (network.value === null) {
-        return;
-      }
-
-      processData();
-
-      // set the matrix highlight
-      const highlightLength = matrix.value.length * cellSize.value;
-      const labelWidth = 60;
-      const labelFontSize = cellSize.value * 0.8;
-      const sortIconWidth = 8.133; // Determined by path size and the scale factor applied to it (1/scalefactor)
-      const sortIconScaleFactor = 15;
-      const invisibleRectSize = 11; // Actual size of the icon is 9 + 1 px each side for stroke width
-
-      // creates column groupings
-      edgeColumns.value = edges.value
-        .selectAll('.column')
-        .data(network.value.nodes, (d: Node) => d._id)
-        .attr('transform', (d: Node, i: number) => `translate(${orderingScale.value(i)})rotate(-90)`);
-
-      edgeColumns.value.exit().remove();
-
-      const columnEnter = edgeColumns.value
-        .enter()
-        .append('g')
-        .attr('class', 'column')
-        .attr('transform', (d: Node) => {
-          if (d.type !== 'supernode') {
-            return `translate(${orderingScale.value(parseInt(`${d.parentPosition}`, 10))})rotate(-90)`;
-          }
-          return 'translate(0, 0)rotate(-90)';
-        });
-
-      columnEnter
-        .transition()
-        .duration(1000)
-        .attr('transform', (d: Node, i: number) => `translate(${orderingScale.value(i)})rotate(-90)`);
-
-      // Update existing topoCols
-      edges.value
-        .selectAll('.topoCol')
-        .attr('width', highlightLength + visMargins.value.top + visMargins.value.bottom)
-        .attr('height', cellSize.value)
-        .attr('x', -highlightLength - visMargins.value.bottom);
-
-      // Update existing foreignObjects
-      edges.value
-        .selectAll('.colForeign')
-        .attr('height', cellSize.value)
-        .select('p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d._key;
-          }
-          return d[labelVariable.value || '_key'];
-        });
-
-      edges.value
-        .selectAll('.colForeign')
-        .selectAll('p')
-        .style('margin-top', `${cellSize.value * -0.1}px`)
-        .style('font-size', `${labelFontSize}px`);
-
-      // Update existing sorticons
-      edges.value
-        .selectAll('.sortIcon')
-        .attr('transform', `scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize.value - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`);
-
-      // add the highlight columns
-      columnEnter
-        .append('rect')
-        .classed('topoCol', true)
-        .attr('id', (d: Node) => `topoCol${d._id}`)
-        .attr('x', -highlightLength - visMargins.value.bottom)
-        .attr('y', 0)
-        .attr(
-          'width',
-          highlightLength + visMargins.value.top + visMargins.value.bottom,
-        )
-        .attr('height', orderingScale.value.bandwidth())
-        .attr('fill-opacity', 0)
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.dispatch.clickElement(matrixElement._id);
-        })
-        .on('mouseover', (event: MouseEvent, node: Node) => {
-          showToolTip(event, node);
-          hoverNode(node._id);
-        })
-        .on('mouseout', (event: MouseEvent, node: Node) => {
-          hideToolTip();
-          unHoverNode(node._id);
-        });
-
-      columnEnter
-        .append('foreignObject')
-        .classed('colForeign', true)
-        .attr('y', 0)
-        .attr('x', 20)
-        .attr('width', labelWidth)
-        .attr('height', cellSize.value)
-        .append('xhtml:p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d._key;
-          }
-          return d[labelVariable.value || '_key'];
-        })
-        .style('color', (d: Node) => {
-          if (d.type === 'node') {
-            return '#aaa';
-          }
-          return 'black';
-        })
-        .style('margin-top', `${cellSize.value * -0.1}px`)
-        .style('font-size', `${labelFontSize}px`)
-        .classed('colLabels', true);
-
-      columnEnter
-        .selectAll('p')
-        .style('color', (d: Node) => (aggregated.value && d.type !== 'supernode' ? '#AAAAAA' : '#000000'));
-
-      columnEnter
-        .append('path')
-        .attr('id', (d: Node) => `sortIcon${d._id}`)
-        .attr('class', 'sortIcon')
-        .attr('d', icons.value.cellSort.d)
-        .style('fill', (d: Node) => (d === orderType.value ? '#EBB769' : '#8B8B8B'))
-        .attr('transform', `scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize.value - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`)
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          sort(matrixElement._id);
-        });
-
-      columnEnter
-        .attr('cursor', 'pointer')
-        .on('mouseover', (event: MouseEvent, matrixElement: Node) => {
-          showToolTip(event, matrixElement);
-          hoverNode(matrixElement._id);
-        })
-        .on('mouseout', (event: MouseEvent, matrixElement: Node) => {
-          hideToolTip();
-          unHoverNode(matrixElement._id);
-        });
-
-      edgeColumns.value.merge(columnEnter);
-
-      // Draw each row
-      edgeRows.value = edges.value
-        .selectAll('.rowContainer')
-        .data(network.value.nodes, (d: Node) => d._id)
-        .attr('transform', (d: Node, i: number) => `translate(0,${orderingScale.value(i)})`);
-
-      edgeRows.value.exit().remove();
-
-      const rowEnter = edgeRows.value
-        .enter()
-        .append('g')
-        .attr('class', 'rowContainer')
-        .attr('transform', (d: Node) => {
-          if (d.type !== 'supernode') {
-            return `translate(0, ${orderingScale.value(parseInt(`${d.parentPosition}`, 10))})`;
-          }
-          return 'translate(0, 0)';
-        });
-
-      rowEnter
-        .transition(transition().duration(1100))
-        .attr('transform', (d: Node, i: number) => `translate(0,${orderingScale.value(i)})`);
-
-      // Update existing topoRols
-      edges.value
-        .selectAll('.topoRow')
-        .attr('width', highlightLength + visMargins.value.left + visMargins.value.right)
-        .attr('height', cellSize.value);
-
-      // Update existing foreignObjects
-      edges.value
-        .selectAll('.rowForeign')
-        .attr('height', cellSize.value)
-        .select('p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d._key;
-          }
-          return d[labelVariable.value || '_key'];
-        });
-
-      edges.value
-        .selectAll('.rowForeign')
-        .selectAll('p')
-        .style('margin-top', `${cellSize.value * -0.1}px`)
-        .style('font-size', `${labelFontSize}px`);
-
-      rowEnter
-        .append('rect')
-        .classed('topoRow', true)
-        .attr('id', (d: Node) => `topoRow${d._id}`)
-        .attr('x', -visMargins.value.left)
-        .attr('y', 0)
-        .attr(
-          'width',
-          highlightLength + visMargins.value.left + visMargins.value.right,
-        )
-        .attr('height', orderingScale.value.bandwidth())
-        .attr('fill-opacity', 0)
-        .on('click', (event: MouseEvent, matrixElement: Node) => {
-          store.dispatch.clickElement(matrixElement._id);
-        })
-        .on('mouseover', (event: MouseEvent, node: Node) => {
-          showToolTip(event, node);
-          hoverNode(node._id);
-        })
-        .on('mouseout', (event: MouseEvent, node: Node) => {
-          hideToolTip();
-          unHoverNode(node._id);
-        });
-
-      // add foreign objects for label
-      rowEnter
-        .append('foreignObject')
-        .attr('x', -labelWidth)
-        .attr('width', labelWidth)
-        .attr('height', cellSize.value)
-        .classed('rowForeign', true)
-        .append('xhtml:p')
-        .text((d: Node) => {
-          if (d.type === 'supernode') {
-            return d._key;
-          }
-          return d[labelVariable.value || '_key'];
-        })
-        .style('color', (d: Node) => {
-          if (d.type === 'node') {
-            return '#aaa';
-          }
-          return 'black';
-        })
-        .style('margin-top', `${cellSize.value * -0.1}px`)
-        .style('font-size', `${labelFontSize}px`)
-        .classed('rowLabels', true);
-      // Icon Paths
-      const expandPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M11,7H13V11H17V13H13V17H11V13H7V11H11V7Z';
-      const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
-
-      // Update existing icons
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (selectAll('.aggrButton') as any)
-        .data(network.value.nodes, (d: Node) => d._id)
-        .attr('d', (d: Node) => {
-          if (d.type === 'supernode') {
-            if (expandedSuperNodes.value.has(d._id)) {
-              return retractPath;
-            }
-            return expandPath;
-          }
-          return '';
-        })
-        .attr('transform', `translate(-73, ${(cellSize.value - invisibleRectSize) / 2})scale(0.5)`);
-
-      // Add Icons
-      rowEnter
-        .append('path')
-        .attr('d', (d: Node) => {
-          if (d.type === 'supernode') {
-            if (expandedSuperNodes.value.has(d._id)) {
-              return retractPath;
-            }
-            return expandPath;
-          }
-          return '';
-        })
-        .attr('class', 'aggrButton')
-        .attr('fill', '#8B8B8B')
-        .attr('transform', `translate(-73, ${(cellSize.value - invisibleRectSize) / 2})scale(0.5)`);
-
-      // Add Rectangles
-      rowEnter
-        .append('rect')
-        .attr('width', 10)
-        .attr('height', 10)
-        .attr('transform', `translate(-73, ${(cellSize.value - invisibleRectSize) / 2})`)
-        .style('opacity', 0)
-        .attr('class', 'invisibleRect')
-        .attr('cursor', (d: Node) => {
-          if (d.type === 'supernode') {
-            return 'pointer';
-          }
-          return '';
-        })
-        .on('click', (event: MouseEvent, node: Node) => {
-          // allow expanding the vis if aggregation is turned on
-          if (aggregated.value) {
-            if (node.type !== 'supernode') {
-              return;
-            }
-            // expand and retract the supernode aggregation based on user selection
-            if (expandedSuperNodes.value.has(node._id)) {
-              // retract
-              expandedSuperNodes.value.delete(node._id);
-              store.dispatch.retractAggregatedNode(node._id);
-            } else {
-              // expand
-              expandedSuperNodes.value.add(node._id);
-              store.dispatch.expandAggregatedNode(node._id);
-            }
-          } else {
-            store.dispatch.clickElement(node._id);
-          }
-        });
-
-      rowEnter.append('g').attr('class', 'cellsGroup');
-
-      edgeRows.value.merge(rowEnter);
-
-      drawGridLines();
-
-      // Draw cells
-      cells.value = selectAll('.cellsGroup')
-        .selectAll('.cell')
-        .data((d: unknown, i: number) => matrix.value[i]);
-
-      // Update existing cells
-      cells.value
-        .attr('id', (d: Cell) => d.cellName)
-        .attr('x', (d: Cell) => {
-          const xLocation = orderingScale.value(d.x);
-          return xLocation !== undefined ? xLocation + 1 : null;
-        })
-        .attr('y', 1)
-        .attr('width', cellSize.value - 2)
-        .attr('height', cellSize.value - 2)
-        .style('fill', (d: Cell) => {
-          if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
-            return parentColorScale.value(d.z);
-          }
-          return cellColorScale.value(d.z);
-        })
-        .style('fill-opacity', (d: Cell) => d.z)
-        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
-          showToolTip(event, matrixElement);
-          hoverEdge(matrixElement);
-        })
-        .on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
-          hideToolTip();
-          unHoverEdge(matrixElement);
-        })
-        .on('click', (event: MouseEvent, matrixElement: Cell) => {
-          // Create path data if connectivity query
-          if (connectivityMatrixPaths.value.paths.length > 0) {
-            const pathIdList: number[] = [];
-            connectivityMatrixPaths.value.paths.forEach((path: ArangoPath, i: number) => {
-              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[selectedHops.value]._id === matrixElement.colID) {
-                pathIdList.push(i);
-              }
-            });
-            if (pathIdList.length > 0) {
-              store.commit.setSelectedConnectivityPaths(pathIdList);
-              showTable.value = true;
-            } else {
-              showTable.value = false;
-            }
-          }
-
-          store.commit.clickCell(matrixElement);
-        })
-        .attr('cursor', 'pointer');
-
-      cells.value.exit().remove();
-
-      // Render new cells
-      const cellsEnter = cells.value
-        .enter()
-        .append('rect')
-        .attr('class', 'cell')
-        .attr('id', (d: Cell) => d.cellName)
-        .attr('x', (d: Cell) => {
-          const xLocation = orderingScale.value(d.x);
-          return xLocation !== undefined ? xLocation + 1 : null;
-        })
-        .attr('y', 1)
-        .attr('width', cellSize.value - 2)
-        .attr('height', cellSize.value - 2)
-        .style('fill', (d: Cell) => {
-          if (d.rowCellType === 'supernode' && d.colCellType === 'supernode') {
-            return parentColorScale.value(d.z);
-          }
-          return cellColorScale.value(d.z);
-        })
-        .style('fill-opacity', (d: Cell) => d.z)
-        .on('mouseover', (event: MouseEvent, matrixElement: Cell) => {
-          showToolTip(event, matrixElement);
-          hoverEdge(matrixElement);
-        })
-        .on('mouseout', (event: MouseEvent, matrixElement: Cell) => {
-          hideToolTip();
-          unHoverEdge(matrixElement);
-        })
-        .on('click', (event: MouseEvent, matrixElement: Cell) => {
-          // Create path data if connectivity query
-          if (connectivityMatrixPaths.value.paths.length > 0) {
-            const pathIdList: number[] = [];
-            connectivityMatrixPaths.value.paths.forEach((path: ArangoPath, i: number) => {
-              if (path.vertices[0]._id === matrixElement.rowID && path.vertices[selectedHops.value]._id === matrixElement.colID) {
-                pathIdList.push(i);
-              }
-            });
-            if (pathIdList.length > 0) {
-              store.commit.setSelectedConnectivityPaths(pathIdList);
-              showTable.value = true;
-            } else {
-              showTable.value = false;
-            }
-          }
-
-          store.commit.clickCell(matrixElement);
-        })
-        .attr('cursor', 'pointer');
-
-      cells.value.merge(cellsEnter);
-    }
-
     onMounted(() => {
-      edges.value = select('#matrix')
-        .append('g')
-        .attr(
-          'transform',
-          `translate(${visMargins.value.left},${visMargins.value.top})`,
-        );
-
-      // Draw buttons for alternative sorts
-      let initialY = -visMargins.value.left + 10;
-      const buttonHeight = 15;
-
-      const iconMeta = [
-        { text: 'name', sortName: 'shortName', iconName: 'alphabetical' },
-        { text: 'cluster', sortName: 'clusterLeaf', iconName: 'categorical' },
-        { text: 'interacts', sortName: 'edges', iconName: 'quant' },
-      ];
-      iconMeta.forEach((icon) => {
-        const button = edges.value
-          .append('g')
-          .attr('transform', `translate(${-visMargins.value.left},${initialY})`);
-        button.attr('cursor', 'pointer');
-        button
-          .append('rect')
-          .attr('width', visMargins.value.left - 5)
-          .attr('height', buttonHeight)
-          .attr('fill', 'none')
-          .attr('stroke', 'gray')
-          .attr('stroke-width', 1);
-        button
-          .append('text')
-          .attr('x', 27)
-          .attr('y', 10)
-          .attr('font-size', 11)
-          .text(icon.text);
-        const path = button.datum(icon.sortName);
-        path
-          .append('path')
-          .attr('class', 'reorderSort')
-          .attr('d', icons.value[icon.iconName].d)
-          .style('fill', () => (icon.sortName === orderType.value ? '#EBB769' : '#8B8B8B'))
-          .attr('transform', 'scale(0.1)translate(-195,-320)')
-          .attr('cursor', 'pointer');
-        button.on('click', () => sort(icon.sortName));
-        initialY += buttonHeight + 5;
-      });
-
-      initializeEdges();
       finishedMounting.value = true;
     });
 
-    watch([orderingScale, showGridLines, network, directionalEdges, labelVariable], () => initializeEdges());
+    watch([orderingScale, showGridLines, network, directionalEdges, labelVariable], () => processData());
+
+    processData();
+
+    const highlightLength = computed(() => matrix.value.length * cellSize.value);
+    const labelFontSize = computed(() => 0.8 * cellSize.value);
+
+    function clickElement(matrixElement: Node | Cell) {
+      if (isCell(matrixElement)) {
+        if (connectivityMatrixPaths.value.paths.length > 0) {
+          const pathIdList: number[] = [];
+          connectivityMatrixPaths.value.paths.forEach((path: ArangoPath, i: number) => {
+            if (path.vertices[0]._id === matrixElement.rowID && path.vertices[selectedHops.value]._id === matrixElement.colID) {
+              pathIdList.push(i);
+            }
+          });
+          if (pathIdList.length > 0) {
+            store.commit.setSelectedConnectivityPaths(pathIdList);
+            showTable.value = true;
+          } else {
+            showTable.value = false;
+          }
+        }
+
+        store.commit.clickCell(matrixElement.cellName);
+      } else {
+        store.dispatch.clickElement(matrixElement._id);
+      }
+    }
+
+    const expandPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M11,7H13V11H17V13H13V17H11V13H7V11H11V7Z';
+    const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
+
+    function expandOrRetractRow(node: Node) {
+      if (aggregated.value) {
+        if (node.type !== 'supernode') {
+          return;
+        }
+        // expand and retract the supernode aggregation based on user selection
+        if (expandedSuperNodes.value.has(node._id)) {
+          // retract
+          expandedSuperNodes.value.delete(node._id);
+          store.dispatch.retractAggregatedNode(node._id);
+        } else {
+          // expand
+          expandedSuperNodes.value.add(node._id);
+          store.dispatch.expandAggregatedNode(node._id);
+        }
+      } else {
+        store.dispatch.clickElement(node._id);
+      }
+    }
+
+    const iconMeta = [
+      { text: 'name', sortName: 'shortName', iconName: 'alphabetical' },
+      { text: 'cluster', sortName: 'clusterLeaf', iconName: 'categorical' },
+      { text: 'interacts', sortName: 'edges', iconName: 'quant' },
+    ];
+
+    const neighborsOfClicked = computed(() => [...selectedNodes.value.values()].map((nodeID) => {
+      if (network.value !== null) {
+        const foundNode = network.value.nodes.find((n) => n._id === nodeID);
+        return foundNode !== undefined ? foundNode.neighbors : [];
+      }
+      return [];
+    }).flat());
+
+    function clickedNeighborClass(node: Node) {
+      const clicked = selectedNodes.value.has(node._id) ? 'clicked' : '';
+      const neighbor = !clicked && neighborsOfClicked.value.includes(node._id) && selectNeighbors.value ? 'neighbor' : '';
+      // const hovered = hoveredNodes.value.includes(node._id) ? 'hovered' : '';
+
+      return `${clicked} ${neighbor}`;
+    }
 
     return {
+      network,
       finishedMounting,
       showIntNodeVis,
       matrixWidth,
@@ -965,6 +455,39 @@ export default defineComponent({
       tooltip,
       showPathTable,
       showContextMenu,
+      showGridLines,
+      orderingScale,
+      visMargins,
+      highlightLength,
+      cellSize,
+      labelVariable,
+      labelWidth: 60,
+      labelFontSize,
+      icons,
+      sortIconWidth: 8.133,
+      sortIconScaleFactor: 15,
+      clickElement,
+      showToolTip,
+      hideToolTip,
+      hoverNode,
+      unHoverNode,
+      hoverEdge,
+      unHoverEdge,
+      aggregated,
+      orderType,
+      sort,
+      matrix,
+      cellColorScale,
+      parentColorScale,
+      selectedCell,
+      expandPath,
+      retractPath,
+      expandedSuperNodes,
+      invisibleRectSize: 11,
+      expandOrRetractRow,
+      iconMeta,
+      selectedNodes,
+      clickedNeighborClass,
     };
   },
 
@@ -976,13 +499,179 @@ export default defineComponent({
     <v-container class="d-inline-flex">
       <div>
         <svg
-          id="matrix"
-          ref="matrix"
           :width="matrixWidth"
           :height="matrixHeight"
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
           @contextmenu="showContextMenu"
-        />
+        >
+          <g
+            id="matrix"
+            :transform="`translate(${visMargins.left},${visMargins.top})`"
+          >
+            <!-- Sort icons -->
+            <g
+              v-for="icon, i in iconMeta"
+              :key="icon.text"
+              :transform="`translate(${-visMargins.left},${-visMargins.top + 50 + (i * 20)})`"
+            >
+              <rect
+                :width="visMargins.left - 5"
+                height="15"
+                fill="none"
+                stroke="gray"
+                stroke-width="1"
+              />
+              <text
+                x="27"
+                y="10"
+                font-size="11"
+              >
+                {{ icon.text }}
+              </text>
+              <path
+                :d="icons[icon.iconName].d"
+                :fill="icon.sortName === orderType ? '#EBB769' : '#8B8B8B'"
+                transform="scale(0.1)translate(-195,-320)"
+              />
+            </g>
+
+            <!-- Columns -->
+            <g
+              v-for="node, i of network.nodes"
+              :key="`${node._id}_col`"
+              :transform="`translate(${orderingScale(i)})rotate(-90)`"
+              class="column"
+              :class="clickedNeighborClass(node)"
+            >
+              <rect
+                class="highlightContainer"
+                :width="highlightLength + visMargins.top + visMargins.bottom"
+                :height="cellSize"
+                :x="-highlightLength - visMargins.bottom"
+                fill-opacity="0"
+                @mouseover="(event) => {showToolTip(event, node); hoverNode(node._id);}"
+                @mouseout="(event) => {hideToolTip(); unHoverNode(node._id);}"
+                @click="clickElement(node)"
+              />
+              <foreignObject
+                :width="labelWidth"
+                :height="cellSize"
+                x="20"
+              >
+                <p
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && node.type !== 'supernode' ? '#AAAAAA' : '#000000'}`"
+                  class="label"
+                >
+                  {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+                </p>
+              </foreignObject>
+              <path
+                class="sortIcon"
+                :d="icons.cellSort.d"
+                :transform="`scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`"
+                :fill="node === orderType ? '#EBB769' : '#8B8B8B'"
+                @click="sort(node._id)"
+              />
+            </g>
+
+            <!-- Rows -->
+            <g
+              v-for="node, i of network.nodes"
+              :key="`${node._id}_row`"
+              :transform="`translate(0,${orderingScale(i)})`"
+              class="row"
+              :class="clickedNeighborClass(node)"
+            >
+              <rect
+                class="highlightContainer"
+                :width="highlightLength + visMargins.left + visMargins.right"
+                :height="cellSize"
+                :x="-visMargins.left"
+                fill-opacity="0"
+                @mouseover="(event) => {showToolTip(event, node); hoverNode(node._id);}"
+                @mouseout="(event) => {hideToolTip(); unHoverNode(node._id);}"
+                @click="clickElement(node)"
+              />
+              <foreignObject
+                :width="labelWidth"
+                :height="cellSize"
+                :x="-labelWidth"
+              >
+                <p
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && node.type !== 'supernode' ? '#AAAAAA' : '#000000'}`"
+                  class="label"
+                >
+                  {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+                </p>
+              </foreignObject>
+
+              <!-- Clickable row expand/retract -->
+              <path
+                v-if="node.type === 'supernode'"
+                :d="expandedSuperNodes.has(node._id) ? retractPath : expandPath"
+                :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})scale(0.5)`"
+                fill="#8B8B8B"
+              />
+              <rect
+                v-if="node.type === 'supernode'"
+                :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})`"
+                width="10"
+                height="10"
+                opacity="0"
+                @click="expandOrRetractRow(node)"
+              />
+
+              <!-- Cells -->
+              <g class="cellsGroup">
+                <rect
+                  v-for="cell in matrix[i]"
+                  :key="cell.cellName"
+                  :x="orderingScale(cell.x) + 1"
+                  y="1"
+                  :width="cellSize - 2"
+                  :height="cellSize - 2"
+                  :fill="cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode' ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                  :fill-opacity="cell.z"
+                  :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
+                  @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"
+                  @mouseout="(event) => {hideToolTip(); unHoverEdge(cell);}"
+                  @click="clickElement(cell)"
+                />
+              </g>
+            </g>
+          </g>
+          <g
+            v-if="showGridLines"
+            class="gridLines"
+            transform="translate(75,110)"
+          >
+            <!-- Vertical grid lines -->
+            <line
+              v-for="node, i of network.nodes"
+              :key="`${node._id}_vertical_gridline`"
+              :transform="`translate(${orderingScale(i)},0)rotate(-90)`"
+              :x1="-orderingScale.range()[1]"
+            />
+            <!-- Add last vertical grid line -->
+            <line
+              :transform="`translate(${orderingScale.range()[1]},0)rotate(-90)`"
+              :x1="-orderingScale.range()[1]"
+            />
+
+            <!-- Horizontal grid lines -->
+            <line
+              v-for="node, i of network.nodes"
+              :key="`${node._id}_horizontal_gridline`"
+              :transform="`translate(0,${orderingScale(i)})`"
+              :x2="orderingScale.range()[1]"
+            />
+            <!-- Add last horizontal grid line -->
+            <line
+              :transform="`translate(0,${orderingScale.range()[1]})`"
+              :x2="orderingScale.range()[1]"
+            />
+          </g>
+        </svg>
       </div>
       <intermediary-nodes v-if="finishedMounting && showIntNodeVis" />
       <line-up v-if="finishedMounting" />
@@ -998,11 +687,7 @@ export default defineComponent({
 </template>
 
 <style scoped>
-svg >>> .baseCell {
-  fill-opacity: 0;
-}
-
-svg >>> .rowLabels, svg >>> .colLabels {
+svg >>> .label {
   max-width: 60px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -1010,31 +695,41 @@ svg >>> .rowLabels, svg >>> .colLabels {
   margin: 0;
 }
 
+/* cell state */
 svg >>> .hoveredCell {
   stroke-width: 1px;
   stroke: darkgray;
 }
+svg >>> .cell.clicked {
+  stroke: red;
+  stroke-width: 3;
+}
 
-svg >>> .neighbor {
+/* highlightContainer state */
+svg >>> .hovered > .highlightContainer{
+  fill: #fde8ca;
+  fill-opacity: 1 !important;
+}
+svg >>> .clicked > .highlightContainer {
+  font-weight: 800;
+  fill: #f8cf91;
+  fill-opacity: 1;
+}
+svg >>> .neighbor > .highlightContainer {
   fill: #caffc7;
   fill-opacity: 1;
 }
 
-svg >>> .colLabel,
-svg >>> .rowLabel {
-  cursor: pointer;
+/* foreignObject state */
+svg >>> foreignObject {
+  pointer-events: none;
+}
+svg >>> .clicked > foreignObject {
+  font-weight: 650;
   fill: black !important;
 }
 
-svg >>> .highlightedCell {
-  fill: #fff4d3;
-  fill-opacity: 1 !important;
-}
-
-svg >>> .highlightCol {
-  pointer-events: auto;
-}
-
+/* Tooltip */
 #tooltip {
   position: absolute;
   opacity: 0;
@@ -1049,41 +744,9 @@ svg >>> .highlightCol {
   z-index: 1;
 }
 
-svg >>> .hovered {
-  fill: #fde8ca;
-  fill-opacity: 1 !important;
-}
-
-svg >>> .clicked {
-  font-weight: 800;
-  fill: #f8cf91;
-  fill-opacity: 1;
-}
-
-svg >>> .cell.clicked {
-  stroke: red;
-  stroke-width: 3;
-}
-
-svg >>> text.hovered {
-  font-weight: 450;
-}
-
-svg >>> text.clicked {
-  font-weight: 650;
-  fill: black !important;
-}
-
+/* gridLines */
 svg >>> .gridLines {
   pointer-events: none;
   stroke: #BBBBBB;
-}
-
-svg >>> g.box line {
-  stroke: slategray;
-}
-
-svg >>> foreignObject {
-  pointer-events: none;
 }
 </style>

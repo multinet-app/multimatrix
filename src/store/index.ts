@@ -14,7 +14,6 @@ import {
 import {
   ArangoAttributes,
   ArangoPath,
-  Cell,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State, SlicedNetwork,
 } from '@/types';
 import { defineNeighbors } from '@/lib/utils';
@@ -188,12 +187,12 @@ const {
       }
     },
 
-    clickCell(state, cell: Cell) {
-      if (state.selectedCell !== null && state.selectedCell.cellName === cell.cellName) {
+    clickCell(state, cellName: string) {
+      if (state.selectedCell !== null && state.selectedCell === cellName) {
         state.selectedCell = null;
         updateProvenanceState(state, 'De-Select Cell');
       } else {
-        state.selectedCell = cell;
+        state.selectedCell = cellName;
         updateProvenanceState(state, 'Select Cell');
       }
     },
