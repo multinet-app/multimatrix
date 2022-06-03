@@ -35,6 +35,30 @@ export default defineComponent({
       return 330;
     });
 
+    const sortOrder = computed(() => store.state.sortOrder);
+    const lineupOrder = computed(() => {
+      if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
+        return [...Array(network.value?.nodes.length).keys()];
+      }
+      return [...lineup.value.data.getFirstRanking().getOrder()];
+    });
+
+    // If store order has changed, update lineup
+    watch(sortOrder, (newSortOrder) => {
+      if (lineup.value !== null) {
+        const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
+        (lineup.value.data as LocalDataProvider).setData(sortedData);
+      }
+    });
+
+    // If lineup order has changed, update matrix
+    watch(lineupOrder, (newLineupOrder) => {
+      if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
+        const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
+        store.commit.setSortOrder(newSortOrder);
+      }
+    });
+
     // Helper functions
     function idsToIndices(ids: string[]) {
       return ids
@@ -138,31 +162,6 @@ export default defineComponent({
         lineup.value.setSelection(indices);
       }
     });
-
-    const sortOrder = computed(() => store.state.sortOrder);
-    const lineupOrder = computed(() => {
-      if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
-        return [...Array(network.value?.nodes.length).keys()];
-      }
-      return [...lineup.value.data.getFirstRanking().getOrder()];
-    });
-
-    // If store order has changed, update lineup
-    watch(sortOrder, (newSortOrder) => {
-      if (lineup.value !== null) {
-        const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
-        (lineup.value.data as LocalDataProvider).setData(sortedData);
-      }
-    });
-
-    // If lineup order has changed, update matrix
-    watch(lineupOrder, (newLineupOrder) => {
-      if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
-        const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
-        store.commit.setSortOrder(newSortOrder);
-      }
-    });
-
     watch(network, () => {
       removeLineup();
       buildLineup();
