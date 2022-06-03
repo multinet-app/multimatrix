@@ -36,6 +36,16 @@ export default defineComponent({
       return 330;
     });
 
+    const lineupHeight = computed(() => {
+      const matrixElement = select<Element, Element>('#matrix').node();
+
+      if (matrixElement !== null && matrixElement.parentElement !== null) {
+        return matrixElement.parentElement.clientHeight + 24;
+      }
+
+      return 10000;
+    });
+
     const sortOrder = computed(() => store.state.sortOrder);
     const lineupOrder = computed(() => {
       if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
@@ -178,6 +188,7 @@ export default defineComponent({
 
     return {
       lineupWidth,
+      lineupHeight,
       removeHighlight,
     };
   },
@@ -187,7 +198,7 @@ export default defineComponent({
 <template>
   <div
     id="lineup"
-    :style="`width: ${lineupWidth}px;`"
+    :style="`width: ${lineupWidth}px; height: ${lineupHeight}px`"
     @mouseleave="removeHighlight"
   />
 </template>
@@ -195,7 +206,6 @@ export default defineComponent({
 <style>
 #lineup {
   z-index: 1;
-  height: 10000px; /* big enough to show all rows */
   padding-top: 34px;
 }
 
