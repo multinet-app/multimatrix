@@ -6,6 +6,7 @@ import {
 import LineUp, { DataBuilder, LocalDataProvider } from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
+import { Node } from '@/types';
 
 export default defineComponent({
   name: 'LineUp',
@@ -119,9 +120,9 @@ export default defineComponent({
           .build(lineupDiv);
 
         // Add an event watcher to update selected nodes
-        lineup.value.on('selectionChanged', (dataindices: number[]) => {
+        lineup.value.on('selectionChanged', (dataIndices: number[]) => {
           // Transform data indices to multinet `_id`s
-          const clickedIDs: string[] = indicesToIDs(dataindices);
+          const clickedIDs: string[] = indicesToIDs(dataIndices);
 
           // Find the symmetric difference between the ids here and those in the store
           function diffFunction<T>(arr1: Array<T>, arr2: Array<T>): Array<T> { return arr1.filter((x) => arr2.indexOf(x) === -1); }
@@ -138,13 +139,13 @@ export default defineComponent({
         let lastHovered = '';
 
         // Add an event watcher to update highlighted nodes
-        lineup.value.on('highlightChanged', (dataindex: number) => {
-          if (dataindex === -1) {
+        lineup.value.on('highlightChanged', (dataIndex: number) => {
+          if (dataIndex === -1) {
             return;
           }
 
           // Transform data indices to multinet `_id`s
-          const hoveredIDs: string[] = indicesToIDs([dataindex]);
+          const hoveredIDs: string[] = indicesToIDs([dataIndex]);
 
           // Hover the elements that are different to add/remove them from the store
           hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
