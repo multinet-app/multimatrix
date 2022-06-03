@@ -77,7 +77,11 @@ export default defineComponent({
     });
 
     function indicesToIDs(indices: number[]) {
-      return indices.map((index) => network.value?.nodes[sortOrder.value[index]]._id);
+      if (network.value !== null) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return indices.map((index) => network.value!.nodes[sortOrder.value[index]]._id);
+      }
+      return [];
     }
 
     function removeLineup() {
