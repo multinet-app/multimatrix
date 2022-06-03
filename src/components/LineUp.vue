@@ -61,20 +61,23 @@ export default defineComponent({
 
     // Helper functions
     function idsToIndices(ids: string[]) {
-      return ids
-        .map((elementID) => (builder.value !== null
-          ? builder.value.buildData().data.findIndex((dataElement) => dataElement._id === elementID)
-          : -1))
-        .filter((index) => index !== -1);
+      const sortedData: (Node | null)[] = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
+
+      return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
     }
 
-    function indicesToIDs(indicies: number[]) {
-      return indicies.map((index: number) => {
-        if (builder.value !== null) {
-          return builder.value.buildData().data[index]._id.toString();
-        }
-        return undefined;
-      });
+    // Update selection/hover from matrix
+    watchEffect(() => {
+      // Convert the ids to indices
+      const indices = [...new Set(idsToIndices([...selectedNodes.value.values(), ...hoveredNodes.value]))];
+
+      if (lineup.value !== null) {
+        lineup.value.setSelection(indices);
+      }
+    });
+
+    function indicesToIDs(indices: number[]) {
+      return indices.map((index) => network.value?.nodes[sortOrder.value[index]]._id);
     }
 
     function removeLineup() {
@@ -153,15 +156,6 @@ export default defineComponent({
       buildLineup();
     });
 
-    // Update selection/hover from matrix
-    watchEffect(() => {
-      // Convert the ids to indices
-      const indices = [...new Set(idsToIndices([...selectedNodes.value.values(), ...hoveredNodes.value]))];
-
-      if (lineup.value !== null) {
-        lineup.value.setSelection(indices);
-      }
-    });
     watch(network, () => {
       removeLineup();
       buildLineup();
