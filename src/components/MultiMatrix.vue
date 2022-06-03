@@ -85,14 +85,7 @@ export default defineComponent({
     const matrixHeight = computed(() => (network.value !== null
       ? network.value.nodes.length * cellSize.value + visMargins.value.top + visMargins.value.bottom
       : 0));
-    const sortOrder = computed({
-      get() {
-        return store.state.sortOrder;
-      },
-      set(value: number[]) {
-        store.commit.setSortOrder(value);
-      },
-    });
+    const sortOrder = computed(() => store.state.sortOrder);
     const orderingScale = computed(() => scaleBand<number>()
       .domain(sortOrder.value)
       .range([0, sortOrder.value.length * cellSize.value]));
@@ -291,7 +284,8 @@ export default defineComponent({
           return firstValue - secondValue;
         });
       }
-      sortOrder.value = order;
+
+      store.commit.setSortOrder(order);
     }
 
     watch(hoveredNodes, () => {
