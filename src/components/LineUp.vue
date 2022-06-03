@@ -64,6 +64,12 @@ export default defineComponent({
 
     // If lineup order has changed, update matrix
     watch(lineupOrder, (newLineupOrder) => {
+      // If sort order has less length than number of nodes, we've filtered
+      // Sort those nodes to the top
+      if (network.value !== null && newLineupOrder.length < network.value.nodes.length) {
+        return;
+      }
+
       if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
         const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
         store.commit.setSortOrder(newSortOrder);
@@ -157,11 +163,12 @@ export default defineComponent({
           // Transform data indices to multinet `_id`s
           const hoveredIDs: string[] = indicesToIDs([dataIndex]);
 
+          // Remove previously hovered node and track what is now hovered
+          store.commit.removeHoveredNode(lastHovered);
+
           // Hover the elements that are different to add/remove them from the store
           hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
 
-          // Remove previously hovered node and track what is now hovered
-          store.commit.removeHoveredNode(lastHovered);
           [lastHovered] = hoveredIDs;
         });
       }
