@@ -3,7 +3,7 @@ import store from '@/store';
 import {
   computed, defineComponent, onMounted, Ref, ref, SetupContext, watch, watchEffect,
 } from '@vue/composition-api';
-import LineUp, { DataBuilder } from 'lineupjs';
+import LineUp, { DataBuilder, LocalDataProvider } from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
 
@@ -139,23 +139,27 @@ export default defineComponent({
       }
     });
 
-    let currentLineupSortOrder: number[] = [];
+    const sortOrder = computed(() => store.state.sortOrder);
+    const lineupOrder = computed(() => {
+      if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
+        return [...Array(network.value?.nodes.length).keys()];
+      }
+      return [...lineup.value.data.getFirstRanking().getOrder()];
+    });
 
-    // Update sort order in matrix
-    watchEffect(() => {
+    // If store order has changed, update lineup
+    watch(sortOrder, (newSortOrder) => {
       if (lineup.value !== null) {
-        const lineupOrder = [...lineup.value.data.getFirstRanking().getOrder()];
-        const storeOrder = store.state.sortOrder;
+        const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
+        (lineup.value.data as LocalDataProvider).setData(sortedData);
+      }
+    });
 
-        if (JSON.stringify(currentLineupSortOrder) !== JSON.stringify(lineupOrder)) {
-          // If lineup order has changed, update the store
-          store.commit.setSortOrder(lineupOrder);
-          currentLineupSortOrder = lineupOrder;
-        } else if (JSON.stringify(currentLineupSortOrder) !== JSON.stringify(storeOrder)) {
-          // If store order has changed, update lineup
-          // lineup.value.data.getFirstRanking().order = storeOrder;
-          currentLineupSortOrder = storeOrder;
-        }
+    // If lineup order has changed, update matrix
+    watch(lineupOrder, (newLineupOrder) => {
+      if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
+        const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
+        store.commit.setSortOrder(newSortOrder);
       }
     });
 
