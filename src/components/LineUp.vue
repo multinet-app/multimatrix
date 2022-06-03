@@ -25,8 +25,8 @@ export default defineComponent({
       const matrixElement = select<Element, Element>('#matrix').node();
       const intermediaryElement = select<Element, Element>('#intNodeDiv').node();
 
-      if (controlsElement !== null && matrixElement !== null) {
-        let availableSpace = context.root.$vuetify.breakpoint.width - controlsElement.clientWidth - matrixElement.clientWidth - 12; // 12 from the svg container padding
+      if (controlsElement !== null && matrixElement !== null && matrixElement.parentElement !== null) {
+        let availableSpace = context.root.$vuetify.breakpoint.width - controlsElement.clientWidth - matrixElement.parentElement.clientWidth - 12; // 12 from the svg container padding
         if (intermediaryElement !== null) {
           availableSpace -= intermediaryElement.clientWidth;
         }
