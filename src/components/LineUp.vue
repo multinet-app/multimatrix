@@ -199,10 +199,6 @@ export default defineComponent({
   padding-top: 34px;
 }
 
-.le-td {
-  overflow-x: unset !important;
-}
-
 .le-th {
   margin-bottom: 0 !important;
 }
