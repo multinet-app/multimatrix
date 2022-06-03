@@ -100,7 +100,7 @@ export default defineComponent({
       const lineupDiv = document.getElementById('lineup');
 
       if (network.value !== null && lineupDiv !== null) {
-        const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column) || column === '_key');
+        const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column));
 
         builder.value = new DataBuilder(network.value.nodes);
 
