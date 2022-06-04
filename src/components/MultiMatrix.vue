@@ -517,6 +517,7 @@ export default defineComponent({
                 fill="white"
                 stroke="gray"
                 stroke-width="1"
+                cursor="pointer"
                 @click="sort(icon.sortName)"
               />
               <text
