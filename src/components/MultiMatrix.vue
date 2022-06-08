@@ -273,7 +273,14 @@ export default defineComponent({
       } else if (sortKey.value === 'shortName') {
         order = range(network.value.nodes.length).sort((a, b) => {
           if (network.value === null) { return 0; }
-          return network.value.nodes[a]._id.localeCompare(network.value.nodes[b]._id);
+          const aVal = `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+          const bVal = `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+
+          if (!Number.isNaN(parseInt(aVal, 10)) && !Number.isNaN(parseInt(aVal, 10))) {
+            return a < b ? -1 : 1;
+          }
+
+          return aVal.localeCompare(bVal);
         });
       } else {
         order = range(network.value.nodes.length).sort((a, b) => {
