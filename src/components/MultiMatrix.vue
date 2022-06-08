@@ -64,7 +64,6 @@ export default defineComponent({
           'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
       },
     });
-    const orderType = ref(undefined);
     const sortKey = ref('');
     const finishedMounting = ref(false);
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
@@ -194,11 +193,21 @@ export default defineComponent({
       event.preventDefault();
     }
 
-    function sortObserver(type: string, isNode = false) {
+    function sort(type: string): void {
+      if (network.value === null) {
+        return;
+      }
+      const isNode = network.value.nodes.map((node: Node) => node._id).includes(type);
+
       if (network.value === null) { return; }
 
       let order;
-      sortKey.value = type;
+      if (sortKey.value === type) {
+        sortKey.value = '';
+      } else {
+        sortKey.value = type;
+      }
+
       if (
         type === 'clusterSpectral'
         || type === 'clusterBary'
@@ -250,20 +259,28 @@ export default defineComponent({
 
           return firstValue - secondValue;
         });
-      } else if (isNode === true) {
-        order = range(network.value.nodes.length).sort((a, b) => {
-          if (network.value === null) { return 0; }
-          return network.value.nodes[a]._id.localeCompare(network.value.nodes[b]._id);
-        });
-        order = range(network.value.nodes.length).sort((a, b) => {
-          if (network.value === null) { return 0; }
-          return Number(network.value.nodes[b].neighbors.includes(type))
-            - Number(network.value.nodes[a].neighbors.includes(type));
-        });
+      } else if (isNode) {
+        if (sortKey.value === '') {
+          // Clear sort
+          order = range(network.value.nodes.length);
+        } else {
+          order = range(network.value.nodes.length).sort((a, b) => {
+            if (network.value === null) { return 0; }
+            return Number(network.value.nodes[b].neighbors.includes(type))
+              - Number(network.value.nodes[a].neighbors.includes(type));
+          });
+        }
       } else if (sortKey.value === 'shortName') {
         order = range(network.value.nodes.length).sort((a, b) => {
           if (network.value === null) { return 0; }
-          return network.value.nodes[a]._id.localeCompare(network.value.nodes[b]._id);
+          const aVal = `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+          const bVal = `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+
+          if (!Number.isNaN(parseInt(aVal, 10)) && !Number.isNaN(parseInt(aVal, 10))) {
+            return a < b ? -1 : 1;
+          }
+
+          return aVal.localeCompare(bVal);
         });
       } else {
         order = range(network.value.nodes.length).sort((a, b) => {
@@ -275,19 +292,6 @@ export default defineComponent({
         });
       }
       sortOrder.value = order;
-    }
-
-    function changeOrder(type: string, node: boolean) {
-      sortObserver(type, node);
-    }
-
-    function sort(order: string): void {
-      if (network.value === null) {
-        return;
-      }
-      const nodeIDs = network.value.nodes.map((node: Node) => node._id);
-
-      changeOrder(order, nodeIDs.includes(order));
     }
 
     watch(hoveredNodes, () => {
@@ -474,7 +478,6 @@ export default defineComponent({
       hoverEdge,
       unHoverEdge,
       aggregated,
-      orderType,
       sort,
       matrix,
       cellColorScale,
@@ -488,6 +491,7 @@ export default defineComponent({
       iconMeta,
       selectedNodes,
       clickedNeighborClass,
+      sortKey,
     };
   },
 
@@ -517,21 +521,25 @@ export default defineComponent({
               <rect
                 :width="visMargins.left - 5"
                 height="15"
-                fill="none"
+                fill="white"
                 stroke="gray"
                 stroke-width="1"
+                cursor="pointer"
+                @click="sort(icon.sortName)"
               />
               <text
                 x="27"
                 y="10"
                 font-size="11"
+                style="pointer-events: none;"
               >
                 {{ icon.text }}
               </text>
               <path
                 :d="icons[icon.iconName].d"
-                :fill="icon.sortName === orderType ? '#EBB769' : '#8B8B8B'"
+                :fill="icon.sortName === sortKey ? '#EBB769' : '#8B8B8B'"
                 transform="scale(0.1)translate(-195,-320)"
+                style="pointer-events: none;"
               />
             </g>
 
@@ -539,7 +547,7 @@ export default defineComponent({
             <g
               v-for="node, i of network.nodes"
               :key="`${node._id}_col`"
-              :transform="`translate(${orderingScale(i)})rotate(-90)`"
+              :transform="`translate(${i * cellSize})rotate(-90)`"
               class="column"
               :class="clickedNeighborClass(node)"
             >
@@ -569,7 +577,7 @@ export default defineComponent({
                 class="sortIcon"
                 :d="icons.cellSort.d"
                 :transform="`scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`"
-                :fill="node === orderType ? '#EBB769' : '#8B8B8B'"
+                :fill="node._id === sortKey ? '#EBB769' : '#8B8B8B'"
                 @click="sort(node._id)"
               />
             </g>
@@ -626,7 +634,7 @@ export default defineComponent({
                 <rect
                   v-for="cell in matrix[i]"
                   :key="cell.cellName"
-                  :x="orderingScale(cell.x) + 1"
+                  :x="(cell.x * cellSize) + 1"
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
