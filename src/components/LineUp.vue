@@ -6,7 +6,6 @@ import {
 import LineUp, { DataBuilder, LocalDataProvider } from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
-import { Node } from '@/types';
 
 export default defineComponent({
   name: 'LineUp',
@@ -64,8 +63,7 @@ export default defineComponent({
 
     // If lineup order has changed, update matrix
     watch(lineupOrder, (newLineupOrder) => {
-      // If sort order has less length than number of nodes, we've filtered
-      // Sort those nodes to the top
+      // If sort order has less length than number of nodes, we've filtered sort those nodes to the top
       if (network.value !== null && newLineupOrder.length < network.value.nodes.length) {
         return;
       }
@@ -78,7 +76,7 @@ export default defineComponent({
 
     // Helper functions
     function idsToIndices(ids: string[]) {
-      const sortedData: (Node | null)[] = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
+      const sortedData = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
 
       return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
     }
@@ -176,6 +174,28 @@ export default defineComponent({
 
     onMounted(() => {
       buildLineup();
+
+      // Select the node that will be observed for mutations
+      const targetNode = document.getElementById('lineup') as Node;
+
+      // Options for the observer (which mutations to observe)
+      const config = { attributes: false, childList: true, subtree: true };
+
+      // Callback function to execute when mutations are observed
+      function callback(mutationList: MutationRecord[]) {
+        mutationList.forEach((mutation) => {
+          if ((mutation.target as Element).attributes.getNamedItem('data-type-cat')?.value === 'composite') {
+            // If we found a 'composite' column being added/removed, we need to check if there are any `lu-nested` and set boolean in store
+            // console.log(document.getElementsByClassName('lu-nested')[0], mutation);
+          }
+        });
+      }
+
+      // Create an observer instance linked to the callback function
+      const observer = new MutationObserver(callback);
+
+      // Start observing the target node for configured mutations
+      observer.observe(targetNode, config);
     });
 
     watch(network, () => {
