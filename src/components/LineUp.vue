@@ -3,9 +3,10 @@ import store from '@/store';
 import {
   computed, defineComponent, onMounted, Ref, ref, SetupContext, watch, watchEffect,
 } from '@vue/composition-api';
-import LineUp, { DataBuilder } from 'lineupjs';
+import LineUp, { DataBuilder, LocalDataProvider } from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
+import { Node } from '@/types';
 
 export default defineComponent({
   name: 'LineUp',
@@ -35,22 +36,53 @@ export default defineComponent({
       return 330;
     });
 
+    const sortOrder = computed(() => store.state.sortOrder);
+    const lineupOrder = computed(() => {
+      if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
+        return [...Array(network.value?.nodes.length).keys()];
+      }
+      return [...lineup.value.data.getFirstRanking().getOrder()];
+    });
+
+    // If store order has changed, update lineup
+    watch(sortOrder, (newSortOrder) => {
+      if (lineup.value !== null) {
+        const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
+        (lineup.value.data as LocalDataProvider).setData(sortedData);
+      }
+    });
+
+    // If lineup order has changed, update matrix
+    watch(lineupOrder, (newLineupOrder) => {
+      if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
+        const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
+        store.commit.setSortOrder(newSortOrder);
+      }
+    });
+
     // Helper functions
     function idsToIndices(ids: string[]) {
-      return ids
-        .map((elementID) => (builder.value !== null
-          ? builder.value.buildData().data.findIndex((dataElement) => dataElement._id === elementID)
-          : -1))
-        .filter((index) => index !== -1);
+      const sortedData: (Node | null)[] = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
+
+      return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
     }
 
-    function indicesToIDs(indicies: number[]) {
-      return indicies.map((index: number) => {
-        if (builder.value !== null) {
-          return builder.value.buildData().data[index]._id.toString();
-        }
-        return undefined;
-      });
+    // Update selection/hover from matrix
+    watchEffect(() => {
+      // Convert the ids to indices
+      const indices = [...new Set(idsToIndices([...selectedNodes.value.values(), ...hoveredNodes.value]))];
+
+      if (lineup.value !== null) {
+        lineup.value.setSelection(indices);
+      }
+    });
+
+    function indicesToIDs(indices: number[]) {
+      if (network.value !== null) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return indices.map((index) => network.value!.nodes[sortOrder.value[index]]._id);
+      }
+      return [];
     }
 
     function removeLineup() {
@@ -68,7 +100,7 @@ export default defineComponent({
       const lineupDiv = document.getElementById('lineup');
 
       if (network.value !== null && lineupDiv !== null) {
-        const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column) || column === '_key');
+        const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column));
 
         builder.value = new DataBuilder(network.value.nodes);
 
@@ -88,9 +120,9 @@ export default defineComponent({
           .build(lineupDiv);
 
         // Add an event watcher to update selected nodes
-        lineup.value.on('selectionChanged', (dataindices: number[]) => {
+        lineup.value.on('selectionChanged', (dataIndices: number[]) => {
           // Transform data indices to multinet `_id`s
-          const clickedIDs: string[] = indicesToIDs(dataindices);
+          const clickedIDs: string[] = indicesToIDs(dataIndices);
 
           // Find the symmetric difference between the ids here and those in the store
           function diffFunction<T>(arr1: Array<T>, arr2: Array<T>): Array<T> { return arr1.filter((x) => arr2.indexOf(x) === -1); }
@@ -107,13 +139,13 @@ export default defineComponent({
         let lastHovered = '';
 
         // Add an event watcher to update highlighted nodes
-        lineup.value.on('highlightChanged', (dataindex: number) => {
-          if (dataindex === -1) {
+        lineup.value.on('highlightChanged', (dataIndex: number) => {
+          if (dataIndex === -1) {
             return;
           }
 
           // Transform data indices to multinet `_id`s
-          const hoveredIDs: string[] = indicesToIDs([dataindex]);
+          const hoveredIDs: string[] = indicesToIDs([dataIndex]);
 
           // Hover the elements that are different to add/remove them from the store
           hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
@@ -127,36 +159,6 @@ export default defineComponent({
 
     onMounted(() => {
       buildLineup();
-    });
-
-    // Update selection/hover from matrix
-    watchEffect(() => {
-      // Convert the ids to indices
-      const indices = [...new Set(idsToIndices([...selectedNodes.value.values(), ...hoveredNodes.value]))];
-
-      if (lineup.value !== null) {
-        lineup.value.setSelection(indices);
-      }
-    });
-
-    let currentLineupSortOrder: number[] = [];
-
-    // Update sort order in matrix
-    watchEffect(() => {
-      if (lineup.value !== null) {
-        const lineupOrder = [...lineup.value.data.getFirstRanking().getOrder()];
-        const storeOrder = store.state.sortOrder;
-
-        if (JSON.stringify(currentLineupSortOrder) !== JSON.stringify(lineupOrder)) {
-          // If lineup order has changed, update the store
-          store.commit.setSortOrder(lineupOrder);
-          currentLineupSortOrder = lineupOrder;
-        } else if (JSON.stringify(currentLineupSortOrder) !== JSON.stringify(storeOrder)) {
-          // If store order has changed, update lineup
-          // lineup.value.data.getFirstRanking().order = storeOrder;
-          currentLineupSortOrder = storeOrder;
-        }
-      }
     });
 
     watch(network, () => {
