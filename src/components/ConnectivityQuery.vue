@@ -549,7 +549,7 @@ export default defineComponent({
             loading.value = false;
             store.commit.setDirectionalEdges(true);
             store.commit.setQueriedNetworkState(true);
-            store.commit.setDegreeEntries(setNodeDegreeDict(store.state.aggregated, store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
+            store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
           } else {
             // Update state with empty network
             store.dispatch.aggregateNetwork(undefined);

@@ -77,6 +77,7 @@ export default defineComponent({
     const selectNeighbors = computed(() => store.state.selectNeighbors);
     const showGridLines = computed(() => store.state.showGridLines);
     const aggregated = computed(() => store.state.aggregated);
+    const filtered = computed(() => store.state.filteredNetwork);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const matrixWidth = computed(() => (network.value !== null
@@ -355,8 +356,9 @@ export default defineComponent({
             }
           }
           if (
-            cell.rowCellType === 'supernode'
-            && cell.colCellType === 'supernode'
+            (cell.rowCellType === 'supernode'
+            && cell.colCellType === 'supernode') || (cell.rowCellType === 'filtered'
+            && cell.colCellType === 'filtered')
           ) {
             if (cell.z > maxAggrConnections) {
               maxAggrConnections = cell.z;
@@ -417,11 +419,25 @@ export default defineComponent({
         if (expandedSuperNodes.value.has(node._id)) {
           // retract
           expandedSuperNodes.value.delete(node._id);
-          store.dispatch.retractAggregatedNode(node._id);
+          store.dispatch.retractAggregatedNode(['aggregated', node._id]);
         } else {
           // expand
           expandedSuperNodes.value.add(node._id);
-          store.dispatch.expandAggregatedNode(node._id);
+          store.dispatch.expandAggregatedNode(['aggregated', node._id]);
+        }
+      } else if (filtered.value) {
+        if (node.type !== 'filtered') {
+          return;
+        }
+        // expand and retract the filtered aggregation based on user selection
+        if (expandedSuperNodes.value.has(node._id)) {
+          // retract
+          expandedSuperNodes.value.delete(node._id);
+          store.dispatch.retractAggregatedNode(['filtered', node._id]);
+        } else {
+          // expand
+          expandedSuperNodes.value.add(node._id);
+          store.dispatch.expandAggregatedNode(['filtered', node._id]);
         }
       } else {
         store.dispatch.clickElement(node._id);
@@ -492,6 +508,7 @@ export default defineComponent({
       selectedNodes,
       clickedNeighborClass,
       sortKey,
+      filtered,
     };
   },
 
@@ -567,10 +584,10 @@ export default defineComponent({
                 x="20"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && node.type !== 'supernode' ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated || filtered) && (node.type !== 'supernode' || node.type !== 'filtered') ? '#AAAAAA' : '#000000'}`"
                   class="label"
                 >
-                  {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+                  {{ node.type === 'supernode' || node.type === 'filtered' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
                 </p>
               </foreignObject>
               <path
@@ -606,22 +623,22 @@ export default defineComponent({
                 :x="-labelWidth"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && node.type !== 'supernode' ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && (node.type !== 'supernode' || node.type === 'filtered') ? '#AAAAAA' : '#000000'}`"
                   class="label"
                 >
-                  {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+                  {{ node.type === 'supernode' || node.type === 'filtered' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
                 </p>
               </foreignObject>
 
               <!-- Clickable row expand/retract -->
               <path
-                v-if="node.type === 'supernode'"
+                v-if="node.type === 'supernode' || node.type === 'filtered'"
                 :d="expandedSuperNodes.has(node._id) ? retractPath : expandPath"
                 :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})scale(0.5)`"
                 fill="#8B8B8B"
               />
               <rect
-                v-if="node.type === 'supernode'"
+                v-if="node.type === 'supernode' || node.type === 'filtered'"
                 :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})`"
                 width="10"
                 height="10"
@@ -638,7 +655,7 @@ export default defineComponent({
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
-                  :fill="cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode' ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                  :fill="(cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode') || (cell.rowCellType=== 'filtered' && cell.colCellType === 'filtered') ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                   :fill-opacity="cell.z"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                   @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"

@@ -120,6 +120,7 @@ export interface State {
   maxDegree: number;
   networkPreFilter: Network | null;
   queriedNetwork: boolean;
+  filteredNetwork: boolean;
 }
 
 export type ProvenanceEventTypes =

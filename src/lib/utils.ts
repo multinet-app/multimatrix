@@ -56,14 +56,14 @@ export function formatShortDate(date: Date) {
   return dateFormat;
 }
 
-export function setNodeDegreeDict(aggregated: boolean, networkPreFilter: Network | null, networkOnLoad: Network | null, queried: boolean, directionalEdges: boolean) {
+export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoad: Network | null, queried: boolean, directionalEdges: boolean) {
   // Determine correct network to use
   let baseNetwork: Network | null = { nodes: [], edges: [] };
   // Reset node dict
   const nodeDegreeDict: {[key: string]: number} = {};
 
   if (networkPreFilter != null || networkOnLoad !== null) {
-    baseNetwork = (queried || aggregated) ? structuredClone(networkPreFilter) : structuredClone(networkOnLoad);
+    baseNetwork = queried ? structuredClone(networkPreFilter) : structuredClone(networkOnLoad);
   }
   if (baseNetwork !== null) {
     baseNetwork.edges.forEach((edge: Edge) => {
