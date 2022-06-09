@@ -397,6 +397,7 @@ export default defineComponent({
               hide-details
               class="align-center"
               color="blue darken-1"
+              :disabled="aggregated"
               @change="removeByDegree"
             >
               <template v-slot:prepend>
