@@ -143,7 +143,7 @@ const {
     },
 
     setNetwork(state, network: Network) {
-      if (!state.aggregated) {
+      if (!state.aggregated && !state.filteredNetwork) {
         // eslint-disable-next-line no-param-reassign
         network.nodes = network.nodes.sort((node1, node2) => {
           const key1 = parseInt(node1._key, 10);

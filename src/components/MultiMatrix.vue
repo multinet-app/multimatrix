@@ -584,7 +584,7 @@ export default defineComponent({
                 x="20"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated || filtered) && (node.type !== 'supernode' || node.type !== 'filtered') ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (filtered && node.type !== 'filtered') ? '#AAAAAA' : '#000000'}`"
                   class="label"
                 >
                   {{ node.type === 'supernode' || node.type === 'filtered' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
@@ -655,7 +655,7 @@ export default defineComponent({
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
-                  :fill="(cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode') || (cell.rowCellType=== 'filtered' && cell.colCellType === 'filtered') ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                  :fill="(cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode') || (cell.rowCellType === 'filtered' && cell.colCellType === 'filtered') ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                   :fill-opacity="cell.z"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                   @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"
