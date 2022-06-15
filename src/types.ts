@@ -115,6 +115,7 @@ export interface State {
   isDate: boolean;
   controlsWidth: number;
   selectedHops: number;
+  lineupIsNested: boolean;
 }
 
 export type ProvenanceEventTypes =

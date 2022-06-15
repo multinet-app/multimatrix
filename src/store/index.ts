@@ -76,6 +76,7 @@ const {
     isDate: false,
     controlsWidth: 256,
     selectedHops: 1,
+    lineupIsNested: false,
   } as State,
 
   getters: {
@@ -359,6 +360,10 @@ const {
           updateProvenanceState(state, 'Clear Selection');
         }
       }
+    },
+
+    setLineUpIsNested(state, lineupIsNested) {
+      state.lineupIsNested = lineupIsNested;
     },
   },
 

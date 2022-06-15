@@ -3,7 +3,7 @@ import store from '@/store';
 import {
   computed, defineComponent, onMounted, Ref, ref, SetupContext, watch, watchEffect,
 } from '@vue/composition-api';
-import LineUp, { DataBuilder, LocalDataProvider } from 'lineupjs';
+import LineUp, { Column, DataBuilder, LocalDataProvider } from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
 
@@ -172,30 +172,14 @@ export default defineComponent({
       }
     }
 
+    watchEffect(() => {
+      if (lineup.value !== null) {
+        store.commit.setLineUpIsNested(lineup.value.data.getFirstRanking().flatColumns.map((col: Column) => col.desc.type).includes('nested'));
+      }
+    });
+
     onMounted(() => {
       buildLineup();
-
-      // Select the node that will be observed for mutations
-      const targetNode = document.getElementById('lineup') as Node;
-
-      // Options for the observer (which mutations to observe)
-      const config = { attributes: false, childList: true, subtree: true };
-
-      // Callback function to execute when mutations are observed
-      function callback(mutationList: MutationRecord[]) {
-        mutationList.forEach((mutation) => {
-          if ((mutation.target as Element).attributes.getNamedItem('data-type-cat')?.value === 'composite') {
-            // If we found a 'composite' column being added/removed, we need to check if there are any `lu-nested` and set boolean in store
-            // console.log(document.getElementsByClassName('lu-nested')[0], mutation);
-          }
-        });
-      }
-
-      // Create an observer instance linked to the callback function
-      const observer = new MutationObserver(callback);
-
-      // Start observing the target node for configured mutations
-      observer.observe(targetNode, config);
     });
 
     watch(network, () => {
