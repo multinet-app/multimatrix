@@ -1,16 +1,18 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  computed, defineComponent, onMounted, Ref, ref, SetupContext, watch, watchEffect,
+  computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
 import LineUp, { Column, DataBuilder, LocalDataProvider } from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
+import vuetify from '@/plugins/vuetify';
+import WindowInstanceMap from '@/lib/windowSizeUtils';
 
 export default defineComponent({
   name: 'LineUp',
 
-  setup(props: unknown, context: SetupContext) {
+  setup() {
     const network = computed(() => store.state.network);
     const selectedNodes = computed(() => store.state.selectedNodes);
     const hoveredNodes = computed(() => store.state.hoveredNodes);
@@ -19,27 +21,29 @@ export default defineComponent({
     const lineup: Ref<LineUp | null> = ref(null);
     const builder: Ref<DataBuilder | null> = ref(null);
 
+    const matrixWidth = ref(0);
+    const matrixResizeObserver = new ResizeObserver((a: ResizeObserverEntry[]) => { matrixWidth.value = a[0].target.parentElement?.clientWidth || 0; });
+    const matrixElement = document.getElementById('matrix');
+    if (matrixElement !== null) {
+      matrixResizeObserver.observe(matrixElement);
+    }
+
     const lineupWidth = computed(() => {
-      const controlsElement = select<Element, Element>('.app-sidebar').node();
-      const matrixElement = select<Element, Element>('#matrix').node();
+      const controlsElementWidth = vuetify.framework.application.left;
       const intermediaryElement = select<Element, Element>('#intNodeDiv').node();
 
-      if (controlsElement !== null && matrixElement !== null && matrixElement.parentElement !== null) {
-        let availableSpace = context.root.$vuetify.breakpoint.width - controlsElement.clientWidth - matrixElement.parentElement.clientWidth - 12; // 12 from the svg container padding
-        if (intermediaryElement !== null) {
-          availableSpace -= intermediaryElement.clientWidth;
-        }
-        return availableSpace < 330 ? 330 : availableSpace;
+      let availableSpace = WindowInstanceMap.innerWidth - controlsElementWidth - matrixWidth.value - 12; // 12 from the svg container padding
+      if (intermediaryElement !== null) {
+        availableSpace -= intermediaryElement.clientWidth;
       }
-
-      return 330;
+      return availableSpace < 330 ? 330 : availableSpace;
     });
 
     const lineupHeight = computed(() => {
-      const matrixElement = select<Element, Element>('#matrix').node();
+      const tableHeader = select<Element, Element>('.le-thead').node();
 
-      if (matrixElement !== null && matrixElement.parentElement !== null) {
-        return matrixElement.parentElement.clientHeight + 24;
+      if (tableHeader !== null && network.value !== null) {
+        return tableHeader.clientHeight + (cellSize.value * network.value.nodes.length) + 34 + 24; // 34 padding-top, 24 is needed to remove scroll
       }
 
       return 10000;
