@@ -36,17 +36,16 @@ export default defineComponent({
       if (intermediaryElement !== null) {
         availableSpace -= intermediaryElement.clientWidth;
       }
-      return availableSpace < 330 ? 330 : availableSpace;
+      return availableSpace < 280 ? 280 : availableSpace; // 280 is width of popover. clamping at 280 prevents ugly overlap
     });
 
     const lineupHeight = computed(() => {
-      const tableHeader = select<Element, Element>('.le-thead').node();
-
-      if (tableHeader !== null && network.value !== null) {
+      if (network.value !== null && lineup.value !== null) {
+        const tableHeader = lineup.value.node.getElementsByClassName('le-thead')[0];
         return tableHeader.clientHeight + (cellSize.value * network.value.nodes.length) + 34 + 24; // 34 padding-top, 24 is needed to remove scroll
       }
 
-      return 10000;
+      return 1000;
     });
 
     const sortOrder = computed(() => store.state.sortOrder);
