@@ -40,12 +40,13 @@ export default defineComponent({
     });
 
     const lineupHeight = computed(() => {
+      let possibleHeight = 500;
       if (network.value !== null && lineup.value !== null) {
         const tableHeader = lineup.value.node.getElementsByClassName('le-thead')[0];
-        return tableHeader.clientHeight + (cellSize.value * network.value.nodes.length) + 34 + 24; // 34 padding-top, 24 is needed to remove scroll
+        possibleHeight = tableHeader.clientHeight + (cellSize.value * network.value.nodes.length) + 34 + 24; // 34 padding-top, 24 is needed to remove scroll
       }
 
-      return 1000;
+      return possibleHeight < 500 ? 500 : possibleHeight;
     });
 
     const sortOrder = computed(() => store.state.sortOrder);
