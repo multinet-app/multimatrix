@@ -130,18 +130,6 @@ export default defineComponent({
 </template>
 
 <style>
-html {
-  scrollbar-width: none;
-}
-
-html::-webkit-scrollbar {
-  display: none;
-}
-
-body {
-  overflow: hidden;
-}
-
 #app {
   font-family: "Blinker", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

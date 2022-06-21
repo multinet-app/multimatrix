@@ -62,7 +62,15 @@ export default {
   </v-app>
 </template>
 
-<style scoped>
+<style>
+body {
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
 #app {
   font-family: Blinker, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
