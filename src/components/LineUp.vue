@@ -128,6 +128,7 @@ export default defineComponent({
           padding: () => 2,
           height: () => cellSize.value - 2,
         }));
+        builder.value.animated(false);
 
         // Make the vis
         lineup.value = builder.value
