@@ -441,15 +441,20 @@ const {
         baseNetwork.nodes.push(filteredNode);
         // Add edges to filtered nodes
         filteredEdges.forEach((edge: Edge) => {
+          // eslint-disable-next-line no-param-reassign
           edge.filteredFrom = edge._from;
+          // eslint-disable-next-line no-param-reassign
           edge.filteredTo = edge._to;
+          // eslint-disable-next-line no-param-reassign
           edge._from = nodeSet.has(edge._from) ? edge._from : 'filtered';
+          // eslint-disable-next-line no-param-reassign
           edge._to = nodeSet.has(edge._to) ? edge._to : 'filtered';
           if (baseNetwork !== null) {
             baseNetwork.edges.push(edge);
           }
         });
         store.commit.setFilteredNetwork(true);
+        console.log(baseNetwork);
         store.dispatch.updateNetwork({ network: baseNetwork });
       }
     },

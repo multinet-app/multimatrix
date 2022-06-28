@@ -65,6 +65,7 @@ export default defineComponent({
       },
     });
     const aggregated = computed(() => store.state.aggregated);
+    const filtered = computed(() => store.state.filteredNetwork);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
@@ -220,6 +221,7 @@ export default defineComponent({
       showGridLines,
       cellSize,
       aggregated,
+      filtered,
       cellColorScale,
       parentColorScale,
       nodeVariableItems,
@@ -466,11 +468,11 @@ export default defineComponent({
         <div class="pa-4">
           <!-- Aggregated Matrix Legend -->
           <v-list-item
-            v-if="aggregated"
+            v-if="aggregated || filtered"
             class="pb-0 px-0"
             style="display: flex; max-height: 50px"
           >
-            Aggregate Legend
+            {{ aggregated ? 'Aggregate Legend' : 'Filtered Legend' }}
             <svg
               id="parent-matrix-legend"
               height="50"

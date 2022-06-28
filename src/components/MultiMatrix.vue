@@ -358,7 +358,7 @@ export default defineComponent({
           if (
             (cell.rowCellType === 'supernode'
             && cell.colCellType === 'supernode') || (cell.rowCellType === 'filtered'
-            && cell.colCellType === 'filtered')
+            || cell.colCellType === 'filtered')
           ) {
             if (cell.z > maxAggrConnections) {
               maxAggrConnections = cell.z;
@@ -655,7 +655,7 @@ export default defineComponent({
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
-                  :fill="(cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode') || (cell.rowCellType === 'filtered' && cell.colCellType === 'filtered') ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                  :fill="(cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode') || (cell.rowCellType === 'filtered' || cell.colCellType === 'filtered') ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                   :fill-opacity="cell.z"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                   @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"
