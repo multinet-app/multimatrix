@@ -40,6 +40,7 @@ export default defineComponent({
     const showPathTable = computed(() => store.state.showPathTable);
     const connectivityMatrixPaths = computed(() => store.state.connectivityMatrixPaths);
     const tooltip = ref(null);
+    const lineUpIsNested = computed(() => store.state.lineupIsNested);
     const visMargins = ref({
       left: 75, top: 110, right: 1, bottom: 1,
     });
@@ -86,14 +87,7 @@ export default defineComponent({
     const matrixHeight = computed(() => (network.value !== null
       ? network.value.nodes.length * cellSize.value + visMargins.value.top + visMargins.value.bottom
       : 0));
-    const sortOrder = computed({
-      get() {
-        return store.state.sortOrder;
-      },
-      set(value: number[]) {
-        store.commit.setSortOrder(value);
-      },
-    });
+    const sortOrder = computed(() => store.state.sortOrder);
     const orderingScale = computed(() => scaleBand<number>()
       .domain(sortOrder.value)
       .range([0, sortOrder.value.length * cellSize.value]));
@@ -292,7 +286,8 @@ export default defineComponent({
           return firstValue - secondValue;
         });
       }
-      sortOrder.value = order;
+
+      store.commit.setSortOrder(order);
     }
 
     watch(hoveredNodes, () => {
@@ -509,6 +504,7 @@ export default defineComponent({
       clickedNeighborClass,
       sortKey,
       filtered,
+      lineUpIsNested,
     };
   },
 
@@ -523,6 +519,7 @@ export default defineComponent({
           :width="matrixWidth"
           :height="matrixHeight"
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
+          :style="`margin-top: ${lineUpIsNested ? 31 : 0}px`"
           @contextmenu="showContextMenu"
         >
           <g

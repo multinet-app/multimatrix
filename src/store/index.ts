@@ -81,6 +81,7 @@ const {
     networkPreFilter: null,
     queriedNetwork: false,
     filteredNetwork: false,
+    lineupIsNested: false,
   } as State,
 
   getters: {
@@ -457,6 +458,10 @@ const {
         console.log(baseNetwork);
         store.dispatch.updateNetwork({ network: baseNetwork });
       }
+    },
+
+    setLineUpIsNested(state, lineupIsNested) {
+      state.lineupIsNested = lineupIsNested;
     },
   },
 

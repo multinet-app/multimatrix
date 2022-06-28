@@ -1,17 +1,18 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  computed, defineComponent, onMounted, Ref, ref, SetupContext, watch, watchEffect,
+  computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
-import LineUp, { DataBuilder, LocalDataProvider } from 'lineupjs';
+import LineUp, { Column, DataBuilder, LocalDataProvider } from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
-import { Node } from '@/types';
+import vuetify from '@/plugins/vuetify';
+import WindowInstanceMap from '@/lib/windowSizeUtils';
 
 export default defineComponent({
   name: 'LineUp',
 
-  setup(props: unknown, context: SetupContext) {
+  setup() {
     const network = computed(() => store.state.network);
     const selectedNodes = computed(() => store.state.selectedNodes);
     const hoveredNodes = computed(() => store.state.hoveredNodes);
@@ -20,20 +21,32 @@ export default defineComponent({
     const lineup: Ref<LineUp | null> = ref(null);
     const builder: Ref<DataBuilder | null> = ref(null);
 
+    const matrixWidth = ref(0);
+    const matrixResizeObserver = new ResizeObserver((a: ResizeObserverEntry[]) => { matrixWidth.value = a[0].target.parentElement?.clientWidth || 0; });
+    const matrixElement = document.getElementById('matrix');
+    if (matrixElement !== null) {
+      matrixResizeObserver.observe(matrixElement);
+    }
+
     const lineupWidth = computed(() => {
-      const controlsElement = select<Element, Element>('.app-sidebar').node();
-      const matrixElement = select<Element, Element>('#matrix').node();
+      const controlsElementWidth = vuetify.framework.application.left;
       const intermediaryElement = select<Element, Element>('#intNodeDiv').node();
 
-      if (controlsElement !== null && matrixElement !== null) {
-        let availableSpace = context.root.$vuetify.breakpoint.width - controlsElement.clientWidth - matrixElement.clientWidth - 12; // 12 from the svg container padding
-        if (intermediaryElement !== null) {
-          availableSpace -= intermediaryElement.clientWidth;
-        }
-        return availableSpace < 330 ? 330 : availableSpace;
+      let availableSpace = WindowInstanceMap.innerWidth - controlsElementWidth - matrixWidth.value - 12; // 12 from the svg container padding
+      if (intermediaryElement !== null) {
+        availableSpace -= intermediaryElement.clientWidth;
+      }
+      return availableSpace < 280 ? 280 : availableSpace; // 280 is width of popover. clamping at 280 prevents ugly overlap
+    });
+
+    const lineupHeight = computed(() => {
+      let possibleHeight = 500;
+      if (network.value !== null && lineup.value !== null) {
+        const tableHeader = lineup.value.node.getElementsByClassName('le-thead')[0];
+        possibleHeight = tableHeader.clientHeight + (cellSize.value * network.value.nodes.length) + 34 + 24; // 34 padding-top, 24 is needed to remove scroll
       }
 
-      return 330;
+      return possibleHeight < 500 ? 500 : possibleHeight;
     });
 
     const sortOrder = computed(() => store.state.sortOrder);
@@ -54,6 +67,11 @@ export default defineComponent({
 
     // If lineup order has changed, update matrix
     watch(lineupOrder, (newLineupOrder) => {
+      // If sort order has less length than number of nodes, we've filtered sort those nodes to the top
+      if (network.value !== null && newLineupOrder.length < network.value.nodes.length) {
+        return;
+      }
+
       if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
         const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
         store.commit.setSortOrder(newSortOrder);
@@ -62,7 +80,7 @@ export default defineComponent({
 
     // Helper functions
     function idsToIndices(ids: string[]) {
-      const sortedData: (Node | null)[] = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
+      const sortedData = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
 
       return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
     }
@@ -147,15 +165,22 @@ export default defineComponent({
           // Transform data indices to multinet `_id`s
           const hoveredIDs: string[] = indicesToIDs([dataIndex]);
 
+          // Remove previously hovered node and track what is now hovered
+          store.commit.removeHoveredNode(lastHovered);
+
           // Hover the elements that are different to add/remove them from the store
           hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
 
-          // Remove previously hovered node and track what is now hovered
-          store.commit.removeHoveredNode(lastHovered);
           [lastHovered] = hoveredIDs;
         });
       }
     }
+
+    watchEffect(() => {
+      if (lineup.value !== null) {
+        store.commit.setLineUpIsNested(lineup.value.data.getFirstRanking().flatColumns.map((col: Column) => col.desc.type).includes('nested'));
+      }
+    });
 
     onMounted(() => {
       buildLineup();
@@ -178,6 +203,7 @@ export default defineComponent({
 
     return {
       lineupWidth,
+      lineupHeight,
       removeHighlight,
     };
   },
@@ -187,7 +213,7 @@ export default defineComponent({
 <template>
   <div
     id="lineup"
-    :style="`width: ${lineupWidth}px;`"
+    :style="`width: ${lineupWidth}px; height: ${lineupHeight}px`"
     @mouseleave="removeHighlight"
   />
 </template>
@@ -195,12 +221,7 @@ export default defineComponent({
 <style>
 #lineup {
   z-index: 1;
-  height: 10000px; /* big enough to show all rows */
   padding-top: 34px;
-}
-
-.le-td {
-  overflow-x: unset !important;
 }
 
 .le-th {

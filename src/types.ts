@@ -121,6 +121,7 @@ export interface State {
   networkPreFilter: Network | null;
   queriedNetwork: boolean;
   filteredNetwork: boolean;
+  lineupIsNested: boolean;
 }
 
 export type ProvenanceEventTypes =

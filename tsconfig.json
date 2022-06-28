@@ -12,6 +12,7 @@
     "baseUrl": ".",
     "types": [
       "node",
+      "resize-observer-browser",
       "webpack-env",
       "vuetify"
     ],
