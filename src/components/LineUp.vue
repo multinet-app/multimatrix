@@ -60,6 +60,12 @@ export default defineComponent({
     // If store order has changed, update lineup
     watch(sortOrder, (newSortOrder) => {
       if (lineup.value !== null) {
+        // Remove the lineup sort
+        const lineupSortColumn = lineup.value.data.find((d) => d.isSortedByMe().asc !== undefined);
+        while (lineupSortColumn?.isSortedByMe().asc !== undefined) {
+          lineupSortColumn.toggleMySorting();
+        }
+
         const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
         (lineup.value.data as LocalDataProvider).setData(sortedData);
       }
