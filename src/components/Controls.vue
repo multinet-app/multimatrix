@@ -100,6 +100,7 @@ export default defineComponent({
 
     // Non-template objects
     const network = computed(() => store.state.network);
+    const networkOnLoad = computed(() => store.state.networkOnLoad);
 
     const searchTerm = ref('');
     const searchErrors: Ref<string[]> = ref([]);
@@ -192,6 +193,8 @@ export default defineComponent({
     }
 
     function aggregateNetwork(varName: string) {
+      store.commit.setFilteredNetwork(false);
+      if (networkOnLoad.value !== null) { store.dispatch.updateNetwork({ network: networkOnLoad.value }); }
       store.dispatch.aggregateNetwork(varName);
     }
 
