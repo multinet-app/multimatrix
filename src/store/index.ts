@@ -392,8 +392,7 @@ const {
     setDegreeNetwork(state, degreeRange: number[]) {
       // Determine correct network to use
       let baseNetwork: Network | null = { nodes: [], edges: [] };
-
-      if (state.networkPreFilter != null || state.networkOnLoad !== null) {
+      if (state.networkPreFilter !== null || state.networkOnLoad !== null) {
         baseNetwork = state.connectivityMatrixPaths.paths.length > 0 ? structuredClone(state.networkPreFilter) : structuredClone(state.networkOnLoad);
       }
       // Restore network if min and max are restored
@@ -455,7 +454,6 @@ const {
           }
         });
         store.commit.setFilteredNetwork(true);
-        console.log(baseNetwork);
         store.dispatch.updateNetwork({ network: baseNetwork });
       }
     },
@@ -635,7 +633,7 @@ const {
 
       if (state.network !== null) {
         // Reset network if aggregated
-        if (state.aggregated) {
+        if (state.aggregated && varName === undefined) {
           // Reset an aggregated network
           const allChildren = state.network.nodes
             .map((node) => node.children)
@@ -716,7 +714,6 @@ const {
           commit.setAggregated(true);
           store.commit.setNetworkPreFilter({ nodes: aggregatedNodes as Node[], edges: aggregatedEdges });
           dispatch.updateNetwork({ network: { nodes: aggregatedNodes as Node[], edges: aggregatedEdges } });
-          commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
         }
       }
     },
