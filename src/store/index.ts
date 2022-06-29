@@ -393,7 +393,7 @@ const {
       // Determine correct network to use
       let baseNetwork: Network = { nodes: [], edges: [] };
       if (state.networkPreFilter !== null || state.networkOnLoad !== null) {
-        baseNetwork = state.connectivityMatrixPaths.paths.length > 0 ? structuredClone(state.networkPreFilter) : structuredClone(state.networkOnLoad);
+        baseNetwork = state.connectivityMatrixPaths.paths.length > 0 ? structuredClone(state.networkPreFilter as Network) : structuredClone(state.networkOnLoad as Network);
       }
       // Restore network if min and max are restored
       if (state.networkOnLoad !== null && degreeRange[0] === 0 && degreeRange[1] === state.maxDegree) {
