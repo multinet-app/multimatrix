@@ -633,23 +633,10 @@ const {
       if (state.network !== null) {
         // Reset network if aggregated
         if (state.aggregated && varName === undefined) {
-          // Reset an aggregated network
-          const allChildren = state.network.nodes
-            .map((node) => node.children)
-            .flat()
-            .filter((node): node is Node => node !== undefined);
-
-          const originalEdges = state.network.edges.map((edge) => {
-            const originalEdge = { ...edge };
-            originalEdge._from = `${originalEdge.originalFrom}`;
-            originalEdge._to = `${originalEdge.originalTo}`;
-
-            return originalEdge;
-          });
-
+          const unAggregatedNetwork = state.networkOnLoad !== null ? structuredClone(state.networkOnLoad) : { nodes: [], edges: [] };
           store.commit.setAggregated(false);
-          store.commit.setNetworkPreFilter({ nodes: allChildren, edges: originalEdges });
-          dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
+          store.commit.setNetworkPreFilter(unAggregatedNetwork);
+          dispatch.updateNetwork({ network: unAggregatedNetwork });
         }
 
         // Aggregate the network if the varName is not none
