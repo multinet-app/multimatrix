@@ -363,7 +363,7 @@ const {
     },
 
     setNetworkOnLoad(state, network: Network) {
-      state.networkOnLoad = network;
+      state.networkOnLoad = structuredClone(network);
     },
 
     setSelected(state, selectedNodes: Set<string>) {
