@@ -135,5 +135,5 @@ export type ProvenanceEventTypes =
   'Clear Selection' |
   'Set Label Variable';
 
-export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children', 'filteredChildren'] as const;
+export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children'] as const;
 export type InternalField = (typeof internalFieldNames)[number];

@@ -423,17 +423,17 @@ const {
 
         // Construct filtered supernode
         const filteredNode: Node = {
-          type: 'filtered',
+          type: 'supernode',
           neighbors: [],
           degreeCount: 0,
           _key: 'filtered',
           _id: 'filtered',
           _rev: '',
-          filteredChildren: [],
+          children: [],
           Label: 'filtered',
         };
         // Add the filtered children to filtered supernode
-        filteredNode.filteredChildren = baseNetwork.nodes.filter((node: Node) => filteredSet.has(node._id));
+        filteredNode.children = baseNetwork.nodes.filter((node: Node) => filteredSet.has(node._id));
 
         // Remove nodes that don't meet filter criteria
         baseNetwork.nodes = baseNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
@@ -442,9 +442,9 @@ const {
         // Add edges to filtered nodes
         filteredEdges.forEach((edge: Edge) => {
           // eslint-disable-next-line no-param-reassign
-          edge.filteredFrom = edge._from;
+          edge.originalFrom = edge._from;
           // eslint-disable-next-line no-param-reassign
-          edge.filteredTo = edge._to;
+          edge.originalTo = edge._to;
           // eslint-disable-next-line no-param-reassign
           edge._from = nodeSet.has(edge._from) ? edge._from : 'filtered';
           // eslint-disable-next-line no-param-reassign
@@ -718,15 +718,13 @@ const {
       }
     },
 
-    expandAggregatedNode(context, nodeInfo: string[]) {
+    expandAggregatedNode(context, nodeID: string) {
       const { state, dispatch } = rootActionContext(context);
-      const nodeType = nodeInfo[0];
-      const nodeID = nodeInfo[1];
 
       if (state.network !== null) {
         // Add children nodes into list at the correct index
         const indexOfParent = state.network && state.network.nodes.findIndex((node) => node._id === nodeID);
-        let parentChildren = (nodeType === 'aggregated') ? state.network.nodes[indexOfParent].children : state.network.nodes[indexOfParent].filteredChildren;
+        let parentChildren = state.network.nodes[indexOfParent].children;
         if (parentChildren === undefined) {
           return;
         }
@@ -746,12 +744,12 @@ const {
             let modified = false;
 
             if (newEdge._from === nodeID) {
-              newEdge._from = nodeType === 'aggregated' ? `${newEdge.originalFrom}` : `${newEdge.filteredFrom}`;
+              newEdge._from = `${newEdge.originalFrom}`;
               modified = true;
             }
 
             if (edge._to === nodeID) {
-              newEdge._to = nodeType === 'aggregated' ? `${newEdge.originalTo}` : `${newEdge.filteredTo}`;
+              newEdge._to = `${newEdge.originalTo}`;
               modified = true;
             }
 
@@ -764,15 +762,13 @@ const {
       }
     },
 
-    retractAggregatedNode(context, nodeInfo: string[]) {
+    retractAggregatedNode(context, nodeID: string) {
       const { state, dispatch } = rootActionContext(context);
-      const nodeType = nodeInfo[0];
-      const nodeID = nodeInfo[1];
 
       if (state.network !== null) {
         // Remove children nodes
         const parentNode = state.network.nodes.find((node) => node._id === nodeID);
-        const parentChildren = nodeType === 'aggregated' ? parentNode && parentNode.children : parentNode && parentNode.filteredChildren;
+        const parentChildren = parentNode && parentNode.children;
         const retractedNodes = state.network.nodes.filter((node) => parentChildren && parentChildren.indexOf(node) === -1);
 
         // Remove children edges
