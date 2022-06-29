@@ -58,26 +58,25 @@ export function formatShortDate(date: Date) {
 
 export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoad: Network | null, queried: boolean, directionalEdges: boolean) {
   // Determine correct network to use
-  let baseNetwork: Network | null = { nodes: [], edges: [] };
+  let baseNetwork: Network = { nodes: [], edges: [] };
   // Reset node dict
   const nodeDegreeDict: {[key: string]: number} = {};
 
   if (networkPreFilter != null || networkOnLoad !== null) {
     baseNetwork = queried ? structuredClone(networkPreFilter) : structuredClone(networkOnLoad);
   }
-  if (baseNetwork !== null) {
-    baseNetwork.edges.forEach((edge: Edge) => {
-      if (directionalEdges) {
-        // eslint-disable-next-line no-unused-expressions
-        Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
-      } else {
-        // eslint-disable-next-line no-unused-expressions
-        Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
-        // eslint-disable-next-line no-unused-expressions
-        Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._to) ? nodeDegreeDict[edge._to] += 1 : nodeDegreeDict[edge._to] = 1;
-      }
-    });
-  }
+
+  baseNetwork.edges.forEach((edge: Edge) => {
+    if (directionalEdges) {
+      // eslint-disable-next-line no-unused-expressions
+      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
+    } else {
+      // eslint-disable-next-line no-unused-expressions
+      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
+      // eslint-disable-next-line no-unused-expressions
+      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._to) ? nodeDegreeDict[edge._to] += 1 : nodeDegreeDict[edge._to] = 1;
+    }
+  });
 
   const maxDegree = Math.max(...Object.values(nodeDegreeDict));
 

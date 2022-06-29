@@ -391,17 +391,17 @@ const {
 
     setDegreeNetwork(state, degreeRange: number[]) {
       // Determine correct network to use
-      let baseNetwork: Network | null = { nodes: [], edges: [] };
+      let baseNetwork: Network = { nodes: [], edges: [] };
       if (state.networkPreFilter !== null || state.networkOnLoad !== null) {
         baseNetwork = state.connectivityMatrixPaths.paths.length > 0 ? structuredClone(state.networkPreFilter) : structuredClone(state.networkOnLoad);
       }
       // Restore network if min and max are restored
-      if (state.networkOnLoad !== null && degreeRange[0] === 0 && degreeRange[1] === state.maxDegree && baseNetwork !== null) {
+      if (state.networkOnLoad !== null && degreeRange[0] === 0 && degreeRange[1] === state.maxDegree) {
         store.commit.setFilteredNetwork(false);
         store.dispatch.updateNetwork({ network: baseNetwork });
       } else
       // Create new network to reflect degree filtering
-      if (state.networkOnLoad !== null && baseNetwork !== null) {
+      if (state.networkOnLoad !== null) {
         // eslint-disable-next-line no-undef
         const nodeSet: Set<string> = new Set([]);
 
