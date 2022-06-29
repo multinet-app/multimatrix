@@ -62,8 +62,8 @@ export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoa
   // Reset node dict
   const nodeDegreeDict: {[key: string]: number} = {};
 
-  if (networkPreFilter != null || networkOnLoad !== null) {
-    baseNetwork = queried ? structuredClone(networkPreFilter) : structuredClone(networkOnLoad);
+  if (networkPreFilter !== null || networkOnLoad !== null) {
+    baseNetwork = queried ? structuredClone(networkPreFilter as Network) : structuredClone(networkOnLoad as Network);
   }
 
   baseNetwork.edges.forEach((edge: Edge) => {
