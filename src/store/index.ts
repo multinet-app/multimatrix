@@ -16,7 +16,7 @@ import {
   ArangoPath,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State, SlicedNetwork,
 } from '@/types';
-import { defineNeighbors } from '@/lib/utils';
+import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
 import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
 import { isInternalField } from '@/lib/typeUtils';
 
@@ -76,6 +76,11 @@ const {
     isDate: false,
     controlsWidth: 256,
     selectedHops: 1,
+    nodeDegreeDict: {},
+    maxDegree: 0,
+    networkPreFilter: null,
+    queriedNetwork: false,
+    filteredNetwork: false,
     lineupIsNested: false,
   } as State,
 
@@ -139,7 +144,7 @@ const {
     },
 
     setNetwork(state, network: Network) {
-      if (!state.aggregated) {
+      if (!state.aggregated && !state.filteredNetwork) {
         // eslint-disable-next-line no-param-reassign
         network.nodes = network.nodes.sort((node1, node2) => {
           const key1 = parseInt(node1._key, 10);
@@ -218,7 +223,9 @@ const {
 
     setDirectionalEdges(state, directionalEdges: boolean) {
       state.directionalEdges = directionalEdges;
-
+      const degreeObject = setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.connectivityMatrixPaths.paths.length > 0, store.state.directionalEdges);
+      state.maxDegree = degreeObject.maxDegree;
+      state.nodeDegreeDict = degreeObject.nodeDegreeDict;
       if (state.provenance !== null) {
         updateProvenanceState(state, 'Set Directional Edges');
       }
@@ -242,6 +249,13 @@ const {
 
     setAggregated(state, aggregated: boolean) {
       state.aggregated = aggregated;
+      const degreeObject = setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.connectivityMatrixPaths.paths.length > 0, store.state.directionalEdges);
+      state.maxDegree = degreeObject.maxDegree;
+      state.nodeDegreeDict = degreeObject.nodeDegreeDict;
+    },
+
+    setQueriedNetworkState(state, queried: boolean) {
+      state.queriedNetwork = queried;
     },
 
     setMaxConnections(state, maxConnections: {
@@ -362,6 +376,88 @@ const {
       }
     },
 
+    setNetworkPreFilter(state, networkPostQuery: Network) {
+      state.networkPreFilter = networkPostQuery;
+    },
+
+    setFilteredNetwork(state, filteredNetwork: boolean) {
+      state.filteredNetwork = filteredNetwork;
+    },
+
+    setDegreeEntries(state, degreeObject: { maxDegree: number; nodeDegreeDict: {[key: string]: number}}) {
+      state.maxDegree = degreeObject.maxDegree;
+      state.nodeDegreeDict = degreeObject.nodeDegreeDict;
+    },
+
+    setDegreeNetwork(state, degreeRange: number[]) {
+      // Determine correct network to use
+      let baseNetwork: Network = { nodes: [], edges: [] };
+      if (state.networkPreFilter !== null || state.networkOnLoad !== null) {
+        baseNetwork = state.connectivityMatrixPaths.paths.length > 0 ? structuredClone(state.networkPreFilter as Network) : structuredClone(state.networkOnLoad as Network);
+      }
+      // Restore network if min and max are restored
+      if (state.networkOnLoad !== null && degreeRange[0] === 0 && degreeRange[1] === state.maxDegree) {
+        store.commit.setFilteredNetwork(false);
+        store.dispatch.updateNetwork({ network: baseNetwork });
+      } else
+      // Create new network to reflect degree filtering
+      if (state.networkOnLoad !== null) {
+        // eslint-disable-next-line no-undef
+        const nodeSet: Set<string> = new Set([]);
+
+        // Remove edges that don't match degree criteria + store other edges in filtered edges
+        const filteredEdges: Edge[] = [];
+        baseNetwork.edges = baseNetwork.edges.filter((edge: Edge) => {
+          // Create set of nodes that match criteria
+          if (state.nodeDegreeDict[edge._from] >= degreeRange[0] && state.nodeDegreeDict[edge._from] <= degreeRange[1] && state.nodeDegreeDict[edge._to] >= degreeRange[0] && state.nodeDegreeDict[edge._to] <= degreeRange[1]) {
+            nodeSet.add(edge._from);
+            nodeSet.add(edge._to);
+            return true;
+          }
+          filteredEdges.push(edge);
+          return false;
+        });
+        const allNodes = baseNetwork.nodes.map((node: Node) => node._id);
+        // List of nodes in filtered out set
+        const filteredSet = new Set(allNodes.filter((id: string) => !Array.from(nodeSet).includes(id)));
+
+        // Construct filtered supernode
+        const filteredNode: Node = {
+          type: 'supernode',
+          neighbors: [],
+          degreeCount: 0,
+          _key: 'filtered',
+          _id: 'filtered',
+          _rev: '',
+          children: [],
+          Label: 'filtered',
+        };
+        // Add the filtered children to filtered supernode
+        filteredNode.children = baseNetwork.nodes.filter((node: Node) => filteredSet.has(node._id));
+
+        // Remove nodes that don't meet filter criteria
+        baseNetwork.nodes = baseNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
+        // Add filtered supernode
+        baseNetwork.nodes.push(filteredNode);
+        // Add edges to filtered nodes
+        filteredEdges.forEach((edge: Edge) => {
+          // eslint-disable-next-line no-param-reassign
+          edge.originalFrom = edge._from;
+          // eslint-disable-next-line no-param-reassign
+          edge.originalTo = edge._to;
+          // eslint-disable-next-line no-param-reassign
+          edge._from = nodeSet.has(edge._from) ? edge._from : 'filtered';
+          // eslint-disable-next-line no-param-reassign
+          edge._to = nodeSet.has(edge._to) ? edge._to : 'filtered';
+          if (baseNetwork !== null) {
+            baseNetwork.edges.push(edge);
+          }
+        });
+        store.commit.setFilteredNetwork(true);
+        store.dispatch.updateNetwork({ network: baseNetwork });
+      }
+    },
+
     setLineUpIsNested(state, lineupIsNested) {
       state.lineupIsNested = lineupIsNested;
     },
@@ -460,13 +556,14 @@ const {
         edges: edges.results as Edge[],
       };
       commit.setAttributeValues(networkElements);
+      commit.setNetworkOnLoad(networkElements);
       dispatch.updateNetwork({ network: networkElements });
+      commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
     },
 
     updateNetwork(context, payload: { network: Network }) {
       const { commit } = rootActionContext(context);
       commit.setNetwork(payload.network);
-      commit.setNetworkOnLoad(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
       commit.setSlicedNetwork([]);
     },
@@ -536,7 +633,7 @@ const {
 
       if (state.network !== null) {
         // Reset network if aggregated
-        if (state.aggregated) {
+        if (state.aggregated && varName === undefined) {
           // Reset an aggregated network
           const allChildren = state.network.nodes
             .map((node) => node.children)
@@ -552,6 +649,7 @@ const {
           });
 
           store.commit.setAggregated(false);
+          store.commit.setNetworkPreFilter({ nodes: allChildren, edges: originalEdges });
           dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
         }
 
@@ -614,6 +712,7 @@ const {
 
           // Set network and aggregated
           commit.setAggregated(true);
+          store.commit.setNetworkPreFilter({ nodes: aggregatedNodes as Node[], edges: aggregatedEdges });
           dispatch.updateNetwork({ network: { nodes: aggregatedNodes as Node[], edges: aggregatedEdges } });
         }
       }
@@ -630,7 +729,7 @@ const {
           return;
         }
 
-        parentChildren = parentChildren.map((child) => {
+        parentChildren = parentChildren.map((child: Node) => {
           // eslint-disable-next-line no-param-reassign
           child.parentPosition = indexOfParent;
           return child;
@@ -659,6 +758,7 @@ const {
           .filter((edge): edge is Edge => edge !== null);
 
         dispatch.updateNetwork({ network: { nodes: expandedNodes, edges: [...expandedEdges, ...state.network.edges] } });
+        store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
       }
     },
 
@@ -674,7 +774,7 @@ const {
         // Remove children edges
         const retractedEdges = state.network.edges
           .map((edge) => {
-            const parentChildrenIDs = parentChildren && parentChildren.map((node) => node._id);
+            const parentChildrenIDs = parentChildren && parentChildren.map((node: Node) => node._id);
 
             if (parentChildrenIDs && (parentChildrenIDs.indexOf(edge._from) !== -1 || parentChildrenIDs.indexOf(edge._to) !== -1)) {
               return null;
@@ -685,6 +785,7 @@ const {
           .filter((edge): edge is Edge => edge !== null);
 
         dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
+        store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
       }
     },
 

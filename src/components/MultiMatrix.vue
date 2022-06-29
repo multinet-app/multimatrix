@@ -78,6 +78,7 @@ export default defineComponent({
     const selectNeighbors = computed(() => store.state.selectNeighbors);
     const showGridLines = computed(() => store.state.showGridLines);
     const aggregated = computed(() => store.state.aggregated);
+    const filtered = computed(() => store.state.filteredNetwork);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const matrixWidth = computed(() => (network.value !== null
@@ -350,8 +351,9 @@ export default defineComponent({
             }
           }
           if (
-            cell.rowCellType === 'supernode'
-            && cell.colCellType === 'supernode'
+            (cell.rowCellType === 'supernode'
+            && cell.colCellType === 'supernode') || (filtered.value && (cell.rowCellType === 'supernode'
+            || cell.colCellType === 'supernode'))
           ) {
             if (cell.z > maxAggrConnections) {
               maxAggrConnections = cell.z;
@@ -404,7 +406,7 @@ export default defineComponent({
     const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
 
     function expandOrRetractRow(node: Node) {
-      if (aggregated.value) {
+      if (aggregated.value || filtered.value) {
         if (node.type !== 'supernode') {
           return;
         }
@@ -487,6 +489,7 @@ export default defineComponent({
       selectedNodes,
       clickedNeighborClass,
       sortKey,
+      filtered,
       lineUpIsNested,
     };
   },
@@ -564,7 +567,7 @@ export default defineComponent({
                 x="20"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && node.type !== 'supernode' ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (filtered && node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
                   class="label"
                 >
                   {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
@@ -603,7 +606,7 @@ export default defineComponent({
                 :x="-labelWidth"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && node.type !== 'supernode' ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && (node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
                   class="label"
                 >
                   {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
@@ -635,7 +638,7 @@ export default defineComponent({
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
-                  :fill="cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode' ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                  :fill="(cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode') || (filtered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                   :fill-opacity="cell.z"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                   @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"

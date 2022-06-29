@@ -1,4 +1,4 @@
-import { Edge } from '@/types';
+import { Edge, Network } from '@/types';
 
 // Get the url querystring variables
 export function getUrlVars() {
@@ -54,4 +54,31 @@ export function formatShortDate(date: Date) {
   });
 
   return dateFormat;
+}
+
+export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoad: Network | null, queried: boolean, directionalEdges: boolean) {
+  // Determine correct network to use
+  let baseNetwork: Network = { nodes: [], edges: [] };
+  // Reset node dict
+  const nodeDegreeDict: {[key: string]: number} = {};
+
+  if (networkPreFilter !== null || networkOnLoad !== null) {
+    baseNetwork = queried ? structuredClone(networkPreFilter as Network) : structuredClone(networkOnLoad as Network);
+  }
+
+  baseNetwork.edges.forEach((edge: Edge) => {
+    if (directionalEdges) {
+      // eslint-disable-next-line no-unused-expressions
+      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
+    } else {
+      // eslint-disable-next-line no-unused-expressions
+      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
+      // eslint-disable-next-line no-unused-expressions
+      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._to) ? nodeDegreeDict[edge._to] += 1 : nodeDegreeDict[edge._to] = 1;
+    }
+  });
+
+  const maxDegree = Math.max(...Object.values(nodeDegreeDict));
+
+  return { nodeDegreeDict, maxDegree };
 }

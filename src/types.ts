@@ -11,6 +11,7 @@ export interface Dimensions {
 export interface Node extends TableRow {
   type: string;
   neighbors: string[];
+  degreeCount: number;
   children?: Node[];
   parentPosition?: number;
   [propName: string]: unknown;
@@ -115,6 +116,11 @@ export interface State {
   isDate: boolean;
   controlsWidth: number;
   selectedHops: number;
+  nodeDegreeDict: { [key: string]: number };
+  maxDegree: number;
+  networkPreFilter: Network | null;
+  queriedNetwork: boolean;
+  filteredNetwork: boolean;
   lineupIsNested: boolean;
 }
 

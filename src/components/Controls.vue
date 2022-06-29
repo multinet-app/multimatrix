@@ -65,6 +65,7 @@ export default defineComponent({
       },
     });
     const aggregated = computed(() => store.state.aggregated);
+    const filtered = computed(() => store.state.filteredNetwork);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
@@ -77,6 +78,12 @@ export default defineComponent({
       return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
     });
     const maxConnections = computed(() => store.state.maxConnections);
+    const maxDegree = computed(() => store.state.maxDegree);
+    const degreeRange = ref([0, maxDegree.value]);
+
+    watch([maxDegree], () => {
+      degreeRange.value = [0, maxDegree.value];
+    });
 
     // Intermediate node table template objects
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
@@ -93,6 +100,7 @@ export default defineComponent({
 
     // Non-template objects
     const network = computed(() => store.state.network);
+    const networkOnLoad = computed(() => store.state.networkOnLoad);
 
     const searchTerm = ref('');
     const searchErrors: Ref<string[]> = ref([]);
@@ -185,6 +193,14 @@ export default defineComponent({
     }
 
     function aggregateNetwork(varName: string) {
+      if (filtered.value) {
+        store.commit.setFilteredNetwork(false);
+        if (networkOnLoad.value !== null) {
+          store.dispatch.updateNetwork({ network: networkOnLoad.value });
+        }
+        degreeRange.value = [0, maxDegree.value];
+        store.commit.setDegreeNetwork(degreeRange.value);
+      }
       store.dispatch.aggregateNetwork(varName);
     }
 
@@ -203,6 +219,10 @@ export default defineComponent({
       }
     }
 
+    function removeByDegree() {
+      store.commit.setDegreeNetwork(degreeRange.value);
+    }
+
     return {
       aggregateBy,
       directionalEdges,
@@ -210,6 +230,7 @@ export default defineComponent({
       showGridLines,
       cellSize,
       aggregated,
+      filtered,
       cellColorScale,
       parentColorScale,
       nodeVariableItems,
@@ -228,6 +249,9 @@ export default defineComponent({
       searchTerm,
       searchErrors,
       searchItems,
+      degreeRange,
+      maxDegree,
+      removeByDegree,
     };
   },
 });
@@ -376,6 +400,37 @@ export default defineComponent({
           </v-list-item>
 
           <v-list-item>
+            <v-list-item-content> Degree </v-list-item-content>
+            <v-range-slider
+              v-model="degreeRange"
+              :max="maxDegree"
+              min="0"
+              hide-details
+              class="align-center"
+              color="blue darken-1"
+              :disabled="aggregated"
+              @change="removeByDegree"
+            >
+              <template v-slot:prepend>
+                <p
+                  class="pa-0 ma-0 text-center"
+                  style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
+                >
+                  {{ degreeRange[0] }}
+                </p>
+              </template>
+              <template v-slot:append>
+                <p
+                  class="pa-0 ma-0 text-center"
+                  style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
+                >
+                  {{ degreeRange[1] }}
+                </p>
+              </template>
+            </v-range-slider>
+          </v-list-item>
+
+          <v-list-item>
             <v-btn
               color="primary"
               block
@@ -422,11 +477,11 @@ export default defineComponent({
         <div class="pa-4">
           <!-- Aggregated Matrix Legend -->
           <v-list-item
-            v-if="aggregated"
+            v-if="aggregated || filtered"
             class="pb-0 px-0"
             style="display: flex; max-height: 50px"
           >
-            Aggregate Legend
+            {{ aggregated ? 'Aggregate Legend' : 'Filtered Legend' }}
             <svg
               id="parent-matrix-legend"
               height="50"

@@ -289,6 +289,7 @@ import {
   computed, defineComponent, onMounted, ref, Ref, watch,
 } from '@vue/composition-api';
 import api from '@/api';
+import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
 
 export default defineComponent({
   name: 'ConnectivityQuery',
@@ -530,6 +531,7 @@ export default defineComponent({
               newPath._key = val.toString();
               newPath._id = val.toString();
               newNetwork.edges.push(newPath);
+              newNetwork.nodes = defineNeighbors(newNetwork.nodes, newNetwork.edges as Edge[]);
 
               reconstructedPaths.push(reconstructedPath);
             });
@@ -543,6 +545,11 @@ export default defineComponent({
             // Update state with new network
             store.dispatch.aggregateNetwork(undefined);
             store.dispatch.updateNetwork({ network: newNetwork });
+            store.commit.setNetworkPreFilter(newNetwork);
+            loading.value = false;
+            store.commit.setDirectionalEdges(true);
+            store.commit.setQueriedNetworkState(true);
+            store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
           } else {
             // Update state with empty network
             store.dispatch.aggregateNetwork(undefined);
