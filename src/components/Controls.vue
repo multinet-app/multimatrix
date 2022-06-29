@@ -195,7 +195,9 @@ export default defineComponent({
     function aggregateNetwork(varName: string) {
       if (filtered.value) {
         store.commit.setFilteredNetwork(false);
-        if (networkOnLoad.value !== null) { store.dispatch.updateNetwork({ network: networkOnLoad.value }); }
+        if (networkOnLoad.value !== null) {
+          store.dispatch.updateNetwork({ network: networkOnLoad.value });
+        }
         degreeRange.value = [0, maxDegree.value];
         store.commit.setDegreeNetwork(degreeRange.value);
       }
