@@ -420,20 +420,6 @@ export default defineComponent({
           expandedSuperNodes.value.add(node._id);
           store.dispatch.expandAggregatedNode(node._id);
         }
-      } else if (filtered.value) {
-        if (node.type !== 'supernode') {
-          return;
-        }
-        // expand and retract the filtered aggregation based on user selection
-        if (expandedSuperNodes.value.has(node._id)) {
-          // retract
-          expandedSuperNodes.value.delete(node._id);
-          store.dispatch.retractAggregatedNode(node._id);
-        } else {
-          // expand
-          expandedSuperNodes.value.add(node._id);
-          store.dispatch.expandAggregatedNode(node._id);
-        }
       } else {
         store.dispatch.clickElement(node._id);
       }
