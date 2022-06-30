@@ -170,6 +170,14 @@ export default defineComponent({
             lineupIsSorter = true;
           }
         });
+
+        lineup.value.data.getFirstRanking().on('groupsChanged', (oldSortOrder: number[], newSortOrder: number[], oldGroups: { name: string }[], newGroups: { name: string }[]) => {
+          if (JSON.stringify(oldGroups.map((group) => group.name)) !== JSON.stringify(newGroups.map((group) => group.name))) {
+            if (lineup.value !== null && lineup.value.data.getFirstRanking().getGroupCriteria().length > 0) {
+              store.dispatch.aggregateNetwork(lineup.value.data.getFirstRanking().getGroupCriteria()[0].desc.column);
+            }
+          }
+        });
       }
     }
 
