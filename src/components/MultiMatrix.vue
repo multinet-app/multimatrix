@@ -66,6 +66,7 @@ export default defineComponent({
       },
     });
     const sortKey = ref('');
+    const columnSortOrder: Ref<number[]> = ref([]);
     const finishedMounting = ref(false);
     const showIntNodeVis = computed(() => store.state.showIntNodeVis);
     const labelVariable = computed(() => store.state.labelVariable);
@@ -250,17 +251,7 @@ export default defineComponent({
           });
         }
       } else if (sortKey.value === 'shortName') {
-        order = range(numberOfNodes.value).sort((a, b) => {
-          if (network.value === null) { return 0; }
-          const aVal = `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
-          const bVal = `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
-
-          if (!Number.isNaN(parseInt(aVal, 10)) && !Number.isNaN(parseInt(aVal, 10))) {
-            return a < b ? -1 : 1;
-          }
-
-          return aVal.localeCompare(bVal);
-        });
+        order = columnSortOrder.value;
       } else {
         order = range(numberOfNodes.value).sort((a, b) => {
           if (network.value === null) { return 0; }
@@ -281,7 +272,8 @@ export default defineComponent({
 
       // Apply column highlight
       selectAll('#matrix > .column')
-        .data(network.value.nodes)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        .data(columnSortOrder.value.map((index) => network.value!.nodes[index]))
         .classed('hovered', (node) => hoveredNodes.value.indexOf(node._id) !== -1);
 
       // Apply row highlight
@@ -297,19 +289,41 @@ export default defineComponent({
       matrix.value = [];
 
       if (network.value !== null) {
+        // Update the column sort order if we need to
+        columnSortOrder.value = [...Array(numberOfNodes.value).keys()].sort((a, b) => {
+          if (network.value === null) {
+            return 0;
+          }
+
+          const first = network.value.nodes[a]._key;
+          const second = network.value.nodes[b]._key;
+          const firstParsed = parseInt(first, 10);
+          const secondParsed = parseInt(second, 10);
+
+          if (Number.isNaN(firstParsed) || Number.isNaN(secondParsed)) {
+            return first.localeCompare(second);
+          }
+
+          return firstParsed - secondParsed;
+        });
+
         network.value.nodes.forEach((rowNode: Node, i: number) => {
           if (network.value !== null) {
-            matrix.value[i] = network.value.nodes.map((colNode: Node, j: number) => ({
-              cellName: `${rowNode._id}_${colNode._id}`,
-              rowCellType: rowNode.type,
-              colCellType: colNode.type,
-              correspondingCell: `${colNode._id}_${rowNode._id}`,
-              rowID: rowNode._id,
-              colID: colNode._id,
-              x: j,
-              y: i,
-              z: 0,
-            }));
+            matrix.value[i] = columnSortOrder.value.map((j: number) => {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              const colNode = network.value!.nodes[j];
+              return {
+                cellName: `${rowNode._id}_${colNode._id}`,
+                rowCellType: rowNode.type,
+                colCellType: colNode.type,
+                correspondingCell: `${colNode._id}_${rowNode._id}`,
+                rowID: rowNode._id,
+                colID: colNode._id,
+                x: j,
+                y: i,
+                z: 0,
+              };
+            });
           }
         });
 
@@ -480,6 +494,7 @@ export default defineComponent({
       clickedNeighborClass,
       sortKey,
       lineUpIsNested,
+      columnSortOrder,
     };
   },
 
@@ -534,7 +549,7 @@ export default defineComponent({
 
             <!-- Columns -->
             <g
-              v-for="node, i of network.nodes"
+              v-for="node, i of columnSortOrder.map((index) => network.nodes[index])"
               :key="`${node._id}_col`"
               :transform="`translate(${i * cellSize})rotate(-90)`"
               class="column"
