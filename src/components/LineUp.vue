@@ -3,11 +3,14 @@ import store from '@/store';
 import {
   computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
-import LineUp, { Column, DataBuilder, LocalDataProvider } from 'lineupjs';
+import LineUp, {
+  Column, DataBuilder, EDirtyReason,
+} from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
 import vuetify from '@/plugins/vuetify';
 import WindowInstanceMap from '@/lib/windowSizeUtils';
+import { primitiveArrayEquals } from '@/lib/utils';
 
 export default defineComponent({
   name: 'LineUp',
@@ -49,46 +52,13 @@ export default defineComponent({
       return possibleHeight < 500 ? 500 : possibleHeight;
     });
 
-    const sortOrder = computed(() => store.state.sortOrder);
-    const lineupOrder = computed(() => {
-      if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
-        return [...Array(network.value?.nodes.length).keys()];
-      }
-      return [...lineup.value.data.getFirstRanking().getOrder()];
-    });
-
-    // If store order has changed, update lineup
-    watch(sortOrder, (newSortOrder) => {
-      if (lineup.value !== null) {
-        // Remove the lineup sort
-        const lineupSortColumn = lineup.value.data.find((d) => d.isSortedByMe().asc !== undefined);
-        while (lineupSortColumn?.isSortedByMe().asc !== undefined) {
-          lineupSortColumn.toggleMySorting();
-        }
-
-        const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
-        (lineup.value.data as LocalDataProvider).setData(sortedData);
-      }
-    });
-
-    // If lineup order has changed, update matrix
-    watch(lineupOrder, (newLineupOrder) => {
-      // If sort order has less length than number of nodes, we've filtered sort those nodes to the top
-      if (network.value !== null && newLineupOrder.length < network.value.nodes.length) {
-        return;
-      }
-
-      if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
-        const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
-        store.commit.setSortOrder(newSortOrder);
-      }
-    });
-
     // Helper functions
     function idsToIndices(ids: string[]) {
-      const sortedData = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
-
-      return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
+      if (network.value !== null) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, no-underscore-dangle
+        return ids.map((nodeID) => network.value!.nodes.findIndex((node) => (node === null ? false : node._id === nodeID)));
+      }
+      return [];
     }
 
     // Update selection/hover from matrix
@@ -102,9 +72,9 @@ export default defineComponent({
     });
 
     function indicesToIDs(indices: number[]) {
-      if (network.value !== null) {
+      if (network.value !== null && !indices.includes(-1)) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return indices.map((index) => network.value!.nodes[sortOrder.value[index]]._id);
+        return indices.map((index) => network.value!.nodes[index]._id);
       }
       return [];
     }
@@ -180,6 +150,18 @@ export default defineComponent({
           hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
 
           [lastHovered] = hoveredIDs;
+        });
+
+        lineup.value.data.getFirstRanking().on('orderChanged', (oldOrder, newOrder, _, __, eventType) => {
+          if (network.value !== null && eventType.includes('sort_changed' as EDirtyReason)) {
+            // If the sort order requested is the current order (second click of sort)
+            // Then reverse the sort, like lineup normally does
+            if (primitiveArrayEquals([...newOrder], [...Array(network.value.nodes.length).keys()])) {
+              store.commit.setSortOrder([...newOrder].reverse());
+            } else {
+              store.commit.setSortOrder([...newOrder]);
+            }
+          }
         });
       }
     }
