@@ -673,27 +673,19 @@ export default defineComponent({
               >
                 <v-sparkline
                   fill="true"
-                  color="#a9a9a9"
+                  :color="cellColorScale(cell.z)"
                   radius="20"
                   :value="cell.spark"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                   padding="0"
+                  :height="cellSize - 2"
+                  :width="cellSize - 2"
                   :fill-opacity="sliced ? 1 : 0"
                   @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"
                   @mouseout="(event) => {hideToolTip(); unHoverEdge(cell);}"
                   @click="clickElement(cell)"
                 />
               </svg>
-              <rect
-                v-for="cell in matrix[i]"
-                :key="cell.cellName"
-                fill="#a9a9a9"
-                :x="(cell.x * cellSize) + 1"
-                :y="cellSize / 3 * 2 - 4"
-                :fill-opacity="sliced ? 1 : 0"
-                :width="cellSize - 2"
-                :height="cellSize / 3 + 4"
-              />
             </g>
           </g>
           <g
