@@ -13,7 +13,6 @@ export default defineComponent({
   name: 'IntermediaryNodes',
 
   setup() {
-    const network = computed(() => store.state.network);
     const connectivityPaths = computed(() => store.state.connectivityMatrixPaths);
     const cellSize = computed(() => store.state.cellSize);
     const pathLength = computed(() => connectivityPaths.value.paths[0].vertices.length);
@@ -49,7 +48,7 @@ export default defineComponent({
 
     const matrixData = computed(() => {
       let matrix: ConnectivityCell[][] = [];
-      if (network.value !== null && connectivityPaths.value.nodes.length > 0) {
+      if (connectivityPaths.value.nodes.length > 0) {
         let sortConnectivityPaths = [];
         const sortKey = intAggregatedBy.value === undefined ? '_key' : intAggregatedBy.value;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
