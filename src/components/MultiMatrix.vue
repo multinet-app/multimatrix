@@ -74,34 +74,19 @@ export default defineComponent({
     const selectedNodes = computed(() => store.state.selectedNodes);
     const selectedCell = computed(() => store.state.selectedCell);
     const network = computed(() => store.state.network);
+    const numberOfNodes = computed(() => (network.value !== null ? network.value.nodes.length : 0));
     const directionalEdges = computed(() => store.state.directionalEdges);
     const selectNeighbors = computed(() => store.state.selectNeighbors);
     const showGridLines = computed(() => store.state.showGridLines);
     const aggregated = computed(() => store.state.aggregated);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
-    const matrixWidth = computed(() => (network.value !== null
-      ? network.value.nodes.length * cellSize.value + visMargins.value.left + visMargins.value.right
-      : 0));
-    const matrixHeight = computed(() => (network.value !== null
-      ? network.value.nodes.length * cellSize.value + visMargins.value.top + visMargins.value.bottom
-      : 0));
-    const sortOrder = computed(() => store.state.sortOrder);
+    const matrixWidth = computed(() => (numberOfNodes.value * cellSize.value + visMargins.value.left + visMargins.value.right));
+    const matrixHeight = computed(() => (numberOfNodes.value * cellSize.value + visMargins.value.top + visMargins.value.bottom));
     const orderingScale = computed(() => scaleBand<number>()
-      .domain(sortOrder.value)
-      .range([0, sortOrder.value.length * cellSize.value]));
+      .domain([...Array(numberOfNodes.value).keys()])
+      .range([0, numberOfNodes.value * cellSize.value]));
     const hoveredNodes = computed(() => store.state.hoveredNodes);
-    const idMap = computed(() => {
-      const computedIdMap: { [key: string]: number } = {};
-
-      if (network.value !== null) {
-        network.value.nodes.forEach((node: Node, index: number) => {
-          computedIdMap[node._id] = index;
-        });
-      }
-
-      return computedIdMap;
-    });
     const showTable = computed({
       get() {
         return store.state.showPathTable;
@@ -246,7 +231,7 @@ export default defineComponent({
           order = reorder.optimal_leaf_order()(mat);
         }
       } else if (sortKey.value === 'edges') {
-        order = range(network.value.nodes.length).sort((a, b) => {
+        order = range(numberOfNodes.value).sort((a, b) => {
           if (network.value === null) { return 0; }
           const firstValue = network.value.nodes[b][type] as number;
           const secondValue = network.value.nodes[a][type] as number;
@@ -256,16 +241,16 @@ export default defineComponent({
       } else if (isNode) {
         if (sortKey.value === '') {
           // Clear sort
-          order = range(network.value.nodes.length);
+          order = range(numberOfNodes.value);
         } else {
-          order = range(network.value.nodes.length).sort((a, b) => {
+          order = range(numberOfNodes.value).sort((a, b) => {
             if (network.value === null) { return 0; }
             return Number(network.value.nodes[b].neighbors.includes(type))
               - Number(network.value.nodes[a].neighbors.includes(type));
           });
         }
       } else if (sortKey.value === 'shortName') {
-        order = range(network.value.nodes.length).sort((a, b) => {
+        order = range(numberOfNodes.value).sort((a, b) => {
           if (network.value === null) { return 0; }
           const aVal = `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
           const bVal = `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
@@ -277,7 +262,7 @@ export default defineComponent({
           return aVal.localeCompare(bVal);
         });
       } else {
-        order = range(network.value.nodes.length).sort((a, b) => {
+        order = range(numberOfNodes.value).sort((a, b) => {
           if (network.value === null) { return 0; }
           const firstValue = network.value.nodes[b][type] as number;
           const secondValue = network.value.nodes[a][type] as number;
@@ -328,12 +313,19 @@ export default defineComponent({
           }
         });
 
+        const idMap: { [key: string]: number } = {};
+        if (network.value !== null) {
+          network.value.nodes.forEach((node: Node, index: number) => {
+            idMap[node._id] = index;
+          });
+        }
+
         // Count occurrences of edges and store it in the matrix
         network.value.edges.forEach((edge: Edge) => {
-          matrix.value[idMap.value[edge._from]][idMap.value[edge._to]].z += 1;
+          matrix.value[idMap[edge._from]][idMap[edge._to]].z += 1;
 
           if (!directionalEdges.value) {
-            matrix.value[idMap.value[edge._to]][idMap.value[edge._from]].z += 1;
+            matrix.value[idMap[edge._to]][idMap[edge._from]].z += 1;
           }
         });
       }
