@@ -1,5 +1,12 @@
 import { Edge } from '@/types';
 
+export function primitiveArrayEquals(a: unknown[], b: unknown[]) {
+  return Array.isArray(a)
+    && Array.isArray(b)
+    && a.length === b.length
+    && a.every((val, index) => val === b[index]);
+}
+
 // Get the url querystring variables
 export function getUrlVars() {
   const url = new URL(window.location.href);

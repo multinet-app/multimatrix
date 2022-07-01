@@ -85,7 +85,6 @@ export interface State {
   selectedNodes: Set<string>;
   selectedCell: string | null;
   hoveredNodes: string[];
-  sortOrder: number[];
   directionalEdges: boolean;
   selectNeighbors: boolean;
   showGridLines: boolean;

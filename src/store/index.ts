@@ -16,7 +16,7 @@ import {
   ArangoPath,
   Edge, LoadError, Network, Node, ProvenanceEventTypes, State, SlicedNetwork,
 } from '@/types';
-import { defineNeighbors } from '@/lib/utils';
+import { defineNeighbors, primitiveArrayEquals } from '@/lib/utils';
 import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
 import { isInternalField } from '@/lib/typeUtils';
 
@@ -42,7 +42,6 @@ const {
     selectedNodes: new Set(),
     selectedCell: null,
     hoveredNodes: [],
-    sortOrder: [],
     directionalEdges: false,
     selectNeighbors: true,
     showGridLines: true,
@@ -199,7 +198,10 @@ const {
     },
 
     setSortOrder(state, sortOrder: number[]) {
-      state.sortOrder = sortOrder;
+      if (state.network !== null && !primitiveArrayEquals(sortOrder, [...Array(state.network.nodes.length).keys()])) {
+        const tempNodes = state.network.nodes;
+        state.network = { nodes: [...sortOrder].map((index) => tempNodes[index]), edges: state.network.edges };
+      }
     },
 
     pushHoveredNode(state, nodeID: string) {
