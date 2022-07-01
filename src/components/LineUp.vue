@@ -129,19 +129,20 @@ export default defineComponent({
         builder.value = new DataBuilder(network.value.nodes);
 
         // Config adjustments
-        builder.value.dynamicHeight(() => ({
-          defaultHeight: cellSize.value - 2,
-          padding: () => 2,
-          height: () => cellSize.value - 2,
-        }));
-        builder.value.animated(false);
+        builder.value
+          .dynamicHeight(() => ({
+            defaultHeight: cellSize.value - 2,
+            padding: () => 2,
+            height: () => cellSize.value - 2,
+          }))
+          .animated(false)
+          .sidePanel(true, true); // enable: true, collapsed: true
 
         // Make the vis
         lineup.value = builder.value
           .deriveColumns(columns)
           .deriveColors()
           .defaultRanking()
-          .sidePanel(true, true) // enable: true, collapsed: true
           .build(lineupDiv);
 
         // Add an event watcher to update selected nodes
