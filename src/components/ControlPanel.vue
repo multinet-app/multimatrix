@@ -411,7 +411,7 @@ export default defineComponent({
               :disabled="aggregated"
               @change="removeByDegree"
             >
-              <template v-slot:prepend>
+              <template #prepend>
                 <p
                   class="pa-0 ma-0 text-center"
                   style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
@@ -419,7 +419,7 @@ export default defineComponent({
                   {{ degreeRange[0] }}
                 </p>
               </template>
-              <template v-slot:append>
+              <template #append>
                 <p
                   class="pa-0 ma-0 text-center"
                   style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"

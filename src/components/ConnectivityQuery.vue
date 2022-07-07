@@ -9,7 +9,7 @@
         v-model="dialog"
         width="780px"
       >
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <v-btn
             :min-width="40"
             :height="48"

@@ -7,7 +7,7 @@ import api from '@/api';
 import FilterOverlay from '@/components/FilterOverlay.vue';
 
 export default defineComponent({
-  name: 'Alert',
+  name: 'AlertBanner',
 
   components: {
     FilterOverlay,
