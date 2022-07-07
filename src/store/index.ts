@@ -685,7 +685,7 @@ const {
               _id: `aggregated/${key}`,
               _key: `${key}`,
               _rev: '', // _rev property is needed to conform to Node interface
-              children: value.map((node) => JSON.parse(JSON.stringify(node))),
+              children: value.map((node) => structuredClone(node)),
               type: 'supernode',
               neighbors: [] as string[],
               [varName]: key,
