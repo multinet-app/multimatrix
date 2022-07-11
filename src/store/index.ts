@@ -402,7 +402,6 @@ const {
       } else
       // Create new network to reflect degree filtering
       if (state.networkOnLoad !== null) {
-        // eslint-disable-next-line no-undef
         const nodeSet: Set<string> = new Set([]);
 
         // Remove edges that don't match degree criteria + store other edges in filtered edges
@@ -686,7 +685,7 @@ const {
               _id: `aggregated/${key}`,
               _key: `${key}`,
               _rev: '', // _rev property is needed to conform to Node interface
-              children: value.map((node) => JSON.parse(JSON.stringify(node))),
+              children: value.map((node) => structuredClone(node)),
               type: 'supernode',
               neighbors: [] as string[],
               [varName]: key,
@@ -820,6 +819,7 @@ export {
 // The following lines enable types in the injected store '$store'.
 export type ApplicationStore = typeof store;
 declare module 'vuex' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Store<S> {
     direct: ApplicationStore;
   }

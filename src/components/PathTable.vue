@@ -42,7 +42,7 @@
         :search="search"
       >
         <template
-          v-slot:top
+          #top
         >
           <v-list dense>
             <v-list-item dense>

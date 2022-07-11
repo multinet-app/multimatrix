@@ -74,6 +74,17 @@ export interface SlicedNetwork {
   category: string;
 }
 
+export type ProvenanceEventTypes =
+  'Set Select Neighbors' |
+  'Set Show Grid Lines' |
+  'Set Directional Edges' |
+  'Select Cell' |
+  'De-Select Cell' |
+  'Select Node(s)' |
+  'De-select Node(s)' |
+  'Clear Selection' |
+  'Set Label Variable';
+
 export interface State {
   workspaceName: string | null;
   networkName: string | null;
@@ -123,17 +134,6 @@ export interface State {
   filteredNetwork: boolean;
   lineupIsNested: boolean;
 }
-
-export type ProvenanceEventTypes =
-  'Set Select Neighbors' |
-  'Set Show Grid Lines' |
-  'Set Directional Edges' |
-  'Select Cell' |
-  'De-Select Cell' |
-  'Select Node(s)' |
-  'De-select Node(s)' |
-  'Clear Selection' |
-  'Set Label Variable';
 
 export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children'] as const;
 export type InternalField = (typeof internalFieldNames)[number];

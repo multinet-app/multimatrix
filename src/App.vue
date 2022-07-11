@@ -1,8 +1,8 @@
 <script lang="ts">
-import Alert from '@/components/Alert.vue';
+import AlertBanner from '@/components/AlertBanner.vue';
 import { computed } from '@vue/composition-api';
 import ProvVis from '@/components/ProvVis.vue';
-import Controls from '@/components/Controls.vue';
+import ControlPanel from '@/components/ControlPanel.vue';
 import MultiMatrix from '@/components/MultiMatrix.vue';
 import EdgeSlices from '@/components/EdgeSlices.vue';
 import { getUrlVars } from '@/lib/utils';
@@ -12,8 +12,8 @@ export default {
   name: 'App',
 
   components: {
-    Alert,
-    Controls,
+    AlertBanner,
+    ControlPanel,
     MultiMatrix,
     ProvVis,
     EdgeSlices,
@@ -49,13 +49,13 @@ export default {
 <template>
   <v-app>
     <v-content>
-      <controls />
+      <control-panel />
       <edge-slices
         v-if="network !== null && slicedNetwork"
       />
       <multi-matrix v-if="network !== null" />
 
-      <alert v-if="loadError.message !== ''" />
+      <alert-banner v-if="loadError.message !== ''" />
     </v-content>
 
     <prov-vis v-if="showProvenanceVis" />
