@@ -400,6 +400,11 @@ export default defineComponent({
           currentString += `LET start_nodes = (FOR n0 in [${store.getters.nodeTableNames}][**] FILTER 1==1 `;
         } else if (!thisRoundIsNode) {
           currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER 1==1 `;
+
+          // If we have any node with nX where X is greater than 2, make sure we're not making cycles
+          if (nodeOrEdgeNum > 1) {
+            currentString += `n${nodeOrEdgeNum} != n${nodeOrEdgeNum - 2} `;
+          }
         }
 
         // Loop through each query piece
