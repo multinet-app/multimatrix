@@ -402,8 +402,8 @@ export default defineComponent({
           currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER 1==1 `;
 
           // If we have any node with nX where X is greater than 2, make sure we're not making cycles
-          if (nodeOrEdgeNum > 1) {
-            currentString += `AND n${nodeOrEdgeNum} != n${nodeOrEdgeNum - 2} `;
+          if (nodeOrEdgeNum + 1 > 1) {
+            currentString += `AND n${nodeOrEdgeNum + 1} != n${nodeOrEdgeNum - 1} `;
           }
         }
 
