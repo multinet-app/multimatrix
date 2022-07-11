@@ -403,7 +403,7 @@ export default defineComponent({
 
           // If we have any node with nX where X is greater than 2, make sure we're not making cycles
           if (nodeOrEdgeNum > 1) {
-            currentString += `n${nodeOrEdgeNum} != n${nodeOrEdgeNum - 2} `;
+            currentString += `AND n${nodeOrEdgeNum} != n${nodeOrEdgeNum - 2} `;
           }
         }
 
