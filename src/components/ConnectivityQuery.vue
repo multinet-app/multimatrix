@@ -401,12 +401,12 @@ export default defineComponent({
         } else if (!thisRoundIsNode) {
           currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER 1==1 `;
 
-          // If we have any node with nX where X is greater than 2, make sure we're not making 2-cycles
+          // If we have any node with nX where X is greater than 2, make sure we're not making 2 hop cycles
           if (nodeOrEdgeNum + 1 > 1) {
             currentString += `AND n${nodeOrEdgeNum + 1} != n${nodeOrEdgeNum - 1} `;
           }
 
-          // If we have any node with nX where X is greater than 3, make sure we're not making 3-cycles
+          // If we have any node with nX where X is greater than 3, make sure we're not making 3 hopcycles
           if (nodeOrEdgeNum + 1 > 2) {
             currentString += `AND n${nodeOrEdgeNum + 1} != n${nodeOrEdgeNum - 2} `;
           }
