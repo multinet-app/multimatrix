@@ -406,7 +406,7 @@ export default defineComponent({
             currentString += `AND n${nodeOrEdgeNum + 1} != n${nodeOrEdgeNum - 1} `;
           }
 
-          // If we have any node with nX where X is greater than 3, make sure we're not making 3 hopcycles
+          // If we have any node with nX where X is greater than 3, make sure we're not making 3 hop cycles
           if (nodeOrEdgeNum + 1 > 2) {
             currentString += `AND n${nodeOrEdgeNum + 1} != n${nodeOrEdgeNum - 2} `;
           }
