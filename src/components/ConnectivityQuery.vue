@@ -422,7 +422,7 @@ export default defineComponent({
           if (queryPiece.label === '') {
             currentString += '1==1 ';
           } else {
-            let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.${queryPiece.label}` : `e${nodeOrEdgeNum + 1}.${queryPiece.label}`;
+            let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.\`${queryPiece.label}\`` : `e${nodeOrEdgeNum + 1}.\`${queryPiece.label}\``;
             property = isTextComparison(queryPiece.operator) ? `UPPER(${property})` : `TO_NUMBER(${property})`;
             const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
             currentString += `${property} ${queryPiece.operator} ${value} `;
