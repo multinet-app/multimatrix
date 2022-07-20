@@ -87,7 +87,15 @@ export default defineComponent({
     const matrixHeight = computed(() => (network.value !== null
       ? network.value.nodes.length * cellSize.value + visMargins.value.top + visMargins.value.bottom
       : 0));
+    let matrixIsSorter = false;
     const sortOrder = computed(() => store.state.sortOrder);
+    watch(sortOrder, () => {
+      if (!matrixIsSorter) {
+        sortKey.value = '';
+      }
+
+      matrixIsSorter = false;
+    });
     const orderingScale = computed(() => scaleBand<number>()
       .domain(sortOrder.value)
       .range([0, sortOrder.value.length * cellSize.value]));
@@ -287,6 +295,7 @@ export default defineComponent({
         });
       }
 
+      matrixIsSorter = true;
       store.commit.setSortOrder(order);
     }
 

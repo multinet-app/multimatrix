@@ -49,6 +49,7 @@ export default defineComponent({
       return possibleHeight < 500 ? 500 : possibleHeight;
     });
 
+    let lineupIsSorter = false;
     const sortOrder = computed(() => store.state.sortOrder);
     const lineupOrder = computed(() => {
       if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
@@ -58,11 +59,16 @@ export default defineComponent({
     });
 
     // If store order has changed, update lineup
+    let permutingMatrix = structuredClone(store.state.sortOrder);
     watch(sortOrder, (newSortOrder) => {
-      if (lineup.value !== null) {
+      if (lineup.value !== null && !lineupIsSorter) {
+        permutingMatrix = structuredClone(newSortOrder);
+        lineup.value.data.getFirstRanking().setSortCriteria([]);
         const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
         (lineup.value.data as LocalDataProvider).setData(sortedData);
       }
+
+      lineupIsSorter = false;
     });
 
     // If lineup order has changed, update matrix
@@ -72,8 +78,8 @@ export default defineComponent({
         return;
       }
 
-      if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
-        const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
+      if (lineup.value !== null && network.value !== null && lineupIsSorter) {
+        const newSortOrder = newLineupOrder.map((i) => permutingMatrix[i]);
         store.commit.setSortOrder(newSortOrder);
       }
     });
@@ -172,6 +178,12 @@ export default defineComponent({
           hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
 
           [lastHovered] = hoveredIDs;
+        });
+
+        lineup.value.data.getFirstRanking().on('orderChanged', (oldOrder, newOrder, _, __, eventType) => {
+          if ((eventType as string[]).includes('sort_changed')) {
+            lineupIsSorter = true;
+          }
         });
       }
     }
