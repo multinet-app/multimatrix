@@ -570,6 +570,7 @@ const {
       commit.setNetwork(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
       commit.setSlicedNetwork([]);
+      defineNeighbors(payload.network.nodes, payload.network.edges);
     },
 
     async fetchUserInfo(context) {
