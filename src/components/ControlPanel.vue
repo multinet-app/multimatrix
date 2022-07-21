@@ -487,7 +487,7 @@ export default defineComponent({
               Export Network
             </v-btn>
           </v-list-item>
-          <!-- Download Network As CSV-->
+          <!-- Download Network As 1-Hop CSV-->
           <v-list-item>
             <v-btn
               block
@@ -495,7 +495,7 @@ export default defineComponent({
               depressed
               @click="displayCSVBuilder()"
             >
-              Create CSV
+              Network as 1-hop (CSV)
             </v-btn>
           </v-list-item>
         </v-card>
