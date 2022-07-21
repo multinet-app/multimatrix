@@ -263,6 +263,13 @@
           </v-card>
 
           <v-list-item>
+            <v-switch
+              v-model="sameStartEnd"
+              label="Allow same start and end node in path"
+            />
+          </v-list-item>
+
+          <v-list-item>
             <v-btn
               block
               class="mb-2"
@@ -318,6 +325,7 @@ export default defineComponent({
     const selectedQueryOptions: Ref<string[]> = ref([]);
     const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
     const operatorOptionItems = ['AND', 'OR', 'NOT'];
+    const sameStartEnd = ref(false);
 
     const directionalEdges = computed({
       get() {
@@ -400,6 +408,17 @@ export default defineComponent({
           currentString += `LET start_nodes = (FOR n0 in [${store.getters.nodeTableNames}][**] FILTER 1==1 `;
         } else if (!thisRoundIsNode) {
           currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER 1==1 `;
+
+          // If we have any node with nX where X is greater than 2, make sure we're not making 2 hop cycles
+          const lastNode = nodeOrEdgeNum + 1 === selectedHops.value;
+          if (nodeOrEdgeNum + 1 > 1 && (selectedHops.value !== 2 || !lastNode || !sameStartEnd.value)) {
+            currentString += `AND n${nodeOrEdgeNum + 1} != n${nodeOrEdgeNum - 1} `;
+          }
+
+          // If we have any node with nX where X is greater than 3, make sure we're not making 3 hop cycles
+          if (nodeOrEdgeNum + 1 > 2 && (selectedHops.value !== 3 || !lastNode || !sameStartEnd.value)) {
+            currentString += `AND n${nodeOrEdgeNum + 1} != n${nodeOrEdgeNum - 2} `;
+          }
         }
 
         // Loop through each query piece
@@ -417,7 +436,7 @@ export default defineComponent({
           if (queryPiece.label === '') {
             currentString += '1==1 ';
           } else {
-            let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.${queryPiece.label}` : `e${nodeOrEdgeNum + 1}.${queryPiece.label}`;
+            let property = thisRoundIsNode ? `n${nodeOrEdgeNum}.\`${queryPiece.label}\`` : `e${nodeOrEdgeNum + 1}.\`${queryPiece.label}\``;
             property = isTextComparison(queryPiece.operator) ? `UPPER(${property})` : `TO_NUMBER(${property})`;
             const value = isTextComparison(queryPiece.operator) ? `UPPER('${queryPiece.input}')` : `TO_NUMBER(${queryPiece.input})`;
             currentString += `${property} ${queryPiece.operator} ${value} `;
@@ -585,6 +604,7 @@ export default defineComponent({
       operatorOptionItems,
       edgeMutexs,
       dialog,
+      sameStartEnd,
     };
   },
 });
