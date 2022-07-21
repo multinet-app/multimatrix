@@ -49,6 +49,7 @@ export default defineComponent({
       return possibleHeight < 500 ? 500 : possibleHeight;
     });
 
+    let lineupIsSorter = false;
     const sortOrder = computed(() => store.state.sortOrder);
     const lineupOrder = computed(() => {
       if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
@@ -58,11 +59,16 @@ export default defineComponent({
     });
 
     // If store order has changed, update lineup
+    let permutingMatrix = structuredClone(store.state.sortOrder);
     watch(sortOrder, (newSortOrder) => {
-      if (lineup.value !== null) {
+      if (lineup.value !== null && !lineupIsSorter) {
+        permutingMatrix = structuredClone(newSortOrder);
+        lineup.value.data.getFirstRanking().setSortCriteria([]);
         const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
         (lineup.value.data as LocalDataProvider).setData(sortedData);
       }
+
+      lineupIsSorter = false;
     });
 
     // If lineup order has changed, update matrix
@@ -72,15 +78,15 @@ export default defineComponent({
         return;
       }
 
-      if (lineup.value !== null && network.value !== null && JSON.stringify(newLineupOrder) !== JSON.stringify([...Array(network.value.nodes.length).keys()])) {
-        const newSortOrder = newLineupOrder.map((i) => sortOrder.value[i]);
+      if (lineup.value !== null && network.value !== null && lineupIsSorter) {
+        const newSortOrder = newLineupOrder.map((i) => permutingMatrix[i]);
         store.commit.setSortOrder(newSortOrder);
       }
     });
 
     // Helper functions
     function idsToIndices(ids: string[]) {
-      const sortedData = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
+      const sortedData = permutingMatrix.map((i) => (network.value !== null ? network.value.nodes[i] : null));
 
       return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
     }
@@ -98,7 +104,7 @@ export default defineComponent({
     function indicesToIDs(indices: number[]) {
       if (network.value !== null) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return indices.map((index) => network.value!.nodes[sortOrder.value[index]]._id);
+        return indices.map((index) => network.value!.nodes[permutingMatrix[index]]._id);
       }
       return [];
     }
@@ -123,36 +129,21 @@ export default defineComponent({
         builder.value = new DataBuilder(network.value.nodes);
 
         // Config adjustments
-        builder.value.dynamicHeight(() => ({
-          defaultHeight: cellSize.value - 2,
-          padding: () => 2,
-          height: () => cellSize.value - 2,
-        }));
+        builder.value
+          .dynamicHeight(() => ({
+            defaultHeight: cellSize.value - 2,
+            padding: () => 2,
+            height: () => cellSize.value - 2,
+          }))
+          .animated(false)
+          .sidePanel(true, true); // enable: true, collapsed: true
 
         // Make the vis
         lineup.value = builder.value
           .deriveColumns(columns)
           .deriveColors()
           .defaultRanking()
-          .sidePanel(true, true) // enable: true, collapsed: true
           .build(lineupDiv);
-
-        // Add an event watcher to update selected nodes
-        lineup.value.on('selectionChanged', (dataIndices: number[]) => {
-          // Transform data indices to multinet `_id`s
-          const clickedIDs: string[] = indicesToIDs(dataIndices);
-
-          // Find the symmetric difference between the ids here and those in the store
-          function diffFunction<T>(arr1: Array<T>, arr2: Array<T>): Array<T> { return arr1.filter((x) => arr2.indexOf(x) === -1); }
-          let differentIDs = diffFunction<string>(clickedIDs, [...selectedNodes.value.values()])
-            .concat(diffFunction([...selectedNodes.value.values()], clickedIDs));
-
-          // Filter out only the hovered nodes
-          differentIDs = differentIDs.filter((ID) => hoveredNodes.value.indexOf(ID) === -1);
-
-          // Click on the elements that are different to add/remove them from the store
-          differentIDs.forEach((nodeID) => store.dispatch.clickElement(nodeID));
-        });
 
         let lastHovered = '';
 
@@ -172,6 +163,12 @@ export default defineComponent({
           hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
 
           [lastHovered] = hoveredIDs;
+        });
+
+        lineup.value.data.getFirstRanking().on('orderChanged', (oldOrder, newOrder, _, __, eventType) => {
+          if ((eventType as string[]).includes('sort_changed')) {
+            lineupIsSorter = true;
+          }
         });
       }
     }
