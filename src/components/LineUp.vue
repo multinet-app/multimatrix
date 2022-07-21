@@ -86,7 +86,7 @@ export default defineComponent({
 
     // Helper functions
     function idsToIndices(ids: string[]) {
-      const sortedData = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : null));
+      const sortedData = permutingMatrix.map((i) => (network.value !== null ? network.value.nodes[i] : null));
 
       return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
     }
@@ -104,7 +104,7 @@ export default defineComponent({
     function indicesToIDs(indices: number[]) {
       if (network.value !== null) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return indices.map((index) => network.value!.nodes[sortOrder.value[index]]._id);
+        return indices.map((index) => network.value!.nodes[permutingMatrix[index]]._id);
       }
       return [];
     }
