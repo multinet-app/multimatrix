@@ -3,7 +3,9 @@ import store from '@/store';
 import {
   computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
 } from '@vue/composition-api';
-import LineUp, { Column, DataBuilder, LocalDataProvider } from 'lineupjs';
+import LineUp, {
+  Column, DataBuilder, IBuilderAdapterColumnDescProps, LocalDataProvider,
+} from 'lineupjs';
 import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
 import vuetify from '@/plugins/vuetify';
@@ -174,7 +176,8 @@ export default defineComponent({
         lineup.value.data.getFirstRanking().on('groupsChanged', (oldSortOrder: number[], newSortOrder: number[], oldGroups: { name: string }[], newGroups: { name: string }[]) => {
           if (JSON.stringify(oldGroups.map((group) => group.name)) !== JSON.stringify(newGroups.map((group) => group.name))) {
             if (lineup.value !== null && lineup.value.data.getFirstRanking().getGroupCriteria().length > 0) {
-              store.dispatch.aggregateNetwork(lineup.value.data.getFirstRanking().getGroupCriteria()[0].desc.column);
+              const columnDesc = lineup.value.data.getFirstRanking().getGroupCriteria()[0].desc as IBuilderAdapterColumnDescProps;
+              store.dispatch.aggregateNetwork(columnDesc.column);
             }
           }
         });
