@@ -3,6 +3,7 @@ import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
+import { Node, Edge, ArangoPath } from '@/types';
 import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import LoginMenu from '@/components/LoginMenu.vue';
@@ -62,6 +63,14 @@ export default defineComponent({
       },
       set(value: string | undefined) {
         store.commit.setLabelVariable(value);
+      },
+    });
+    const showTable = computed({
+      get() {
+        return store.state.showPathTable;
+      },
+      set(value: boolean) {
+        store.commit.setShowPathTable(value);
       },
     });
     const aggregated = computed(() => store.state.aggregated);
@@ -166,6 +175,32 @@ export default defineComponent({
       legendSVG.select('.legendLinear').call(legendLinear);
     }
 
+    function displayCSVBuilder() {
+      const reconstructedPaths: ArangoPath[] = [];
+
+      if (network.value !== null) {
+        network.value.edges.forEach((edge) => {
+          const reconstructedPath: ArangoPath = {
+            vertices: [],
+            edges: [],
+          };
+
+          reconstructedPath.edges.push(edge as Edge);
+          if (network.value !== null) {
+            const node0index = network.value.nodes.findIndex((node) => (node === null ? false : node._id === edge._from));
+            const node1index = network.value.nodes.findIndex((node) => (node === null ? false : node._id === edge._to));
+            reconstructedPath.vertices.push(network.value.nodes[node0index] as Node);
+            reconstructedPath.vertices.push(network.value.nodes[node1index] as Node);
+          }
+          reconstructedPaths.push(reconstructedPath);
+        });
+      }
+
+      store.commit.setConnectivityMatrixPaths({ nodes: [], paths: reconstructedPaths });
+      store.commit.setSelectedConnectivityPaths([...Array(reconstructedPaths.length).keys()]);
+      showTable.value = true;
+    }
+
     watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
     watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
     watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
@@ -252,6 +287,7 @@ export default defineComponent({
       degreeRange,
       maxDegree,
       removeByDegree,
+      displayCSVBuilder,
     };
   },
 });
@@ -449,6 +485,17 @@ export default defineComponent({
               @click="exportNetwork"
             >
               Export Network
+            </v-btn>
+          </v-list-item>
+          <!-- Download Network As 1-Hop CSV-->
+          <v-list-item>
+            <v-btn
+              block
+              color="grey darken-2 white--text"
+              depressed
+              @click="displayCSVBuilder()"
+            >
+              Network as 1-hop (CSV)
             </v-btn>
           </v-list-item>
         </v-card>
