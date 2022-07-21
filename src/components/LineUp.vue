@@ -145,23 +145,6 @@ export default defineComponent({
           .defaultRanking()
           .build(lineupDiv);
 
-        // Add an event watcher to update selected nodes
-        lineup.value.on('selectionChanged', (dataIndices: number[]) => {
-          // Transform data indices to multinet `_id`s
-          const clickedIDs: string[] = indicesToIDs(dataIndices);
-
-          // Find the symmetric difference between the ids here and those in the store
-          function diffFunction<T>(arr1: Array<T>, arr2: Array<T>): Array<T> { return arr1.filter((x) => arr2.indexOf(x) === -1); }
-          let differentIDs = diffFunction<string>(clickedIDs, [...selectedNodes.value.values()])
-            .concat(diffFunction([...selectedNodes.value.values()], clickedIDs));
-
-          // Filter out only the hovered nodes
-          differentIDs = differentIDs.filter((ID) => hoveredNodes.value.indexOf(ID) === -1);
-
-          // Click on the elements that are different to add/remove them from the store
-          differentIDs.forEach((nodeID) => store.dispatch.clickElement(nodeID));
-        });
-
         let lastHovered = '';
 
         // Add an event watcher to update highlighted nodes
