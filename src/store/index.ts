@@ -47,6 +47,7 @@ const {
     selectNeighbors: true,
     showGridLines: true,
     aggregated: false,
+    aggregatedBy: undefined,
     visualizedNodeAttributes: [],
     visualizedEdgeAttributes: [],
     maxConnections: {
@@ -252,6 +253,10 @@ const {
       const degreeObject = setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.connectivityMatrixPaths.paths.length > 0, store.state.directionalEdges);
       state.maxDegree = degreeObject.maxDegree;
       state.nodeDegreeDict = degreeObject.nodeDegreeDict;
+    },
+
+    setAggregatedBy(state, varName: string | undefined) {
+      state.aggregatedBy = varName;
     },
 
     setQueriedNetworkState(state, queried: boolean) {
@@ -631,6 +636,8 @@ const {
       const { state, commit, dispatch } = rootActionContext(context);
 
       if (state.network !== null) {
+        store.commit.setAggregatedBy(varName);
+
         // Reset network if aggregated
         if (state.aggregated && varName === undefined) {
           const unAggregatedNetwork = state.networkOnLoad !== null ? structuredClone(state.networkOnLoad) : { nodes: [], edges: [] };

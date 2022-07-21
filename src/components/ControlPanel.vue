@@ -24,7 +24,14 @@ export default defineComponent({
   setup() {
     // Template objects
     const showMenu = ref(false);
-    const aggregateBy = ref(undefined);
+    const aggregateBy = computed({
+      get() {
+        return store.state.aggregatedBy;
+      },
+      set(value: string | undefined) {
+        store.commit.setAggregatedBy(value);
+      },
+    });
     const directionalEdges = computed({
       get() {
         return store.state.directionalEdges;
@@ -204,11 +211,6 @@ export default defineComponent({
     watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
     watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
     watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
-    watchEffect(() => {
-      if (!aggregated.value) {
-        aggregateBy.value = undefined;
-      }
-    });
     watch(aggregated, () => {
       if (!aggregated.value) {
         labelVariable.value = '_key';
