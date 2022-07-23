@@ -163,7 +163,11 @@ export default defineComponent({
         // Loop through other props to add to tooltip
         Object.keys(networkElement).forEach((key) => {
           if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
-            message += `<br/> ${capitalizeFirstLetter(key)}: ${networkElement[key]}`;
+            if (key === 'children') {
+              message += `<br/> ${capitalizeFirstLetter(key)}: ${networkElement[key].length}`;
+            } else {
+              message += `<br/> ${capitalizeFirstLetter(key)}: ${networkElement[key]}`;
+            }
           }
         });
       }
