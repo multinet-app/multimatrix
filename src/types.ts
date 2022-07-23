@@ -129,6 +129,7 @@ export interface State {
   selectedHops: number;
   nodeDegreeDict: { [key: string]: number };
   maxDegree: number;
+  minDegree: number;
   networkPreFilter: Network | null;
   queriedNetwork: boolean;
   filteredNetwork: boolean;
