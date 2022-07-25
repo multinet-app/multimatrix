@@ -570,8 +570,24 @@ export default defineComponent({
             store.commit.setQueriedNetworkState(true);
             store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
             if (promise.length >= 100) {
-              store.commit.setMinDegree(5);
-              store.commit.setDegreeNetwork([5, store.state.maxDegree]);
+              console.log(store.state.nodeDegreeDict);
+              // Create dictionary of degree occurences
+              const orderedList = Object.values(store.state.nodeDegreeDict).sort((a, b) => a - b);
+              const degreeCount: {[key:number]:number} = {};
+              // eslint-disable-next-line no-plusplus
+              for (let i = 0; i < orderedList.length; i++) {
+                degreeCount[orderedList[i]] = (degreeCount[orderedList[i]] || 0) + 1;
+              }
+              console.log(degreeCount);
+              // Set min value if the node degree occurence < 100
+              Object.entries(degreeCount).every(([degree, occurence]) => {
+                if (occurence < 100) {
+                  console.log(occurence, degree, 'hello!');
+                  store.commit.setMinDegree(Number(degree));
+                  store.commit.setDegreeNetwork([Number(degree), store.state.maxDegree]);
+                  return false;
+                } return true;
+              });
             }
           } else {
             // Update state with empty network
