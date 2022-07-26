@@ -47,6 +47,7 @@ const {
     selectNeighbors: true,
     showGridLines: true,
     aggregated: false,
+    aggregatedBy: undefined,
     visualizedNodeAttributes: [],
     visualizedEdgeAttributes: [],
     maxConnections: {
@@ -254,6 +255,10 @@ const {
       state.nodeDegreeDict = degreeObject.nodeDegreeDict;
     },
 
+    setAggregatedBy(state, varName: string | undefined) {
+      state.aggregatedBy = varName;
+    },
+
     setQueriedNetworkState(state, queried: boolean) {
       state.queriedNetwork = queried;
     },
@@ -363,7 +368,7 @@ const {
     },
 
     setNetworkOnLoad(state, network: Network) {
-      state.networkOnLoad = network;
+      state.networkOnLoad = structuredClone(network);
     },
 
     setSelected(state, selectedNodes: Set<string>) {
@@ -565,6 +570,7 @@ const {
       commit.setNetwork(payload.network);
       commit.setSortOrder(range(0, payload.network.nodes.length));
       commit.setSlicedNetwork([]);
+      defineNeighbors(payload.network.nodes, payload.network.edges);
     },
 
     async fetchUserInfo(context) {
@@ -631,25 +637,14 @@ const {
       const { state, commit, dispatch } = rootActionContext(context);
 
       if (state.network !== null) {
+        store.commit.setAggregatedBy(varName);
+
         // Reset network if aggregated
         if (state.aggregated && varName === undefined) {
-          // Reset an aggregated network
-          const allChildren = state.network.nodes
-            .map((node) => node.children)
-            .flat()
-            .filter((node): node is Node => node !== undefined);
-
-          const originalEdges = state.network.edges.map((edge) => {
-            const originalEdge = { ...edge };
-            originalEdge._from = `${originalEdge.originalFrom}`;
-            originalEdge._to = `${originalEdge.originalTo}`;
-
-            return originalEdge;
-          });
-
+          const unAggregatedNetwork = state.networkOnLoad !== null ? structuredClone(state.networkOnLoad) : { nodes: [], edges: [] };
           store.commit.setAggregated(false);
-          store.commit.setNetworkPreFilter({ nodes: allChildren, edges: originalEdges });
-          dispatch.updateNetwork({ network: { nodes: allChildren, edges: originalEdges } });
+          store.commit.setNetworkPreFilter(unAggregatedNetwork);
+          dispatch.updateNetwork({ network: unAggregatedNetwork });
         }
 
         // Aggregate the network if the varName is not none

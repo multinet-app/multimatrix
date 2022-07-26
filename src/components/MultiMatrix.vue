@@ -100,17 +100,6 @@ export default defineComponent({
       .domain(sortOrder.value)
       .range([0, sortOrder.value.length * cellSize.value]));
     const hoveredNodes = computed(() => store.state.hoveredNodes);
-    const idMap = computed(() => {
-      const computedIdMap: { [key: string]: number } = {};
-
-      if (network.value !== null) {
-        network.value.nodes.forEach((node: Node, index: number) => {
-          computedIdMap[node._id] = index;
-        });
-      }
-
-      return computedIdMap;
-    });
     const showTable = computed({
       get() {
         return store.state.showPathTable;
@@ -321,6 +310,14 @@ export default defineComponent({
       let maxAggrConnections = 0;
       matrix.value = [];
 
+      const idMap: { [key: string]: number } = {};
+
+      if (network.value !== null) {
+        network.value.nodes.forEach((node: Node, index: number) => {
+          idMap[node._id] = index;
+        });
+      }
+
       if (network.value !== null) {
         network.value.nodes.forEach((rowNode: Node, i: number) => {
           if (network.value !== null) {
@@ -340,10 +337,10 @@ export default defineComponent({
 
         // Count occurrences of edges and store it in the matrix
         network.value.edges.forEach((edge: Edge) => {
-          matrix.value[idMap.value[edge._from]][idMap.value[edge._to]].z += 1;
+          matrix.value[idMap[edge._from]][idMap[edge._to]].z += 1;
 
           if (!directionalEdges.value) {
-            matrix.value[idMap.value[edge._to]][idMap.value[edge._from]].z += 1;
+            matrix.value[idMap[edge._to]][idMap[edge._from]].z += 1;
           }
         });
       }
