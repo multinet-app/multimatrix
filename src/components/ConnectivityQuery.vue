@@ -563,7 +563,6 @@ export default defineComponent({
 
             // Update state with new network
             store.dispatch.aggregateNetwork(undefined);
-            store.dispatch.updateNetwork({ network: newNetwork });
             store.commit.setNetworkPreFilter(newNetwork);
             loading.value = false;
             store.commit.setDirectionalEdges(true);
@@ -579,6 +578,7 @@ export default defineComponent({
               }
 
               // Set min value if the node degree occurence < 100
+              // Using every to stop for loop once the conditional is met
               Object.entries(degreeCount).every(([degree, occurence]) => {
                 if (occurence < 100) {
                   store.commit.setMinDegree(Number(degree));
@@ -586,6 +586,9 @@ export default defineComponent({
                   return false;
                 } return true;
               });
+            } else {
+              // Update state with new network
+              store.dispatch.updateNetwork({ network: newNetwork });
             }
           } else {
             // Update state with empty network
