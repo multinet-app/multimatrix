@@ -146,7 +146,6 @@ const {
 
     setNetwork(state, network: Network) {
       if (!state.aggregated && !state.filteredNetwork) {
-        // eslint-disable-next-line no-param-reassign
         network.nodes = network.nodes.sort((node1, node2) => {
           const key1 = parseInt(node1._key, 10);
           const key2 = parseInt(node2._key, 10);
@@ -445,13 +444,9 @@ const {
         baseNetwork.nodes.push(filteredNode);
         // Add edges to filtered nodes
         filteredEdges.forEach((edge: Edge) => {
-          // eslint-disable-next-line no-param-reassign
           edge.originalFrom = edge._from;
-          // eslint-disable-next-line no-param-reassign
           edge.originalTo = edge._to;
-          // eslint-disable-next-line no-param-reassign
           edge._from = nodeSet.has(edge._from) ? edge._from : 'filtered';
-          // eslint-disable-next-line no-param-reassign
           edge._to = nodeSet.has(edge._to) ? edge._to : 'filtered';
           if (baseNetwork !== null) {
             baseNetwork.edges.push(edge);
@@ -661,14 +656,10 @@ const {
             const fromNodeValue = fromNode[varName];
             const toNodeValue = toNode[varName];
 
-            /* eslint-disable no-param-reassign */
-            /* eslint-disable no-underscore-dangle */
             edge.originalFrom = edge.originalFrom === undefined ? edge._from : edge.originalFrom;
             edge.originalTo = edge.originalTo === undefined ? edge._to : edge.originalTo;
             edge._from = `aggregated/${fromNodeValue}`;
             edge._to = `aggregated/${toNodeValue}`;
-            /* eslint-enable no-param-reassign */
-            /* eslint-enable no-underscore-dangle */
 
             return edge;
           });
@@ -724,7 +715,6 @@ const {
         }
 
         parentChildren = parentChildren.map((child: Node) => {
-          // eslint-disable-next-line no-param-reassign
           child.parentPosition = indexOfParent;
           return child;
         }) || [];

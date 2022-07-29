@@ -14,8 +14,7 @@ export function getUrlVars() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function defineNeighbors(nodes: any[], edges: Edge[]) {
-  // eslint-disable-next-line no-return-assign, no-param-reassign
-  nodes.forEach((d) => (d.neighbors = []));
+  nodes.forEach((d) => { d.neighbors = []; });
   edges.forEach((edge) => {
     const findNodeFrom = nodes.find((node) => node._id === edge._from);
     const findNodeTo = nodes.find((node) => node._id === edge._to);
@@ -68,13 +67,10 @@ export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoa
 
   baseNetwork.edges.forEach((edge: Edge) => {
     if (directionalEdges) {
-      // eslint-disable-next-line no-unused-expressions
-      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
+      nodeDegreeDict[edge._from] = edge._from in nodeDegreeDict ? nodeDegreeDict[edge._from] + 1 : 1;
     } else {
-      // eslint-disable-next-line no-unused-expressions
-      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
-      // eslint-disable-next-line no-unused-expressions
-      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._to) ? nodeDegreeDict[edge._to] += 1 : nodeDegreeDict[edge._to] = 1;
+      nodeDegreeDict[edge._from] = edge._from in nodeDegreeDict ? nodeDegreeDict[edge._from] + 1 : 1;
+      nodeDegreeDict[edge._to] = edge._from in nodeDegreeDict ? nodeDegreeDict[edge._to] + 1 : 1;
     }
   });
 

@@ -2,8 +2,6 @@ import { ProvenanceEventTypes, State } from '@/types';
 import { createAction } from '@visdesignlab/trrack';
 
 export function updateProvenanceState(vuexState: State, label: ProvenanceEventTypes) {
-  /* eslint-disable no-param-reassign */
-
   const stateUpdateActions = createAction<State, State[], ProvenanceEventTypes>((provState, newProvState) => {
     if (label === 'Set Select Neighbors') {
       provState.selectNeighbors = newProvState.selectNeighbors;
@@ -18,8 +16,6 @@ export function updateProvenanceState(vuexState: State, label: ProvenanceEventTy
     } else if (label === 'Set Label Variable') {
       provState.labelVariable = newProvState.labelVariable;
     }
-
-    /* eslint-enable no-param-reassign */
   })
     .setLabel(label);
 

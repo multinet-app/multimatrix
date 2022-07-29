@@ -104,19 +104,17 @@ export default defineComponent({
             const attrKey: string = getKeyByValue(aqlResults.nodeAttributes[0], aqlResults.nodeValues[0][i]);
             nodeAttrDict[attrKey] = i;
           });
-          // eslint-disable-next-line no-restricted-syntax
-          for (const [key, value] of Object.entries(nodeAttrDict)) {
+          Object.entries(nodeAttrDict).forEach(([key, value]) => {
             nodeAttributes[key] = [...new Set(aqlResults.nodeValues.map((vals: string[]) => `${vals[value]}`).sort())];
-          }
+          });
 
           Array(aqlResults.edgeValues[0].length).fill(1).forEach((_, i) => {
             const attrKey: string = getKeyByValue(aqlResults.edgeAttributes[0], aqlResults.edgeValues[0][i]);
             edgeAttrDict[attrKey] = i;
           });
-          // eslint-disable-next-line no-restricted-syntax
-          for (const [key, value] of Object.entries(edgeAttrDict)) {
+          Object.entries(edgeAttrDict).forEach(([key, value]) => {
             edgeAttributes[key] = [...new Set(aqlResults.edgeValues.map((vals: string[]) => `${vals[value]}`).sort())];
-          }
+          });
           store.commit.setLargeNetworkAttributeValues({ nodeAttributes, edgeAttributes });
         });
       }
