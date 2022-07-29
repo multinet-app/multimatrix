@@ -77,7 +77,6 @@ export default defineComponent({
           matrix.forEach((matrixRow) => {
             [...Array(hops.value).keys()].slice(0).forEach((j) => {
               if (path.vertices[j + 1]._key === matrixRow[j].cellName) {
-                // eslint-disable-next-line no-param-reassign
                 matrixRow[j].z += 1;
                 matrixRow[j].paths.push(i);
               }

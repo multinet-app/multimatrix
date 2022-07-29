@@ -14,8 +14,7 @@ export function getUrlVars() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function defineNeighbors(nodes: any[], edges: Edge[]) {
-  // eslint-disable-next-line no-return-assign, no-param-reassign
-  nodes.forEach((d) => (d.neighbors = []));
+  nodes.forEach((d) => { d.neighbors = []; });
   edges.forEach((edge) => {
     const findNodeFrom = nodes.find((node) => node._id === edge._from);
     const findNodeTo = nodes.find((node) => node._id === edge._to);
