@@ -146,10 +146,11 @@ export default defineComponent({
       selectedConnectivityPaths.value.forEach((path) => {
         const tablePath: { [key: string]: string } = {};
         headers.value.forEach((header) => {
-          // eslint-disable-next-line no-unused-expressions
-          header.type === 'edge' ? tablePath[`${header.value}`] = `${path.edges[+header.position][header.attribute]}`
-            : tablePath[`${header.value}`] = `${path.vertices[+header.position][header.attribute]
-            }`;
+          if (header.type === 'edge') {
+            tablePath[`${header.value}`] = `${path.edges[+header.position][header.attribute]}`;
+          } else {
+            tablePath[`${header.value}`] = `${path.vertices[+header.position][header.attribute]}`;
+          }
         });
         toReturn.push(tablePath);
       });

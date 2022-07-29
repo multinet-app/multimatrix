@@ -67,13 +67,10 @@ export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoa
 
   baseNetwork.edges.forEach((edge: Edge) => {
     if (directionalEdges) {
-      // eslint-disable-next-line no-unused-expressions
-      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
+      nodeDegreeDict[edge._from] = edge._from in nodeDegreeDict ? nodeDegreeDict[edge._from] + 1 : 1;
     } else {
-      // eslint-disable-next-line no-unused-expressions
-      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._from) ? nodeDegreeDict[edge._from] += 1 : nodeDegreeDict[edge._from] = 1;
-      // eslint-disable-next-line no-unused-expressions
-      Object.prototype.hasOwnProperty.call(nodeDegreeDict, edge._to) ? nodeDegreeDict[edge._to] += 1 : nodeDegreeDict[edge._to] = 1;
+      nodeDegreeDict[edge._from] = edge._from in nodeDegreeDict ? nodeDegreeDict[edge._from] + 1 : 1;
+      nodeDegreeDict[edge._to] = edge._from in nodeDegreeDict ? nodeDegreeDict[edge._to] + 1 : 1;
     }
   });
 

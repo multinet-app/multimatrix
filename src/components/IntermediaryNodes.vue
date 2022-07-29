@@ -52,8 +52,8 @@ export default defineComponent({
       if (network.value !== null && connectivityPaths.value.nodes.length > 0) {
         let sortConnectivityPaths = [];
         const sortKey = intAggregatedBy.value === undefined ? '_key' : intAggregatedBy.value;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, vue/no-side-effects-in-computed-properties
-        sortConnectivityPaths = connectivityPaths.value.nodes.sort((a: any, b: any) => (a[sortKey] > b[sortKey] ? 1 : -1));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        sortConnectivityPaths = structuredClone(connectivityPaths.value).nodes.sort((a: any, b: any) => (a[sortKey] > b[sortKey] ? 1 : -1));
 
         // Set up matrix intermediate nodes x # of hops.value
         sortConnectivityPaths.forEach((rowNode, i) => {
