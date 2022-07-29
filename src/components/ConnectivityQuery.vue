@@ -572,20 +572,25 @@ export default defineComponent({
               // Create dictionary of degree occurences
               const orderedList = Object.values(store.state.nodeDegreeDict).sort((a, b) => a - b);
               const degreeCount: {[key:number]:number} = {};
-              // eslint-disable-next-line no-plusplus
-              for (let i = 0; i < orderedList.length; i++) {
-                degreeCount[orderedList[i]] = (degreeCount[orderedList[i]] || 0) + 1;
-              }
-
-              // Set min value if the node degree occurence < 100
-              // Using every to stop for loop once the conditional is met
-              Object.entries(degreeCount).every(([degree, occurence]) => {
-                if (occurence < 100) {
-                  store.commit.setMinDegree(Number(degree));
-                  store.commit.setDegreeNetwork([Number(degree), store.state.maxDegree]);
-                  return false;
-                } return true;
+              orderedList.forEach((olItem) => {
+                degreeCount[olItem] = (degreeCount[olItem] || 0) + 1;
               });
+
+              // Set min value if the node degree occurrence < 100
+              // Using every to stop for loop once the conditional is met
+              if (
+                // If all degrees have 100 connections of more
+                Object.entries(degreeCount).every(([degree, occurrence]) => {
+                  if (occurrence < 100) {
+                    store.commit.setMinDegree(Number(degree));
+                    // This calls updateNetwork
+                    store.commit.setDegreeNetwork([Number(degree), store.state.maxDegree]);
+                    return false;
+                  } return true;
+                })
+              ) {
+                store.dispatch.updateNetwork({ network: newNetwork });
+              }
             } else {
               // Update state with new network
               store.dispatch.updateNetwork({ network: newNetwork });
