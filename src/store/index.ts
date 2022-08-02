@@ -79,6 +79,7 @@ const {
     selectedHops: 1,
     nodeDegreeDict: {},
     maxDegree: 0,
+    minDegree: 0,
     networkPreFilter: null,
     queriedNetwork: false,
     filteredNetwork: false,
@@ -391,6 +392,10 @@ const {
     setDegreeEntries(state, degreeObject: { maxDegree: number; nodeDegreeDict: {[key: string]: number}}) {
       state.maxDegree = degreeObject.maxDegree;
       state.nodeDegreeDict = degreeObject.nodeDegreeDict;
+    },
+
+    setMinDegree(state, minDegree: number) {
+      state.minDegree = minDegree;
     },
 
     setDegreeNetwork(state, degreeRange: number[]) {

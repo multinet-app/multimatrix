@@ -95,10 +95,11 @@ export default defineComponent({
     });
     const maxConnections = computed(() => store.state.maxConnections);
     const maxDegree = computed(() => store.state.maxDegree);
-    const degreeRange = ref([0, maxDegree.value]);
+    const minDegree = computed(() => store.state.minDegree);
+    const degreeRange = ref([minDegree.value, maxDegree.value]);
 
-    watch([maxDegree], () => {
-      degreeRange.value = [0, maxDegree.value];
+    watch([maxDegree, minDegree], () => {
+      degreeRange.value = [minDegree.value, maxDegree.value];
     });
 
     // Intermediate node table template objects

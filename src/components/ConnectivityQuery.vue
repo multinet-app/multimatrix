@@ -563,12 +563,38 @@ export default defineComponent({
 
             // Update state with new network
             store.dispatch.aggregateNetwork(undefined);
-            store.dispatch.updateNetwork({ network: newNetwork });
             store.commit.setNetworkPreFilter(newNetwork);
             loading.value = false;
             store.commit.setDirectionalEdges(true);
             store.commit.setQueriedNetworkState(true);
             store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
+            if (promise.length >= 100) {
+              // Create dictionary of degree occurences
+              const orderedList = Object.values(store.state.nodeDegreeDict).sort((a, b) => a - b);
+              const degreeCount: {[key:number]:number} = {};
+              orderedList.forEach((olItem) => {
+                degreeCount[olItem] = (degreeCount[olItem] || 0) + 1;
+              });
+
+              // Set min value if the node degree occurrence < 100
+              // Using every to stop for loop once the conditional is met
+              if (
+                // If all degrees have 100 connections of more
+                Object.entries(degreeCount).every(([degree, occurrence]) => {
+                  if (occurrence < 100) {
+                    store.commit.setMinDegree(Number(degree));
+                    // This calls updateNetwork
+                    store.commit.setDegreeNetwork([Number(degree), store.state.maxDegree]);
+                    return false;
+                  } return true;
+                })
+              ) {
+                store.dispatch.updateNetwork({ network: newNetwork });
+              }
+            } else {
+              // Update state with new network
+              store.dispatch.updateNetwork({ network: newNetwork });
+            }
           } else {
             // Update state with empty network
             store.dispatch.aggregateNetwork(undefined);
