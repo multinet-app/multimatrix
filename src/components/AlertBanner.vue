@@ -1,65 +1,44 @@
-<script lang="ts">
+<script setup lang="ts">
 import store from '@/store';
 import {
-  computed, defineComponent, Ref, ref, watchEffect,
+  computed, Ref, ref, watchEffect,
 } from 'vue';
 import api from '@/api';
 import FilterOverlay from '@/components/FilterOverlay.vue';
 
-export default defineComponent({
-  name: 'AlertBanner',
+const loadError = computed(() => store.state.loadError);
 
-  components: {
-    FilterOverlay,
-  },
+// Vars to store the selected choices in
+const workspace: Ref<string | null> = ref(null);
+const network: Ref<string | null> = ref(null);
 
-  setup() {
-    const loadError = computed(() => store.state.loadError);
+// Compute the workspace/network options
+const workspaceOptions: Ref<string[]> = ref([]);
+watchEffect(async () => {
+  workspaceOptions.value = (await api.workspaces()).results.map((workspaceObj) => workspaceObj.name);
+});
 
-    // Vars to store the selected choices in
-    const workspace: Ref<string | null> = ref(null);
-    const network: Ref<string | null> = ref(null);
+const networkOptions: Ref<string[]> = ref([]);
+watchEffect(async () => {
+  if (workspace.value !== null) {
+    networkOptions.value = (await api.networks(workspace.value)).results.map((networkObj) => networkObj.name);
+  }
+});
 
-    // Compute the workspace/network options
-    const workspaceOptions: Ref<string[]> = ref([]);
-    watchEffect(async () => {
-      workspaceOptions.value = (await api.workspaces()).results.map((workspaceObj) => workspaceObj.name);
-    });
-
-    const networkOptions: Ref<string[]> = ref([]);
-    watchEffect(async () => {
-      if (workspace.value !== null) {
-        networkOptions.value = (await api.networks(workspace.value)).results.map((networkObj) => networkObj.name);
-      }
-    });
-
-    // Add button
-    const buttonHref: Ref<string> = ref(loadError.value.href);
-    const buttonText: Ref<string> = ref('');
-    watchEffect(async () => {
-      if (workspace.value !== null && network.value !== null) {
-        buttonHref.value = `./?workspace=${workspace.value}&network=${network.value}`;
-        buttonText.value = 'Go To Network';
-      } else if (loadError.value.message === 'There was a network issue when getting data') {
-        buttonHref.value = loadError.value.href;
-        buttonText.value = 'Refresh the page';
-      } else {
-        buttonHref.value = loadError.value.href;
-        buttonText.value = 'Back to MultiNet';
-      }
-    });
-
-    return {
-      buttonHref,
-      buttonText,
-      loadError,
-      network,
-      networkOptions,
-      workspace,
-      workspaceOptions,
-      edgeTableName: computed(() => store.getters.edgeTableName),
-    };
-  },
+// Add button
+const buttonHref: Ref<string> = ref(loadError.value.href);
+const buttonText: Ref<string> = ref('');
+watchEffect(async () => {
+  if (workspace.value !== null && network.value !== null) {
+    buttonHref.value = `./?workspace=${workspace.value}&network=${network.value}`;
+    buttonText.value = 'Go To Network';
+  } else if (loadError.value.message === 'There was a network issue when getting data') {
+    buttonHref.value = loadError.value.href;
+    buttonText.value = 'Refresh the page';
+  } else {
+    buttonHref.value = loadError.value.href;
+    buttonText.value = 'Back to MultiNet';
+  }
 });
 </script>
 

@@ -1,122 +1,96 @@
-<script lang="ts">
+<script setup lang="ts">
 import store from '@/store';
 import {
-  computed, defineComponent, getCurrentInstance, ref, watch,
+  computed, getCurrentInstance, ref, watch,
 } from 'vue';
 import { max } from 'd3-array';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
 import { format } from 'd3-format';
 import { scaleLinear } from 'd3-scale';
 
-export default defineComponent({
-  name: 'EdgeSlices',
+const slicedNetwork = computed(() => store.state.slicedNetwork);
+const isDate = computed(() => store.state.isDate);
+const isNumeric = computed(() => (slicedNetwork.value[0].category === ''));
+const currentInstance = getCurrentInstance();
+const svgWidth = computed(() => (currentInstance !== null ? currentInstance.proxy.$vuetify.breakpoint.width - store.state.controlsWidth : 0));
+const rectHeight = ref(20);
 
-  setup() {
-    const slicedNetwork = computed(() => store.state.slicedNetwork);
-    const isDate = computed(() => store.state.isDate);
-    const isNumeric = computed(() => (slicedNetwork.value[0].category === ''));
-    const currentInstance = getCurrentInstance();
-    const svgWidth = computed(() => (currentInstance !== null ? currentInstance.proxy.$vuetify.breakpoint.width - store.state.controlsWidth : 0));
-    const rectHeight = ref(20);
-
-    const currentSlice = computed(() => {
-      const slices: { timeRanges: {[key: number]: number[] | Date[]} ; current: number ; slices: number; sumEdges: number[]; categories: {[key: number]: string} } = {
-        timeRanges: {}, current: 0, slices: 0, sumEdges: [], categories: {},
-      };
-      slicedNetwork.value.forEach((slice, i) => {
-        slices.slices = i + 1;
-        slices.sumEdges[i] = slice.network.edges.length;
-        if (isNumeric.value) {
-          slices.timeRanges[i] = slice.time;
-        } else {
-          slices.categories[i] = slice.category;
-        }
-      });
-      return slices;
-    });
-    const textSpacer = ref(70);
-
-    const timeRangesLength = computed(() => currentSlice.value.slices);
-
-    // Update sliced view and network
-    const selectedArray = ref([true]);
-
-    watch([timeRangesLength], () => {
-      selectedArray.value = Array.from(Array(timeRangesLength.value), (_, x: number) => (x === 0));
-    });
-
-    function isSelected(key: number) {
-      selectedArray.value.fill(false);
-      selectedArray.value[key] = true;
-      store.commit.setNetwork(slicedNetwork.value[key].network);
+const currentSlice = computed(() => {
+  const slices: { timeRanges: {[key: number]: number[] | Date[]} ; current: number ; slices: number; sumEdges: number[]; categories: {[key: number]: string} } = {
+    timeRanges: {}, current: 0, slices: 0, sumEdges: [], categories: {},
+  };
+  slicedNetwork.value.forEach((slice, i) => {
+    slices.slices = i + 1;
+    slices.sumEdges[i] = slice.network.edges.length;
+    if (isNumeric.value) {
+      slices.timeRanges[i] = slice.time;
+    } else {
+      slices.categories[i] = slice.category;
     }
+  });
+  return slices;
+});
+const textSpacer = ref(70);
 
-    // Heightscale for numeric attributes
-    const heightScale = computed(() => scaleLinear<number, number>().domain([0, max(currentSlice.value.sumEdges) || 0]).range([0, rectHeight.value]));
-    // Width of rect
-    const rectWidth = computed(() => (svgWidth.value - (textSpacer.value * 2) - ((timeRangesLength.value - 1) * 4)) / timeRangesLength.value);
+const timeRangesLength = computed(() => currentSlice.value.slices);
 
-    // Tooltip
-    const tooltipMessage = ref('');
-    const toggleTooltip = ref(false);
-    const tooltipPosition = ref({ x: 0, y: 0 });
-    const tooltipStyle = computed(() => `left: ${tooltipPosition.value.x}px; top: ${tooltipPosition.value.y}px; white-space: pre-line;`);
-    const controlsWidth = computed(() => store.state.controlsWidth);
+// Update sliced view and network
+const selectedArray = ref([true]);
 
-    function showTooltip(key: number, event: MouseEvent) {
-      tooltipPosition.value = {
-        x: event.clientX - controlsWidth.value - 20,
-        y: event.clientY + 20,
-      };
-      if (isNumeric.value) {
-        if (isDate.value) {
-          tooltipMessage.value = `Slice: ${key}
+watch([timeRangesLength], () => {
+  selectedArray.value = Array.from(Array(timeRangesLength.value), (_, x: number) => (x === 0));
+});
+
+function isSelected(key: number) {
+  selectedArray.value.fill(false);
+  selectedArray.value[key] = true;
+  store.commit.setNetwork(slicedNetwork.value[key].network);
+}
+
+// Heightscale for numeric attributes
+const heightScale = computed(() => scaleLinear<number, number>().domain([0, max(currentSlice.value.sumEdges) || 0]).range([0, rectHeight.value]));
+// Width of rect
+const rectWidth = computed(() => (svgWidth.value - (textSpacer.value * 2) - ((timeRangesLength.value - 1) * 4)) / timeRangesLength.value);
+
+// Tooltip
+const tooltipMessage = ref('');
+const toggleTooltip = ref(false);
+const tooltipPosition = ref({ x: 0, y: 0 });
+const tooltipStyle = computed(() => `left: ${tooltipPosition.value.x}px; top: ${tooltipPosition.value.y}px; white-space: pre-line;`);
+const controlsWidth = computed(() => store.state.controlsWidth);
+
+function showTooltip(key: number, event: MouseEvent) {
+  tooltipPosition.value = {
+    x: event.clientX - controlsWidth.value - 20,
+    y: event.clientY + 20,
+  };
+  if (isNumeric.value) {
+    if (isDate.value) {
+      tooltipMessage.value = `Slice: ${key}
       Range: ${formatLongDate(`${currentSlice.value.timeRanges[key][0]}`)} - ${formatLongDate(`${currentSlice.value.timeRanges[key][1]}`)}
       Total Edges: ${currentSlice.value.sumEdges[key]}`;
-          toggleTooltip.value = true;
-        } else {
-          tooltipMessage.value = `Slice: ${key}
+      toggleTooltip.value = true;
+    } else {
+      tooltipMessage.value = `Slice: ${key}
       Range: ${format('.2s')(currentSlice.value.timeRanges[key][0])} - ${format('.2s')(currentSlice.value.timeRanges[key][1])}
       Total Edges: ${currentSlice.value.sumEdges[key]}`;
-          toggleTooltip.value = true;
-        }
-      } else {
-        tooltipMessage.value = `Category: ${currentSlice.value.categories[key]}
+      toggleTooltip.value = true;
+    }
+  } else {
+    tooltipMessage.value = `Category: ${currentSlice.value.categories[key]}
       Total Edges: ${currentSlice.value.sumEdges[key]}`;
-        toggleTooltip.value = true;
-      }
-    }
+    toggleTooltip.value = true;
+  }
+}
 
-    function hideTooltip() {
-      tooltipMessage.value = '';
-      toggleTooltip.value = false;
-    }
+function hideTooltip() {
+  tooltipMessage.value = '';
+  toggleTooltip.value = false;
+}
 
-    // Select the first slice on when slices are changed load
-    watch([slicedNetwork], () => {
-      isSelected(0);
-    });
-
-    return {
-      svgWidth,
-      currentSlice,
-      showTooltip,
-      hideTooltip,
-      tooltipStyle,
-      toggleTooltip,
-      tooltipMessage,
-      textSpacer,
-      isDate,
-      formatShortDate,
-      heightScale,
-      rectHeight,
-      rectWidth,
-      isNumeric,
-      format,
-      isSelected,
-      selectedArray,
-    };
-  },
+// Select the first slice on when slices are changed load
+watch([slicedNetwork], () => {
+  isSelected(0);
 });
 </script>
 
