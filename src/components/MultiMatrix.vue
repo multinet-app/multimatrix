@@ -372,6 +372,10 @@ processData();
 
 const highlightLength = computed(() => matrix.value.length * cellSize.value);
 const labelFontSize = computed(() => 0.8 * cellSize.value);
+const labelWidth = 60;
+const sortIconWidth = 8.133;
+const sortIconScaleFactor = 15;
+const invisibleRectSize = 11;
 
 function clickElement(matrixElement: Node | Cell) {
   if (isCell(matrixElement)) {
