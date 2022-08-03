@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   computed, defineComponent,
-} from '@vue/composition-api';
+} from 'vue';
 import {
   scaleLinear,
 } from 'd3-scale';

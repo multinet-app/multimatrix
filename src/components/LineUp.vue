@@ -2,7 +2,7 @@
 import store from '@/store';
 import {
   computed, defineComponent, onMounted, Ref, ref, watch, watchEffect,
-} from '@vue/composition-api';
+} from 'vue';
 import LineUp, {
   Column, DataBuilder, IBuilderAdapterColumnDescProps, LocalDataProvider,
 } from 'lineupjs';

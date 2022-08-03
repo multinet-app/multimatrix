@@ -22,7 +22,7 @@ import 'science';
 import 'reorder.js';
 import {
   computed, defineComponent, onMounted, Ref, ref, watch,
-} from '@vue/composition-api';
+} from 'vue';
 import PathTable from '@/components/PathTable.vue';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

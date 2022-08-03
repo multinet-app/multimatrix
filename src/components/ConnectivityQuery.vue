@@ -294,7 +294,7 @@ import {
 } from '@/types';
 import {
   computed, defineComponent, onMounted, ref, Ref, watch,
-} from '@vue/composition-api';
+} from 'vue';
 import api from '@/api';
 import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
 
@@ -494,7 +494,8 @@ export default defineComponent({
       let newAQLNetwork: Promise<any[]> | undefined;
       try {
         newAQLNetwork = api.aql(store.state.workspaceName || '', aqlQuery);
-      } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
         // Add error message for user
         if (error.status === 400) {
           store.commit.setLoadError({

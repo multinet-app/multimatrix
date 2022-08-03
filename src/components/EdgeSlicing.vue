@@ -8,7 +8,7 @@ import {
   Ref,
   ref,
   watch,
-} from '@vue/composition-api';
+} from 'vue';
 import { scaleLinear, scaleTime } from 'd3-scale';
 
 export default defineComponent({

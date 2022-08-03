@@ -65,7 +65,7 @@ import oauthClient from '@/oauth';
 import store from '@/store';
 import {
   computed, defineComponent, ref, watchEffect,
-} from '@vue/composition-api';
+} from 'vue';
 
 export default defineComponent({
   setup() {

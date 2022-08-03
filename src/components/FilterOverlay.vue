@@ -60,7 +60,7 @@ import {
   ArangoAttributes, Edge, Network, Node,
 } from '@/types';
 import store from '@/store';
-import { computed, defineComponent, ref } from '@vue/composition-api';
+import { computed, defineComponent, ref } from 'vue';
 import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
 
 export default defineComponent({
@@ -80,7 +80,8 @@ export default defineComponent({
       let nodeAndEdgeQuery: Promise<any[]> | undefined;
       try {
         nodeAndEdgeQuery = api.aql(store.state.workspaceName || '', aqlQuery);
-      } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
         // Add error message for user
         if (error.status === 400) {
           store.commit.setLoadError({
@@ -133,7 +134,8 @@ export default defineComponent({
 
       try {
         newAQLNetwork = api.aql(workspace.value, aqlQuery);
-      } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
         if (error.status === 400) {
           store.commit.setLoadError({
             message: error.statusText,

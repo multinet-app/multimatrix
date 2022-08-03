@@ -1,6 +1,6 @@
 <script lang="ts">
 import AlertBanner from '@/components/AlertBanner.vue';
-import { computed } from '@vue/composition-api';
+import { computed } from 'vue';
 import ProvVis from '@/components/ProvVis.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import MultiMatrix from '@/components/MultiMatrix.vue';

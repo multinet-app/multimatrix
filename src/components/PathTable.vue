@@ -91,7 +91,7 @@
 <script lang="ts">
 import {
   computed, ref, Ref, defineComponent, watch,
-} from '@vue/composition-api';
+} from 'vue';
 import store from '@/store';
 
 export default defineComponent({

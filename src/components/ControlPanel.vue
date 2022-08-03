@@ -11,7 +11,7 @@ import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import EdgeSlicing from '@/components/EdgeSlicing.vue';
 import {
   computed, defineComponent, Ref, ref, watch, watchEffect,
-} from '@vue/composition-api';
+} from 'vue';
 
 export default defineComponent({
   components: {

@@ -2,7 +2,7 @@
 import store from '@/store';
 import {
   computed, defineComponent, getCurrentInstance, ref, watch,
-} from '@vue/composition-api';
+} from 'vue';
 import { max } from 'd3-array';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
 import { format } from 'd3-format';
