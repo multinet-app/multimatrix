@@ -640,7 +640,7 @@ function clickedNeighborClass(node: Node) {
 </template>
 
 <style scoped>
-svg >>> .label {
+svg:deep(.label) {
   max-width: 60px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -649,35 +649,35 @@ svg >>> .label {
 }
 
 /* cell state */
-svg >>> .hoveredCell {
+svg:deep(.hoveredCell) {
   stroke-width: 1px;
   stroke: darkgray;
 }
-svg >>> .cell.clicked {
+svg:deep(.cell.clicked) {
   stroke: red;
   stroke-width: 3;
 }
 
 /* highlightContainer state */
-svg >>> .hovered > .highlightContainer{
+svg:deep(.hovered > .highlightContainer) {
   fill: #fde8ca;
   fill-opacity: 1 !important;
 }
-svg >>> .clicked > .highlightContainer {
+svg:deep(.clicked > .highlightContainer) {
   font-weight: 800;
   fill: #f8cf91;
   fill-opacity: 1;
 }
-svg >>> .neighbor > .highlightContainer {
+svg:deep(.neighbor > .highlightContainer) {
   fill: #caffc7;
   fill-opacity: 1;
 }
 
 /* foreignObject state */
-svg >>> foreignObject {
+svg:deep(foreignObject) {
   pointer-events: none;
 }
-svg >>> .clicked > foreignObject {
+svg:deep(.clicked > foreignObject) {
   font-weight: 650;
   fill: black !important;
 }
@@ -698,7 +698,7 @@ svg >>> .clicked > foreignObject {
 }
 
 /* gridLines */
-svg >>> .gridLines {
+svg:deep(.gridLines) {
   pointer-events: none;
   stroke: #BBBBBB;
 }

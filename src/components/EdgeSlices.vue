@@ -229,7 +229,7 @@ watch([slicedNetwork], () => {
   stroke-width: 2px;
 }
 
-svg >>> .sliceLabels {
+svg:deep(.sliceLabels) {
   text-overflow: ellipsis;
   overflow: hidden;
   z-index: 100;

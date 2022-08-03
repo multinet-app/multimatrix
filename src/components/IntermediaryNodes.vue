@@ -192,12 +192,12 @@ function displayTable(paths: number[]) {
 </template>
 
 <style scoped>
-svg >>> .circleIcons {
+svg:deep(.circleIcons) {
   stroke: black;
   stroke-width: 1;
 }
 
-svg >>> .rowLabels {
+svg:deep(.rowLabels) {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -206,7 +206,7 @@ svg >>> .rowLabels {
   text-align: left;
 }
 
-svg >>> .connectivityCell:hover {
+svg:deep(.connectivityCell:hover) {
   cursor: pointer;
   stroke-width: 1px;
   stroke: black;

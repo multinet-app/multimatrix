@@ -50,7 +50,7 @@ function toggleProvVis() {
 </template>
 
 <style scoped>
-#provDiv >>> .secondary {
+#provDiv:deep(.secondary) {
   /* Unset vuetify colors for secondary */
   background-color: unset !important;
   border-color: white !important;
