@@ -79,6 +79,7 @@ export default defineComponent({
     const showGridLines = computed(() => store.state.showGridLines);
     const aggregated = computed(() => store.state.aggregated);
     const filtered = computed(() => store.state.filteredNetwork);
+    const sliced = computed(() => store.state.slicedNetwork.length > 0);
     const cellColorScale = computed(() => store.getters.cellColorScale);
     const parentColorScale = computed(() => store.getters.parentColorScale);
     const matrixWidth = computed(() => (network.value !== null
@@ -108,6 +109,7 @@ export default defineComponent({
         store.commit.setShowPathTable(value);
       },
     });
+    const slicedEdgeArray = computed(() => store.state.slicedNetwork.map((slices) => slices.network).map((slice) => slice.edges));
 
     // Helpers
     function isCell(element: unknown): element is Cell {
@@ -331,9 +333,22 @@ export default defineComponent({
               x: j,
               y: i,
               z: 0,
+              spark: Array(slicedEdgeArray.value.length).fill(0),
             }));
           }
         });
+
+        // Create sparkline values if network is sliced
+        if (sliced.value) {
+          slicedEdgeArray.value.forEach((slice, i) => {
+            slice.forEach((edge) => {
+              matrix.value[idMap.value[edge._from]][idMap.value[edge._to]].spark[i] += 1;
+              if (!directionalEdges.value) {
+                matrix.value[idMap.value[edge._to]][idMap.value[edge._from]].spark[i] += 1;
+              }
+            });
+          });
+        }
 
         // Count occurrences of edges and store it in the matrix
         network.value.edges.forEach((edge: Edge) => {
@@ -497,6 +512,7 @@ export default defineComponent({
       sortKey,
       filtered,
       lineUpIsNested,
+      sliced,
     };
   },
 
@@ -645,13 +661,37 @@ export default defineComponent({
                   :width="cellSize - 2"
                   :height="cellSize - 2"
                   :fill="(cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode') || (filtered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
-                  :fill-opacity="cell.z"
+                  :fill-opacity="sliced ? 0 : cell.z"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                   @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"
                   @mouseout="(event) => {hideToolTip(); unHoverEdge(cell);}"
                   @click="clickElement(cell)"
                 />
               </g>
+              <svg
+                v-for="cell in matrix[i]"
+                :key="cell.cellName"
+                class="cellsSparkGroup"
+                :x="(cell.x * cellSize) + 1"
+                y="1"
+                :width="cellSize - 2"
+                :height="cellSize - 2"
+              >
+                <v-sparkline
+                  fill="true"
+                  :color="cellColorScale(cell.z)"
+                  radius="20"
+                  :value="cell.spark"
+                  :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
+                  padding="0"
+                  :height="cellSize - 2"
+                  :width="cellSize - 2"
+                  :fill-opacity="sliced ? 1 : 0"
+                  @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"
+                  @mouseout="(event) => {hideToolTip(); unHoverEdge(cell);}"
+                  @click="clickElement(cell)"
+                />
+              </svg>
             </g>
           </g>
           <g

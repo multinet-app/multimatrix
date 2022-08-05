@@ -32,6 +32,7 @@ export interface Cell {
   x: number;
   y: number;
   z: number;
+  spark: number[];
   rowCellType: string;
   colCellType: string;
   rowID: string;
