@@ -58,12 +58,14 @@ export function formatShortDate(date: Date) {
 export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoad: Network | null, queried: boolean, directionalEdges: boolean) {
   // Determine correct network to use
   let baseNetwork: Network = { nodes: [], edges: [] };
-  // Reset node dict
-  const nodeDegreeDict: {[key: string]: number} = {};
 
   if (networkPreFilter !== null || networkOnLoad !== null) {
     baseNetwork = queried ? structuredClone(networkPreFilter as Network) : structuredClone(networkOnLoad as Network);
   }
+
+  // Reset node dict
+  const nodeDegreeDict: {[key: string]: number} = {};
+  baseNetwork.nodes.forEach((node) => { nodeDegreeDict[node._id] = 0; });
 
   baseNetwork.edges.forEach((edge: Edge) => {
     if (directionalEdges) {
