@@ -209,7 +209,7 @@ const {
 
     pushHoveredNode(state, nodeID: string) {
       if (state.hoveredNodes.indexOf(nodeID) === -1) {
-        state.hoveredNodes.push(nodeID);
+        state.hoveredNodes = [...state.hoveredNodes, nodeID];
       }
     },
 
