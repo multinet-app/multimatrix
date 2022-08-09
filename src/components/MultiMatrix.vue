@@ -177,6 +177,7 @@ function sort(type: string): void {
   if (network.value === null) {
     return;
   }
+
   const nonNullNetwork = network.value;
   const isNode = nonNullNetwork.nodes.map((node: Node) => node._id).includes(type);
 
@@ -235,6 +236,36 @@ function sort(type: string): void {
 
       return firstValue - secondValue;
     });
+  }
+
+  // Move the children back under the super nodes
+  if (aggregated.value) {
+    const oldOrder = structuredClone(order); // Required to stop no-loop-func (order is modified later so has to be cloned)
+    const newOrder = Array(order.length);
+
+    let nextIndex = 0;
+    for (let i = 0; i < order.length;) {
+      if (newOrder.includes(order[nextIndex])) {
+        nextIndex += 1;
+      } else {
+        newOrder[i] = order[nextIndex];
+        const childrenToCheck = nonNullNetwork.nodes[newOrder[i]].children;
+        i += 1;
+        nextIndex += 1;
+
+        if (childrenToCheck !== undefined) {
+          childrenToCheck
+            .filter((child) => nonNullNetwork.nodes.includes(child))
+            .sort((a, b) => oldOrder.indexOf(nonNullNetwork.nodes.indexOf(a)) - oldOrder.indexOf(nonNullNetwork.nodes.indexOf(b)))
+            .forEach((child) => {
+              newOrder[i] = nonNullNetwork.nodes.indexOf(child);
+              i += 1;
+            });
+        }
+      }
+    }
+
+    order = newOrder;
   }
 
   matrixIsSorter = true;
