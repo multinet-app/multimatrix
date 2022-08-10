@@ -60,54 +60,41 @@
   </v-menu>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import oauthClient from '@/oauth';
 import store from '@/store';
 import {
-  computed, defineComponent, ref, watchEffect,
-} from '@vue/composition-api';
+  computed, ref, watchEffect,
+} from 'vue';
 
-export default defineComponent({
-  setup() {
-    const menu = ref(false);
-    const location = ref('');
+const menu = ref(false);
+const location = ref('');
 
-    // Get user info on created
-    store.dispatch.fetchUserInfo();
+// Get user info on created
+store.dispatch.fetchUserInfo();
 
-    const userInfo = computed(() => store.state.userInfo);
-    const userInitials = computed(() => (userInfo.value !== null ? `${userInfo.value.first_name[0] || ''}${userInfo.value.last_name[0] || ''}` : ''));
+const userInfo = computed(() => store.state.userInfo);
+const userInitials = computed(() => (userInfo.value !== null ? `${userInfo.value.first_name[0] || ''}${userInfo.value.last_name[0] || ''}` : ''));
 
-    watchEffect(() => {
-      if (menu.value) {
-        location.value = window.location.href;
-      }
-    });
-
-    async function logout() {
-      // Perform the logout action,
-      await store.dispatch.logout();
-
-      // Redirect the user to the home page.
-      // This is to prevent the logged-out user from continuing to look at, e.g.,
-      // workspaces or tables they may have been viewing at the time of logout.
-      window.location.href = 'https://multinet.app';
-    }
-
-    function login(): void {
-      oauthClient.redirectToLogin();
-    }
-
-    return {
-      menu,
-      location,
-      userInitials,
-      login,
-      logout,
-      userInfo,
-    };
-  },
+watchEffect(() => {
+  if (menu.value) {
+    location.value = window.location.href;
+  }
 });
+
+async function logout() {
+  // Perform the logout action,
+  await store.dispatch.logout();
+
+  // Redirect the user to the home page.
+  // This is to prevent the logged-out user from continuing to look at, e.g.,
+  // workspaces or tables they may have been viewing at the time of logout.
+  window.location.href = 'https://multinet.app';
+}
+
+function login(): void {
+  oauthClient.redirectToLogin();
+}
 </script>
 
 <style scoped>

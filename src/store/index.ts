@@ -209,7 +209,7 @@ const {
 
     pushHoveredNode(state, nodeID: string) {
       if (state.hoveredNodes.indexOf(nodeID) === -1) {
-        state.hoveredNodes.push(nodeID);
+        state.hoveredNodes = [...state.hoveredNodes, nodeID];
       }
     },
 
@@ -473,7 +473,8 @@ const {
       // Get all table names
       try {
         network = await api.network(workspaceName, networkName);
-      } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
         if (error.status === 404) {
           if (workspaceName === undefined || networkName === undefined) {
             commit.setLoadError({

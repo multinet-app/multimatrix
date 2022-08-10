@@ -1,23 +1,12 @@
-<script lang="ts">
+<script setup lang="ts">
 import store from '@/store';
-import {
-  computed, defineComponent,
-} from '@vue/composition-api';
+import { computed } from 'vue';
 
-export default defineComponent({
-  setup() {
-    function clearSelection() {
-      store.dispatch.clearSelection();
-    }
+function clearSelection() {
+  store.dispatch.clearSelection();
+}
 
-    const rightClickMenu = computed(() => store.state.rightClickMenu);
-
-    return {
-      rightClickMenu,
-      clearSelection,
-    };
-  },
-});
+const rightClickMenu = computed(() => store.state.rightClickMenu);
 </script>
 
 <template>

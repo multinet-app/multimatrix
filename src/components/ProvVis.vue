@@ -1,39 +1,33 @@
-<script lang="ts">
+<script setup lang="ts">
 import { ProvVisCreator } from '@visdesignlab/trrack-vis';
 import { ProvenanceEventTypes, State } from '@/types';
 import {
-  computed, ComputedRef, defineComponent, onMounted,
-} from '@vue/composition-api';
+  computed, ComputedRef, onMounted,
+} from 'vue';
 import store from '@/store';
 import { Provenance } from '@visdesignlab/trrack';
 
-export default defineComponent({
-  setup() {
-    const provenance: ComputedRef<Provenance<State, ProvenanceEventTypes, unknown> | null> = computed(
-      () => store.state.provenance,
+const provenance: ComputedRef<Provenance<State, ProvenanceEventTypes, unknown> | null> = computed(
+  () => store.state.provenance,
+);
+
+onMounted(() => {
+  const provDiv = document.getElementById('provDiv');
+  if (provenance.value !== null && provDiv != null) {
+    ProvVisCreator(
+      provDiv,
+      provenance.value,
+      (newNode: string) => store.commit.goToProvenanceNode(newNode),
+      true,
+      true,
+      provenance.value.root.id,
     );
-
-    onMounted(() => {
-      const provDiv = document.getElementById('provDiv');
-      if (provenance.value !== null && provDiv != null) {
-        ProvVisCreator(
-          provDiv,
-          provenance.value,
-          (newNode: string) => store.commit.goToProvenanceNode(newNode),
-          true,
-          true,
-          provenance.value.root.id,
-        );
-      }
-    });
-
-    function toggleProvVis() {
-      store.commit.toggleShowProvenanceVis();
-    }
-
-    return { toggleProvVis };
-  },
+  }
 });
+
+function toggleProvVis() {
+  store.commit.toggleShowProvenanceVis();
+}
 </script>
 
 <template>
@@ -56,7 +50,7 @@ export default defineComponent({
 </template>
 
 <style scoped>
-#provDiv >>> .secondary {
+#provDiv:deep(.secondary) {
   /* Unset vuetify colors for secondary */
   background-color: unset !important;
   border-color: white !important;

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 import { select } from 'd3-selection';
 import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
@@ -10,289 +10,246 @@ import LoginMenu from '@/components/LoginMenu.vue';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import EdgeSlicing from '@/components/EdgeSlicing.vue';
 import {
-  computed, defineComponent, Ref, ref, watch, watchEffect,
-} from '@vue/composition-api';
+  computed, Ref, ref, watch, watchEffect,
+} from 'vue';
 
-export default defineComponent({
-  components: {
-    AboutDialog,
-    LoginMenu,
-    ConnectivityQuery,
-    EdgeSlicing,
+// Template objects
+const showMenu = ref(false);
+const aggregateBy = computed({
+  get() {
+    return store.state.aggregatedBy;
   },
-
-  setup() {
-    // Template objects
-    const showMenu = ref(false);
-    const aggregateBy = computed({
-      get() {
-        return store.state.aggregatedBy;
-      },
-      set(value: string | undefined) {
-        store.commit.setAggregatedBy(value);
-      },
-    });
-    const directionalEdges = computed({
-      get() {
-        return store.state.directionalEdges;
-      },
-      set(value: boolean) {
-        store.commit.setDirectionalEdges(value);
-      },
-    });
-    const selectNeighbors = computed({
-      get() {
-        return store.state.selectNeighbors;
-      },
-      set(value: boolean) {
-        store.commit.setSelectNeighbors(value);
-      },
-    });
-    const showGridLines = computed({
-      get() {
-        return store.state.showGridLines;
-      },
-      set(value: boolean) {
-        store.commit.setShowGridlines(value);
-      },
-    });
-    const cellSize = computed({
-      get() {
-        return store.state.cellSize;
-      },
-      set(value: number) {
-        store.commit.setCellSize(value);
-      },
-    });
-    const labelVariable = computed({
-      get() {
-        return store.state.labelVariable;
-      },
-      set(value: string | undefined) {
-        store.commit.setLabelVariable(value);
-      },
-    });
-    const showTable = computed({
-      get() {
-        return store.state.showPathTable;
-      },
-      set(value: boolean) {
-        store.commit.setShowPathTable(value);
-      },
-    });
-    const aggregated = computed(() => store.state.aggregated);
-    const filtered = computed(() => store.state.filteredNetwork);
-    const cellColorScale = computed(() => store.getters.cellColorScale);
-    const parentColorScale = computed(() => store.getters.parentColorScale);
-    const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
-    const aggregationItems = computed(() => {
-      // Rebuild column types but just for node columns
-      const nodeColumnTypes = store.state.columnTypes !== null ? Object.fromEntries(Object.entries(store.state.columnTypes).filter(([tableName]) => store.getters.nodeTableNames.includes(tableName))) : {};
-
-      // Get the varName of all node variables that are type category
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
-    });
-    const maxConnections = computed(() => store.state.maxConnections);
-    const maxDegree = computed(() => store.state.maxDegree);
-    const degreeRange = ref([0, maxDegree.value]);
-
-    watch([maxDegree], () => {
-      degreeRange.value = [0, maxDegree.value];
-    });
-
-    // Intermediate node table template objects
-    const showIntNodeVis = computed(() => store.state.showIntNodeVis);
-    const intAggregatedBy = computed({
-      get() {
-        return store.state.intAggregatedBy;
-      },
-      set(value: string | undefined) {
-        store.commit.setIntAggregatedBy(value);
-      },
-    });
-    const maxIntConnections = computed(() => store.state.maxIntConnections);
-    const intTableColorScale = computed(() => store.getters.intTableColorScale);
-
-    // Non-template objects
-    const network = computed(() => store.state.network);
-    const networkOnLoad = computed(() => store.state.networkOnLoad);
-
-    const searchTerm = ref('');
-    const searchErrors: Ref<string[]> = ref([]);
-    const searchItems = computed(() => {
-      if (network.value !== null && labelVariable.value !== undefined) {
-        return network.value.nodes.map((node) => (node[labelVariable.value || '']));
-      }
-      if (network.value !== null && labelVariable.value === undefined) {
-        return network.value.nodes.map((node) => (node._key));
-      }
-      return [];
-    });
-
-    function exportNetwork() {
-      if (network.value === null) {
-        return;
-      }
-
-      const networkToExport = {
-        nodes: network.value.nodes.map((node) => {
-          const newNode = { ...node };
-          newNode.id = newNode._key;
-
-          return newNode;
-        }),
-        links: network.value.edges.map((edge) => {
-          const newEdge = { ...edge };
-          newEdge.source = `${edge._from.split('/')[1]}`;
-          newEdge.target = `${edge._to.split('/')[1]}`;
-          return newEdge;
-        }),
-      };
-
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(
-        new Blob([JSON.stringify(networkToExport)], {
-          type: 'text/json',
-        }),
-      );
-      a.download = `${store.state.networkName}.json`;
-      a.click();
-    }
-
-    function updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr' | 'intTable') {
-      let legendSVG;
-      if (legendName === 'parent') {
-        legendSVG = select('#parent-matrix-legend');
-      } else if (legendName === 'unAggr') {
-        legendSVG = select('#matrix-legend');
-      } else {
-        legendSVG = select('#int-matrix-legend');
-      }
-
-      // construct the legend and format the labels to have 0 decimal places
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const legendLinear = (legendColor() as any)
-        .shapeWidth(20)
-        .cells(colorScale.domain()[1] >= 5 ? 5 : colorScale.domain()[1] + 1)
-        .orient('horizontal')
-        .scale(colorScale)
-        .labelFormat(format('.0f'));
-
-      legendSVG.select('.legendLinear').call(legendLinear);
-    }
-
-    function displayCSVBuilder() {
-      const reconstructedPaths: ArangoPath[] = [];
-
-      if (network.value !== null) {
-        network.value.edges.forEach((edge) => {
-          const reconstructedPath: ArangoPath = {
-            vertices: [],
-            edges: [],
-          };
-
-          reconstructedPath.edges.push(edge as Edge);
-          if (network.value !== null) {
-            const node0index = network.value.nodes.findIndex((node) => (node === null ? false : node._id === edge._from));
-            const node1index = network.value.nodes.findIndex((node) => (node === null ? false : node._id === edge._to));
-            reconstructedPath.vertices.push(network.value.nodes[node0index] as Node);
-            reconstructedPath.vertices.push(network.value.nodes[node1index] as Node);
-          }
-          reconstructedPaths.push(reconstructedPath);
-        });
-      }
-
-      store.commit.setConnectivityMatrixPaths({ nodes: [], paths: reconstructedPaths });
-      store.commit.setSelectedConnectivityPaths([...Array(reconstructedPaths.length).keys()]);
-      showTable.value = true;
-    }
-
-    watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
-    watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
-    watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
-    watch(aggregated, () => {
-      if (!aggregated.value) {
-        labelVariable.value = '_key';
-      }
-    });
-    watch(aggregateBy, () => {
-      labelVariable.value = aggregateBy.value;
-    });
-    watchEffect(() => {
-      if (!showIntNodeVis.value) {
-        intAggregatedBy.value = undefined;
-      }
-    });
-
-    function toggleProvVis() {
-      store.commit.toggleShowProvenanceVis();
-    }
-
-    function aggregateNetwork(varName: string) {
-      if (filtered.value) {
-        store.commit.setFilteredNetwork(false);
-        if (networkOnLoad.value !== null) {
-          store.dispatch.updateNetwork({ network: networkOnLoad.value });
-        }
-        degreeRange.value = [0, maxDegree.value];
-        store.commit.setDegreeNetwork(degreeRange.value);
-      }
-      store.dispatch.aggregateNetwork(varName);
-    }
-
-    function search() {
-      searchErrors.value = [];
-      if (network.value !== null) {
-        const nodeIDsToSelect = network.value.nodes
-          .filter((node) => (labelVariable.value !== undefined ? node[labelVariable.value] === searchTerm.value : node._key === searchTerm.value))
-          .map((node) => node._id);
-
-        if (nodeIDsToSelect.length > 0) {
-          store.commit.addSelectedNode(nodeIDsToSelect);
-        } else {
-          searchErrors.value.push('Enter a valid node to search');
-        }
-      }
-    }
-
-    function removeByDegree() {
-      store.commit.setDegreeNetwork(degreeRange.value);
-    }
-
-    return {
-      aggregateBy,
-      directionalEdges,
-      selectNeighbors,
-      showGridLines,
-      cellSize,
-      aggregated,
-      filtered,
-      cellColorScale,
-      parentColorScale,
-      nodeVariableItems,
-      aggregationItems,
-      maxConnections,
-      showIntNodeVis,
-      intAggregatedBy,
-      maxIntConnections,
-      exportNetwork,
-      updateLegend,
-      toggleProvVis,
-      aggregateNetwork,
-      labelVariable,
-      showMenu,
-      search,
-      searchTerm,
-      searchErrors,
-      searchItems,
-      degreeRange,
-      maxDegree,
-      removeByDegree,
-      displayCSVBuilder,
-    };
+  set(value: string | undefined) {
+    store.commit.setAggregatedBy(value);
   },
 });
+const directionalEdges = computed({
+  get() {
+    return store.state.directionalEdges;
+  },
+  set(value: boolean) {
+    store.commit.setDirectionalEdges(value);
+  },
+});
+const selectNeighbors = computed({
+  get() {
+    return store.state.selectNeighbors;
+  },
+  set(value: boolean) {
+    store.commit.setSelectNeighbors(value);
+  },
+});
+const showGridLines = computed({
+  get() {
+    return store.state.showGridLines;
+  },
+  set(value: boolean) {
+    store.commit.setShowGridlines(value);
+  },
+});
+const cellSize = computed({
+  get() {
+    return store.state.cellSize;
+  },
+  set(value: number) {
+    store.commit.setCellSize(value);
+  },
+});
+const labelVariable = computed({
+  get() {
+    return store.state.labelVariable;
+  },
+  set(value: string | undefined) {
+    store.commit.setLabelVariable(value);
+  },
+});
+const showTable = computed({
+  get() {
+    return store.state.showPathTable;
+  },
+  set(value: boolean) {
+    store.commit.setShowPathTable(value);
+  },
+});
+const aggregated = computed(() => store.state.aggregated);
+const filtered = computed(() => store.state.filteredNetwork);
+const cellColorScale = computed(() => store.getters.cellColorScale);
+const parentColorScale = computed(() => store.getters.parentColorScale);
+const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
+const aggregationItems = computed(() => {
+  // Rebuild column types but just for node columns
+  const nodeColumnTypes = store.state.columnTypes !== null ? Object.fromEntries(Object.entries(store.state.columnTypes).filter(([tableName]) => store.getters.nodeTableNames.includes(tableName))) : {};
+
+  // Get the varName of all node variables that are type category
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
+});
+const maxConnections = computed(() => store.state.maxConnections);
+const maxDegree = computed(() => store.state.maxDegree);
+const degreeRange = ref([0, maxDegree.value]);
+
+watch([maxDegree], () => {
+  degreeRange.value = [0, maxDegree.value];
+});
+
+// Intermediate node table template objects
+const showIntNodeVis = computed(() => store.state.showIntNodeVis);
+const intAggregatedBy = computed({
+  get() {
+    return store.state.intAggregatedBy;
+  },
+  set(value: string | undefined) {
+    store.commit.setIntAggregatedBy(value);
+  },
+});
+const maxIntConnections = computed(() => store.state.maxIntConnections);
+const intTableColorScale = computed(() => store.getters.intTableColorScale);
+
+// Non-template objects
+const network = computed(() => store.state.network);
+const networkOnLoad = computed(() => store.state.networkOnLoad);
+
+const searchTerm = ref('');
+const searchErrors: Ref<string[]> = ref([]);
+const searchItems = computed(() => {
+  if (network.value !== null && labelVariable.value !== undefined) {
+    return network.value.nodes.map((node) => (node[labelVariable.value || '']));
+  }
+  if (network.value !== null && labelVariable.value === undefined) {
+    return network.value.nodes.map((node) => (node._key));
+  }
+  return [];
+});
+
+function exportNetwork() {
+  if (network.value === null) {
+    return;
+  }
+
+  const networkToExport = {
+    nodes: network.value.nodes.map((node) => {
+      const newNode = { ...node };
+      newNode.id = newNode._key;
+
+      return newNode;
+    }),
+    links: network.value.edges.map((edge) => {
+      const newEdge = { ...edge };
+      newEdge.source = `${edge._from.split('/')[1]}`;
+      newEdge.target = `${edge._to.split('/')[1]}`;
+      return newEdge;
+    }),
+  };
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(
+    new Blob([JSON.stringify(networkToExport)], {
+      type: 'text/json',
+    }),
+  );
+  a.download = `${store.state.networkName}.json`;
+  a.click();
+}
+
+function updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr' | 'intTable') {
+  let legendSVG;
+  if (legendName === 'parent') {
+    legendSVG = select('#parent-matrix-legend');
+  } else if (legendName === 'unAggr') {
+    legendSVG = select('#matrix-legend');
+  } else {
+    legendSVG = select('#int-matrix-legend');
+  }
+
+  // construct the legend and format the labels to have 0 decimal places
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const legendLinear = (legendColor() as any)
+    .shapeWidth(20)
+    .cells(colorScale.domain()[1] >= 5 ? 5 : colorScale.domain()[1] + 1)
+    .orient('horizontal')
+    .scale(colorScale)
+    .labelFormat(format('.0f'));
+
+  legendSVG.select('.legendLinear').call(legendLinear);
+}
+
+function displayCSVBuilder() {
+  const reconstructedPaths: ArangoPath[] = [];
+
+  if (network.value !== null) {
+    network.value.edges.forEach((edge) => {
+      const reconstructedPath: ArangoPath = {
+        vertices: [],
+        edges: [],
+      };
+
+      reconstructedPath.edges.push(edge as Edge);
+      if (network.value !== null) {
+        const node0index = network.value.nodes.findIndex((node) => (node === null ? false : node._id === edge._from));
+        const node1index = network.value.nodes.findIndex((node) => (node === null ? false : node._id === edge._to));
+        reconstructedPath.vertices.push(network.value.nodes[node0index] as Node);
+        reconstructedPath.vertices.push(network.value.nodes[node1index] as Node);
+      }
+      reconstructedPaths.push(reconstructedPath);
+    });
+  }
+
+  store.commit.setConnectivityMatrixPaths({ nodes: [], paths: reconstructedPaths });
+  store.commit.setSelectedConnectivityPaths([...Array(reconstructedPaths.length).keys()]);
+  showTable.value = true;
+}
+
+watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
+watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
+watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
+watch(aggregated, () => {
+  if (!aggregated.value) {
+    labelVariable.value = '_key';
+  }
+});
+watch(aggregateBy, () => {
+  labelVariable.value = aggregateBy.value;
+});
+watchEffect(() => {
+  if (!showIntNodeVis.value) {
+    intAggregatedBy.value = undefined;
+  }
+});
+
+function toggleProvVis() {
+  store.commit.toggleShowProvenanceVis();
+}
+
+function aggregateNetwork(varName: string) {
+  if (filtered.value) {
+    store.commit.setFilteredNetwork(false);
+    if (networkOnLoad.value !== null) {
+      store.dispatch.updateNetwork({ network: networkOnLoad.value });
+    }
+    degreeRange.value = [0, maxDegree.value];
+    store.commit.setDegreeNetwork(degreeRange.value);
+  }
+  store.dispatch.aggregateNetwork(varName);
+}
+
+function search() {
+  searchErrors.value = [];
+  if (network.value !== null) {
+    const nodeIDsToSelect = network.value.nodes
+      .filter((node) => (labelVariable.value !== undefined ? node[labelVariable.value] === searchTerm.value : node._key === searchTerm.value))
+      .map((node) => node._id);
+
+    if (nodeIDsToSelect.length > 0) {
+      store.commit.addSelectedNode(nodeIDsToSelect);
+    } else {
+      searchErrors.value.push('Enter a valid node to search');
+    }
+  }
+}
+
+function removeByDegree() {
+  store.commit.setDegreeNetwork(degreeRange.value);
+}
 </script>
 
 <template>

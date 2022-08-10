@@ -1,6 +1,6 @@
-<script lang="ts">
+<script setup lang="ts">
 import AlertBanner from '@/components/AlertBanner.vue';
-import { computed } from '@vue/composition-api';
+import { computed } from 'vue';
 import ProvVis from '@/components/ProvVis.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import MultiMatrix from '@/components/MultiMatrix.vue';
@@ -8,42 +8,22 @@ import EdgeSlices from '@/components/EdgeSlices.vue';
 import { getUrlVars } from '@/lib/utils';
 import store from '@/store';
 
-export default {
-  name: 'App',
+const urlVars = getUrlVars();
 
-  components: {
-    AlertBanner,
-    ControlPanel,
-    MultiMatrix,
-    ProvVis,
-    EdgeSlices,
-  },
+store.dispatch.fetchNetwork({
+  workspaceName: urlVars.workspace,
+  networkName: urlVars.network,
+}).then(() => {
+  store.dispatch.createProvenance();
+});
+const network = computed(() => store.state.network);
 
-  setup() {
-    const urlVars = getUrlVars();
+const loadError = computed(() => store.state.loadError);
 
-    store.dispatch.fetchNetwork({
-      workspaceName: urlVars.workspace,
-      networkName: urlVars.network,
-    }).then(() => {
-      store.dispatch.createProvenance();
-    });
-    const network = computed(() => store.state.network);
+const showProvenanceVis = computed(() => store.state.showProvenanceVis);
 
-    const loadError = computed(() => store.state.loadError);
+const slicedNetwork = computed(() => store.state.slicedNetwork.length > 1);
 
-    const showProvenanceVis = computed(() => store.state.showProvenanceVis);
-
-    const slicedNetwork = computed(() => store.state.slicedNetwork.length > 1);
-
-    return {
-      loadError,
-      network,
-      showProvenanceVis,
-      slicedNetwork,
-    };
-  },
-};
 </script>
 
 <template>
