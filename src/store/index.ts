@@ -646,27 +646,43 @@ const {
         // Aggregate the network if the varName is not none
         if (varName !== undefined) {
           // Calculate edges
-          const aggregatedEdges = state.network.edges.map((edge) => {
+          const newEdges: Edge[] = [];
+          state.network.edges.forEach((edge) => {
             const fromNode = state.network && state.network.nodes.find((node) => node._id === edge._from);
             const toNode = state.network && state.network.nodes.find((node) => node._id === edge._to);
 
-            if (fromNode === undefined || toNode === undefined || fromNode === null || toNode === null) {
-              return edge;
+            // Add all super node to child node permutations
+            if (fromNode !== undefined && fromNode !== null) {
+              const newEdge = structuredClone(edge);
+              const fromNodeValue = fromNode[varName];
+              newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
+              newEdge._from = `aggregated/${fromNodeValue}`;
+              newEdges.push(newEdge);
             }
 
-            const fromNodeValue = fromNode[varName];
-            const toNodeValue = toNode[varName];
+            if (toNode !== undefined && toNode !== null) {
+              const newEdge = structuredClone(edge);
+              const toNodeValue = toNode[varName];
+              newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
+              newEdge._to = `aggregated/${toNodeValue}`;
+              newEdges.push(newEdge);
+            }
 
-            edge.originalFrom = edge.originalFrom === undefined ? edge._from : edge.originalFrom;
-            edge.originalTo = edge.originalTo === undefined ? edge._to : edge.originalTo;
-            edge._from = `aggregated/${fromNodeValue}`;
-            edge._to = `aggregated/${toNodeValue}`;
-
-            return edge;
+            if (fromNode !== undefined && fromNode !== null && toNode !== undefined && toNode !== null) {
+              const newEdge = structuredClone(edge);
+              const fromNodeValue = fromNode[varName];
+              const toNodeValue = toNode[varName];
+              newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
+              newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
+              newEdge._from = `aggregated/${fromNodeValue}`;
+              newEdge._to = `aggregated/${toNodeValue}`;
+              newEdges.push(newEdge);
+            }
           });
+          const aggregatedEdges = [...state.network.edges, ...newEdges];
 
           // Calculate nodes
-          const aggregatedNodes = Array.from(
+          const aggregatedNodes: Node[] = Array.from(
             group(state.network.nodes, (d) => d[varName]),
             ([key, value]) => ({
               _id: `aggregated/${key}`,
@@ -675,31 +691,15 @@ const {
               children: value.map((node) => structuredClone(node)),
               type: 'supernode',
               neighbors: [] as string[],
+              degreeCount: 0,
               [varName]: key,
             }),
           );
 
-          // Calculate neighbors
-          aggregatedEdges.forEach((edge) => {
-            const fromNode = aggregatedNodes.find((node) => node._id === edge._from);
-            const toNode = aggregatedNodes.find((node) => node._id === edge._to);
-
-            if (fromNode === undefined || toNode === undefined) {
-              return;
-            }
-
-            if (edge._to !== fromNode._id && fromNode.neighbors.indexOf(edge._to) === -1) {
-              fromNode.neighbors.push(edge._to);
-            }
-            if (edge._from !== toNode._id && toNode.neighbors.indexOf(edge._from) === -1) {
-              toNode.neighbors.push(edge._from);
-            }
-          });
-
           // Set network and aggregated
           commit.setAggregated(true);
-          store.commit.setNetworkPreFilter({ nodes: aggregatedNodes as Node[], edges: aggregatedEdges });
-          dispatch.updateNetwork({ network: { nodes: aggregatedNodes as Node[], edges: aggregatedEdges } });
+          store.commit.setNetworkPreFilter({ nodes: aggregatedNodes, edges: aggregatedEdges });
+          dispatch.updateNetwork({ network: { nodes: aggregatedNodes, edges: aggregatedEdges } });
         }
       }
     },
@@ -722,27 +722,7 @@ const {
         const expandedNodes = [...state.network.nodes];
         expandedNodes.splice(indexOfParent + 1, 0, ...parentChildren);
 
-        // Add children edges
-        const expandedEdges = state.network.edges
-          .map((edge) => {
-            const newEdge = { ...edge };
-            let modified = false;
-
-            if (newEdge._from === nodeID) {
-              newEdge._from = `${newEdge.originalFrom}`;
-              modified = true;
-            }
-
-            if (edge._to === nodeID) {
-              newEdge._to = `${newEdge.originalTo}`;
-              modified = true;
-            }
-
-            return modified ? newEdge : null;
-          })
-          .filter((edge): edge is Edge => edge !== null);
-
-        dispatch.updateNetwork({ network: { nodes: expandedNodes, edges: [...expandedEdges, ...state.network.edges] } });
+        dispatch.updateNetwork({ network: { nodes: expandedNodes, edges: state.network.edges } });
         store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
       }
     },
@@ -756,20 +736,7 @@ const {
         const parentChildren = parentNode && parentNode.children;
         const retractedNodes = state.network.nodes.filter((node) => parentChildren && parentChildren.indexOf(node) === -1);
 
-        // Remove children edges
-        const retractedEdges = state.network.edges
-          .map((edge) => {
-            const parentChildrenIDs = parentChildren && parentChildren.map((node: Node) => node._id);
-
-            if (parentChildrenIDs && (parentChildrenIDs.indexOf(edge._from) !== -1 || parentChildrenIDs.indexOf(edge._to) !== -1)) {
-              return null;
-            }
-
-            return edge;
-          })
-          .filter((edge): edge is Edge => edge !== null);
-
-        dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: retractedEdges } });
+        dispatch.updateNetwork({ network: { nodes: retractedNodes, edges: state.network.edges } });
         store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
       }
     },
