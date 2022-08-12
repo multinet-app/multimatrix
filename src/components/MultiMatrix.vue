@@ -321,6 +321,15 @@ function processData(): void {
 
     // Count occurrences of edges and store it in the matrix
     network.value.edges.forEach((edge: Edge) => {
+      // If nodes don't exist, don't add to matrix
+      if (
+        !(network.value !== null
+        && network.value.nodes.findIndex((node) => node._id === edge._from) > -1
+        && network.value.nodes.findIndex((node) => node._id === edge._to) > -1)
+      ) {
+        return;
+      }
+
       matrix.value[idMap[edge._from]][idMap[edge._to]].z += 1;
 
       if (!directionalEdges.value) {
