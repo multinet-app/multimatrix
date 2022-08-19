@@ -96,7 +96,7 @@
                         class="pa-1"
                       >
                         <v-autocomplete
-                          v-if="val.operator === '=='"
+                          v-if="val.operator === '==' || val.operator === '!='"
                           v-model="val.input"
                           :items="i % 2 ? edgeAttributeItems[val.label] : nodeAttributeItems[val.label]"
                           clearable
@@ -211,7 +211,7 @@
                           </v-col>
                           <v-col class="pa-1">
                             <v-autocomplete
-                              v-if="val.operator === '=='"
+                              v-if="val.operator === '==' || val.operator === '!='"
                               v-model="val.input"
                               :items="edgeAttributeItems[val.label]"
                               clearable
@@ -382,7 +382,7 @@ function removeField(index: number, field: number, edgeMutex = false) {
 }
 
 function isTextComparison(operator: string) {
-  return ['==', '=~'].includes(operator);
+  return ['==', '!=', '=~'].includes(operator);
 }
 
 function submitQuery() {
