@@ -177,35 +177,24 @@ function sort(type: string): void {
   if (network.value === null) {
     return;
   }
-  const isNode = network.value.nodes.map((node: Node) => node._id).includes(type);
 
-  if (network.value === null) { return; }
+  const nonNullNetwork = network.value;
+  const isNode = nonNullNetwork.nodes.map((node: Node) => node._id).includes(type);
 
-  let order;
-  if (sortKey.value === type) {
-    sortKey.value = '';
-  } else {
-    sortKey.value = type;
-  }
+  // If we're already sorting by the requested type, remove the sorting
+  sortKey.value = sortKey.value !== type ? type : '';
 
-  if (
-    type === 'clusterSpectral'
-        || type === 'clusterBary'
-        || type === 'clusterLeaf'
-  ) {
-    if (network.value == null) {
-      return;
-    }
+  let order = range(nonNullNetwork.nodes.length);
+  if (sortKey.value === 'clusterLeaf') {
     const newEdges: unknown[] = Array(network.value.edges.length);
 
     // Generate edges that are compatible with reorder.js
-    network.value.edges.forEach((edge: Edge, index: number) => {
-      if (network.value === null) { return; }
+    nonNullNetwork.edges.forEach((edge: Edge, index: number) => {
       newEdges[index] = {
-        source: network.value.nodes.find(
+        source: nonNullNetwork.nodes.find(
           (node: Node) => node._id === edge._from,
         ),
-        target: network.value.nodes.find(
+        target: nonNullNetwork.nodes.find(
           (node: Node) => node._id === edge._to,
         ),
       };
@@ -213,48 +202,26 @@ function sort(type: string): void {
 
     const sortableNetwork = reorder
       .graph()
-      .nodes(network.value.nodes)
+      .nodes(nonNullNetwork.nodes)
       .links(newEdges)
       .init();
 
-    if (type === 'clusterBary') {
-      const barycenter = reorder.barycenter_order(sortableNetwork);
-      // eslint-disable-next-line prefer-destructuring
-      [order] = reorder.adjacent_exchange(
-        sortableNetwork,
-        barycenter[0],
-        barycenter[1],
-      )[1];
-    } else if (type === 'clusterSpectral') {
-      order = reorder.spectral_order(sortableNetwork);
-    } else if (type === 'clusterLeaf') {
-      const mat = reorder.graph2mat(sortableNetwork);
-      order = reorder.optimal_leaf_order()(mat);
-    }
+    const mat = reorder.graph2mat(sortableNetwork);
+    order = reorder.optimal_leaf_order()(mat);
   } else if (sortKey.value === 'edges') {
-    order = range(network.value.nodes.length).sort((a, b) => {
-      if (network.value === null) { return 0; }
-      const firstValue = network.value.nodes[b][type] as number;
-      const secondValue = network.value.nodes[a][type] as number;
+    order.sort((a, b) => {
+      const firstValue = nonNullNetwork.nodes[b][type] as number;
+      const secondValue = nonNullNetwork.nodes[a][type] as number;
 
       return firstValue - secondValue;
     });
-  } else if (isNode) {
-    if (sortKey.value === '') {
-      // Clear sort
-      order = range(network.value.nodes.length);
-    } else {
-      order = range(network.value.nodes.length).sort((a, b) => {
-        if (network.value === null) { return 0; }
-        return Number(network.value.nodes[b].neighbors.includes(type))
-              - Number(network.value.nodes[a].neighbors.includes(type));
-      });
-    }
+  } else if (isNode && sortKey.value !== '') {
+    order.sort((a, b) => Number(nonNullNetwork.nodes[b].neighbors.includes(type))
+            - Number(nonNullNetwork.nodes[a].neighbors.includes(type)));
   } else if (sortKey.value === 'shortName') {
-    order = range(network.value.nodes.length).sort((a, b) => {
-      if (network.value === null) { return 0; }
-      const aVal = `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
-      const bVal = `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+    order.sort((a, b) => {
+      const aVal = `${nonNullNetwork.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+      const bVal = `${nonNullNetwork.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
 
       if (!Number.isNaN(parseInt(aVal, 10)) && !Number.isNaN(parseInt(aVal, 10))) {
         return a < b ? -1 : 1;
@@ -263,13 +230,42 @@ function sort(type: string): void {
       return aVal.localeCompare(bVal);
     });
   } else {
-    order = range(network.value.nodes.length).sort((a, b) => {
-      if (network.value === null) { return 0; }
-      const firstValue = network.value.nodes[b][type] as number;
-      const secondValue = network.value.nodes[a][type] as number;
+    order.sort((a, b) => {
+      const firstValue = nonNullNetwork.nodes[b][type] as number;
+      const secondValue = nonNullNetwork.nodes[a][type] as number;
 
       return firstValue - secondValue;
     });
+  }
+
+  // Move the children back under the super nodes
+  if (aggregated.value) {
+    const oldOrder = structuredClone(order); // Required to stop no-loop-func (order is modified later so has to be cloned)
+    const newOrder = Array(order.length);
+
+    let nextIndex = 0;
+    for (let i = 0; i < order.length;) {
+      if (newOrder.includes(order[nextIndex])) {
+        nextIndex += 1;
+      } else {
+        newOrder[i] = order[nextIndex];
+        const childrenToCheck = nonNullNetwork.nodes[newOrder[i]].children;
+        i += 1;
+        nextIndex += 1;
+
+        if (childrenToCheck !== undefined) {
+          childrenToCheck
+            .filter((child) => nonNullNetwork.nodes.includes(child))
+            .sort((a, b) => oldOrder.indexOf(nonNullNetwork.nodes.indexOf(a)) - oldOrder.indexOf(nonNullNetwork.nodes.indexOf(b)))
+            .forEach((child) => {
+              newOrder[i] = nonNullNetwork.nodes.indexOf(child);
+              i += 1;
+            });
+        }
+      }
+    }
+
+    order = newOrder;
   }
 
   matrixIsSorter = true;
@@ -325,6 +321,15 @@ function processData(): void {
 
     // Count occurrences of edges and store it in the matrix
     network.value.edges.forEach((edge: Edge) => {
+      // If nodes don't exist, don't add to matrix
+      if (
+        !(network.value !== null
+        && network.value.nodes.findIndex((node) => node._id === edge._from) > -1
+        && network.value.nodes.findIndex((node) => node._id === edge._to) > -1)
+      ) {
+        return;
+      }
+
       matrix.value[idMap[edge._from]][idMap[edge._to]].z += 1;
 
       if (!directionalEdges.value) {
