@@ -6,12 +6,13 @@ import { ScaleLinear } from 'd3-scale';
 import { Node, Edge, ArangoPath } from '@/types';
 import store from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
-import LoginMenu from '@/components/LoginMenu.vue';
+import { LoginMenu } from 'multinet-components';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import EdgeSlicing from '@/components/EdgeSlicing.vue';
 import {
   computed, Ref, ref, watch, watchEffect,
 } from 'vue';
+import oauthClient from '@/oauth';
 
 // Template objects
 const showMenu = ref(false);
@@ -250,6 +251,8 @@ function search() {
 function removeByDegree() {
   store.commit.setDegreeNetwork(degreeRange.value);
 }
+
+const userInfo = computed(() => store.state.userInfo);
 </script>
 
 <template>
@@ -287,7 +290,11 @@ function removeByDegree() {
           </div>
         </v-toolbar-title>
         <v-spacer />
-        <login-menu />
+        <login-menu
+          :store="store"
+          :oauth-client="oauthClient"
+          :user-info="userInfo"
+        />
       </v-toolbar>
 
       <v-list class="pa-0">
