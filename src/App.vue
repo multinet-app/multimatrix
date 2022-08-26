@@ -8,6 +8,8 @@ import EdgeSlices from '@/components/EdgeSlices.vue';
 import { getUrlVars } from '@/lib/utils';
 import store from '@/store';
 
+import 'multinet-components/dist/style.css';
+
 const urlVars = getUrlVars();
 
 store.dispatch.fetchNetwork({
