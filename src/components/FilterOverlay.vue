@@ -77,7 +77,7 @@ function getAttributes() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let nodeAndEdgeQuery: Promise<any[]> | undefined;
   try {
-    nodeAndEdgeQuery = api.aql(store.state.workspaceName || '', aqlQuery);
+    nodeAndEdgeQuery = api.aql(store.state.workspaceName || '', { query: aqlQuery, bind_vars: {} });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     // Add error message for user
@@ -131,7 +131,7 @@ function filterNetwork() {
   let newAQLNetwork: Promise<any[]> | undefined;
 
   try {
-    newAQLNetwork = api.aql(workspace.value, aqlQuery);
+    newAQLNetwork = api.aql(workspace.value, { query: aqlQuery, bind_vars: {} });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.status === 400) {
