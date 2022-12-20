@@ -398,9 +398,9 @@ function submitQuery() {
     const nodeOrEdgeNum = Math.floor(input.key / 2);
 
     if (input.key === 0) {
-      currentString += `LET start_nodes = (FOR n0 in [${store.getters.nodeTableNames}][**] FILTER 1==1 `;
+      currentString += `LET start_nodes = (FOR n0 in [\`${store.getters.nodeTableNames}\`][**] FILTER 1==1 `;
     } else if (!thisRoundIsNode) {
-      currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH '${store.state.networkName}' FILTER 1==1 `;
+      currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH \`${store.state.networkName}\` FILTER 1==1 `;
 
       // If we have any node with nX where X is greater than 2, make sure we're not making 2 hop cycles
       const lastNode = nodeOrEdgeNum + 1 === selectedHops.value;
@@ -450,7 +450,7 @@ function submitQuery() {
     if (input.key === 0) {
       // Add mutual exclusion query line
       if (showSecondEdge.value) {
-        currentString += `RETURN n0) \nLET excluded_pairs = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH '${store.state.networkName}' FILTER (`;
+        currentString += `RETURN n0) \nLET excluded_pairs = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH \`${store.state.networkName}\` FILTER (`;
 
         // Add mutual exclusion filters
         const { operator } = edgeMutexs.value;
