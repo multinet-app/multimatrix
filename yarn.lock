@@ -1916,6 +1916,11 @@
     exenv "^1.2.2"
     prop-types "^15.6.2"
 
+"@sgratzl/science@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@sgratzl/science/-/science-2.0.0.tgz#9154f6f5d55c5712f48887c25492a4dc7bc6cc99"
+  integrity sha512-LO3gArm8rVczcksg35xnZbOLEOE091VjyvvzR8mnPjP5K5+xqZEWhBi+lDcEk50dAlfPBoBHfwmu+MmiiSpXHw==
+
 "@stardust-ui/react-component-event-listener@~0.38.0":
   version "0.38.0"
   resolved "https://registry.yarnpkg.com/@stardust-ui/react-component-event-listener/-/react-component-event-listener-0.38.0.tgz#1787faded94b40ad41226e6289baf13e701c6e7f"
@@ -10539,13 +10544,12 @@ renderkid@^2.0.4:
     lodash "^4.17.20"
     strip-ansi "^3.0.0"
 
-reorder.js@^1.0.6:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/reorder.js/-/reorder.js-1.0.7.tgz#21f0cf6ff03f215ab3c7fd0dae1e2ef6fbb73767"
-  integrity sha512-c9A0C5BhcGrbWQK3qHdSFugCKywVJIMBEogeV9IwIrJVVVIA3vdY5fyb+OT2uNPZz+vNBPx2Hrpbmy9OmO54Rg==
+reorder.js@^2.2.5:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/reorder.js/-/reorder.js-2.2.5.tgz#2d64815c54e4905251935cce199866a26ae40395"
+  integrity sha512-FnyiuHU2BnkxEDeIzAb+0W2ZiN7xmmYWeGJsT+T6sAsTj2fK+dDg8y3SOuIDlu9WZ+iv5qaNiR1U8nbnEuKBng==
   dependencies:
-    science "1.9.2"
-    tiny-queue "0.2.1"
+    "@sgratzl/science" "^2.0.0"
 
 repeat-element@^1.1.2:
   version "1.1.4"
@@ -10791,16 +10795,6 @@ schema-utils@^3.0.0:
     "@types/json-schema" "^7.0.6"
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
-
-science@1.9.2:
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/science/-/science-1.9.2.tgz#5e55a9fb4a765aa0a47e4b47787e80b74fcd435a"
-  integrity sha1-XlWp+0p2WqCkfktHeH6At0/NQ1o=
-
-science@^1.9.3:
-  version "1.9.3"
-  resolved "https://registry.yarnpkg.com/science/-/science-1.9.3.tgz#ec89bac44aeff2e5a2d749aa496f377089903dd4"
-  integrity sha1-7Im6xErv8uWi10mqSW83cImQPdQ=
 
 select@^1.1.2:
   version "1.1.2"
@@ -11702,11 +11696,6 @@ tiny-emitter@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/tiny-emitter/-/tiny-emitter-2.1.0.tgz#1d1a56edfc51c43e863cbb5382a72330e3555423"
   integrity sha512-NB6Dk1A9xgQPMoGqC5CVXn123gWyte215ONT5Pp5a0yt4nlEoO1ZWeCwpncaekPHXO60i47ihFnZPiRPjRMq4Q==
-
-tiny-queue@0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/tiny-queue/-/tiny-queue-0.2.1.tgz#25a67f2c6e253b2ca941977b5ef7442ef97a6046"
-  integrity sha1-JaZ/LG4lOyypQZd7XvdELvl6YEY=
 
 to-arraybuffer@^1.0.0:
   version "1.0.1"

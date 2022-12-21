@@ -14,16 +14,11 @@ import store from '@/store';
 import LineUp from '@/components/LineUp.vue';
 import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
-
-import 'science';
-import 'reorder.js';
+import * as reorder from 'reorder.js';
 import {
   computed, onMounted, Ref, ref, watch,
 } from 'vue';
 import PathTable from '@/components/PathTable.vue';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const reorder: any;
 
 const showPathTable = computed(() => store.state.showPathTable);
 const connectivityMatrixPaths = computed(() => store.state.connectivityMatrixPaths);
