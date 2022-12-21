@@ -1,4 +1,4 @@
-import { Edge, Network } from '@/types';
+import { Edge, Network, Node } from '@/types';
 
 // Get the url querystring variables
 export function getUrlVars() {
@@ -13,7 +13,7 @@ export function getUrlVars() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function defineNeighbors(nodes: any[], edges: Edge[]) {
+export function defineNeighbors(nodes: any[], edges: Edge[]): Node[] {
   nodes.forEach((d) => { d.neighbors = []; });
   edges.forEach((edge) => {
     const findNodeFrom = nodes.find((node) => node._id === edge._from);
