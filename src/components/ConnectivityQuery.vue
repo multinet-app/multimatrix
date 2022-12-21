@@ -71,7 +71,7 @@
                           class="text-center pt-3"
                         >
                           <v-icon size="18">
-                            {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i+2)/2}-circle` }}
+                            {{ i % 2 ? 'mdi-swap-vertical' : `mdi-numeric-${(i + 2) / 2}-circle` }}
                           </v-icon>
                         </div>
                       </v-col>
@@ -276,7 +276,7 @@
               color="primary"
               depressed
               :loading="loading"
-              @click="() => { submitQuery(); dialog = false}"
+              @click="() => { submitQuery(); dialog = false }"
             >
               Submit Query
             </v-btn>

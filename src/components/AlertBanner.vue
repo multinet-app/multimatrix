@@ -23,7 +23,7 @@
         </v-col>
 
         <v-col
-          v-if="buttonText !== 'Refresh the page' && buttonText !=='Subset the network'"
+          v-if="buttonText !== 'Refresh the page' && buttonText !== 'Subset the network'"
           class="grow, py-0"
         >
           <v-row>

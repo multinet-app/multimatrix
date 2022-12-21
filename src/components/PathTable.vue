@@ -55,7 +55,7 @@
                   <v-autocomplete
                     v-model="selectedHeader[i]"
                     :items="i % 2 ? headerEdgeSelections : headerNodeSelections"
-                    :label="i % 2 ? `Edge ${(i+1)/2}: Attribute` : `Node ${(i+2)/2}: Attribute`"
+                    :label="i % 2 ? `Edge ${(i + 1) / 2}: Attribute` : `Node ${(i + 2) / 2}: Attribute`"
                     dense
                     small-chips
                     multiple
