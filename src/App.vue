@@ -30,7 +30,7 @@ const slicedNetwork = computed(() => store.state.slicedNetwork.length > 1);
 
 <template>
   <v-app>
-    <v-content>
+    <v-main>
       <control-panel />
       <edge-slices
         v-if="network !== null && slicedNetwork"
@@ -38,7 +38,7 @@ const slicedNetwork = computed(() => store.state.slicedNetwork.length > 1);
       <multi-matrix v-if="network !== null" />
 
       <alert-banner v-if="loadError.message !== ''" />
-    </v-content>
+    </v-main>
 
     <prov-vis v-if="showProvenanceVis" />
   </v-app>

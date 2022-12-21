@@ -511,8 +511,8 @@ function clickedNeighborClass(node: Node) {
                 :height="cellSize"
                 :x="-highlightLength - visMargins.bottom"
                 fill-opacity="0"
-                @mouseover="(event) => {showToolTip(event, node); hoverNode(node._id);}"
-                @mouseout="(event) => {hideToolTip(); unHoverNode(node._id);}"
+                @mouseover="(event) => { showToolTip(event, node); hoverNode(node._id); }"
+                @mouseout="(event) => { hideToolTip(); unHoverNode(node._id); }"
                 @click="clickElement(node)"
               />
               <foreignObject
@@ -550,8 +550,8 @@ function clickedNeighborClass(node: Node) {
                 :height="cellSize"
                 :x="-visMargins.left"
                 fill-opacity="0"
-                @mouseover="(event) => {showToolTip(event, node); hoverNode(node._id);}"
-                @mouseout="(event) => {hideToolTip(); unHoverNode(node._id);}"
+                @mouseover="(event) => { showToolTip(event, node); hoverNode(node._id); }"
+                @mouseout="(event) => { hideToolTip(); unHoverNode(node._id); }"
                 @click="clickElement(node)"
               />
               <foreignObject
@@ -592,11 +592,11 @@ function clickedNeighborClass(node: Node) {
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
-                  :fill="(cell.rowCellType=== 'supernode' && cell.colCellType === 'supernode') || (filtered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                  :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (filtered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                   :fill-opacity="cell.z"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
-                  @mouseover="(event) => {showToolTip(event, cell); hoverEdge(cell);}"
-                  @mouseout="(event) => {hideToolTip(); unHoverEdge(cell);}"
+                  @mouseover="(event) => { showToolTip(event, cell); hoverEdge(cell); }"
+                  @mouseout="(event) => { hideToolTip(); unHoverEdge(cell); }"
                   @click="clickElement(cell)"
                 />
               </g>

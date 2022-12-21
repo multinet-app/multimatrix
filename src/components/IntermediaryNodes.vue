@@ -147,7 +147,7 @@ function displayTable(paths: number[]) {
             :fill="(c !== 0 && c !== (pathLength - 1) ? 'lightgrey' : 'none')"
           />
           <text
-            :y="circleRadius/2"
+            :y="circleRadius / 2"
             :font-size="`${cellFontSize}px`"
             text-anchor="middle"
           >
