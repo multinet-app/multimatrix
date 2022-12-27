@@ -10,7 +10,7 @@ import {
 } from 'd3-array';
 import { select, selectAll } from 'd3-selection';
 import { transition } from 'd3-transition';
-import store from '@/store';
+import { useStore } from '@/store';
 import LineUp from '@/components/LineUp.vue';
 import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
@@ -19,17 +19,40 @@ import {
   computed, onMounted, Ref, ref, watch,
 } from 'vue';
 import PathTable from '@/components/PathTable.vue';
+import { storeToRefs } from 'pinia';
 
-const showPathTable = computed(() => store.state.showPathTable);
-const connectivityMatrixPaths = computed(() => store.state.connectivityMatrixPaths);
+const store = useStore();
+const {
+  showPathTable,
+  connectivityMatrixPaths,
+  lineupIsNested,
+  showIntNodeVis,
+  labelVariable,
+  cellSize,
+  selectedNodes,
+  selectedCell,
+  network,
+  directionalEdges,
+  selectNeighbors,
+  showGridLines,
+  aggregated,
+  filteredNetwork,
+  cellColorScale,
+  parentColorScale,
+  sortOrder,
+  hoveredNodes,
+  rightClickMenu,
+  maxConnections,
+  selectedHops,
+  clickedCell,
+} = storeToRefs(store);
+
 const tooltip = ref(null);
-const lineUpIsNested = computed(() => store.state.lineupIsNested);
 const visMargins = ref({
   left: 75, top: 110, right: 1, bottom: 1,
 });
 const matrix: Ref<Cell[][]> = ref([]);
 const expandedSuperNodes = ref(new Set<string>());
-const selectedHops = computed(() => store.state.selectedHops);
 const icons: Ref<{ [key: string]: { d: string} }> = ref({
   quant: {
     d:
@@ -50,20 +73,7 @@ const icons: Ref<{ [key: string]: { d: string} }> = ref({
 });
 const sortKey = ref('');
 const finishedMounting = ref(false);
-const showIntNodeVis = computed(() => store.state.showIntNodeVis);
-const labelVariable = computed(() => store.state.labelVariable);
 
-const cellSize = computed(() => store.state.cellSize);
-const selectedNodes = computed(() => store.state.selectedNodes);
-const selectedCell = computed(() => store.state.selectedCell);
-const network = computed(() => store.state.network);
-const directionalEdges = computed(() => store.state.directionalEdges);
-const selectNeighbors = computed(() => store.state.selectNeighbors);
-const showGridLines = computed(() => store.state.showGridLines);
-const aggregated = computed(() => store.state.aggregated);
-const filtered = computed(() => store.state.filteredNetwork);
-const cellColorScale = computed(() => store.getters.cellColorScale);
-const parentColorScale = computed(() => store.getters.parentColorScale);
 const matrixWidth = computed(() => (network.value !== null
   ? network.value.nodes.length * cellSize.value + visMargins.value.left + visMargins.value.right
   : 0));
@@ -71,7 +81,6 @@ const matrixHeight = computed(() => (network.value !== null
   ? network.value.nodes.length * cellSize.value + visMargins.value.top + visMargins.value.bottom
   : 0));
 let matrixIsSorter = false;
-const sortOrder = computed(() => store.state.sortOrder);
 watch(sortOrder, () => {
   if (!matrixIsSorter) {
     sortKey.value = '';
@@ -82,15 +91,6 @@ watch(sortOrder, () => {
 const orderingScale = computed(() => scaleBand<number>()
   .domain(sortOrder.value)
   .range([0, sortOrder.value.length * cellSize.value]));
-const hoveredNodes = computed(() => store.state.hoveredNodes);
-const showTable = computed({
-  get() {
-    return store.state.showPathTable;
-  },
-  set(value: boolean) {
-    store.commit.setShowPathTable(value);
-  },
-});
 
 // Helpers
 function isCell(element: unknown): element is Cell {
@@ -102,11 +102,11 @@ function capitalizeFirstLetter(word: string) {
 }
 
 function hoverNode(nodeID: string) {
-  store.commit.pushHoveredNode(nodeID);
+  hoveredNodes.value.push(nodeID);
 }
 
 function unHoverNode(nodeID: string) {
-  store.commit.removeHoveredNode(nodeID);
+  hoveredNodes.value = hoveredNodes.value.filter((hoveredNode) => hoveredNode !== nodeID);
 }
 
 function hoverEdge(cell: Cell) {
@@ -159,11 +159,11 @@ function hideToolTip() {
 }
 
 function showContextMenu(event: MouseEvent) {
-  store.commit.updateRightClickMenu({
+  rightClickMenu.value = {
     show: true,
     top: event.y,
     left: event.x,
-  });
+  };
 
   event.preventDefault();
 }
@@ -264,7 +264,7 @@ function sort(type: string): void {
   }
 
   matrixIsSorter = true;
-  store.commit.setSortOrder(order);
+  sortOrder.value = order;
 }
 
 watch(hoveredNodes, () => {
@@ -346,7 +346,7 @@ function processData(): void {
       }
       if (
         (cell.rowCellType === 'supernode'
-            && cell.colCellType === 'supernode') || (filtered.value && (cell.rowCellType === 'supernode'
+            && cell.colCellType === 'supernode') || (filteredNetwork.value && (cell.rowCellType === 'supernode'
             || cell.colCellType === 'supernode'))
       ) {
         if (cell.z > maxAggrConnections) {
@@ -356,10 +356,10 @@ function processData(): void {
     });
   });
 
-  store.commit.setMaxConnections({
+  maxConnections.value = {
     unAggr: maxNumConnections,
     parent: maxAggrConnections,
-  });
+  };
 }
 
 onMounted(() => {
@@ -387,16 +387,16 @@ function clickElement(matrixElement: Node | Cell) {
         }
       });
       if (pathIdList.length > 0) {
-        store.commit.setSelectedConnectivityPaths(pathIdList);
-        showTable.value = true;
+        store.setSelectedConnectivityPaths(pathIdList);
+        showPathTable.value = true;
       } else {
-        showTable.value = false;
+        showPathTable.value = false;
       }
     }
 
-    store.commit.clickCell(matrixElement.cellName);
+    clickedCell.value = matrixElement.cellName;
   } else {
-    store.dispatch.clickElement(matrixElement._id);
+    store.clickElement(matrixElement._id);
   }
 }
 
@@ -404,7 +404,7 @@ const expandPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,
 const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
 
 function expandOrRetractRow(node: Node) {
-  if (aggregated.value || filtered.value) {
+  if (aggregated.value || filteredNetwork.value) {
     if (node.type !== 'supernode') {
       return;
     }
@@ -412,14 +412,14 @@ function expandOrRetractRow(node: Node) {
     if (expandedSuperNodes.value.has(node._id)) {
       // retract
       expandedSuperNodes.value.delete(node._id);
-      store.dispatch.retractAggregatedNode(node._id);
+      store.retractAggregatedNode(node._id);
     } else {
       // expand
       expandedSuperNodes.value.add(node._id);
-      store.dispatch.expandAggregatedNode(node._id);
+      store.expandAggregatedNode(node._id);
     }
   } else {
-    store.dispatch.clickElement(node._id);
+    store.clickElement(node._id);
   }
 }
 
@@ -438,7 +438,7 @@ const neighborsOfClicked = computed(() => [...selectedNodes.value.values()].map(
 }).flat());
 
 function clickedNeighborClass(node: Node) {
-  const clicked = selectedNodes.value.has(node._id) ? 'clicked' : '';
+  const clicked = selectedNodes.value.includes(node._id) ? 'clicked' : '';
   const neighbor = !clicked && neighborsOfClicked.value.includes(node._id) && selectNeighbors.value ? 'neighbor' : '';
   // const hovered = hoveredNodes.value.includes(node._id) ? 'hovered' : '';
 
@@ -454,7 +454,7 @@ function clickedNeighborClass(node: Node) {
           :width="matrixWidth"
           :height="matrixHeight"
           :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
-          :style="`margin-top: ${lineUpIsNested ? 31 : 0}px`"
+          :style="`margin-top: ${lineupIsNested ? 31 : 0}px`"
           @contextmenu="showContextMenu"
         >
           <g
@@ -516,7 +516,7 @@ function clickedNeighborClass(node: Node) {
                 x="20"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (filtered && node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (filteredNetwork && node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
                   class="label"
                 >
                   {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
@@ -587,7 +587,7 @@ function clickedNeighborClass(node: Node) {
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
-                  :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (filtered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                  :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (filteredNetwork && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                   :fill-opacity="cell.z"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                   @mouseover="(event) => { showToolTip(event, cell); hoverEdge(cell); }"

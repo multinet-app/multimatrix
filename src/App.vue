@@ -1,41 +1,41 @@
 <script setup lang="ts">
 import AlertBanner from '@/components/AlertBanner.vue';
-import { computed } from 'vue';
 import ProvVis from '@/components/ProvVis.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import MultiMatrix from '@/components/MultiMatrix.vue';
 import EdgeSlices from '@/components/EdgeSlices.vue';
 import { getUrlVars } from '@/lib/utils';
-import store from '@/store';
-
+import { useStore } from '@/store';
 import 'multinet-components/dist/style.css';
+import { storeToRefs } from 'pinia';
+
+const store = useStore();
 
 const urlVars = getUrlVars();
 
-store.dispatch.fetchNetwork({
-  workspaceName: urlVars.workspace,
-  networkName: urlVars.network,
-}).then(() => {
-  store.dispatch.createProvenance();
+store.fetchNetwork(
+  urlVars.workspace,
+  urlVars.network,
+).then(() => {
+  store.createProvenance();
 });
-const network = computed(() => store.state.network);
 
-const loadError = computed(() => store.state.loadError);
-
-const showProvenanceVis = computed(() => store.state.showProvenanceVis);
-
-const slicedNetwork = computed(() => store.state.slicedNetwork.length > 1);
-
+const {
+  network,
+  loadError,
+  showProvenanceVis,
+  slicedNetwork,
+} = storeToRefs(store);
 </script>
 
 <template>
   <v-app>
     <v-main>
       <control-panel />
-      <edge-slices
-        v-if="network !== null && slicedNetwork"
-      />
-      <multi-matrix v-if="network !== null" />
+
+      <edge-slices v-if="slicedNetwork.length > 0" />
+
+      <multi-matrix v-if="network.nodes.length > 0" />
 
       <alert-banner v-if="loadError.message !== ''" />
     </v-main>
