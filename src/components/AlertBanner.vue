@@ -64,9 +64,9 @@
       :min-subset-size="10"
       :max-subset-size="100"
       :node-table-names="nodeTableNames"
-      :edge-table-name="edgeTableName"
+      :edge-table-name="edgeTableName || ''"
       :load-error="loadError"
-      :set-load-error="store.commit.setLoadError"
+      :set-load-error="setLoadError"
       :network-name="networkName"
       :api="api"
       @networkUpdated="replaceNetworkWithSubset"
@@ -75,40 +75,50 @@
 </template>
 
 <script setup lang="ts">
-import store from '@/store';
-import {
-  computed, Ref, ref, watchEffect,
-} from 'vue';
+import { useStore } from '@/store';
+import { ref, watchEffect } from 'vue';
 import api from '@/api';
 import { NetworkSubsetter } from 'multinet-components';
 import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
-import { ArangoAttributes, Network } from '../types';
+import { storeToRefs } from 'pinia';
+import { ArangoAttributes, LoadError, Network } from '../types';
 
-const edgeTableName = computed(() => store.getters.edgeTableName);
-const nodeTableNames = computed(() => store.getters.nodeTableNames);
-const workspaceName = computed(() => (store.state.workspaceName === null ? '' : store.state.workspaceName));
-const networkName = computed(() => store.state.networkName);
+const store = useStore();
+const {
+  edgeTableName,
+  nodeTableNames,
+  workspaceName,
+  networkName,
+  loadError,
+  networkOnLoad,
+  maxDegree,
+  nodeDegreeDict,
+} = storeToRefs(store);
+
+function setLoadError(newError: LoadError) {
+  loadError.value = newError;
+}
 
 function getAttributes() {
   const aqlQuery = `
-      let nodeValues = (FOR doc IN [\`${store.getters.nodeTableNames}\`][**] RETURN VALUES(doc))
-      let edgeValues = (FOR doc IN \`${store.getters.edgeTableName}\` RETURN VALUES(doc))
-      let nodeAttr = (FOR doc IN [\`${store.getters.nodeTableNames}\`][**] LIMIT 1 RETURN doc)
-      let edgeAttr = (FOR doc IN \`${store.getters.edgeTableName}\` LIMIT 1 RETURN doc)
+      let nodeValues = (FOR doc IN [\`${nodeTableNames.value}\`][**] RETURN VALUES(doc))
+      let edgeValues = (FOR doc IN \`${edgeTableName.value}\` RETURN VALUES(doc))
+      let nodeAttr = (FOR doc IN [\`${nodeTableNames.value}\`][**] LIMIT 1 RETURN doc)
+      let edgeAttr = (FOR doc IN \`${edgeTableName.value}\` LIMIT 1 RETURN doc)
       RETURN {nodeAttributes: nodeAttr, nodeValues: nodeValues, edgeAttributes: edgeAttr, edgeValues: edgeValues}
       `;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let nodeAndEdgeQuery: Promise<any[]> | undefined;
   try {
-    nodeAndEdgeQuery = api.aql(store.state.workspaceName || '', { query: aqlQuery, bind_vars: {} });
+    nodeAndEdgeQuery = api.aql(workspaceName.value || '', { query: aqlQuery, bind_vars: {} });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     // Add error message for user
     if (error.status === 400) {
-      store.commit.setLoadError({
+      loadError.value = {
         message: error.statusText,
         href: 'https://multinet.app',
-      });
+      };
     }
   }
   if (nodeAndEdgeQuery !== undefined) {
@@ -153,30 +163,30 @@ function replaceNetworkWithSubset(newNetwork: Network) {
     };
 
     // Update state with new network
-    store.dispatch.updateNetwork({ network: aqlNetworkElements });
-    store.commit.setNetworkOnLoad(aqlNetworkElements);
-    store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
-    store.commit.setLoadError({
+    store.updateNetwork(aqlNetworkElements);
+    networkOnLoad.value = aqlNetworkElements;
+    const degreeObject = setNodeDegreeDict(store.networkPreFilter, networkOnLoad.value, store.queriedNetwork, store.directionalEdges);
+    maxDegree.value = degreeObject.maxDegree;
+    nodeDegreeDict.value = degreeObject.nodeDegreeDict;
+    loadError.value = {
       message: '',
       href: '',
-    });
+    };
   }
   getAttributes();
 }
 
-const loadError = computed(() => store.state.loadError);
-
 // Vars to store the selected choices in
-const workspace: Ref<string | null> = ref(null);
-const network: Ref<string | null> = ref(null);
+const workspace = ref<string | null>(null);
+const network = ref<string | null>(null);
 
 // Compute the workspace/network options
-const workspaceOptions: Ref<string[]> = ref([]);
+const workspaceOptions = ref<string[]>([]);
 watchEffect(async () => {
   workspaceOptions.value = (await api.workspaces()).results.map((workspaceObj) => workspaceObj.name);
 });
 
-const networkOptions: Ref<string[]> = ref([]);
+const networkOptions = ref<string[]>([]);
 watchEffect(async () => {
   if (workspace.value !== null) {
     networkOptions.value = (await api.networks(workspace.value)).results.map((networkObj) => networkObj.name);
@@ -184,8 +194,8 @@ watchEffect(async () => {
 });
 
 // Add button
-const buttonHref: Ref<string> = ref(loadError.value.href);
-const buttonText: Ref<string> = ref('');
+const buttonHref = ref(loadError.value.href);
+const buttonText = ref('');
 watchEffect(async () => {
   if (workspace.value !== null && network.value !== null) {
     buttonHref.value = `./?workspace=${workspace.value}&network=${network.value}`;

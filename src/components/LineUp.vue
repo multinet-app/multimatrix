@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import store from '@/store';
+import { useStore } from '@/store';
 import {
-  computed, onMounted, Ref, ref, watch, watchEffect,
+  computed, onMounted, ref, watch, watchEffect,
 } from 'vue';
 import LineUp, {
   Column, DataBuilder, IBuilderAdapterColumnDescProps, LocalDataProvider,
@@ -10,14 +10,20 @@ import { select } from 'd3-selection';
 import { isInternalField } from '@/lib/typeUtils';
 import vuetify from '@/plugins/vuetify';
 import WindowInstanceMap from '@/lib/windowSizeUtils';
+import { storeToRefs } from 'pinia';
 
-const network = computed(() => store.state.network);
-const selectedNodes = computed(() => store.state.selectedNodes);
-const hoveredNodes = computed(() => store.state.hoveredNodes);
-const cellSize = computed(() => store.state.cellSize);
+const store = useStore();
+const {
+  network,
+  selectedNodes,
+  hoveredNodes,
+  cellSize,
+  sortOrder,
+  lineupIsNested,
+} = storeToRefs(store);
 
-const lineup: Ref<LineUp | null> = ref(null);
-const builder: Ref<DataBuilder | null> = ref(null);
+const lineup = ref<LineUp | null>(null);
+const builder = ref<DataBuilder | null>(null);
 
 const matrixWidth = ref(0);
 const matrixResizeObserver = new ResizeObserver((a: ResizeObserverEntry[]) => { matrixWidth.value = a[0].target.parentElement?.clientWidth || 0; });
@@ -48,7 +54,6 @@ const lineupHeight = computed(() => {
 });
 
 let lineupIsSorter = false;
-const sortOrder = computed(() => store.state.sortOrder);
 const lineupOrder = computed(() => {
   if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
     return [...Array(network.value?.nodes.length).keys()];
@@ -57,7 +62,7 @@ const lineupOrder = computed(() => {
 });
 
 // If store order has changed, update lineup
-let permutingMatrix = structuredClone(store.state.sortOrder);
+let permutingMatrix = structuredClone(sortOrder.value);
 watch(sortOrder, (newSortOrder) => {
   if (lineup.value !== null && !lineupIsSorter) {
     permutingMatrix = structuredClone(newSortOrder);
@@ -78,7 +83,7 @@ watch(lineupOrder, (newLineupOrder) => {
 
   if (lineup.value !== null && network.value !== null && lineupIsSorter) {
     const newSortOrder = newLineupOrder.map((i) => permutingMatrix[i]);
-    store.commit.setSortOrder(newSortOrder);
+    sortOrder.value = newSortOrder;
   }
 });
 
@@ -155,10 +160,10 @@ function buildLineup() {
       const hoveredIDs: string[] = indicesToIDs([dataIndex]);
 
       // Remove previously hovered node and track what is now hovered
-      store.commit.removeHoveredNode(lastHovered);
+      hoveredNodes.value = hoveredNodes.value.filter((hoveredNode) => hoveredNode !== lastHovered);
 
       // Hover the elements that are different to add/remove them from the store
-      hoveredIDs.forEach((nodeID) => store.commit.pushHoveredNode(nodeID));
+      hoveredIDs.forEach((nodeID) => hoveredNodes.value.push(nodeID));
 
       [lastHovered] = hoveredIDs;
     });
@@ -173,7 +178,7 @@ function buildLineup() {
       if (JSON.stringify(oldGroups.map((group) => group.name)) !== JSON.stringify(newGroups.map((group) => group.name))) {
         if (lineup.value !== null && lineup.value.data.getFirstRanking().getGroupCriteria().length > 0) {
           const columnDesc = lineup.value.data.getFirstRanking().getGroupCriteria()[0].desc as IBuilderAdapterColumnDescProps;
-          store.dispatch.aggregateNetwork(columnDesc.column);
+          store.aggregateNetwork(columnDesc.column);
         }
       }
     });
@@ -182,7 +187,7 @@ function buildLineup() {
 
 watchEffect(() => {
   if (lineup.value !== null) {
-    store.commit.setLineUpIsNested(lineup.value.data.getFirstRanking().flatColumns.map((col: Column) => col.desc.type).includes('nested'));
+    lineupIsNested.value = lineup.value.data.getFirstRanking().flatColumns.map((col: Column) => col.desc.type).includes('nested');
   }
 });
 
@@ -202,7 +207,7 @@ watch(cellSize, () => {
 });
 
 function removeHighlight() {
-  store.commit.clearHoveredNodes();
+  hoveredNodes.value = [];
 }
 </script>
 

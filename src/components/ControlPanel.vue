@@ -4,114 +4,66 @@ import { format } from 'd3-format';
 import { legendColor } from 'd3-svg-legend';
 import { ScaleLinear } from 'd3-scale';
 import { Node, Edge, ArangoPath } from '@/types';
-import store from '@/store';
+import { useStore } from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';
 import { LoginMenu } from 'multinet-components';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
 import EdgeSlicing from '@/components/EdgeSlicing.vue';
 import {
-  computed, Ref, ref, watch, watchEffect,
+  computed, ref, watch, watchEffect,
 } from 'vue';
 import oauthClient from '@/oauth';
+import { storeToRefs } from 'pinia';
+
+const store = useStore();
+const {
+  aggregatedBy,
+  directionalEdges,
+  selectNeighbors,
+  showGridLines,
+  cellSize,
+  labelVariable,
+  showPathTable,
+  aggregated,
+  filteredNetwork,
+  cellColorScale,
+  parentColorScale,
+  nodeVariableItems,
+  maxConnections,
+  maxDegree,
+  columnTypes,
+  nodeTableNames,
+  showIntNodeVis,
+  intAggregatedBy,
+  maxIntConnections,
+  intTableColorScale,
+  network,
+  networkOnLoad,
+  networkName,
+  connectivityMatrixPaths,
+  showProvenanceVis,
+  selectedNodes,
+  userInfo,
+} = storeToRefs(store);
 
 // Template objects
 const showMenu = ref(false);
-const aggregateBy = computed({
-  get() {
-    return store.state.aggregatedBy;
-  },
-  set(value: string | undefined) {
-    store.commit.setAggregatedBy(value);
-  },
-});
-const directionalEdges = computed({
-  get() {
-    return store.state.directionalEdges;
-  },
-  set(value: boolean) {
-    store.commit.setDirectionalEdges(value);
-  },
-});
-const selectNeighbors = computed({
-  get() {
-    return store.state.selectNeighbors;
-  },
-  set(value: boolean) {
-    store.commit.setSelectNeighbors(value);
-  },
-});
-const showGridLines = computed({
-  get() {
-    return store.state.showGridLines;
-  },
-  set(value: boolean) {
-    store.commit.setShowGridlines(value);
-  },
-});
-const cellSize = computed({
-  get() {
-    return store.state.cellSize;
-  },
-  set(value: number) {
-    store.commit.setCellSize(value);
-  },
-});
-const labelVariable = computed({
-  get() {
-    return store.state.labelVariable;
-  },
-  set(value: string | undefined) {
-    store.commit.setLabelVariable(value);
-  },
-});
-const showTable = computed({
-  get() {
-    return store.state.showPathTable;
-  },
-  set(value: boolean) {
-    store.commit.setShowPathTable(value);
-  },
-});
-const aggregated = computed(() => store.state.aggregated);
-const filtered = computed(() => store.state.filteredNetwork);
-const cellColorScale = computed(() => store.getters.cellColorScale);
-const parentColorScale = computed(() => store.getters.parentColorScale);
-const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
 const aggregationItems = computed(() => {
   // Rebuild column types but just for node columns
-  const nodeColumnTypes = store.state.columnTypes !== null ? Object.fromEntries(Object.entries(store.state.columnTypes).filter(([tableName]) => store.getters.nodeTableNames.includes(tableName))) : {};
+  const nodeColumnTypes = columnTypes.value !== null ? Object.fromEntries(Object.entries(columnTypes.value).filter(([tableName]) => nodeTableNames.value.includes(tableName))) : {};
 
   // Get the varName of all node variables that are type category
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
 });
-const maxConnections = computed(() => store.state.maxConnections);
-const maxDegree = computed(() => store.state.maxDegree);
 const degreeRange = ref([0, maxDegree.value]);
 
 watch([maxDegree], () => {
   degreeRange.value = [0, maxDegree.value];
 });
 
-// Intermediate node table template objects
-const showIntNodeVis = computed(() => store.state.showIntNodeVis);
-const intAggregatedBy = computed({
-  get() {
-    return store.state.intAggregatedBy;
-  },
-  set(value: string | undefined) {
-    store.commit.setIntAggregatedBy(value);
-  },
-});
-const maxIntConnections = computed(() => store.state.maxIntConnections);
-const intTableColorScale = computed(() => store.getters.intTableColorScale);
-
-// Non-template objects
-const network = computed(() => store.state.network);
-const networkOnLoad = computed(() => store.state.networkOnLoad);
-
 const searchTerm = ref('');
-const searchErrors: Ref<string[]> = ref([]);
+const searchErrors = ref<string[]>([]);
 const searchItems = computed(() => {
   if (network.value !== null && labelVariable.value !== undefined) {
     return network.value.nodes.map((node) => (node[labelVariable.value || '']));
@@ -148,7 +100,7 @@ function exportNetwork() {
       type: 'text/json',
     }),
   );
-  a.download = `${store.state.networkName}.json`;
+  a.download = `${networkName.value}.json`;
   a.click();
 }
 
@@ -195,9 +147,9 @@ function displayCSVBuilder() {
     });
   }
 
-  store.commit.setConnectivityMatrixPaths({ nodes: [], paths: reconstructedPaths });
-  store.commit.setSelectedConnectivityPaths([...Array(reconstructedPaths.length).keys()]);
-  showTable.value = true;
+  connectivityMatrixPaths.value = { nodes: [], paths: reconstructedPaths };
+  store.setSelectedConnectivityPaths([...Array(reconstructedPaths.length).keys()]);
+  showPathTable.value = true;
 }
 
 watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
@@ -208,29 +160,22 @@ watch(aggregated, () => {
     labelVariable.value = '_key';
   }
 });
-watch(aggregateBy, () => {
-  labelVariable.value = aggregateBy.value;
-});
 watchEffect(() => {
   if (!showIntNodeVis.value) {
     intAggregatedBy.value = undefined;
   }
 });
 
-function toggleProvVis() {
-  store.commit.toggleShowProvenanceVis();
-}
-
-function aggregateNetwork(varName: string) {
-  if (filtered.value) {
-    store.commit.setFilteredNetwork(false);
+function aggregateNetwork(varName: string | null) {
+  if (filteredNetwork.value) {
+    filteredNetwork.value = false;
     if (networkOnLoad.value !== null) {
-      store.dispatch.updateNetwork({ network: networkOnLoad.value });
+      store.updateNetwork(networkOnLoad.value);
     }
     degreeRange.value = [0, maxDegree.value];
-    store.commit.setDegreeNetwork(degreeRange.value);
+    store.setDegreeNetwork(degreeRange.value);
   }
-  store.dispatch.aggregateNetwork(varName);
+  store.aggregateNetwork(varName);
 }
 
 function search() {
@@ -241,7 +186,11 @@ function search() {
       .map((node) => node._id);
 
     if (nodeIDsToSelect.length > 0) {
-      store.commit.addSelectedNode(nodeIDsToSelect);
+      nodeIDsToSelect.forEach((newNodeId) => {
+        if (!selectedNodes.value.includes(newNodeId)) {
+          selectedNodes.value.push(newNodeId);
+        }
+      });
     } else {
       searchErrors.value.push('Enter a valid node to search');
     }
@@ -249,10 +198,8 @@ function search() {
 }
 
 function removeByDegree() {
-  store.commit.setDegreeNetwork(degreeRange.value);
+  store.setDegreeNetwork(degreeRange.value);
 }
-
-const userInfo = computed(() => store.state.userInfo);
 </script>
 
 <template>
@@ -293,8 +240,8 @@ const userInfo = computed(() => store.state.userInfo);
         <login-menu
           :user-info="userInfo"
           :oauth-client="oauthClient"
-          :logout="store.dispatch.logout"
-          :fetch-user-info="store.dispatch.fetchUserInfo"
+          :logout="store.logout"
+          :fetch-user-info="store.fetchUserInfo"
         />
       </v-toolbar>
 
@@ -340,7 +287,7 @@ const userInfo = computed(() => store.state.userInfo);
           </v-list-item>
           <v-list-item>
             <v-autocomplete
-              v-model="aggregateBy"
+              v-model="aggregatedBy"
               label="Aggregation Variable"
               :items="aggregationItems"
               :hide-details="true"
@@ -438,7 +385,7 @@ const userInfo = computed(() => store.state.userInfo);
               color="primary"
               block
               depressed
-              @click="toggleProvVis"
+              @click="showProvenanceVis = true"
             >
               Provenance Vis
             </v-btn>
@@ -491,7 +438,7 @@ const userInfo = computed(() => store.state.userInfo);
         <div class="pa-4">
           <!-- Aggregated Matrix Legend -->
           <v-list-item
-            v-if="aggregated || filtered"
+            v-if="aggregated || filteredNetwork"
             class="pb-0 px-0"
             style="display: flex; max-height: 50px"
           >

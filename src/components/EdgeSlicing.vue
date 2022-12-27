@@ -1,40 +1,39 @@
 <script setup lang="ts">
 import { formatShortDate } from '@/lib/utils';
-import store from '@/store';
+import { useStore } from '@/store';
 import { Edge, SlicedNetwork } from '@/types';
-import {
-  computed, Ref, ref, watch,
-} from 'vue';
+import { computed, ref, watch } from 'vue';
 import { scaleLinear, scaleTime } from 'd3-scale';
+import { storeToRefs } from 'pinia';
+
+const store = useStore();
+const {
+  network,
+  networkOnLoad,
+  slicedNetwork,
+  isDate,
+  edgeVariableItems,
+  networkName,
+} = storeToRefs(store);
 
 const showMenu = ref(false);
 const sliceRules = (value: string) => !Number.isNaN(parseFloat(value)) || 'Please type a number';
 const calMenu = ref([false, false]);
-const network = computed(() => store.state.network);
-const originalNetwork = computed(() => store.state.networkOnLoad);
-const isSliced = computed(() => store.state.slicedNetwork.length === 0);
-const startEdgeVar: Ref<string> = ref('');
-const endEdgeVar: Ref<string> = ref('');
+const isSliced = computed(() => slicedNetwork.value.length === 0);
+const startEdgeVar = ref('');
+const endEdgeVar = ref('');
 const edgeSliceNumber = ref(1);
-const inputRange: Ref<(Date | number | string)[]> = ref([]);
+const inputRange = ref<(Date | number | string)[]>([]);
 const isTime = ref(false);
-const isDate = computed({
-  get() {
-    return store.state.isDate;
-  },
-  set(value: boolean) {
-    return store.commit.setIsDate(value);
-  },
-});
 const isNumeric = ref(true);
 const isValidRange = ref(true);
 
 // Check if selected variable is numeric
 function checkType() {
   // eslint-disable-next-line no-unused-expressions
-  if (originalNetwork.value !== null) {
+  if (networkOnLoad.value !== null) {
     isNumeric.value = !Number.isNaN(
-      parseFloat(`${originalNetwork.value.edges[0][startEdgeVar.value]}`),
+      parseFloat(`${networkOnLoad.value.edges[0][startEdgeVar.value]}`),
     );
   }
 }
@@ -59,18 +58,16 @@ watch([startEdgeVar], () => {
   }
 });
 
-const cleanedEdgeVariables = computed(() => store.getters.edgeVariableItems);
-
 // Compute the min and max times for numbers or date
 const validRange = computed(() => {
   const range: (Date | number | string)[] = [0, 0];
   if (
     startEdgeVar.value !== null
           && endEdgeVar.value !== null
-          && originalNetwork.value !== null
+          && networkOnLoad.value !== null
   ) {
     // Loop through all edges, return min and max time values
-    originalNetwork.value.edges.forEach((edge: Edge, i: number) => {
+    networkOnLoad.value.edges.forEach((edge: Edge, i: number) => {
       // Check for dates
       let startVar: number = parseFloat(`${edge[startEdgeVar.value]}`);
       let endVar: number = parseFloat(`${edge[endEdgeVar.value]}`);
@@ -117,19 +114,19 @@ watch([inputRange], () => {
 function sliceNetwork() {
   // Resets to original network view when variable slice is 1
   if (
-    (originalNetwork.value !== null
+    (networkOnLoad.value !== null
           && edgeSliceNumber.value === 1
           && isNumeric.value)
-        || (originalNetwork.value !== null && startEdgeVar.value === undefined)
+        || (networkOnLoad.value !== null && startEdgeVar.value === undefined)
   ) {
-    store.commit.setSlicedNetwork([]);
-    store.commit.setNetwork(originalNetwork.value);
+    slicedNetwork.value = [];
+    network.value = networkOnLoad.value;
   }
   if (
-    (originalNetwork.value !== null && edgeSliceNumber.value !== 1)
-        || (originalNetwork.value !== null && !isNumeric.value)
+    (networkOnLoad.value !== null && edgeSliceNumber.value !== 1)
+        || (networkOnLoad.value !== null && !isNumeric.value)
   ) {
-    const slicedNetwork: SlicedNetwork[] = [];
+    const newSlicedNetwork: SlicedNetwork[] = [];
     // Generates sliced networks based on time slices or numeric input
     if (isNumeric.value) {
       const slicedRange = [];
@@ -146,7 +143,7 @@ function sliceNetwork() {
         const currentSlice: SlicedNetwork = {
           slice: i + 1,
           time: [],
-          network: { nodes: originalNetwork.value.nodes, edges: [] },
+          network: { nodes: networkOnLoad.value.nodes, edges: [] },
           category: '',
         };
         // Create slices for dates
@@ -158,7 +155,7 @@ function sliceNetwork() {
             timeIntervals.invert(i),
             timeIntervals.invert(i + 1),
           ];
-          originalNetwork.value.edges.forEach((edge: Edge) => {
+          networkOnLoad.value.edges.forEach((edge: Edge) => {
             if (
               timeIntervals(new Date(`${edge[startEdgeVar.value]}`)) >= i
                   && timeIntervals(new Date(`${edge[endEdgeVar.value]}`)) < i + 1
@@ -174,7 +171,7 @@ function sliceNetwork() {
             timeIntervals.invert(i),
             timeIntervals.invert(i + 1),
           ];
-          originalNetwork.value.edges.forEach((edge: Edge) => {
+          networkOnLoad.value.edges.forEach((edge: Edge) => {
             if (
               timeIntervals(parseFloat(`${edge[startEdgeVar.value]}`))
                     >= i
@@ -184,34 +181,34 @@ function sliceNetwork() {
             }
           });
         }
-        slicedNetwork.push(currentSlice);
+        newSlicedNetwork.push(currentSlice);
       }
       // Create slicing for categories
     } else {
       const categoricalValues = new Set(
-        originalNetwork.value.edges.map(
+        networkOnLoad.value.edges.map(
           (edge: Edge) => `${edge[startEdgeVar.value]}`,
         ),
       );
       [...categoricalValues].forEach((attr, i) => {
-        if (originalNetwork.value !== null) {
+        if (networkOnLoad.value !== null) {
           const currentSlice: SlicedNetwork = {
             slice: i + 1,
             time: [],
-            network: { nodes: originalNetwork.value.nodes, edges: [] },
+            network: { nodes: networkOnLoad.value.nodes, edges: [] },
             category: attr,
           };
-          originalNetwork.value.edges.forEach((edge: Edge) => {
+          networkOnLoad.value.edges.forEach((edge: Edge) => {
             if (edge[startEdgeVar.value] === attr) {
               currentSlice.network.edges.push(edge);
             }
           });
-          slicedNetwork.push(currentSlice);
+          newSlicedNetwork.push(currentSlice);
         }
       });
     }
-    store.commit.setSlicedNetwork(slicedNetwork);
-    store.commit.setNetwork(slicedNetwork[0].network);
+    slicedNetwork.value = newSlicedNetwork;
+    network.value = slicedNetwork.value[0].network;
   }
 }
 
@@ -222,12 +219,11 @@ function exportEdges() {
   // Slice network in case 'Generate Slices' button
   // not clicked or updated
   sliceNetwork();
-  const { slicedNetwork } = store.state;
 
   // Generate edge table data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const edges: any[] = [];
-  slicedNetwork.forEach((slice) => {
+  slicedNetwork.value.forEach((slice) => {
     const timeObj = {
       slice: slice.slice,
       timeStart: slice.time[0],
@@ -263,15 +259,15 @@ function exportEdges() {
       type: 'text/csv',
     }),
   );
-  a.download = `${store.state.networkName}_${edgeSliceNumber.value}-slices.csv`;
+  a.download = `${networkName.value}_${edgeSliceNumber.value}-slices.csv`;
   a.click();
 }
 
 function resetNetwork() {
   // Reset network
-  if (originalNetwork.value !== null) {
-    store.commit.setSlicedNetwork([]);
-    store.commit.setNetwork(originalNetwork.value);
+  if (networkOnLoad.value !== null) {
+    slicedNetwork.value = [];
+    network.value = networkOnLoad.value;
   }
   // Reset form
   startEdgeVar.value = '';
@@ -316,7 +312,7 @@ function resetNetwork() {
           <v-select
             v-model="startEdgeVar"
             :label="isTime ? `Start Variable` : `Edge Variable`"
-            :items="cleanedEdgeVariables"
+            :items="edgeVariableItems"
             :hide-details="true"
             class="mt-3"
             clearable
@@ -329,7 +325,7 @@ function resetNetwork() {
           <v-select
             v-model="endEdgeVar"
             label="End Variable"
-            :items="cleanedEdgeVariables"
+            :items="edgeVariableItems"
             :hide-details="true"
             class="mt-3"
             clearable

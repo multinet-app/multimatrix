@@ -54,7 +54,7 @@
                 >
                   <v-autocomplete
                     v-model="selectedHeader[i]"
-                    :items="i % 2 ? headerEdgeSelections : headerNodeSelections"
+                    :items="i % 2 ? edgeVariableItems : nodeVariableItems"
                     :label="i % 2 ? `Edge ${(i + 1) / 2}: Attribute` : `Node ${(i + 2) / 2}: Attribute`"
                     dense
                     small-chips
@@ -89,18 +89,23 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed, ref, Ref, watch,
-} from 'vue';
-import store from '@/store';
+import { computed, ref, watch } from 'vue';
+import { useStore } from '@/store';
+import { storeToRefs } from 'pinia';
+
+const store = useStore();
+const {
+  selectedConnectivityPaths,
+  nodeVariableItems,
+  edgeVariableItems,
+  cellSize,
+  network,
+  showPathTable,
+} = storeToRefs(store);
 
 const search = ref('');
-const selectedConnectivityPaths = computed(() => store.state.selectedConnectivityPaths);
 const pathLength = computed(() => selectedConnectivityPaths.value[0].edges.length);
-
-const headerNodeSelections = computed(() => store.getters.nodeVariableItems);
-const headerEdgeSelections = computed(() => store.getters.edgeVariableItems);
-const selectedHeader: Ref<string[][]> = ref([]);
+const selectedHeader = ref<string[][]>([]);
 
 Array(pathLength.value * 2 + 1).fill(1).forEach(() => {
   selectedHeader.value.push(['_key']);
@@ -154,7 +159,7 @@ const tableData = computed(() => {
 });
 
 const top = ref(0);
-const left = ref(store.state.network !== null ? store.state.cellSize * store.state.network.nodes.length + 200 : 0);
+const left = ref(cellSize.value * network.value.nodes.length + 200);
 const divStyle = computed(() => `position: absolute; top: ${top.value}px; left: ${left.value}px; z-index: 1;`);
 function iconDrag(event: MouseEvent) {
   // 24 to account for icon size and padding
@@ -174,7 +179,7 @@ function iconMouseDown(event: MouseEvent) {
 }
 
 function closeCard() {
-  store.commit.setShowPathTable(false);
+  showPathTable.value = false;
 }
 
 function exportPaths() {

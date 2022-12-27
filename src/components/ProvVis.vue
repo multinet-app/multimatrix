@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ProvVisCreator } from '@visdesignlab/trrack-vis';
-import { ProvenanceEventTypes, State } from '@/types';
-import {
-  computed, ComputedRef, onMounted,
-} from 'vue';
-import store from '@/store';
-import { Provenance } from '@visdesignlab/trrack';
+import { onMounted } from 'vue';
+import { useStore } from '@/store';
+import { storeToRefs } from 'pinia';
 
-const provenance: ComputedRef<Provenance<State, ProvenanceEventTypes, unknown> | null> = computed(
-  () => store.state.provenance,
-);
+const store = useStore();
+const {
+  showProvenanceVis,
+  provenance,
+} = storeToRefs(store);
 
 onMounted(() => {
   const provDiv = document.getElementById('provDiv');
@@ -17,7 +16,7 @@ onMounted(() => {
     ProvVisCreator(
       provDiv,
       provenance.value,
-      (newNode: string) => store.commit.goToProvenanceNode(newNode),
+      (newNode: string) => store.goToProvenanceNode(newNode),
       true,
       true,
       provenance.value.root.id,
@@ -26,7 +25,7 @@ onMounted(() => {
 });
 
 function toggleProvVis() {
-  store.commit.toggleShowProvenanceVis();
+  showProvenanceVis.value = false;
 }
 </script>
 

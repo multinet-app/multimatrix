@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import store from '@/store';
-import { computed } from 'vue';
+import { useStore } from '@/store';
+import { storeToRefs } from 'pinia';
+
+const store = useStore();
+const { rightClickMenu } = storeToRefs(store);
 
 function clearSelection() {
-  store.dispatch.clearSelection();
+  store.clearSelection();
 }
-
-const rightClickMenu = computed(() => store.state.rightClickMenu);
 </script>
 
 <template>

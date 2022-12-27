@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import store from '@/store';
+import { useStore } from '@/store';
 import {
   computed, getCurrentInstance, ref, watch,
 } from 'vue';
@@ -7,12 +7,19 @@ import { max } from 'd3-array';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
 import { format } from 'd3-format';
 import { scaleLinear } from 'd3-scale';
+import { storeToRefs } from 'pinia';
 
-const slicedNetwork = computed(() => store.state.slicedNetwork);
-const isDate = computed(() => store.state.isDate);
+const store = useStore();
+const {
+  slicedNetwork,
+  isDate,
+  controlsWidth,
+  network,
+} = storeToRefs(store);
+
 const isNumeric = computed(() => (slicedNetwork.value[0].category === ''));
 const currentInstance = getCurrentInstance();
-const svgWidth = computed(() => (currentInstance !== null ? currentInstance.proxy.$vuetify.breakpoint.width - store.state.controlsWidth : 0));
+const svgWidth = computed(() => (currentInstance !== null ? currentInstance.proxy.$vuetify.breakpoint.width - controlsWidth.value : 0));
 const rectHeight = ref(20);
 
 const currentSlice = computed(() => {
@@ -44,7 +51,7 @@ watch([timeRangesLength], () => {
 function isSelected(key: number) {
   selectedArray.value.fill(false);
   selectedArray.value[key] = true;
-  store.commit.setNetwork(slicedNetwork.value[key].network);
+  network.value = slicedNetwork.value[key].network;
 }
 
 // Heightscale for numeric attributes
@@ -57,7 +64,6 @@ const tooltipMessage = ref('');
 const toggleTooltip = ref(false);
 const tooltipPosition = ref({ x: 0, y: 0 });
 const tooltipStyle = computed(() => `left: ${tooltipPosition.value.x}px; top: ${tooltipPosition.value.y}px; white-space: pre-line;`);
-const controlsWidth = computed(() => store.state.controlsWidth);
 
 function showTooltip(key: number, event: MouseEvent) {
   tooltipPosition.value = {

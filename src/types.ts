@@ -86,15 +86,15 @@ export type ProvenanceEventTypes =
   'Set Label Variable';
 
 export interface State {
-  workspaceName: string | null;
-  networkName: string | null;
+  workspaceName: string;
+  networkName: string;
   networkOnLoad: Network | null;
   slicedNetwork: SlicedNetwork[];
-  network: Network | null;
+  network: Network;
   loadError: LoadError;
   userInfo: UserSpec | null;
   cellSize: number;
-  selectedNodes: Set<string>;
+  selectedNodes: string[];
   selectedCell: string | null;
   hoveredNodes: string[];
   sortOrder: number[];
@@ -102,7 +102,7 @@ export interface State {
   selectNeighbors: boolean;
   showGridLines: boolean;
   aggregated: boolean;
-  aggregatedBy: string | undefined;
+  aggregatedBy: string | null;
   maxConnections: {
     unAggr: number;
     parent: number;

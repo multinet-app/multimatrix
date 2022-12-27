@@ -98,7 +98,7 @@
                         <v-autocomplete
                           v-if="val.operator === '==' || val.operator === '!='"
                           v-model="val.input"
-                          :items="i % 2 ? edgeAttributeItems[val.label] : nodeAttributeItems[val.label]"
+                          :items="i % 2 ? edgeAttributes[val.label] : nodeAttributes[val.label]"
                           clearable
                           dense
                         />
@@ -166,7 +166,7 @@
               <div v-show="showSecondEdge && i === 1">
                 <v-list dense>
                   <v-list-item
-                    v-for="(val, k) in edgeMutexs.value"
+                    v-for="(val, k) in edgeMutexes.value"
                     :key="`val-${i}-2-${k}`"
                     class="pa-0"
                   >
@@ -179,7 +179,7 @@
                           >
                             <v-autocomplete
                               v-if="k > 0"
-                              v-model="edgeMutexs.operator"
+                              v-model="edgeMutexes.operator"
                               :items="operatorOptionItems"
                               clearable
                               dense
@@ -213,7 +213,7 @@
                             <v-autocomplete
                               v-if="val.operator === '==' || val.operator === '!='"
                               v-model="val.input"
-                              :items="edgeAttributeItems[val.label]"
+                              :items="edgeAttributes[val.label]"
                               clearable
                               dense
                             />
@@ -288,54 +288,54 @@
 </template>
 
 <script setup lang="ts">
-import store from '@/store';
+import { useStore } from '@/store';
 import {
   Node, Edge, Network, ArangoPath,
 } from '@/types';
 import {
-  computed, onMounted, ref, Ref, watch,
+  computed, onMounted, ref, watch,
 } from 'vue';
 import api from '@/api';
 import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
+import { storeToRefs } from 'pinia';
+
+const store = useStore();
+const {
+  selectedHops,
+  nodeVariableItems,
+  edgeVariableItems,
+  nodeAttributes,
+  edgeAttributes,
+  directionalEdges,
+  networkName,
+  workspaceName,
+  nodeTableNames,
+  loadError,
+  connectivityMatrixPaths,
+  showIntNodeVis,
+  networkPreFilter,
+  queriedNetwork,
+  networkOnLoad,
+  maxDegree,
+  nodeDegreeDict,
+} = storeToRefs(store);
 
 const showSecondEdge = ref(false);
 const hopsSelection = [1, 2, 3];
-const selectedHops = computed({
-  get() {
-    return store.state.selectedHops;
-  },
-  set(value: number) {
-    store.commit.setSelectedHops(value);
-  },
-});
 const displayedHops = computed(() => 2 * selectedHops.value + 1);
-const loading: Ref<boolean> = ref(false);
-
-const nodeVariableItems = computed(() => store.getters.nodeVariableItems);
-const edgeVariableItems = computed(() => store.getters.edgeVariableItems);
-const nodeAttributeItems = computed(() => store.state.nodeAttributes);
-const edgeAttributeItems = computed(() => store.state.edgeAttributes);
+const loading = ref(false);
 
 const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
 const operatorOptionItems = ['AND', 'OR', 'NOT'];
 const sameStartEnd = ref(false);
 
-const directionalEdges = computed({
-  get() {
-    return store.state.directionalEdges;
-  },
-  set(value: boolean) {
-    store.commit.setDirectionalEdges(value);
-  },
-});
-
 // Create the object for storing input data
-const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]> = ref([]);
-const edgeMutexs: Ref<{ value: { label: string; operator: string; input: string }[]; operator: string }> = ref({ value: [], operator: '' });
+const queryInput = ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]>([]);
+const edgeMutexes = ref<{ value: { label: string; operator: string; input: string }[]; operator: string }>({ value: [], operator: '' });
 
 function resetDefaultValues() {
   queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
-    if (store.state.workspaceName === 'marclab') {
+    if (workspaceName.value === 'marclab') {
       if (i % 2) {
         return {
           key: i, value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
@@ -350,12 +350,12 @@ function resetDefaultValues() {
     };
   });
 
-  if (store.state.workspaceName === 'marclab') {
-    edgeMutexs.value = {
+  if (workspaceName.value === 'marclab') {
+    edgeMutexes.value = {
       value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
     };
   } else {
-    edgeMutexs.value = {
+    edgeMutexes.value = {
       value: [{ label: '', operator: '=~', input: '' }], operator: '',
     };
   }
@@ -367,7 +367,7 @@ onMounted(() => resetDefaultValues());
 
 function addField(index: number, edgeMutex = false) {
   if (edgeMutex) {
-    edgeMutexs.value.value.push({ input: '', label: '', operator: '=~' });
+    edgeMutexes.value.value.push({ input: '', label: '', operator: '=~' });
   } else {
     queryInput.value[index].value.push({ input: '', label: '', operator: '=~' });
   }
@@ -375,7 +375,7 @@ function addField(index: number, edgeMutex = false) {
 
 function removeField(index: number, field: number, edgeMutex = false) {
   if (edgeMutex) {
-    edgeMutexs.value.value.splice(field, 1);
+    edgeMutexes.value.value.splice(field, 1);
   } else {
     queryInput.value[index].value.splice(field, 1);
   }
@@ -398,9 +398,9 @@ function submitQuery() {
     const nodeOrEdgeNum = Math.floor(input.key / 2);
 
     if (input.key === 0) {
-      currentString += `LET start_nodes = (FOR n0 in [\`${store.getters.nodeTableNames}\`][**] FILTER 1==1 `;
+      currentString += `LET start_nodes = (FOR n0 in [\`${nodeTableNames.value}\`][**] FILTER 1==1 `;
     } else if (!thisRoundIsNode) {
-      currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH \`${store.state.networkName}\` FILTER 1==1 `;
+      currentString += `FOR n${nodeOrEdgeNum + 1}, e${nodeOrEdgeNum + 1} IN 1..1 ANY n${nodeOrEdgeNum} GRAPH \`${networkName.value}\` FILTER 1==1 `;
 
       // If we have any node with nX where X is greater than 2, make sure we're not making 2 hop cycles
       const lastNode = nodeOrEdgeNum + 1 === selectedHops.value;
@@ -450,11 +450,11 @@ function submitQuery() {
     if (input.key === 0) {
       // Add mutual exclusion query line
       if (showSecondEdge.value) {
-        currentString += `RETURN n0) \nLET excluded_pairs = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH \`${store.state.networkName}\` FILTER (`;
+        currentString += `RETURN n0) \nLET excluded_pairs = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH \`${networkName.value}\` FILTER (`;
 
         // Add mutual exclusion filters
-        const { operator } = edgeMutexs.value;
-        edgeMutexs.value.value.forEach((queryPiece, index) => {
+        const { operator } = edgeMutexes.value;
+        edgeMutexes.value.value.forEach((queryPiece, index) => {
           if (index !== 0) {
             currentString += `${operator} `;
           }
@@ -486,15 +486,15 @@ function submitQuery() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let newAQLNetwork: Promise<any[]> | undefined;
   try {
-    newAQLNetwork = api.aql(store.state.workspaceName || '', { query: aqlQuery, bind_vars: {} });
+    newAQLNetwork = api.aql(workspaceName.value || '', { query: aqlQuery, bind_vars: {} });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     // Add error message for user
     if (error.status === 400) {
-      store.commit.setLoadError({
+      loadError.value = {
         message: error.statusText,
         href: 'https://multinet.app',
-      });
+      };
     }
   }
   if (newAQLNetwork !== undefined) {
@@ -550,24 +550,26 @@ function submitQuery() {
         });
 
         // Update state for use in intermediate node vis TODO
-        store.commit.setConnectivityMatrixPaths({ nodes: middleNodesList, paths: reconstructedPaths });
+        connectivityMatrixPaths.value = { nodes: middleNodesList, paths: reconstructedPaths };
 
         // Update state for showing intermediate node vis
-        store.commit.toggleShowIntNodeVis(selectedHops.value > 1);
+        showIntNodeVis.value = selectedHops.value > 1;
 
         // Update state with new network
-        store.dispatch.aggregateNetwork(undefined);
-        store.dispatch.updateNetwork({ network: newNetwork });
-        store.commit.setNetworkPreFilter(newNetwork);
+        store.aggregateNetwork(undefined);
+        store.updateNetwork(newNetwork);
+        networkPreFilter.value = newNetwork;
         loading.value = false;
-        store.commit.setDirectionalEdges(true);
-        store.commit.setQueriedNetworkState(true);
-        store.commit.setDegreeEntries(setNodeDegreeDict(store.state.networkPreFilter, store.state.networkOnLoad, store.state.queriedNetwork, store.state.directionalEdges));
+        directionalEdges.value = false;
+        queriedNetwork.value = false;
+        const degreeObject = setNodeDegreeDict(networkPreFilter.value, networkOnLoad.value, queriedNetwork.value, directionalEdges.value);
+        maxDegree.value = degreeObject.maxDegree;
+        nodeDegreeDict.value = degreeObject.nodeDegreeDict;
       } else {
         // Update state with empty network
-        store.dispatch.aggregateNetwork(undefined);
-        store.dispatch.updateNetwork({ network: { nodes: [], edges: [] } });
-        store.commit.toggleShowIntNodeVis(false);
+        store.aggregateNetwork(undefined);
+        store.updateNetwork({ nodes: [], edges: [] });
+        showIntNodeVis.value = false;
       }
 
       loading.value = false;
