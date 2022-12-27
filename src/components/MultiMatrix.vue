@@ -101,7 +101,7 @@ function capitalizeFirstLetter(word: string) {
 }
 
 function hoverNode(nodeID: string) {
-  hoveredNodes.value.push(nodeID);
+  hoveredNodes.value = [...hoveredNodes.value, nodeID];
 }
 
 function unHoverNode(nodeID: string) {
