@@ -2,9 +2,7 @@
 import { formatShortDate } from '@/lib/utils';
 import { useStore } from '@/store';
 import { Edge, SlicedNetwork } from '@/types';
-import {
-  computed, Ref, ref, watch,
-} from 'vue';
+import { computed, ref, watch } from 'vue';
 import { scaleLinear, scaleTime } from 'd3-scale';
 import { storeToRefs } from 'pinia';
 
@@ -22,10 +20,10 @@ const showMenu = ref(false);
 const sliceRules = (value: string) => !Number.isNaN(parseFloat(value)) || 'Please type a number';
 const calMenu = ref([false, false]);
 const isSliced = computed(() => slicedNetwork.value.length === 0);
-const startEdgeVar: Ref<string> = ref('');
-const endEdgeVar: Ref<string> = ref('');
+const startEdgeVar = ref('');
+const endEdgeVar = ref('');
 const edgeSliceNumber = ref(1);
-const inputRange: Ref<(Date | number | string)[]> = ref([]);
+const inputRange = ref<(Date | number | string)[]>([]);
 const isTime = ref(false);
 const isNumeric = ref(true);
 const isValidRange = ref(true);

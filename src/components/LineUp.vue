@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useStore } from '@/store';
 import {
-  computed, onMounted, Ref, ref, watch, watchEffect,
+  computed, onMounted, ref, watch, watchEffect,
 } from 'vue';
 import LineUp, {
   Column, DataBuilder, IBuilderAdapterColumnDescProps, LocalDataProvider,
@@ -22,8 +22,8 @@ const {
   lineupIsNested,
 } = storeToRefs(store);
 
-const lineup: Ref<LineUp | null> = ref(null);
-const builder: Ref<DataBuilder | null> = ref(null);
+const lineup = ref<LineUp | null>(null);
+const builder = ref<DataBuilder | null>(null);
 
 const matrixWidth = ref(0);
 const matrixResizeObserver = new ResizeObserver((a: ResizeObserverEntry[]) => { matrixWidth.value = a[0].target.parentElement?.clientWidth || 0; });

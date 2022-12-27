@@ -16,7 +16,7 @@ import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
 import * as reorder from 'reorder.js';
 import {
-  computed, onMounted, Ref, ref, watch,
+  computed, onMounted, ref, watch,
 } from 'vue';
 import PathTable from '@/components/PathTable.vue';
 import { storeToRefs } from 'pinia';
@@ -50,9 +50,9 @@ const tooltip = ref(null);
 const visMargins = ref({
   left: 75, top: 110, right: 1, bottom: 1,
 });
-const matrix: Ref<Cell[][]> = ref([]);
+const matrix = ref<Cell[][]>([]);
 const expandedSuperNodes = ref(new Set<string>());
-const icons: Ref<{ [key: string]: { d: string} }> = ref({
+const icons = ref<{ [key: string]: { d: string} }>({
   quant: {
     d:
           'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',

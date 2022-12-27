@@ -166,7 +166,7 @@
               <div v-show="showSecondEdge && i === 1">
                 <v-list dense>
                   <v-list-item
-                    v-for="(val, k) in edgeMutexs.value"
+                    v-for="(val, k) in edgeMutexes.value"
                     :key="`val-${i}-2-${k}`"
                     class="pa-0"
                   >
@@ -179,7 +179,7 @@
                           >
                             <v-autocomplete
                               v-if="k > 0"
-                              v-model="edgeMutexs.operator"
+                              v-model="edgeMutexes.operator"
                               :items="operatorOptionItems"
                               clearable
                               dense
@@ -293,7 +293,7 @@ import {
   Node, Edge, Network, ArangoPath,
 } from '@/types';
 import {
-  computed, onMounted, ref, Ref, watch,
+  computed, onMounted, ref, watch,
 } from 'vue';
 import api from '@/api';
 import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
@@ -323,15 +323,15 @@ const {
 const showSecondEdge = ref(false);
 const hopsSelection = [1, 2, 3];
 const displayedHops = computed(() => 2 * selectedHops.value + 1);
-const loading: Ref<boolean> = ref(false);
+const loading = ref(false);
 
 const queryOptionItems = ['==', '=~', '!=', '<', '<=', '>', '>='];
 const operatorOptionItems = ['AND', 'OR', 'NOT'];
 const sameStartEnd = ref(false);
 
 // Create the object for storing input data
-const queryInput: Ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]> = ref([]);
-const edgeMutexs: Ref<{ value: { label: string; operator: string; input: string }[]; operator: string }> = ref({ value: [], operator: '' });
+const queryInput = ref<{ key: number; value: { label: string; operator: string; input: string }[]; operator: string }[]>([]);
+const edgeMutexes = ref<{ value: { label: string; operator: string; input: string }[]; operator: string }>({ value: [], operator: '' });
 
 function resetDefaultValues() {
   queryInput.value = [...Array(displayedHops.value).keys()].map((i: number) => {
@@ -351,11 +351,11 @@ function resetDefaultValues() {
   });
 
   if (workspaceName.value === 'marclab') {
-    edgeMutexs.value = {
+    edgeMutexes.value = {
       value: [{ label: 'Type', operator: '=~', input: '' }], operator: '',
     };
   } else {
-    edgeMutexs.value = {
+    edgeMutexes.value = {
       value: [{ label: '', operator: '=~', input: '' }], operator: '',
     };
   }
@@ -367,7 +367,7 @@ onMounted(() => resetDefaultValues());
 
 function addField(index: number, edgeMutex = false) {
   if (edgeMutex) {
-    edgeMutexs.value.value.push({ input: '', label: '', operator: '=~' });
+    edgeMutexes.value.value.push({ input: '', label: '', operator: '=~' });
   } else {
     queryInput.value[index].value.push({ input: '', label: '', operator: '=~' });
   }
@@ -375,7 +375,7 @@ function addField(index: number, edgeMutex = false) {
 
 function removeField(index: number, field: number, edgeMutex = false) {
   if (edgeMutex) {
-    edgeMutexs.value.value.splice(field, 1);
+    edgeMutexes.value.value.splice(field, 1);
   } else {
     queryInput.value[index].value.splice(field, 1);
   }
@@ -453,8 +453,8 @@ function submitQuery() {
         currentString += `RETURN n0) \nLET excluded_pairs = UNIQUE(FOR n0 in start_nodes FOR n1, e1, p1 IN 1..1 ANY n0 GRAPH \`${networkName.value}\` FILTER (`;
 
         // Add mutual exclusion filters
-        const { operator } = edgeMutexs.value;
-        edgeMutexs.value.value.forEach((queryPiece, index) => {
+        const { operator } = edgeMutexes.value;
+        edgeMutexes.value.value.forEach((queryPiece, index) => {
           if (index !== 0) {
             currentString += `${operator} `;
           }
