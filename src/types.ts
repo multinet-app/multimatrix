@@ -102,7 +102,7 @@ export interface State {
   selectNeighbors: boolean;
   showGridLines: boolean;
   aggregated: boolean;
-  aggregatedBy: string | undefined;
+  aggregatedBy: string | null;
   maxConnections: {
     unAggr: number;
     parent: number;

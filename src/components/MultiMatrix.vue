@@ -44,7 +44,6 @@ const {
   rightClickMenu,
   maxConnections,
   selectedHops,
-  clickedCell,
 } = storeToRefs(store);
 
 const tooltip = ref(null);
@@ -394,7 +393,7 @@ function clickElement(matrixElement: Node | Cell) {
       }
     }
 
-    clickedCell.value = matrixElement.cellName;
+    selectedCell.value = matrixElement.cellName;
   } else {
     store.clickElement(matrixElement._id);
   }

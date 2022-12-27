@@ -160,16 +160,13 @@ watch(aggregated, () => {
     labelVariable.value = '_key';
   }
 });
-watch(aggregatedBy, () => {
-  labelVariable.value = aggregatedBy.value;
-});
 watchEffect(() => {
   if (!showIntNodeVis.value) {
     intAggregatedBy.value = undefined;
   }
 });
 
-function aggregateNetwork(varName: string) {
+function aggregateNetwork(varName: string | null) {
   if (filteredNetwork.value) {
     filteredNetwork.value = false;
     if (networkOnLoad.value !== null) {

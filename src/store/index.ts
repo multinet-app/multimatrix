@@ -35,7 +35,7 @@ export const useStore = defineStore('store', {
     selectNeighbors: true,
     showGridLines: true,
     aggregated: false,
-    aggregatedBy: undefined,
+    aggregatedBy: null,
     maxConnections: {
       unAggr: 0,
       parent: 0,
@@ -356,11 +356,11 @@ export const useStore = defineStore('store', {
       this.selectedConnectivityPaths = payload.map((path: number) => this.connectivityMatrixPaths.paths[path]);
     },
 
-    aggregateNetwork(varName: string | undefined) {
+    aggregateNetwork(varName: string | null) {
       this.aggregatedBy = varName;
 
       // Reset network if aggregated
-      if (this.aggregated && varName === undefined) {
+      if (this.aggregated && varName === null) {
         const unAggregatedNetwork = this.networkOnLoad !== null ? structuredClone(this.networkOnLoad) : { nodes: [], edges: [] };
         this.aggregated = false;
         this.networkPreFilter = unAggregatedNetwork;
@@ -368,7 +368,7 @@ export const useStore = defineStore('store', {
       }
 
       // Aggregate the network if the varName is not none
-      if (varName !== undefined) {
+      if (varName !== null) {
         // Calculate edges
         const newEdges: Edge[] = [];
         this.network.edges.forEach((edge) => {
