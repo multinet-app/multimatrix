@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { select } from 'd3-selection';
-import { format } from 'd3-format';
+import { select, format, ScaleLinear } from 'd3';
 import { legendColor } from 'd3-svg-legend';
-import { ScaleLinear } from 'd3-scale';
 import { Node, Edge, ArangoPath } from '@/types';
 import { useStore } from '@/store';
 import AboutDialog from '@/components/AboutDialog.vue';

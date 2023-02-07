@@ -1,5 +1,6 @@
-import { group, range } from 'd3-array';
-import { scaleLinear, ScaleLinear } from 'd3-scale';
+import {
+  group, range, scaleLinear, ScaleLinear,
+} from 'd3';
 import { initProvenance, Provenance } from '@visdesignlab/trrack';
 import { defineStore } from 'pinia';
 import api from '@/api';

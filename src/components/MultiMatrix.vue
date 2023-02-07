@@ -3,13 +3,8 @@ import {
   Cell, Edge, Node, ArangoPath,
 } from '@/types';
 import {
-  scaleBand,
-} from 'd3-scale';
-import {
-  range,
-} from 'd3-array';
-import { select, selectAll } from 'd3-selection';
-import { transition } from 'd3-transition';
+  scaleBand, range, select, selectAll, transition,
+} from 'd3';
 import { useStore } from '@/store';
 import LineUp from '@/components/LineUp.vue';
 import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
