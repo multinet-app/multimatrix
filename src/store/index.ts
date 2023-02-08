@@ -1,7 +1,7 @@
 import {
   group, range, scaleLinear,
 } from 'd3';
-import { defineStore } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import api from '@/api';
 import oauthClient from '@/oauth';
 import {
@@ -13,8 +13,16 @@ import {
 import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
 import { isInternalField } from '@/lib/typeUtils';
 import { computed, ref } from 'vue';
+import { useProvenanceStore } from './provenance';
 
 export const useStore = defineStore('store', () => {
+  // Provenance
+  const provStore = useProvenanceStore();
+  const { provenance } = provStore;
+  const {
+    selectNeighbors,
+  } = storeToRefs(provStore);
+
   const workspaceName = ref('');
   const networkName = ref('');
   const network = ref<Network>({ nodes: [], edges: [] });
@@ -29,7 +37,6 @@ export const useStore = defineStore('store', () => {
   const hoveredNodes = ref<string[]>([]);
   const sortOrder = ref<number[]>([]);
   const directionalEdges = ref(false);
-  const selectNeighbors = ref(true);
   const showGridLines = ref(true);
   const aggregated = ref(false);
   const aggregatedBy = ref<string | null>(null);
@@ -37,7 +44,6 @@ export const useStore = defineStore('store', () => {
     unAggr: 0,
     parent: 0,
   });
-  const provenance = ref(null);
   const showProvenanceVis = ref(false);
   const nodeAttributes = ref<ArangoAttributes>({});
   const edgeAttributes = ref<ArangoAttributes>({});

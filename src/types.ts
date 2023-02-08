@@ -71,6 +71,10 @@ export interface SlicedNetwork {
   category: string;
 }
 
+export interface ProvState {
+  selectNeighbors: boolean
+}
+
 export type ProvenanceEventTypes =
   'Set Select Neighbors' |
   'Set Show Grid Lines' |
