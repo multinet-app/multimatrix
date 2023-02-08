@@ -16,9 +16,7 @@ const urlVars = getUrlVars();
 store.fetchNetwork(
   urlVars.workspace,
   urlVars.network,
-).then(() => {
-  store.createProvenance();
-});
+);
 
 const {
   network,

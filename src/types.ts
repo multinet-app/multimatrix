@@ -1,7 +1,4 @@
-import {
-  ColumnTypes, Table, TableRow, UserSpec,
-} from 'multinet';
-import { Provenance } from '@visdesignlab/trrack';
+import { TableRow } from 'multinet';
 
 export interface Dimensions {
   height: number;
@@ -84,57 +81,6 @@ export type ProvenanceEventTypes =
   'De-select Node(s)' |
   'Clear Selection' |
   'Set Label Variable';
-
-export interface State {
-  workspaceName: string;
-  networkName: string;
-  networkOnLoad: Network | null;
-  slicedNetwork: SlicedNetwork[];
-  network: Network;
-  loadError: LoadError;
-  userInfo: UserSpec | null;
-  cellSize: number;
-  selectedNodes: string[];
-  selectedCell: string | null;
-  hoveredNodes: string[];
-  sortOrder: number[];
-  directionalEdges: boolean;
-  selectNeighbors: boolean;
-  showGridLines: boolean;
-  aggregated: boolean;
-  aggregatedBy: string | null;
-  maxConnections: {
-    unAggr: number;
-    parent: number;
-  };
-  provenance: Provenance<State, ProvenanceEventTypes, unknown> | null;
-  showProvenanceVis: boolean;
-  nodeAttributes: ArangoAttributes;
-  edgeAttributes: ArangoAttributes;
-  showIntNodeVis: boolean;
-  connectivityMatrixPaths: {nodes: Node[]; paths: ArangoPath[]};
-  selectedConnectivityPaths: ArangoPath[];
-  showPathTable: boolean;
-  maxIntConnections: number;
-  intAggregatedBy: string | undefined;
-  networkTables: Table[];
-  columnTypes: { [tableName: string]: ColumnTypes } | null;
-  labelVariable: string | undefined;
-  rightClickMenu: {
-    show: boolean;
-    top: number;
-    left: number;
-  };
-  isDate: boolean;
-  controlsWidth: number;
-  selectedHops: number;
-  nodeDegreeDict: { [key: string]: number };
-  maxDegree: number;
-  networkPreFilter: Network | null;
-  queriedNetwork: boolean;
-  filteredNetwork: boolean;
-  lineupIsNested: boolean;
-}
 
 export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children'] as const;
 export type InternalField = (typeof internalFieldNames)[number];
