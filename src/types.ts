@@ -72,7 +72,13 @@ export interface SlicedNetwork {
 }
 
 export interface ProvState {
-  selectNeighbors: boolean
+  selectNeighbors: boolean;
+  cellSize: number;
+  selectedNodes: string[];
+  selectedCell: Cell | null;
+  sortOrder: number[];
+  aggregatedBy: string | null;
+  labelVariable: string | undefined;
 }
 
 export type ProvenanceEventTypes =

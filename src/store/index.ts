@@ -21,6 +21,12 @@ export const useStore = defineStore('store', () => {
   const { provenance } = provStore;
   const {
     selectNeighbors,
+    cellSize,
+    selectedNodes,
+    selectedCell,
+    sortOrder,
+    aggregatedBy,
+    labelVariable,
   } = storeToRefs(provStore);
 
   const workspaceName = ref('');
@@ -31,15 +37,10 @@ export const useStore = defineStore('store', () => {
     href: '',
   });
   const userInfo = ref<UserSpec | null>(null);
-  const cellSize = ref(15);
-  const selectedNodes = ref<string[]>([]);
-  const selectedCell = ref(null);
   const hoveredNodes = ref<string[]>([]);
-  const sortOrder = ref<number[]>([]);
   const directionalEdges = ref(false);
   const showGridLines = ref(true);
   const aggregated = ref(false);
-  const aggregatedBy = ref<string | null>(null);
   const maxConnections = ref({
     unAggr: 0,
     parent: 0,
@@ -55,7 +56,6 @@ export const useStore = defineStore('store', () => {
   const intAggregatedBy = ref(undefined);
   const networkTables = ref<Table[]>([]);
   const columnTypes = ref<{ [tableName: string]: ColumnTypes } | null>(null);
-  const labelVariable = ref(undefined);
   const rightClickMenu = ref({
     show: false,
     top: 0,
