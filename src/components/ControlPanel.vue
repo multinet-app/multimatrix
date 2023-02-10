@@ -153,28 +153,11 @@ function displayCSVBuilder() {
 watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
 watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
 watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
-watch(aggregated, () => {
-  if (!aggregated.value) {
-    labelVariable.value = '_key';
-  }
-});
 watchEffect(() => {
   if (!showIntNodeVis.value) {
     intAggregatedBy.value = undefined;
   }
 });
-
-function aggregateNetwork(varName: string | null) {
-  if (filteredNetwork.value) {
-    filteredNetwork.value = false;
-    if (networkOnLoad.value !== null) {
-      store.updateNetwork(networkOnLoad.value);
-    }
-    degreeRange.value = [0, maxDegree.value];
-    store.setDegreeNetwork(degreeRange.value);
-  }
-  store.aggregateNetwork(varName);
-}
 
 function search() {
   searchErrors.value = [];
@@ -293,7 +276,7 @@ function removeByDegree() {
               clearable
               outlined
               dense
-              @change="aggregateNetwork"
+              @change="store.aggregateNetwork"
             />
           </v-list-item>
 

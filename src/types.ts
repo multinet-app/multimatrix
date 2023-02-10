@@ -76,9 +76,9 @@ export interface ProvState {
   cellSize: number;
   selectedNodes: string[];
   selectedCell: Cell | null;
-  sortOrder: number[];
   aggregatedBy: string | null;
   labelVariable: string | undefined;
+  expandedNodeIDs: string[];
 }
 
 export type ProvenanceEventTypes =

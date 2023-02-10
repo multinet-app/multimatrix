@@ -55,19 +55,12 @@ export function formatShortDate(date: Date) {
   return dateFormat;
 }
 
-export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoad: Network | null, queried: boolean, directionalEdges: boolean) {
-  // Determine correct network to use
-  let baseNetwork: Network = { nodes: [], edges: [] };
-
-  if (networkPreFilter !== null || networkOnLoad !== null) {
-    baseNetwork = queried ? structuredClone(networkPreFilter as Network) : structuredClone(networkOnLoad as Network);
-  }
-
+export function calculateNodeDegrees(network: Network, directionalEdges: boolean) {
   // Reset node dict
   const nodeDegreeDict: {[key: string]: number} = {};
-  baseNetwork.nodes.forEach((node) => { nodeDegreeDict[node._id] = 0; });
+  network.nodes.forEach((node) => { nodeDegreeDict[node._id] = 0; });
 
-  baseNetwork.edges.forEach((edge: Edge) => {
+  network.edges.forEach((edge: Edge) => {
     if (directionalEdges) {
       nodeDegreeDict[edge._from] = edge._from in nodeDegreeDict ? nodeDegreeDict[edge._from] + 1 : 1;
     } else {
@@ -78,5 +71,5 @@ export function setNodeDegreeDict(networkPreFilter: Network | null, networkOnLoa
 
   const maxDegree = Math.max(...Object.values(nodeDegreeDict));
 
-  return { nodeDegreeDict, maxDegree };
+  return [nodeDegreeDict, maxDegree] as const;
 }

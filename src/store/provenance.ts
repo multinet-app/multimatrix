@@ -10,9 +10,9 @@ export const useProvenanceStore = defineStore('provenance', () => {
   const cellSize = ref(15);
   const selectedNodes = ref<string[]>([]);
   const selectedCell = ref<Cell | null>(null);
-  const sortOrder = ref<number[]>([]);
   const aggregatedBy = ref<string | null>(null);
   const labelVariable = ref<string | undefined>(undefined);
+  const expandedNodeIDs = ref<string[]>([]);
 
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({
@@ -20,9 +20,9 @@ export const useProvenanceStore = defineStore('provenance', () => {
     cellSize,
     selectedNodes,
     selectedCell,
-    sortOrder,
     aggregatedBy,
     labelVariable,
+    expandedNodeIDs,
   }));
 
   // Static snapshot of the initial state for trrack
@@ -97,8 +97,8 @@ export const useProvenanceStore = defineStore('provenance', () => {
     cellSize,
     selectedNodes,
     selectedCell,
-    sortOrder,
     aggregatedBy,
     labelVariable,
+    expandedNodeIDs,
   };
 });

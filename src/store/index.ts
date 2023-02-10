@@ -10,7 +10,7 @@ import {
 import {
   ArangoAttributes, ArangoPath, Edge, LoadError, Network, Node, SlicedNetwork,
 } from '@/types';
-import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
+import { calculateNodeDegrees, defineNeighbors } from '@/lib/utils';
 import { isInternalField } from '@/lib/typeUtils';
 import { computed, ref } from 'vue';
 import { useProvenanceStore } from './provenance';
@@ -24,14 +24,14 @@ export const useStore = defineStore('store', () => {
     cellSize,
     selectedNodes,
     selectedCell,
-    sortOrder,
     aggregatedBy,
     labelVariable,
+    expandedNodeIDs,
   } = storeToRefs(provStore);
 
+  const aggregated = computed(() => aggregatedBy.value !== null);
   const workspaceName = ref('');
   const networkName = ref('');
-  const network = ref<Network>({ nodes: [], edges: [] });
   const loadError = ref<LoadError>({
     message: '',
     href: '',
@@ -40,7 +40,6 @@ export const useStore = defineStore('store', () => {
   const hoveredNodes = ref<string[]>([]);
   const directionalEdges = ref(false);
   const showGridLines = ref(true);
-  const aggregated = ref(false);
   const maxConnections = ref({
     unAggr: 0,
     parent: 0,
@@ -53,6 +52,7 @@ export const useStore = defineStore('store', () => {
   const selectedConnectivityPaths = ref<ArangoPath[]>([]);
   const showPathTable = ref(false);
   const maxIntConnections = ref(0);
+  const sortOrder = ref<number[]>([]);
   const intAggregatedBy = ref(undefined);
   const networkTables = ref<Table[]>([]);
   const columnTypes = ref<{ [tableName: string]: ColumnTypes } | null>(null);
@@ -72,6 +72,94 @@ export const useStore = defineStore('store', () => {
   const queriedNetwork = ref(false);
   const filteredNetwork = ref(false);
   const lineupIsNested = ref(false);
+
+  const network = computed(() => {
+    const networkAfterOperations = structuredClone(networkOnLoad.value);
+
+    // If we're aggregating, compute the aggregated network
+    if (aggregated.value) {
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
+      // Calculate all aggregated edge permutations
+      const newEdges: Edge[] = [];
+      networkAfterOperations.edges.forEach((edge) => {
+        const fromNode = networkAfterOperations.nodes.find((node) => node._id === edge._from);
+        const toNode = networkAfterOperations.nodes.find((node) => node._id === edge._to);
+
+        // Add all super node to child node permutations
+        if (fromNode !== undefined) {
+          const newEdge = structuredClone(edge);
+          const fromNodeValue = fromNode[aggregatedBy.value!];
+          newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
+          newEdge._from = `aggregated/${fromNodeValue}`;
+          newEdges.push(newEdge);
+        }
+
+        if (toNode !== undefined) {
+          const newEdge = structuredClone(edge);
+          const toNodeValue = toNode[aggregatedBy.value!];
+          newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
+          newEdge._to = `aggregated/${toNodeValue}`;
+          newEdges.push(newEdge);
+        }
+
+        if (fromNode !== undefined && toNode !== undefined) {
+          const newEdge = structuredClone(edge);
+          const fromNodeValue = fromNode[aggregatedBy.value!];
+          const toNodeValue = toNode[aggregatedBy.value!];
+          newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
+          newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
+          newEdge._from = `aggregated/${fromNodeValue}`;
+          newEdge._to = `aggregated/${toNodeValue}`;
+          newEdges.push(newEdge);
+        }
+      });
+      networkAfterOperations.edges = [...networkAfterOperations.edges, ...newEdges];
+
+      // Calculate aggregated nodes
+      networkAfterOperations.nodes = Array.from(
+        group(networkAfterOperations.nodes, (d) => d[aggregatedBy.value!]),
+        ([key, value]) => ({
+          _id: `aggregated/${key}`,
+          _key: `${key}`,
+          _rev: '', // _rev property is needed to conform to Node interface
+          children: value.map((node) => structuredClone(node)),
+          type: 'supernode',
+          neighbors: [] as string[],
+          degreeCount: 0,
+          [aggregatedBy.value!]: key,
+        }),
+      );
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
+
+      // If we have expanded nodes, add their children in the right spot
+      expandedNodeIDs.value.forEach((nodeID) => {
+        const indexOfParent = networkAfterOperations.nodes.findIndex((node) => node._id === nodeID);
+        let parentChildren = networkAfterOperations.nodes[indexOfParent].children;
+        if (parentChildren === undefined) {
+          return;
+        }
+
+        parentChildren = parentChildren.map((child: Node) => {
+          child.parentPosition = indexOfParent;
+          return child;
+        });
+        networkAfterOperations.nodes.splice(indexOfParent + 1, 0, ...parentChildren);
+      });
+    }
+
+    // Recalculate node degrees and max degree based on the computed network
+    [nodeDegreeDict.value, maxDegree.value] = calculateNodeDegrees(networkAfterOperations, directionalEdges.value);
+
+    // TODO: If we're filtering by degree, filter nodes out
+
+    // Reset sort order now that network has changed
+    sortOrder.value = range(0, networkAfterOperations.nodes.length);
+
+    // Recalculate neighbors
+    defineNeighbors(networkAfterOperations.nodes, networkAfterOperations.edges);
+
+    return networkAfterOperations;
+  });
 
   const cellColorScale = computed(() => (scaleLinear<string, number>()
     .domain([0, maxConnections.value.unAggr])
@@ -132,13 +220,6 @@ export const useStore = defineStore('store', () => {
     edgeKeys.forEach((key: string) => {
       edgeAttributes.value[key] = [...new Set(networkLocal.edges.map((e: Edge) => `${e[key]}`).sort())];
     });
-  }
-
-  function updateNetwork(networkLocal: Network) {
-    network.value = networkLocal;
-    sortOrder.value = range(0, network.value.nodes.length);
-    slicedNetwork.value = [];
-    defineNeighbors(network.value.nodes, network.value.edges);
   }
 
   async function fetchNetwork(workspaceNameLocal: string, networkNameLocal: string) {
@@ -233,10 +314,6 @@ export const useStore = defineStore('store', () => {
     };
     setAttributeValues(networkElements);
     networkOnLoad.value = networkElements;
-    updateNetwork(networkElements);
-    const degreeObject = setNodeDegreeDict(networkPreFilter.value, networkOnLoad.value, queriedNetwork.value, directionalEdges.value);
-    maxDegree.value = degreeObject.maxDegree;
-    nodeDegreeDict.value = degreeObject.nodeDegreeDict;
   }
 
   function setDegreeNetwork(degreeRange: number[]) {
@@ -317,103 +394,16 @@ export const useStore = defineStore('store', () => {
 
     // Reset network if aggregated
     if (aggregated.value && varName === null) {
-      const unAggregatedNetwork = structuredClone(networkOnLoad.value);
-      aggregated.value = false;
-      networkPreFilter.value = unAggregatedNetwork;
-      updateNetwork(unAggregatedNetwork);
-    }
-
-    // Aggregate the network if the varName is not none
-    if (varName !== null) {
-      // Calculate edges
-      const newEdges: Edge[] = [];
-      network.value.edges.forEach((edge) => {
-        const fromNode = network.value && network.value.nodes.find((node) => node._id === edge._from);
-        const toNode = network.value && network.value.nodes.find((node) => node._id === edge._to);
-
-        // Add all super node to child node permutations
-        if (fromNode !== undefined && fromNode !== null) {
-          const newEdge = structuredClone(edge);
-          const fromNodeValue = fromNode[varName];
-          newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
-          newEdge._from = `aggregated/${fromNodeValue}`;
-          newEdges.push(newEdge);
-        }
-
-        if (toNode !== undefined && toNode !== null) {
-          const newEdge = structuredClone(edge);
-          const toNodeValue = toNode[varName];
-          newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
-          newEdge._to = `aggregated/${toNodeValue}`;
-          newEdges.push(newEdge);
-        }
-
-        if (fromNode !== undefined && fromNode !== null && toNode !== undefined && toNode !== null) {
-          const newEdge = structuredClone(edge);
-          const fromNodeValue = fromNode[varName];
-          const toNodeValue = toNode[varName];
-          newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
-          newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
-          newEdge._from = `aggregated/${fromNodeValue}`;
-          newEdge._to = `aggregated/${toNodeValue}`;
-          newEdges.push(newEdge);
-        }
-      });
-      const aggregatedEdges = [...network.value.edges, ...newEdges];
-
-      // Calculate nodes
-      const aggregatedNodes: Node[] = Array.from(
-        group(network.value.nodes, (d) => d[varName]),
-        ([key, value]) => ({
-          _id: `aggregated/${key}`,
-          _key: `${key}`,
-          _rev: '', // _rev property is needed to conform to Node interface
-          children: value.map((node) => structuredClone(node)),
-          type: 'supernode',
-          neighbors: [] as string[],
-          degreeCount: 0,
-          [varName]: key,
-        }),
-      );
-
-      // Set network and aggregated
-      aggregated.value = true;
-      networkPreFilter.value = { nodes: aggregatedNodes, edges: aggregatedEdges };
-      updateNetwork({ nodes: aggregatedNodes, edges: aggregatedEdges });
+      expandedNodeIDs.value = [];
     }
   }
 
   function expandAggregatedNode(nodeID: string) {
-    // Add children nodes into list at the correct index
-    const indexOfParent = network.value && network.value.nodes.findIndex((node) => node._id === nodeID);
-    let parentChildren = network.value.nodes[indexOfParent].children;
-    if (parentChildren === undefined) {
-      return;
-    }
-
-    parentChildren = parentChildren.map((child: Node) => {
-      child.parentPosition = indexOfParent;
-      return child;
-    }) || [];
-    const expandedNodes = [...network.value.nodes];
-    expandedNodes.splice(indexOfParent + 1, 0, ...parentChildren);
-
-    updateNetwork({ nodes: expandedNodes, edges: network.value.edges });
-    const degreeObject = setNodeDegreeDict(networkPreFilter.value, networkOnLoad.value, queriedNetwork.value, directionalEdges.value);
-    maxDegree.value = degreeObject.maxDegree;
-    nodeDegreeDict.value = degreeObject.nodeDegreeDict;
+    expandedNodeIDs.value.push(nodeID);
   }
 
   function retractAggregatedNode(nodeID: string) {
-    // Remove children nodes
-    const parentNode = network.value.nodes.find((node) => node._id === nodeID);
-    const parentChildren = parentNode && parentNode.children;
-    const retractedNodes = network.value.nodes.filter((node) => parentChildren && parentChildren.indexOf(node) === -1);
-
-    updateNetwork({ nodes: retractedNodes, edges: network.value.edges });
-    const degreeObject = setNodeDegreeDict(networkPreFilter.value, networkOnLoad.value, queriedNetwork.value, directionalEdges.value);
-    maxDegree.value = degreeObject.maxDegree;
-    nodeDegreeDict.value = degreeObject.nodeDegreeDict;
+    expandedNodeIDs.value = expandedNodeIDs.value.filter((expandedID) => expandedID !== nodeID);
   }
 
   function clickElement(elementID: string) {
@@ -481,7 +471,6 @@ export const useStore = defineStore('store', () => {
     edgeTableName,
     fetchNetwork,
     setDegreeNetwork,
-    updateNetwork,
     fetchUserInfo,
     logout,
     setSelectedConnectivityPaths,
