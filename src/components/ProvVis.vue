@@ -10,11 +10,8 @@ const { provenance } = storeToRefs(store);
 const provDiv = ref();
 
 onMounted(() => {
-  if (provenance.value !== null && provDiv.value != null) {
-    ProvVisCreator(
-      provDiv.value,
-      provenance.value,
-    );
+  if (provDiv.value != null) {
+    ProvVisCreator(provDiv.value, provenance.value, {});
   }
 });
 </script>
