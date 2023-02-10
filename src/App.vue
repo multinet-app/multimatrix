@@ -8,22 +8,25 @@ import { getUrlVars } from '@/lib/utils';
 import { useStore } from '@/store';
 import 'multinet-components/dist/style.css';
 import { storeToRefs } from 'pinia';
+import { undoRedoKeyHandler } from '@/lib/provenanceUtils';
 
 const store = useStore();
-
-const urlVars = getUrlVars();
-
-store.fetchNetwork(
-  urlVars.workspace,
-  urlVars.network,
-);
-
 const {
   network,
   loadError,
   showProvenanceVis,
   slicedNetwork,
 } = storeToRefs(store);
+
+const urlVars = getUrlVars();
+store.fetchNetwork(
+  urlVars.workspace,
+  urlVars.network,
+);
+
+// Set up provenance undo and redo, provenance is not a ref here
+const { provenance } = store;
+document.addEventListener('keydown', (event) => undoRedoKeyHandler(event, provenance));
 </script>
 
 <template>
