@@ -1,32 +1,19 @@
 <script setup lang="ts">
-import { ProvVisCreator } from '@visdesignlab/trrack-vis';
-import { onMounted } from 'vue';
+import { ProvVisCreator } from '@trrack/vis-react';
+import { onMounted, ref } from 'vue';
 import { useStore } from '@/store';
 import { storeToRefs } from 'pinia';
 
 const store = useStore();
-const {
-  showProvenanceVis,
-  provenance,
-} = storeToRefs(store);
+const { provenance } = storeToRefs(store);
+
+const provDiv = ref();
 
 onMounted(() => {
-  const provDiv = document.getElementById('provDiv');
-  if (provenance.value !== null && provDiv != null) {
-    ProvVisCreator(
-      provDiv,
-      provenance.value,
-      (newNode: string) => store.goToProvenanceNode(newNode),
-      true,
-      true,
-      provenance.value.root.id,
-    );
+  if (provDiv.value != null) {
+    ProvVisCreator(provDiv.value, provenance.value, {});
   }
 });
-
-function toggleProvVis() {
-  showProvenanceVis.value = false;
-}
 </script>
 
 <template>
@@ -34,29 +21,32 @@ function toggleProvVis() {
     absolute
     permanent
     right
-    :width="450"
+    :width="145 + 190"
   >
     <v-btn
       icon
       class="ma-2"
-      @click="toggleProvVis"
+      @click="store.showProvenanceVis = !store.showProvenanceVis"
     >
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
-    <div id="provDiv" />
+    <v-row class="ml-2 mt-1">
+      <v-btn @click="provenance.undo()">
+        undo
+      </v-btn>
+      <v-btn @click="provenance.redo()">
+        redo
+      </v-btn>
+    </v-row>
+
+    <div
+      id="provDiv"
+      ref="provDiv"
+    />
   </v-navigation-drawer>
 </template>
 
 <style scoped>
-#provDiv:deep(.secondary) {
-  /* Unset vuetify colors for secondary */
-  background-color: unset !important;
-  border-color: white !important;
-}
 
-#provDiv {
-  position: fixed;
-  z-index: 2;
-}
 </style>

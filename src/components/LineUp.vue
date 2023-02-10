@@ -6,7 +6,7 @@ import {
 import LineUp, {
   Column, DataBuilder, IBuilderAdapterColumnDescProps, LocalDataProvider,
 } from 'lineupjs';
-import { select } from 'd3-selection';
+import { select } from 'd3';
 import { isInternalField } from '@/lib/typeUtils';
 import vuetify from '@/plugins/vuetify';
 import WindowInstanceMap from '@/lib/windowSizeUtils';

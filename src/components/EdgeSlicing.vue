@@ -3,7 +3,7 @@ import { formatShortDate } from '@/lib/utils';
 import { useStore } from '@/store';
 import { Edge, SlicedNetwork } from '@/types';
 import { computed, ref, watch } from 'vue';
-import { scaleLinear, scaleTime } from 'd3-scale';
+import { scaleLinear, scaleTime } from 'd3';
 import { storeToRefs } from 'pinia';
 
 const store = useStore();

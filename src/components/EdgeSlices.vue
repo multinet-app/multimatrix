@@ -3,10 +3,8 @@ import { useStore } from '@/store';
 import {
   computed, getCurrentInstance, ref, watch,
 } from 'vue';
-import { max } from 'd3-array';
+import { max, format, scaleLinear } from 'd3';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
-import { format } from 'd3-format';
-import { scaleLinear } from 'd3-scale';
 import { storeToRefs } from 'pinia';
 
 const store = useStore();

@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import {
-  scaleLinear,
-} from 'd3-scale';
+import { scaleLinear, group } from 'd3';
 import { useStore } from '@/store';
 import { ConnectivityCell } from '@/types';
-import { group } from 'd3-array';
 import { storeToRefs } from 'pinia';
 
 const store = useStore();

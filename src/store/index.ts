@@ -1,496 +1,496 @@
-import { group, range } from 'd3-array';
-import { scaleLinear, ScaleLinear } from 'd3-scale';
-import { initProvenance, Provenance } from '@visdesignlab/trrack';
-import { defineStore } from 'pinia';
+import {
+  group, range, scaleLinear,
+} from 'd3';
+import { defineStore, storeToRefs } from 'pinia';
 import api from '@/api';
 import oauthClient from '@/oauth';
 import {
   ColumnTypes, NetworkSpec, Table, UserSpec,
 } from 'multinet';
 import {
-  ArangoAttributes,
-  ArangoPath,
-  Edge, LoadError, Network, Node, ProvenanceEventTypes, State, SlicedNetwork,
+  ArangoAttributes, ArangoPath, Edge, LoadError, Network, Node, SlicedNetwork,
 } from '@/types';
 import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
-import { undoRedoKeyHandler, updateProvenanceState } from '@/lib/provenanceUtils';
 import { isInternalField } from '@/lib/typeUtils';
+import { computed, ref } from 'vue';
+import { useProvenanceStore } from './provenance';
 
-export const useStore = defineStore('store', {
-  state: (): State => ({
-    workspaceName: '',
-    networkName: '',
-    network: { nodes: [], edges: [] },
-    loadError: {
-      message: '',
-      href: '',
-    },
-    userInfo: null,
-    cellSize: 15,
-    selectedNodes: [],
-    selectedCell: null,
-    hoveredNodes: [],
-    sortOrder: [],
-    directionalEdges: false,
-    selectNeighbors: true,
-    showGridLines: true,
-    aggregated: false,
-    aggregatedBy: null,
-    maxConnections: {
-      unAggr: 0,
-      parent: 0,
-    },
-    provenance: null,
-    showProvenanceVis: false,
-    nodeAttributes: {},
-    edgeAttributes: {},
-    showIntNodeVis: false,
-    connectivityMatrixPaths: { nodes: [], paths: [] },
-    selectedConnectivityPaths: [],
-    showPathTable: false,
-    maxIntConnections: 0,
-    intAggregatedBy: undefined,
-    networkTables: [],
-    columnTypes: null,
-    labelVariable: undefined,
-    rightClickMenu: {
-      show: false,
-      top: 0,
-      left: 0,
-    },
-    networkOnLoad: null,
-    slicedNetwork: [],
-    isDate: false,
-    controlsWidth: 256,
-    selectedHops: 1,
-    nodeDegreeDict: {},
-    maxDegree: 0,
-    networkPreFilter: null,
-    queriedNetwork: false,
-    filteredNetwork: false,
-    lineupIsNested: false,
-  }),
+export const useStore = defineStore('store', () => {
+  // Provenance
+  const provStore = useProvenanceStore();
+  const { provenance } = provStore;
+  const {
+    selectNeighbors,
+    cellSize,
+    selectedNodes,
+    selectedCell,
+    sortOrder,
+    aggregatedBy,
+    labelVariable,
+  } = storeToRefs(provStore);
 
-  getters: {
-    cellColorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxConnections.unAggr])
-        .range(['#feebe2', '#690000']); // TODO: colors here are arbitrary, change later
-    },
+  const workspaceName = ref('');
+  const networkName = ref('');
+  const network = ref<Network>({ nodes: [], edges: [] });
+  const loadError = ref<LoadError>({
+    message: '',
+    href: '',
+  });
+  const userInfo = ref<UserSpec | null>(null);
+  const hoveredNodes = ref<string[]>([]);
+  const directionalEdges = ref(false);
+  const showGridLines = ref(true);
+  const aggregated = ref(false);
+  const maxConnections = ref({
+    unAggr: 0,
+    parent: 0,
+  });
+  const showProvenanceVis = ref(false);
+  const nodeAttributes = ref<ArangoAttributes>({});
+  const edgeAttributes = ref<ArangoAttributes>({});
+  const showIntNodeVis = ref(false);
+  const connectivityMatrixPaths = ref<{nodes: Node[]; paths: ArangoPath[]}>({ nodes: [], paths: [] });
+  const selectedConnectivityPaths = ref<ArangoPath[]>([]);
+  const showPathTable = ref(false);
+  const maxIntConnections = ref(0);
+  const intAggregatedBy = ref(undefined);
+  const networkTables = ref<Table[]>([]);
+  const columnTypes = ref<{ [tableName: string]: ColumnTypes } | null>(null);
+  const rightClickMenu = ref({
+    show: false,
+    top: 0,
+    left: 0,
+  });
+  const networkOnLoad = ref<Network>({ nodes: [], edges: [] });
+  const slicedNetwork = ref<SlicedNetwork[]>([]);
+  const isDate = ref(false);
+  const controlsWidth = ref(256);
+  const selectedHops = ref(1);
+  const nodeDegreeDict = ref<{ [key: string]: number }>({});
+  const maxDegree = ref(0);
+  const networkPreFilter = ref<Network>({ nodes: [], edges: [] });
+  const queriedNetwork = ref(false);
+  const filteredNetwork = ref(false);
+  const lineupIsNested = ref(false);
 
-    parentColorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxConnections.parent])
-        .range(['#dcedfa', '#0066cc']);
-    },
+  const cellColorScale = computed(() => (scaleLinear<string, number>()
+    .domain([0, maxConnections.value.unAggr])
+    .range(['#feebe2', '#690000']) // TODO: colors here are arbitrary, change later
+  ));
 
-    intTableColorScale(): ScaleLinear<string, number> {
-      return scaleLinear<string, number>()
-        .domain([0, this.maxIntConnections])
-        .range(['white', 'blue']);
-    },
+  const parentColorScale = computed(() => (scaleLinear<string, number>()
+    .domain([0, maxConnections.value.parent])
+    .range(['#dcedfa', '#0066cc'])
+  ));
 
-    nodeVariableItems(): string[] {
-      // Get the name of all columns from the columnTypes
-      let nodeColumnNames: string[] = this.nodeTableNames.map((nodeTableName: string) => (this.columnTypes !== null ? Object.keys(this.columnTypes[nodeTableName]) : [])).flat();
+  const intTableColorScale = computed(() => (scaleLinear<string, number>()
+    .domain([0, maxIntConnections.value])
+    .range(['white', 'blue'])
+  ));
 
-      // Make the column names unique, no duplicates
-      nodeColumnNames = [...new Set(nodeColumnNames)];
+  const nodeTableNames = computed(() => networkTables.value.filter((table) => !table.edge).map((table) => table.name));
 
-      // Filter the internal fields from the column names
-      nodeColumnNames = nodeColumnNames.filter((varName) => !isInternalField(varName));
+  const edgeTableName = computed(() => {
+    const edgeTable = networkTables.value.find((table) => table.edge);
 
-      return nodeColumnNames;
-    },
+    return edgeTable !== undefined ? edgeTable.name : undefined;
+  });
 
-    edgeVariableItems(): string[] {
-      if (this.edgeTableName !== undefined && this.columnTypes !== null) {
-        return Object.keys(this.columnTypes[this.edgeTableName]).filter((varName) => !isInternalField(varName));
-      }
-      return [];
-    },
+  const nodeVariableItems = computed(() => {
+    // Get the name of all columns from the columnTypes
+    let nodeColumnNames: string[] = nodeTableNames.value.map((nodeTableName: string) => (columnTypes.value !== null ? Object.keys(columnTypes.value[nodeTableName]) : [])).flat();
 
-    nodeTableNames(): string[] {
-      return this.networkTables.filter((table) => !table.edge).map((table) => table.name);
-    },
+    // Make the column names unique, no duplicates
+    nodeColumnNames = [...new Set(nodeColumnNames)];
 
-    edgeTableName(): string | undefined {
-      const edgeTable = this.networkTables.find((table) => table.edge);
+    // Filter the internal fields from the column names
+    nodeColumnNames = nodeColumnNames.filter((varName) => !isInternalField(varName));
 
-      return edgeTable !== undefined ? edgeTable.name : undefined;
-    },
-  },
+    return nodeColumnNames;
+  });
 
-  actions: {
-    async fetchNetwork(workspaceNameLocal: string, networkNameLocal: string) {
-      this.workspaceName = workspaceNameLocal;
-      this.networkName = networkNameLocal;
+  const edgeVariableItems = computed(() => {
+    if (edgeTableName.value !== undefined && columnTypes.value !== null) {
+      return Object.keys(columnTypes.value[edgeTableName.value]).filter((varName) => !isInternalField(varName));
+    }
+    return [];
+  });
 
-      let network: NetworkSpec | undefined;
+  function setAttributeValues(networkLocal: Network) {
+    const allNodeKeys: Set<string> = new Set();
+    networkLocal.nodes.forEach((node: Node) => Object.keys(node).forEach((key) => allNodeKeys.add(key)));
+    const nodeKeys = [...allNodeKeys];
+    nodeAttributes.value = nodeKeys.reduce((ac, a) => ({ ...ac, [a]: [] }), {});
+    nodeKeys.forEach((key: string) => {
+      nodeAttributes.value[key] = [...new Set(networkLocal.nodes.map((n: Node) => `${n[key]}`).sort())];
+    });
 
-      // Get all table names
-      try {
-        network = await api.network(this.workspaceName, this.networkName);
+    const allEdgeKeys: Set<string> = new Set();
+    networkLocal.edges.forEach((edge: Edge) => Object.keys(edge).forEach((key) => allEdgeKeys.add(key)));
+    const edgeKeys = [...allEdgeKeys];
+    edgeAttributes.value = edgeKeys.reduce((ac, a) => ({ ...ac, [a]: [] }), {});
+    edgeKeys.forEach((key: string) => {
+      edgeAttributes.value[key] = [...new Set(networkLocal.edges.map((e: Edge) => `${e[key]}`).sort())];
+    });
+  }
+
+  function updateNetwork(networkLocal: Network) {
+    network.value = networkLocal;
+    sortOrder.value = range(0, network.value.nodes.length);
+    slicedNetwork.value = [];
+    defineNeighbors(network.value.nodes, network.value.edges);
+  }
+
+  async function fetchNetwork(workspaceNameLocal: string, networkNameLocal: string) {
+    workspaceName.value = workspaceNameLocal;
+    networkName.value = networkNameLocal;
+
+    let networkLocal: NetworkSpec | undefined;
+
+    // Get all table names
+    try {
+      networkLocal = await api.network(workspaceName.value, networkName.value);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        if (error.status === 404) {
-          if (this.workspaceName === undefined || this.networkName === undefined) {
-            this.loadError = {
-              message: 'Workspace and/or network were not defined in the url',
-              href: 'https://multinet.app',
-            };
-          } else {
-            this.loadError = {
-              message: error.statusText,
-              href: 'https://multinet.app',
-            };
-          }
-        } else if (error.status === 401) {
-          this.loadError = {
-            message: 'You are not authorized to view this workspace',
+    } catch (error: any) {
+      if (error.status === 404) {
+        if (workspaceName.value === undefined || networkName.value === undefined) {
+          loadError.value = {
+            message: 'Workspace and/or network were not defined in the url',
             href: 'https://multinet.app',
           };
         } else {
-          this.loadError = {
-            message: 'An unexpected error ocurred',
+          loadError.value = {
+            message: error.statusText,
             href: 'https://multinet.app',
           };
         }
-      } finally {
-        if (this.loadError.message === '' && typeof network === 'undefined') {
-          // Catches CORS errors, issues when DB/API are down, etc.
-          this.loadError = {
-            message: 'There was a network issue when getting data',
-            href: `./?workspace=${this.workspaceName}&network=${this.networkName}`,
-          };
-        }
-      }
-
-      if (network === undefined) {
-        return;
-      }
-
-      // Check network size
-      if (network.node_count > 300) {
-        this.loadError = {
-          message: 'The network you are loading is too large',
+      } else if (error.status === 401) {
+        loadError.value = {
+          message: 'You are not authorized to view this workspace',
+          href: 'https://multinet.app',
+        };
+      } else {
+        loadError.value = {
+          message: 'An unexpected error ocurred',
           href: 'https://multinet.app',
         };
       }
-
-      const networkTables = await api.networkTables(this.workspaceName, this.networkName);
-      this.networkTables = networkTables;
-      const metadataPromises: Promise<ColumnTypes>[] = [];
-      networkTables.forEach((table) => {
-        metadataPromises.push(api.columnTypes(this.workspaceName, table.name));
-      });
-
-      // Resolve network metadata promises
-      const resolvedMetadataPromises = await Promise.all(metadataPromises);
-
-      // Combine all network metadata
-      let columnTypes: { [tableName: string]: ColumnTypes } = {};
-      resolvedMetadataPromises.forEach((types, i) => {
-        columnTypes = { ...columnTypes, [networkTables[i].name]: types };
-      });
-
-      this.columnTypes = columnTypes;
-
-      if (this.loadError.message !== '') {
-        return;
-      }
-
-      // Generate all node table promises
-      const nodeRows = await api.nodes(this.workspaceName, this.networkName, { offset: 0, limit: 300 });
-
-      // Generate and resolve edge table promise and extract rows
-      const edges = await api.edges(this.workspaceName, this.networkName, { offset: 0, limit: 1000 });
-
-      const nodes = defineNeighbors(nodeRows.results, edges.results as Edge[]);
-
-      // Build the network object and set it as the network in the store
-      const networkElements = {
-        nodes: nodes as Node[],
-        edges: edges.results as Edge[],
-      };
-      this.setAttributeValues(networkElements);
-      this.networkOnLoad = networkElements;
-      this.updateNetwork(networkElements);
-      const degreeObject = setNodeDegreeDict(this.networkPreFilter, this.networkOnLoad, this.queriedNetwork, this.directionalEdges);
-      this.maxDegree = degreeObject.maxDegree;
-      this.nodeDegreeDict = degreeObject.nodeDegreeDict;
-    },
-
-    setDegreeNetwork(degreeRange: number[]) {
-      // Determine correct network to use
-      let baseNetwork: Network = { nodes: [], edges: [] };
-      if (this.networkPreFilter !== null || this.networkOnLoad !== null) {
-        baseNetwork = this.connectivityMatrixPaths.paths.length > 0 ? structuredClone(this.networkPreFilter as Network) : structuredClone(this.networkOnLoad as Network);
-      }
-      // Restore network if min and max are restored
-      if (this.networkOnLoad !== null && degreeRange[0] === 0 && degreeRange[1] === this.maxDegree) {
-        this.filteredNetwork = false;
-        this.updateNetwork(baseNetwork);
-      } else
-      // Create new network to reflect degree filtering
-      if (this.networkOnLoad !== null) {
-        const nodeSet: Set<string> = new Set([]);
-
-        // Remove edges that don't match degree criteria + store other edges in filtered edges
-        const filteredEdges: Edge[] = [];
-        baseNetwork.edges = baseNetwork.edges.filter((edge: Edge) => {
-          // Create set of nodes that match criteria
-          if (this.nodeDegreeDict[edge._from] >= degreeRange[0] && this.nodeDegreeDict[edge._from] <= degreeRange[1] && this.nodeDegreeDict[edge._to] >= degreeRange[0] && this.nodeDegreeDict[edge._to] <= degreeRange[1]) {
-            nodeSet.add(edge._from);
-            nodeSet.add(edge._to);
-            return true;
-          }
-          filteredEdges.push(edge);
-          return false;
-        });
-        const allNodes = baseNetwork.nodes.map((node: Node) => node._id);
-        // List of nodes in filtered out set
-        const filteredSet = new Set(allNodes.filter((id: string) => !Array.from(nodeSet).includes(id)));
-
-        // Construct filtered supernode
-        const filteredNode: Node = {
-          type: 'supernode',
-          neighbors: [],
-          degreeCount: 0,
-          _key: 'filtered',
-          _id: 'filtered',
-          _rev: '',
-          children: [],
-          Label: 'filtered',
+    } finally {
+      if (loadError.value.message === '' && typeof networkLocal === 'undefined') {
+        // Catches CORS errors, issues when DB/API are down, etc.
+        loadError.value = {
+          message: 'There was a network issue when getting data',
+          href: `./?workspace=${workspaceName.value}&network=${networkName.value}`,
         };
-        // Add the filtered children to filtered supernode
-        filteredNode.children = baseNetwork.nodes.filter((node: Node) => filteredSet.has(node._id));
-
-        // Remove nodes that don't meet filter criteria
-        baseNetwork.nodes = baseNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
-        // Add filtered supernode
-        baseNetwork.nodes.push(filteredNode);
-        // Add edges to filtered nodes
-        filteredEdges.forEach((edge: Edge) => {
-          edge.originalFrom = edge._from;
-          edge.originalTo = edge._to;
-          edge._from = nodeSet.has(edge._from) ? edge._from : 'filtered';
-          edge._to = nodeSet.has(edge._to) ? edge._to : 'filtered';
-          if (baseNetwork !== null) {
-            baseNetwork.edges.push(edge);
-          }
-        });
-        this.filteredNetwork = true;
-        this.updateNetwork(baseNetwork);
       }
-    },
+    }
 
-    updateNetwork(network: Network) {
-      this.network = network;
-      this.sortOrder = range(0, this.network.nodes.length);
-      this.slicedNetwork = [];
-      defineNeighbors(this.network.nodes, this.network.edges);
-    },
+    if (networkLocal === undefined) {
+      return;
+    }
 
-    async fetchUserInfo() {
-      const info = await api.userInfo();
-      this.userInfo = info;
-    },
+    // Check network size
+    if (networkLocal.node_count > 300) {
+      loadError.value = {
+        message: 'The network you are loading is too large',
+        href: 'https://multinet.app',
+      };
+    }
 
-    async logout() {
-      // Perform the server logout.
-      oauthClient.logout();
-      this.userInfo = null;
-    },
+    networkTables.value = await api.networkTables(workspaceName.value, networkName.value);
+    const metadataPromises: Promise<ColumnTypes>[] = [];
+    networkTables.value.forEach((table) => {
+      metadataPromises.push(api.columnTypes(workspaceName.value, table.name));
+    });
 
-    createProvenance() {
-      //   const storeState = this.$state;
+    // Resolve network metadata promises
+    const resolvedMetadataPromises = await Promise.all(metadataPromises);
 
-      //   const stateForProv = JSON.parse(JSON.stringify(this.$state));
-      //   stateForProv.selectedNodes = new Set<string>();
+    // Combine all network metadata
+    let columnTypesLocal: { [tableName: string]: ColumnTypes } = {};
+    resolvedMetadataPromises.forEach((types, i) => {
+      columnTypesLocal = { ...columnTypesLocal, [networkTables.value[i].name]: types };
+    });
 
-      //   this.provenance = initProvenance<State, ProvenanceEventTypes, unknown>(
-      //     stateForProv,
-      //     { loadFromUrl: false },
-      //   );
+    columnTypes.value = columnTypesLocal;
 
-      //   // Add a global observer to watch the state and update the tracked elements in the store
-      //   // enables undo/redo + navigating around provenance graph
-      //   storeState.provenance.addGlobalObserver(
-      //     () => {
-      //       const provenanceState = this.provenance.state;
+    if (loadError.value.message !== '') {
+      return;
+    }
 
-      //       const { selectedNodes, selectedCell } = provenanceState;
+    // Generate all node table promises
+    const nodeRows = await api.nodes(workspaceName.value, networkName.value, { offset: 0, limit: 300 });
 
-      //       // Update selectedCell
-      //       storeState.selectedCell = selectedCell;
-      //       storeState.selectedNodes = selectedNodes;
+    // Generate and resolve edge table promise and extract rows
+    const edges = await api.edges(workspaceName.value, networkName.value, { offset: 0, limit: 1000 });
 
-      //       // Iterate through vars with primitive data types
-      //       [
-      //         'selectNeighbors',
-      //         'showGridLines',
-      //         'directionalEdges',
-      //         'enableAggregation',
-      //       ].forEach((primitiveVariable) => {
-      //         if (storeState[primitiveVariable] !== provenanceState[primitiveVariable]) {
-      //           storeState[primitiveVariable] = provenanceState[primitiveVariable];
-      //         }
-      //       });
-      //     },
-      //   );
+    const nodes = defineNeighbors(nodeRows.results, edges.results as Edge[]);
 
-      //   this.provenance.done();
+    // Build the network object and set it as the network in the store
+    const networkElements = {
+      nodes: nodes as Node[],
+      edges: edges.results as Edge[],
+    };
+    setAttributeValues(networkElements);
+    networkOnLoad.value = networkElements;
+    updateNetwork(networkElements);
+    const degreeObject = setNodeDegreeDict(networkPreFilter.value, networkOnLoad.value, queriedNetwork.value, directionalEdges.value);
+    maxDegree.value = degreeObject.maxDegree;
+    nodeDegreeDict.value = degreeObject.nodeDegreeDict;
+  }
 
-      //   // Add keydown listener for undo/redo
-      //   document.addEventListener('keydown', (event) => undoRedoKeyHandler(event, storeState));
-    },
+  function setDegreeNetwork(degreeRange: number[]) {
+    // Determine correct network to use
+    let baseNetwork: Network = { nodes: [], edges: [] };
+    baseNetwork = connectivityMatrixPaths.value.paths.length > 0 ? structuredClone(networkPreFilter.value as Network) : structuredClone(networkOnLoad.value as Network);
+    // Restore network if min and max are restored
+    if (degreeRange[0] === 0 && degreeRange[1] === maxDegree.value) {
+      filteredNetwork.value = false;
+      updateNetwork(baseNetwork);
+    }
+    // Create new network to reflect degree filtering
+    const nodeSet = new Set<string>();
 
-    goToProvenanceNode(node: string) {
-      if (this.provenance !== null) {
-        this.provenance.goToNode(node);
+    // Remove edges that don't match degree criteria + store other edges in filtered edges
+    const filteredEdges: Edge[] = [];
+    baseNetwork.edges = baseNetwork.edges.filter((edge: Edge) => {
+      // Create set of nodes that match criteria
+      if (nodeDegreeDict.value[edge._from] >= degreeRange[0] && nodeDegreeDict.value[edge._from] <= degreeRange[1] && nodeDegreeDict.value[edge._to] >= degreeRange[0] && nodeDegreeDict.value[edge._to] <= degreeRange[1]) {
+        nodeSet.add(edge._from);
+        nodeSet.add(edge._to);
+        return true;
       }
-    },
+      filteredEdges.push(edge);
+      return false;
+    });
+    const allNodes = baseNetwork.nodes.map((node: Node) => node._id);
+    // List of nodes in filtered out set
+    const filteredSet = new Set(allNodes.filter((id: string) => !Array.from(nodeSet).includes(id)));
 
-    setSelectedConnectivityPaths(payload: number[]) {
-      this.selectedConnectivityPaths = payload.map((path: number) => this.connectivityMatrixPaths.paths[path]);
-    },
+    // Construct filtered supernode
+    const filteredNode: Node = {
+      type: 'supernode',
+      neighbors: [],
+      degreeCount: 0,
+      _key: 'filtered',
+      _id: 'filtered',
+      _rev: '',
+      children: [],
+      Label: 'filtered',
+    };
+      // Add the filtered children to filtered supernode
+    filteredNode.children = baseNetwork.nodes.filter((node: Node) => filteredSet.has(node._id));
 
-    aggregateNetwork(varName: string | null) {
-      this.aggregatedBy = varName;
+    // Remove nodes that don't meet filter criteria
+    baseNetwork.nodes = baseNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
+    // Add filtered supernode
+    baseNetwork.nodes.push(filteredNode);
+    // Add edges to filtered nodes
+    filteredEdges.forEach((edge: Edge) => {
+      edge.originalFrom = edge._from;
+      edge.originalTo = edge._to;
+      edge._from = nodeSet.has(edge._from) ? edge._from : 'filtered';
+      edge._to = nodeSet.has(edge._to) ? edge._to : 'filtered';
+      baseNetwork.edges.push(edge);
+    });
+    filteredNetwork.value = true;
+    updateNetwork(baseNetwork);
+  }
 
-      // Reset network if aggregated
-      if (this.aggregated && varName === null) {
-        const unAggregatedNetwork = this.networkOnLoad !== null ? structuredClone(this.networkOnLoad) : { nodes: [], edges: [] };
-        this.aggregated = false;
-        this.networkPreFilter = unAggregatedNetwork;
-        this.updateNetwork(unAggregatedNetwork);
-      }
+  async function fetchUserInfo() {
+    const info = await api.userInfo();
+    userInfo.value = info;
+  }
 
-      // Aggregate the network if the varName is not none
-      if (varName !== null) {
-        // Calculate edges
-        const newEdges: Edge[] = [];
-        this.network.edges.forEach((edge) => {
-          const fromNode = this.network && this.network.nodes.find((node) => node._id === edge._from);
-          const toNode = this.network && this.network.nodes.find((node) => node._id === edge._to);
+  async function logout() {
+    // Perform the server logout.
+    oauthClient.logout();
+    userInfo.value = null;
+  }
 
-          // Add all super node to child node permutations
-          if (fromNode !== undefined && fromNode !== null) {
-            const newEdge = structuredClone(edge);
-            const fromNodeValue = fromNode[varName];
-            newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
-            newEdge._from = `aggregated/${fromNodeValue}`;
-            newEdges.push(newEdge);
-          }
+  function setSelectedConnectivityPaths(payload: number[]) {
+    selectedConnectivityPaths.value = payload.map((path: number) => connectivityMatrixPaths.value.paths[path]);
+  }
 
-          if (toNode !== undefined && toNode !== null) {
-            const newEdge = structuredClone(edge);
-            const toNodeValue = toNode[varName];
-            newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
-            newEdge._to = `aggregated/${toNodeValue}`;
-            newEdges.push(newEdge);
-          }
+  function aggregateNetwork(varName: string | null) {
+    aggregatedBy.value = varName;
 
-          if (fromNode !== undefined && fromNode !== null && toNode !== undefined && toNode !== null) {
-            const newEdge = structuredClone(edge);
-            const fromNodeValue = fromNode[varName];
-            const toNodeValue = toNode[varName];
-            newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
-            newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
-            newEdge._from = `aggregated/${fromNodeValue}`;
-            newEdge._to = `aggregated/${toNodeValue}`;
-            newEdges.push(newEdge);
-          }
-        });
-        const aggregatedEdges = [...this.network.edges, ...newEdges];
+    // Reset network if aggregated
+    if (aggregated.value && varName === null) {
+      const unAggregatedNetwork = structuredClone(networkOnLoad.value);
+      aggregated.value = false;
+      networkPreFilter.value = unAggregatedNetwork;
+      updateNetwork(unAggregatedNetwork);
+    }
 
-        // Calculate nodes
-        const aggregatedNodes: Node[] = Array.from(
-          group(this.network.nodes, (d) => d[varName]),
-          ([key, value]) => ({
-            _id: `aggregated/${key}`,
-            _key: `${key}`,
-            _rev: '', // _rev property is needed to conform to Node interface
-            children: value.map((node) => structuredClone(node)),
-            type: 'supernode',
-            neighbors: [] as string[],
-            degreeCount: 0,
-            [varName]: key,
-          }),
-        );
+    // Aggregate the network if the varName is not none
+    if (varName !== null) {
+      // Calculate edges
+      const newEdges: Edge[] = [];
+      network.value.edges.forEach((edge) => {
+        const fromNode = network.value && network.value.nodes.find((node) => node._id === edge._from);
+        const toNode = network.value && network.value.nodes.find((node) => node._id === edge._to);
 
-        // Set network and aggregated
-        this.aggregated = true;
-        this.networkPreFilter = { nodes: aggregatedNodes, edges: aggregatedEdges };
-        this.updateNetwork({ nodes: aggregatedNodes, edges: aggregatedEdges });
-      }
-    },
+        // Add all super node to child node permutations
+        if (fromNode !== undefined && fromNode !== null) {
+          const newEdge = structuredClone(edge);
+          const fromNodeValue = fromNode[varName];
+          newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
+          newEdge._from = `aggregated/${fromNodeValue}`;
+          newEdges.push(newEdge);
+        }
 
-    expandAggregatedNode(nodeID: string) {
-      // Add children nodes into list at the correct index
-      const indexOfParent = this.network && this.network.nodes.findIndex((node) => node._id === nodeID);
-      let parentChildren = this.network.nodes[indexOfParent].children;
-      if (parentChildren === undefined) {
-        return;
-      }
+        if (toNode !== undefined && toNode !== null) {
+          const newEdge = structuredClone(edge);
+          const toNodeValue = toNode[varName];
+          newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
+          newEdge._to = `aggregated/${toNodeValue}`;
+          newEdges.push(newEdge);
+        }
 
-      parentChildren = parentChildren.map((child: Node) => {
-        child.parentPosition = indexOfParent;
-        return child;
-      }) || [];
-      const expandedNodes = [...this.network.nodes];
-      expandedNodes.splice(indexOfParent + 1, 0, ...parentChildren);
-
-      this.updateNetwork({ nodes: expandedNodes, edges: this.network.edges });
-      const degreeObject = setNodeDegreeDict(this.networkPreFilter, this.networkOnLoad, this.queriedNetwork, this.directionalEdges);
-      this.maxDegree = degreeObject.maxDegree;
-      this.nodeDegreeDict = degreeObject.nodeDegreeDict;
-    },
-
-    retractAggregatedNode(nodeID: string) {
-      // Remove children nodes
-      const parentNode = this.network.nodes.find((node) => node._id === nodeID);
-      const parentChildren = parentNode && parentNode.children;
-      const retractedNodes = this.network.nodes.filter((node) => parentChildren && parentChildren.indexOf(node) === -1);
-
-      this.updateNetwork({ nodes: retractedNodes, edges: this.network.edges });
-      const degreeObject = setNodeDegreeDict(this.networkPreFilter, this.networkOnLoad, this.queriedNetwork, this.directionalEdges);
-      this.maxDegree = degreeObject.maxDegree;
-      this.nodeDegreeDict = degreeObject.nodeDegreeDict;
-    },
-
-    clickElement(elementID: string) {
-      if (!this.selectedNodes.includes(elementID)) {
-        this.selectedNodes.push(elementID);
-      } else {
-        this.selectedNodes = this.selectedNodes.filter((nodeID) => nodeID !== elementID);
-      }
-    },
-
-    clearSelection() {
-      this.selectedNodes = [];
-      if (this.selectedCell !== null) {
-        this.selectedCell = null;
-      }
-    },
-
-    setAttributeValues(network: Network) {
-      const allNodeKeys: Set<string> = new Set();
-      network.nodes.forEach((node: Node) => Object.keys(node).forEach((key) => allNodeKeys.add(key)));
-      const nodeKeys = [...allNodeKeys];
-      this.nodeAttributes = nodeKeys.reduce((ac, a) => ({ ...ac, [a]: [] }), {});
-      nodeKeys.forEach((key: string) => {
-        this.nodeAttributes[key] = [...new Set(network.nodes.map((n: Node) => `${n[key]}`).sort())];
+        if (fromNode !== undefined && fromNode !== null && toNode !== undefined && toNode !== null) {
+          const newEdge = structuredClone(edge);
+          const fromNodeValue = fromNode[varName];
+          const toNodeValue = toNode[varName];
+          newEdge.originalFrom = newEdge.originalFrom === undefined ? newEdge._from : newEdge.originalFrom;
+          newEdge.originalTo = newEdge.originalTo === undefined ? newEdge._to : newEdge.originalTo;
+          newEdge._from = `aggregated/${fromNodeValue}`;
+          newEdge._to = `aggregated/${toNodeValue}`;
+          newEdges.push(newEdge);
+        }
       });
+      const aggregatedEdges = [...network.value.edges, ...newEdges];
 
-      const allEdgeKeys: Set<string> = new Set();
-      network.edges.forEach((edge: Edge) => Object.keys(edge).forEach((key) => allEdgeKeys.add(key)));
-      const edgeKeys = [...allEdgeKeys];
-      this.edgeAttributes = edgeKeys.reduce((ac, a) => ({ ...ac, [a]: [] }), {});
-      edgeKeys.forEach((key: string) => {
-        this.edgeAttributes[key] = [...new Set(network.edges.map((e: Edge) => `${e[key]}`).sort())];
-      });
-    },
-  },
+      // Calculate nodes
+      const aggregatedNodes: Node[] = Array.from(
+        group(network.value.nodes, (d) => d[varName]),
+        ([key, value]) => ({
+          _id: `aggregated/${key}`,
+          _key: `${key}`,
+          _rev: '', // _rev property is needed to conform to Node interface
+          children: value.map((node) => structuredClone(node)),
+          type: 'supernode',
+          neighbors: [] as string[],
+          degreeCount: 0,
+          [varName]: key,
+        }),
+      );
+
+      // Set network and aggregated
+      aggregated.value = true;
+      networkPreFilter.value = { nodes: aggregatedNodes, edges: aggregatedEdges };
+      updateNetwork({ nodes: aggregatedNodes, edges: aggregatedEdges });
+    }
+  }
+
+  function expandAggregatedNode(nodeID: string) {
+    // Add children nodes into list at the correct index
+    const indexOfParent = network.value && network.value.nodes.findIndex((node) => node._id === nodeID);
+    let parentChildren = network.value.nodes[indexOfParent].children;
+    if (parentChildren === undefined) {
+      return;
+    }
+
+    parentChildren = parentChildren.map((child: Node) => {
+      child.parentPosition = indexOfParent;
+      return child;
+    }) || [];
+    const expandedNodes = [...network.value.nodes];
+    expandedNodes.splice(indexOfParent + 1, 0, ...parentChildren);
+
+    updateNetwork({ nodes: expandedNodes, edges: network.value.edges });
+    const degreeObject = setNodeDegreeDict(networkPreFilter.value, networkOnLoad.value, queriedNetwork.value, directionalEdges.value);
+    maxDegree.value = degreeObject.maxDegree;
+    nodeDegreeDict.value = degreeObject.nodeDegreeDict;
+  }
+
+  function retractAggregatedNode(nodeID: string) {
+    // Remove children nodes
+    const parentNode = network.value.nodes.find((node) => node._id === nodeID);
+    const parentChildren = parentNode && parentNode.children;
+    const retractedNodes = network.value.nodes.filter((node) => parentChildren && parentChildren.indexOf(node) === -1);
+
+    updateNetwork({ nodes: retractedNodes, edges: network.value.edges });
+    const degreeObject = setNodeDegreeDict(networkPreFilter.value, networkOnLoad.value, queriedNetwork.value, directionalEdges.value);
+    maxDegree.value = degreeObject.maxDegree;
+    nodeDegreeDict.value = degreeObject.nodeDegreeDict;
+  }
+
+  function clickElement(elementID: string) {
+    if (!selectedNodes.value.includes(elementID)) {
+      selectedNodes.value.push(elementID);
+    } else {
+      selectedNodes.value = selectedNodes.value.filter((nodeID) => nodeID !== elementID);
+    }
+  }
+
+  function clearSelection() {
+    selectedNodes.value = [];
+    if (selectedCell.value !== null) {
+      selectedCell.value = null;
+    }
+  }
+
+  return {
+    workspaceName,
+    networkName,
+    network,
+    loadError,
+    userInfo,
+    cellSize,
+    selectedNodes,
+    selectedCell,
+    hoveredNodes,
+    sortOrder,
+    directionalEdges,
+    selectNeighbors,
+    showGridLines,
+    aggregated,
+    aggregatedBy,
+    maxConnections,
+    showProvenanceVis,
+    nodeAttributes,
+    edgeAttributes,
+    showIntNodeVis,
+    connectivityMatrixPaths,
+    selectedConnectivityPaths,
+    showPathTable,
+    maxIntConnections,
+    intAggregatedBy,
+    networkTables,
+    columnTypes,
+    labelVariable,
+    rightClickMenu,
+    networkOnLoad,
+    slicedNetwork,
+    isDate,
+    controlsWidth,
+    selectedHops,
+    nodeDegreeDict,
+    maxDegree,
+    networkPreFilter,
+    queriedNetwork,
+    filteredNetwork,
+    lineupIsNested,
+    cellColorScale,
+    parentColorScale,
+    intTableColorScale,
+    nodeVariableItems,
+    edgeVariableItems,
+    nodeTableNames,
+    edgeTableName,
+    fetchNetwork,
+    setDegreeNetwork,
+    updateNetwork,
+    fetchUserInfo,
+    logout,
+    setSelectedConnectivityPaths,
+    aggregateNetwork,
+    expandAggregatedNode,
+    retractAggregatedNode,
+    clickElement,
+    clearSelection,
+    setAttributeValues,
+    provenance,
+  };
 });
