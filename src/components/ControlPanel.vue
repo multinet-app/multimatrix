@@ -23,7 +23,7 @@ const {
   labelVariable,
   showPathTable,
   aggregated,
-  filteredNetwork,
+  degreeFiltered,
   cellColorScale,
   parentColorScale,
   nodeVariableItems,
@@ -36,12 +36,12 @@ const {
   maxIntConnections,
   intTableColorScale,
   network,
-  networkOnLoad,
   networkName,
   connectivityMatrixPaths,
   showProvenanceVis,
   selectedNodes,
   userInfo,
+  degreeRange,
 } = storeToRefs(store);
 
 // Template objects
@@ -53,11 +53,6 @@ const aggregationItems = computed(() => {
   // Get the varName of all node variables that are type category
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
-});
-const degreeRange = ref([0, maxDegree.value]);
-
-watch([maxDegree], () => {
-  degreeRange.value = [0, maxDegree.value];
 });
 
 const searchTerm = ref('');
@@ -178,8 +173,10 @@ function search() {
   }
 }
 
+const degreeRangeLocal = ref<[number, number]>(degreeRange.value);
+watch(degreeRange, () => { degreeRangeLocal.value = degreeRange.value; });
 function removeByDegree() {
-  store.setDegreeNetwork(degreeRange.value);
+  degreeRange.value = degreeRangeLocal.value;
 }
 </script>
 
@@ -333,7 +330,7 @@ function removeByDegree() {
           <v-list-item>
             <v-list-item-content> Degree </v-list-item-content>
             <v-range-slider
-              v-model="degreeRange"
+              v-model="degreeRangeLocal"
               :max="maxDegree"
               min="0"
               hide-details
@@ -347,7 +344,7 @@ function removeByDegree() {
                   class="pa-0 ma-0 text-center"
                   style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
                 >
-                  {{ degreeRange[0] }}
+                  {{ degreeRangeLocal[0] }}
                 </p>
               </template>
               <template #append>
@@ -355,7 +352,7 @@ function removeByDegree() {
                   class="pa-0 ma-0 text-center"
                   style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
                 >
-                  {{ degreeRange[1] }}
+                  {{ degreeRangeLocal[1] }}
                 </p>
               </template>
             </v-range-slider>
@@ -419,7 +416,7 @@ function removeByDegree() {
         <div class="pa-4">
           <!-- Aggregated Matrix Legend -->
           <v-list-item
-            v-if="aggregated || filteredNetwork"
+            v-if="aggregated || degreeFiltered"
             class="pb-0 px-0"
             style="display: flex; max-height: 50px"
           >

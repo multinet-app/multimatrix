@@ -13,6 +13,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
   const aggregatedBy = ref<string | null>(null);
   const labelVariable = ref<string | undefined>(undefined);
   const expandedNodeIDs = ref<string[]>([]);
+  const degreeRange = ref<[number, number]>([0, 0]);
 
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({
@@ -23,6 +24,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
     aggregatedBy,
     labelVariable,
     expandedNodeIDs,
+    degreeRange,
   }));
 
   // Static snapshot of the initial state for trrack
@@ -64,7 +66,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
     }
     timer = setTimeout(fun, delay);
   }
-  const keysToDebounce: Array<keyof ProvState> = ['cellSize'];
+  const keysToDebounce: Array<keyof ProvState> = ['cellSize', 'degreeRange'];
 
   // When the vue state changes, update trrack
   function updateTrrackState() {
@@ -100,5 +102,6 @@ export const useProvenanceStore = defineStore('provenance', () => {
     aggregatedBy,
     labelVariable,
     expandedNodeIDs,
+    degreeRange,
   };
 });

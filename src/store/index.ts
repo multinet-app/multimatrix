@@ -27,9 +27,9 @@ export const useStore = defineStore('store', () => {
     aggregatedBy,
     labelVariable,
     expandedNodeIDs,
+    degreeRange,
   } = storeToRefs(provStore);
 
-  const aggregated = computed(() => aggregatedBy.value !== null);
   const workspaceName = ref('');
   const networkName = ref('');
   const loadError = ref<LoadError>({
@@ -61,7 +61,6 @@ export const useStore = defineStore('store', () => {
     top: 0,
     left: 0,
   });
-  const networkOnLoad = ref<Network>({ nodes: [], edges: [] });
   const slicedNetwork = ref<SlicedNetwork[]>([]);
   const isDate = ref(false);
   const controlsWidth = ref(256);
@@ -70,11 +69,23 @@ export const useStore = defineStore('store', () => {
   const maxDegree = ref(0);
   const networkPreFilter = ref<Network>({ nodes: [], edges: [] });
   const queriedNetwork = ref(false);
-  const filteredNetwork = ref(false);
   const lineupIsNested = ref(false);
+
+  const networkOnLoad = ref<Network>({ nodes: [], edges: [] });
+  const aggregated = computed(() => aggregatedBy.value !== null);
+  const degreeRangeOnLoad = computed<[number, number]>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, maxDegreeLocal] = calculateNodeDegrees(networkOnLoad.value, directionalEdges.value);
+    return [0, maxDegreeLocal];
+  });
+  const degreeFiltered = computed(() => !(degreeRange.value[0] === degreeRangeOnLoad.value[0] && degreeRange.value[1] === degreeRangeOnLoad.value[1]));
 
   const network = computed(() => {
     const networkAfterOperations = structuredClone(networkOnLoad.value);
+
+    if (networkAfterOperations.nodes.length === 0) {
+      return networkAfterOperations;
+    }
 
     // If we're aggregating, compute the aggregated network
     if (aggregated.value) {
@@ -150,14 +161,60 @@ export const useStore = defineStore('store', () => {
     // Recalculate node degrees and max degree based on the computed network
     [nodeDegreeDict.value, maxDegree.value] = calculateNodeDegrees(networkAfterOperations, directionalEdges.value);
 
-    // TODO: If we're filtering by degree, filter nodes out
+    // If we're filtering by degree, filter nodes out
+    if (degreeFiltered.value) {
+      // Create new network to reflect degree filtering
+      const nodeSet = new Set<string>();
+
+      // Remove edges that don't match degree criteria + store other edges in filtered edges
+      const filteredEdges: Edge[] = [];
+      networkAfterOperations.edges = networkAfterOperations.edges.filter((edge: Edge) => {
+      // Create set of nodes that match criteria
+        if (nodeDegreeDict.value[edge._from] >= degreeRange.value[0] && nodeDegreeDict.value[edge._from] <= degreeRange.value[1] && nodeDegreeDict.value[edge._to] >= degreeRange.value[0] && nodeDegreeDict.value[edge._to] <= degreeRange.value[1]) {
+          nodeSet.add(edge._from);
+          nodeSet.add(edge._to);
+          return true;
+        }
+        filteredEdges.push(edge);
+        return false;
+      });
+      const allNodes = networkAfterOperations.nodes.map((node: Node) => node._id);
+      // List of nodes in filtered out set
+      const filteredSet = new Set(allNodes.filter((id: string) => !Array.from(nodeSet).includes(id)));
+
+      // Construct filtered supernode
+      const filteredNode: Node = {
+        type: 'supernode',
+        neighbors: [],
+        degreeCount: 0,
+        _key: 'filtered',
+        _id: 'filtered',
+        _rev: '',
+        children: [],
+        Label: 'filtered',
+      };
+      // Add the filtered children to filtered supernode
+      filteredNode.children = networkAfterOperations.nodes.filter((node: Node) => filteredSet.has(node._id));
+
+      // Remove nodes that don't meet filter criteria
+      networkAfterOperations.nodes = networkAfterOperations.nodes.filter((node: Node) => nodeSet.has(node._id));
+      // Add filtered supernode
+      networkAfterOperations.nodes.push(filteredNode);
+      // Add edges to filtered nodes
+      filteredEdges.forEach((edge: Edge) => {
+        edge.originalFrom = edge._from;
+        edge.originalTo = edge._to;
+        edge._from = nodeSet.has(edge._from) ? edge._from : 'filtered';
+        edge._to = nodeSet.has(edge._to) ? edge._to : 'filtered';
+        networkAfterOperations.edges.push(edge);
+      });
+    }
 
     // Reset sort order now that network has changed
     sortOrder.value = range(0, networkAfterOperations.nodes.length);
 
     // Recalculate neighbors
     defineNeighbors(networkAfterOperations.nodes, networkAfterOperations.edges);
-
     return networkAfterOperations;
   });
 
@@ -313,65 +370,12 @@ export const useStore = defineStore('store', () => {
       edges: edges.results as Edge[],
     };
     setAttributeValues(networkElements);
+    degreeRange.value = [0, calculateNodeDegrees(networkElements, directionalEdges.value)[1]];
     networkOnLoad.value = networkElements;
   }
 
-  function setDegreeNetwork(degreeRange: number[]) {
-    // Determine correct network to use
-    let baseNetwork: Network = { nodes: [], edges: [] };
-    baseNetwork = connectivityMatrixPaths.value.paths.length > 0 ? structuredClone(networkPreFilter.value as Network) : structuredClone(networkOnLoad.value as Network);
-    // Restore network if min and max are restored
-    if (degreeRange[0] === 0 && degreeRange[1] === maxDegree.value) {
-      filteredNetwork.value = false;
-      updateNetwork(baseNetwork);
-    }
-    // Create new network to reflect degree filtering
-    const nodeSet = new Set<string>();
-
-    // Remove edges that don't match degree criteria + store other edges in filtered edges
-    const filteredEdges: Edge[] = [];
-    baseNetwork.edges = baseNetwork.edges.filter((edge: Edge) => {
-      // Create set of nodes that match criteria
-      if (nodeDegreeDict.value[edge._from] >= degreeRange[0] && nodeDegreeDict.value[edge._from] <= degreeRange[1] && nodeDegreeDict.value[edge._to] >= degreeRange[0] && nodeDegreeDict.value[edge._to] <= degreeRange[1]) {
-        nodeSet.add(edge._from);
-        nodeSet.add(edge._to);
-        return true;
-      }
-      filteredEdges.push(edge);
-      return false;
-    });
-    const allNodes = baseNetwork.nodes.map((node: Node) => node._id);
-    // List of nodes in filtered out set
-    const filteredSet = new Set(allNodes.filter((id: string) => !Array.from(nodeSet).includes(id)));
-
-    // Construct filtered supernode
-    const filteredNode: Node = {
-      type: 'supernode',
-      neighbors: [],
-      degreeCount: 0,
-      _key: 'filtered',
-      _id: 'filtered',
-      _rev: '',
-      children: [],
-      Label: 'filtered',
-    };
-      // Add the filtered children to filtered supernode
-    filteredNode.children = baseNetwork.nodes.filter((node: Node) => filteredSet.has(node._id));
-
-    // Remove nodes that don't meet filter criteria
-    baseNetwork.nodes = baseNetwork.nodes.filter((node: Node) => nodeSet.has(node._id));
-    // Add filtered supernode
-    baseNetwork.nodes.push(filteredNode);
-    // Add edges to filtered nodes
-    filteredEdges.forEach((edge: Edge) => {
-      edge.originalFrom = edge._from;
-      edge.originalTo = edge._to;
-      edge._from = nodeSet.has(edge._from) ? edge._from : 'filtered';
-      edge._to = nodeSet.has(edge._to) ? edge._to : 'filtered';
-      baseNetwork.edges.push(edge);
-    });
-    filteredNetwork.value = true;
-    updateNetwork(baseNetwork);
+  function setDegreeNetwork(degreeRangeLocal: [number, number]) {
+    degreeRange.value = degreeRangeLocal;
   }
 
   async function fetchUserInfo() {
@@ -393,7 +397,7 @@ export const useStore = defineStore('store', () => {
     aggregatedBy.value = varName;
 
     // Reset network if aggregated
-    if (aggregated.value && varName === null) {
+    if (varName === null) {
       expandedNodeIDs.value = [];
     }
   }
@@ -460,7 +464,6 @@ export const useStore = defineStore('store', () => {
     maxDegree,
     networkPreFilter,
     queriedNetwork,
-    filteredNetwork,
     lineupIsNested,
     cellColorScale,
     parentColorScale,
@@ -481,5 +484,7 @@ export const useStore = defineStore('store', () => {
     clearSelection,
     setAttributeValues,
     provenance,
+    degreeFiltered,
+    degreeRange,
   };
 });
