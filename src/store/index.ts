@@ -68,7 +68,6 @@ export const useStore = defineStore('store', () => {
   const nodeDegreeDict = ref<{ [key: string]: number }>({});
   const maxDegree = ref(0);
   const networkPreFilter = ref<Network>({ nodes: [], edges: [] });
-  const queriedNetwork = ref(false);
   const lineupIsNested = ref(false);
 
   const networkOnLoad = ref<Network>({ nodes: [], edges: [] });
@@ -463,7 +462,6 @@ export const useStore = defineStore('store', () => {
     nodeDegreeDict,
     maxDegree,
     networkPreFilter,
-    queriedNetwork,
     lineupIsNested,
     cellColorScale,
     parentColorScale,
