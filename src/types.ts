@@ -80,6 +80,7 @@ export interface ProvState {
   labelVariable: string | undefined;
   expandedNodeIDs: string[];
   degreeRange: [number, number];
+  sliceIndex: number;
 }
 
 export type ProvenanceEventTypes =

@@ -14,6 +14,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
   const labelVariable = ref<string | undefined>(undefined);
   const expandedNodeIDs = ref<string[]>([]);
   const degreeRange = ref<[number, number]>([0, 0]);
+  const sliceIndex = ref(0);
 
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({
@@ -25,6 +26,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
     labelVariable,
     expandedNodeIDs,
     degreeRange,
+    sliceIndex,
   }));
 
   // Static snapshot of the initial state for trrack
@@ -103,5 +105,6 @@ export const useProvenanceStore = defineStore('provenance', () => {
     labelVariable,
     expandedNodeIDs,
     degreeRange,
+    sliceIndex,
   };
 });

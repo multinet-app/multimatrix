@@ -12,7 +12,7 @@ const {
   slicedNetwork,
   isDate,
   controlsWidth,
-  network,
+  sliceIndex,
 } = storeToRefs(store);
 
 const isNumeric = computed(() => (slicedNetwork.value[0].category === ''));
@@ -39,17 +39,8 @@ const textSpacer = ref(70);
 
 const timeRangesLength = computed(() => currentSlice.value.slices);
 
-// Update sliced view and network
-const selectedArray = ref([true]);
-
-watch([timeRangesLength], () => {
-  selectedArray.value = Array.from(Array(timeRangesLength.value), (_, x: number) => (x === 0));
-});
-
 function isSelected(key: number) {
-  selectedArray.value.fill(false);
-  selectedArray.value[key] = true;
-  network.value = slicedNetwork.value[key].network;
+  sliceIndex.value = key;
 }
 
 // Heightscale for numeric attributes
@@ -91,11 +82,6 @@ function hideTooltip() {
   tooltipMessage.value = '';
   toggleTooltip.value = false;
 }
-
-// Select the first slice on when slices are changed load
-watch([slicedNetwork], () => {
-  isSelected(0);
-});
 </script>
 
 <template>
@@ -123,7 +109,7 @@ watch([slicedNetwork], () => {
         >
           <rect
             :id="`edgeSlice_${key}`"
-            :class="selectedArray[key] ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
+            :class="key === sliceIndex ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
             :width="rectWidth"
             :height="rectHeight"
             y="0"
@@ -165,7 +151,7 @@ watch([slicedNetwork], () => {
         >
           <rect
             :id="`edgeSlice_${key}`"
-            :class="selectedArray[key] ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
+            :class="key === sliceIndex ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
             :width="rectWidth"
             :height="rectHeight"
             y="0"

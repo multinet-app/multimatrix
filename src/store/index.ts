@@ -28,6 +28,7 @@ export const useStore = defineStore('store', () => {
     labelVariable,
     expandedNodeIDs,
     degreeRange,
+    sliceIndex,
   } = storeToRefs(provStore);
 
   const workspaceName = ref('');
@@ -84,6 +85,10 @@ export const useStore = defineStore('store', () => {
 
     if (networkAfterOperations.nodes.length === 0) {
       return networkAfterOperations;
+    }
+
+    if (slicedNetwork.value.length > 0) {
+      return slicedNetwork.value[sliceIndex.value].network;
     }
 
     // If we're aggregating, compute the aggregated network
@@ -484,5 +489,6 @@ export const useStore = defineStore('store', () => {
     provenance,
     degreeFiltered,
     degreeRange,
+    sliceIndex,
   };
 });

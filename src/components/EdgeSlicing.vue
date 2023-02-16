@@ -8,7 +8,6 @@ import { storeToRefs } from 'pinia';
 
 const store = useStore();
 const {
-  network,
   networkOnLoad,
   slicedNetwork,
   isDate,
@@ -31,11 +30,9 @@ const isValidRange = ref(true);
 // Check if selected variable is numeric
 function checkType() {
   // eslint-disable-next-line no-unused-expressions
-  if (networkOnLoad.value !== null) {
-    isNumeric.value = !Number.isNaN(
-      parseFloat(`${networkOnLoad.value.edges[0][startEdgeVar.value]}`),
-    );
-  }
+  isNumeric.value = !Number.isNaN(
+    parseFloat(`${networkOnLoad.value.edges[0][startEdgeVar.value]}`),
+  );
 }
 
 function formatDate(date: Date) {
@@ -114,17 +111,14 @@ watch([inputRange], () => {
 function sliceNetwork() {
   // Resets to original network view when variable slice is 1
   if (
-    (networkOnLoad.value !== null
-          && edgeSliceNumber.value === 1
-          && isNumeric.value)
-        || (networkOnLoad.value !== null && startEdgeVar.value === undefined)
+    (edgeSliceNumber.value === 1 && isNumeric.value)
+    || (startEdgeVar.value === undefined)
   ) {
     slicedNetwork.value = [];
-    network.value = networkOnLoad.value;
   }
   if (
-    (networkOnLoad.value !== null && edgeSliceNumber.value !== 1)
-        || (networkOnLoad.value !== null && !isNumeric.value)
+    (edgeSliceNumber.value !== 1)
+    || (!isNumeric.value)
   ) {
     const newSlicedNetwork: SlicedNetwork[] = [];
     // Generates sliced networks based on time slices or numeric input
@@ -208,14 +202,10 @@ function sliceNetwork() {
       });
     }
     slicedNetwork.value = newSlicedNetwork;
-    network.value = slicedNetwork.value[0].network;
   }
 }
 
 function exportEdges() {
-  if (network.value === null) {
-    return;
-  }
   // Slice network in case 'Generate Slices' button
   // not clicked or updated
   sliceNetwork();
@@ -267,7 +257,6 @@ function resetNetwork() {
   // Reset network
   if (networkOnLoad.value !== null) {
     slicedNetwork.value = [];
-    network.value = networkOnLoad.value;
   }
   // Reset form
   startEdgeVar.value = '';
