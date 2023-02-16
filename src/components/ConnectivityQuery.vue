@@ -296,7 +296,7 @@ import {
   computed, onMounted, ref, watch,
 } from 'vue';
 import api from '@/api';
-import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
+import { defineNeighbors, calculateNodeDegrees } from '@/lib/utils';
 import { storeToRefs } from 'pinia';
 
 const store = useStore();
@@ -313,11 +313,9 @@ const {
   loadError,
   connectivityMatrixPaths,
   showIntNodeVis,
-  networkPreFilter,
-  queriedNetwork,
   networkOnLoad,
-  maxDegree,
-  nodeDegreeDict,
+  degreeRange,
+  aggregatedBy,
 } = storeToRefs(store);
 
 const showSecondEdge = ref(false);
@@ -556,22 +554,14 @@ function submitQuery() {
         showIntNodeVis.value = selectedHops.value > 1;
 
         // Update state with new network
-        store.aggregateNetwork(undefined);
-        store.updateNetwork(newNetwork);
-        networkPreFilter.value = newNetwork;
-        loading.value = false;
-        directionalEdges.value = false;
-        queriedNetwork.value = false;
-        const degreeObject = setNodeDegreeDict(networkPreFilter.value, networkOnLoad.value, queriedNetwork.value, directionalEdges.value);
-        maxDegree.value = degreeObject.maxDegree;
-        nodeDegreeDict.value = degreeObject.nodeDegreeDict;
+        aggregatedBy.value = null;
+        networkOnLoad.value = newNetwork;
       } else {
         // Update state with empty network
-        store.aggregateNetwork(undefined);
-        store.updateNetwork({ nodes: [], edges: [] });
-        showIntNodeVis.value = false;
+        networkOnLoad.value = { nodes: [], edges: [] };
       }
 
+      degreeRange.value = [0, calculateNodeDegrees(networkOnLoad.value, directionalEdges.value)[1]];
       loading.value = false;
     });
   }

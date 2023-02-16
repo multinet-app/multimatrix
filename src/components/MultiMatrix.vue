@@ -31,7 +31,7 @@ const {
   selectNeighbors,
   showGridLines,
   aggregated,
-  filteredNetwork,
+  degreeFiltered,
   cellColorScale,
   parentColorScale,
   sortOrder,
@@ -296,8 +296,8 @@ function processData(): void {
       if (network.value !== null) {
         matrix.value[i] = network.value.nodes.map((colNode: Node, j: number) => ({
           cellName: `${rowNode._id}_${colNode._id}`,
-          rowCellType: rowNode.type,
-          colCellType: colNode.type,
+          rowCellType: rowNode._type,
+          colCellType: colNode._type,
           correspondingCell: `${colNode._id}_${rowNode._id}`,
           rowID: rowNode._id,
           colID: colNode._id,
@@ -340,7 +340,7 @@ function processData(): void {
       }
       if (
         (cell.rowCellType === 'supernode'
-            && cell.colCellType === 'supernode') || (filteredNetwork.value && (cell.rowCellType === 'supernode'
+            && cell.colCellType === 'supernode') || (degreeFiltered.value && (cell.rowCellType === 'supernode'
             || cell.colCellType === 'supernode'))
       ) {
         if (cell.z > maxAggrConnections) {
@@ -398,7 +398,7 @@ const expandPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,
 const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5C3,3.89 3.9,3 5,3H19M17,11V13H7V11H17Z';
 
 function expandOrRetractRow(node: Node) {
-  if (aggregated.value || filteredNetwork.value) {
+  if (aggregated.value || degreeFiltered.value) {
     if (node.type !== 'supernode') {
       return;
     }
@@ -510,7 +510,7 @@ function clickedNeighborClass(node: Node) {
                 x="20"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (filteredNetwork && node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (degreeFiltered && node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
                   class="label"
                 >
                   {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
@@ -581,7 +581,7 @@ function clickedNeighborClass(node: Node) {
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
-                  :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (filteredNetwork && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                  :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (degreeFiltered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                   :fill-opacity="cell.z"
                   :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                   @mouseover="(event) => { showToolTip(event, cell); hoverEdge(cell); }"

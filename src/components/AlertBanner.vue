@@ -79,7 +79,7 @@ import { useStore } from '@/store';
 import { ref, watchEffect } from 'vue';
 import api from '@/api';
 import { NetworkSubsetter } from 'multinet-components';
-import { defineNeighbors, setNodeDegreeDict } from '@/lib/utils';
+import { defineNeighbors, calculateNodeDegrees } from '@/lib/utils';
 import { storeToRefs } from 'pinia';
 import { ArangoAttributes, LoadError, Network } from '../types';
 
@@ -91,8 +91,10 @@ const {
   networkName,
   loadError,
   networkOnLoad,
-  maxDegree,
-  nodeDegreeDict,
+  degreeRange,
+  directionalEdges,
+  nodeAttributes,
+  edgeAttributes,
 } = storeToRefs(store);
 
 function setLoadError(newError: LoadError) {
@@ -127,8 +129,8 @@ function getAttributes() {
 
       const nodeAttrDict: {[key: string]: number} = {};
       const edgeAttrDict: {[key: string]: number} = {};
-      const nodeAttributes: ArangoAttributes = {};
-      const edgeAttributes: ArangoAttributes = {};
+      const nodeAttributesLocal: ArangoAttributes = {};
+      const edgeAttributesLocal: ArangoAttributes = {};
 
       const getKeyByValue = (obj: {[key: string]: string | number | boolean }, value: string | number | boolean) => Object.keys(obj)[Object.values(obj).indexOf(value)];
 
@@ -137,7 +139,7 @@ function getAttributes() {
         nodeAttrDict[attrKey] = i;
       });
       Object.entries(nodeAttrDict).forEach(([key, value]) => {
-        nodeAttributes[key] = [...new Set(aqlResults.nodeValues.map((vals: string[]) => `${vals[value]}`).sort())];
+        nodeAttributesLocal[key] = [...new Set(aqlResults.nodeValues.map((vals: string[]) => `${vals[value]}`).sort())];
       });
 
       Array(aqlResults.edgeValues[0].length).fill(1).forEach((_, i) => {
@@ -145,9 +147,10 @@ function getAttributes() {
         edgeAttrDict[attrKey] = i;
       });
       Object.entries(edgeAttrDict).forEach(([key, value]) => {
-        edgeAttributes[key] = [...new Set(aqlResults.edgeValues.map((vals: string[]) => `${vals[value]}`).sort())];
+        edgeAttributesLocal[key] = [...new Set(aqlResults.edgeValues.map((vals: string[]) => `${vals[value]}`).sort())];
       });
-      store.commit.setLargeNetworkAttributeValues({ nodeAttributes, edgeAttributes });
+      nodeAttributes.value = nodeAttributesLocal;
+      edgeAttributes.value = edgeAttributesLocal;
     });
   }
 }
@@ -163,11 +166,9 @@ function replaceNetworkWithSubset(newNetwork: Network) {
     };
 
     // Update state with new network
-    store.updateNetwork(aqlNetworkElements);
     networkOnLoad.value = aqlNetworkElements;
-    const degreeObject = setNodeDegreeDict(store.networkPreFilter, networkOnLoad.value, store.queriedNetwork, store.directionalEdges);
-    maxDegree.value = degreeObject.maxDegree;
-    nodeDegreeDict.value = degreeObject.nodeDegreeDict;
+    degreeRange.value = [0, calculateNodeDegrees(aqlNetworkElements, directionalEdges.value)[1]];
+
     loadError.value = {
       message: '',
       href: '',
