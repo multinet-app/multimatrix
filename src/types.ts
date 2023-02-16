@@ -79,6 +79,7 @@ export interface ProvState {
   aggregatedBy: string | null;
   labelVariable: string | undefined;
   expandedNodeIDs: string[];
+  degreeRange: [number, number];
 }
 
 export type ProvenanceEventTypes =
