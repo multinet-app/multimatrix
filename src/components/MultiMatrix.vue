@@ -296,8 +296,8 @@ function processData(): void {
       if (network.value !== null) {
         matrix.value[i] = network.value.nodes.map((colNode: Node, j: number) => ({
           cellName: `${rowNode._id}_${colNode._id}`,
-          rowCellType: rowNode.type,
-          colCellType: colNode.type,
+          rowCellType: rowNode._type,
+          colCellType: colNode._type,
           correspondingCell: `${colNode._id}_${rowNode._id}`,
           rowID: rowNode._id,
           colID: colNode._id,

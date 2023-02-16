@@ -134,7 +134,7 @@ export const useStore = defineStore('store', () => {
           _key: `${key}`,
           _rev: '', // _rev property is needed to conform to Node interface
           children: value.map((node) => structuredClone(node)),
-          type: 'supernode',
+          _type: 'supernode',
           neighbors: [] as string[],
           degreeCount: 0,
           [aggregatedBy.value!]: key,
@@ -184,7 +184,7 @@ export const useStore = defineStore('store', () => {
 
       // Construct filtered supernode
       const filteredNode: Node = {
-        type: 'supernode',
+        _type: 'supernode',
         neighbors: [],
         degreeCount: 0,
         _key: 'filtered',

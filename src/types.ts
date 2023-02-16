@@ -6,11 +6,11 @@ export interface Dimensions {
 }
 
 export interface Node extends TableRow {
-  type: string;
   neighbors: string[];
   degreeCount: number;
   children?: Node[];
   parentPosition?: number;
+  _type?: string;
   [propName: string]: unknown;
 }
 
@@ -29,8 +29,8 @@ export interface Cell {
   x: number;
   y: number;
   z: number;
-  rowCellType: string;
-  colCellType: string;
+  rowCellType?: string;
+  colCellType?: string;
   rowID: string;
   colID: string;
   cellName: string;
@@ -93,5 +93,5 @@ export type ProvenanceEventTypes =
   'Clear Selection' |
   'Set Label Variable';
 
-export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children'] as const;
+export const internalFieldNames = ['_from', '_to', '_id', '_rev', '_key', 'neighbors', 'children', '_type'] as const;
 export type InternalField = (typeof internalFieldNames)[number];
