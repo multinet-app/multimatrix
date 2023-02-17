@@ -28,6 +28,7 @@ export const useStore = defineStore('store', () => {
     labelVariable,
     expandedNodeIDs,
     degreeRange,
+    slicingConfig,
     sliceIndex,
   } = storeToRefs(provStore);
 
@@ -489,6 +490,7 @@ export const useStore = defineStore('store', () => {
     provenance,
     degreeFiltered,
     degreeRange,
+    slicingConfig,
     sliceIndex,
   };
 });

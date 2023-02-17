@@ -71,6 +71,16 @@ export interface SlicedNetwork {
   category: string;
 }
 
+export interface SlicingConfig {
+  startEdgeVar: string;
+  endEdgeVar: string;
+  edgeSliceNumber: number;
+  inputRange: (Date | number | string)[];
+  isTime: boolean;
+  isNumeric: boolean;
+  isValidRange: boolean;
+}
+
 export interface ProvState {
   selectNeighbors: boolean;
   cellSize: number;
@@ -81,6 +91,7 @@ export interface ProvState {
   expandedNodeIDs: string[];
   degreeRange: [number, number];
   sliceIndex: number;
+  slicingConfig: SlicingConfig;
 }
 
 export type ProvenanceEventTypes =

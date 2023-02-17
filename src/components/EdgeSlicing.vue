@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { formatShortDate } from '@/lib/utils';
 import { useStore } from '@/store';
-import { Edge, SlicedNetwork } from '@/types';
+import { Edge, SlicedNetwork, SlicingConfig } from '@/types';
 import { computed, ref, watch } from 'vue';
 import { scaleLinear, scaleTime } from 'd3';
 import { storeToRefs } from 'pinia';
@@ -13,6 +13,7 @@ const {
   isDate,
   edgeVariableItems,
   networkName,
+  slicingConfig,
 } = storeToRefs(store);
 
 const showMenu = ref(false);
@@ -59,9 +60,8 @@ watch([startEdgeVar], () => {
 const validRange = computed(() => {
   const range: (Date | number | string)[] = [0, 0];
   if (
-    startEdgeVar.value !== null
-          && endEdgeVar.value !== null
-          && networkOnLoad.value !== null
+    startEdgeVar.value !== ''
+    && endEdgeVar.value !== ''
   ) {
     // Loop through all edges, return min and max time values
     networkOnLoad.value.edges.forEach((edge: Edge, i: number) => {
@@ -100,26 +100,31 @@ watch([validRange], () => {
 });
 
 // Check if input is valid
-
 watch([inputRange], () => {
   if (!isDate.value) {
-    isValidRange.value = parseFloat(inputRange.value[0].toString()) >= validRange.value[0]
-        && parseFloat(inputRange.value[1].toString()) <= validRange.value[1];
+    isValidRange.value = inputRange.value[0] !== null && inputRange.value[1] !== null
+      && parseFloat(inputRange.value[0].toString()) >= validRange.value[0]
+      && parseFloat(inputRange.value[1].toString()) <= validRange.value[1];
   }
 });
 
+const componentConfig = computed(() => (
+  {
+    startEdgeVar: startEdgeVar.value,
+    endEdgeVar: endEdgeVar.value,
+    edgeSliceNumber: edgeSliceNumber.value,
+    inputRange: inputRange.value,
+    isTime: isTime.value,
+    isNumeric: isNumeric.value,
+    isValidRange: isValidRange.value,
+  }
+));
+
 function sliceNetwork() {
   // Resets to original network view when variable slice is 1
-  if (
-    (edgeSliceNumber.value === 1 && isNumeric.value)
-    || (startEdgeVar.value === undefined)
-  ) {
+  if ((edgeSliceNumber.value === 1 && isNumeric.value) || startEdgeVar.value === '') {
     slicedNetwork.value = [];
-  }
-  if (
-    (edgeSliceNumber.value !== 1)
-    || (!isNumeric.value)
-  ) {
+  } else if (edgeSliceNumber.value !== 1 || !isNumeric.value) {
     const newSlicedNetwork: SlicedNetwork[] = [];
     // Generates sliced networks based on time slices or numeric input
     if (isNumeric.value) {
@@ -202,8 +207,28 @@ function sliceNetwork() {
       });
     }
     slicedNetwork.value = newSlicedNetwork;
+    slicingConfig.value = structuredClone(componentConfig.value);
   }
 }
+
+watch(slicingConfig, () => {
+  if (!Object.entries(componentConfig.value).every(([key, value]) => (
+    slicingConfig.value[key as keyof SlicingConfig] === value
+    || (key === 'inputRange' && slicingConfig.value[key][0] === componentConfig.value[key][0] && slicingConfig.value[key][1] === componentConfig.value[key][1])
+  ))) {
+    ({
+      startEdgeVar: startEdgeVar.value,
+      endEdgeVar: endEdgeVar.value,
+      edgeSliceNumber: edgeSliceNumber.value,
+      inputRange: inputRange.value,
+      isTime: isTime.value,
+      isNumeric: isNumeric.value,
+      isValidRange: isValidRange.value,
+    } = slicingConfig.value);
+
+    sliceNetwork();
+  }
+});
 
 function exportEdges() {
   // Slice network in case 'Generate Slices' button

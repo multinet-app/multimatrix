@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useStore } from '@/store';
-import {
-  computed, getCurrentInstance, ref, watch,
-} from 'vue';
+import { computed, getCurrentInstance, ref } from 'vue';
 import { max, format, scaleLinear } from 'd3';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
 import { storeToRefs } from 'pinia';
@@ -38,10 +36,6 @@ const currentSlice = computed(() => {
 const textSpacer = ref(70);
 
 const timeRangesLength = computed(() => currentSlice.value.slices);
-
-function isSelected(key: number) {
-  sliceIndex.value = key;
-}
 
 // Heightscale for numeric attributes
 const heightScale = computed(() => scaleLinear<number, number>().domain([0, max(currentSlice.value.sumEdges) || 0]).range([0, rectHeight.value]));
@@ -87,7 +81,7 @@ function hideTooltip() {
 <template>
   <div>
     <h4 class="pl-2 pt-2">
-      Edge Slices
+      Edge Slices {{ sliceIndex }} {{ sliceIndex === 0 }}
     </h4>
     <svg
       :width="svgWidth"
@@ -105,11 +99,11 @@ function hideTooltip() {
           class="edgeSliceGroup"
           @mouseover="showTooltip(key, $event)"
           @mouseout="hideTooltip"
-          @click="isSelected(key)"
+          @click="sliceIndex = index"
         >
           <rect
             :id="`edgeSlice_${key}`"
-            :class="key === sliceIndex ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
+            :class="index === sliceIndex ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
             :width="rectWidth"
             :height="rectHeight"
             y="0"
@@ -147,11 +141,11 @@ function hideTooltip() {
           class="edgeSliceGroup"
           @mouseover="showTooltip(key, $event)"
           @mouseout="hideTooltip"
-          @click="isSelected(key)"
+          @click="sliceIndex = index"
         >
           <rect
             :id="`edgeSlice_${key}`"
-            :class="key === sliceIndex ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
+            :class="index === sliceIndex ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
             :width="rectWidth"
             :height="rectHeight"
             y="0"
