@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useStore } from '@/store';
-import {
-  computed, getCurrentInstance, ref, watch,
-} from 'vue';
+import { computed, getCurrentInstance, ref } from 'vue';
 import { max, format, scaleLinear } from 'd3';
 import { formatLongDate, formatShortDate } from '@/lib/utils';
 import { storeToRefs } from 'pinia';
@@ -12,7 +10,7 @@ const {
   slicedNetwork,
   isDate,
   controlsWidth,
-  network,
+  sliceIndex,
 } = storeToRefs(store);
 
 const isNumeric = computed(() => (slicedNetwork.value[0].category === ''));
@@ -38,19 +36,6 @@ const currentSlice = computed(() => {
 const textSpacer = ref(70);
 
 const timeRangesLength = computed(() => currentSlice.value.slices);
-
-// Update sliced view and network
-const selectedArray = ref([true]);
-
-watch([timeRangesLength], () => {
-  selectedArray.value = Array.from(Array(timeRangesLength.value), (_, x: number) => (x === 0));
-});
-
-function isSelected(key: number) {
-  selectedArray.value.fill(false);
-  selectedArray.value[key] = true;
-  network.value = slicedNetwork.value[key].network;
-}
 
 // Heightscale for numeric attributes
 const heightScale = computed(() => scaleLinear<number, number>().domain([0, max(currentSlice.value.sumEdges) || 0]).range([0, rectHeight.value]));
@@ -91,17 +76,12 @@ function hideTooltip() {
   tooltipMessage.value = '';
   toggleTooltip.value = false;
 }
-
-// Select the first slice on when slices are changed load
-watch([slicedNetwork], () => {
-  isSelected(0);
-});
 </script>
 
 <template>
   <div>
     <h4 class="pl-2 pt-2">
-      Edge Slices
+      Edge Slices {{ sliceIndex }} {{ sliceIndex === 0 }}
     </h4>
     <svg
       :width="svgWidth"
@@ -119,11 +99,11 @@ watch([slicedNetwork], () => {
           class="edgeSliceGroup"
           @mouseover="showTooltip(key, $event)"
           @mouseout="hideTooltip"
-          @click="isSelected(key)"
+          @click="sliceIndex = index"
         >
           <rect
             :id="`edgeSlice_${key}`"
-            :class="selectedArray[key] ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
+            :class="index === sliceIndex ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
             :width="rectWidth"
             :height="rectHeight"
             y="0"
@@ -161,11 +141,11 @@ watch([slicedNetwork], () => {
           class="edgeSliceGroup"
           @mouseover="showTooltip(key, $event)"
           @mouseout="hideTooltip"
-          @click="isSelected(key)"
+          @click="sliceIndex = index"
         >
           <rect
             :id="`edgeSlice_${key}`"
-            :class="selectedArray[key] ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
+            :class="index === sliceIndex ? 'edgeSliceRectClass selected' : 'edgeSliceRectClass'"
             :width="rectWidth"
             :height="rectHeight"
             y="0"

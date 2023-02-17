@@ -1,5 +1,5 @@
 import { findDifferencesInPrimitiveStates, isArray } from '@/lib/provenanceUtils';
-import { Cell, ProvState } from '@/types';
+import { Cell, ProvState, SlicingConfig } from '@/types';
 import { initializeTrrack, Registry } from '@trrack/core';
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
@@ -14,6 +14,16 @@ export const useProvenanceStore = defineStore('provenance', () => {
   const labelVariable = ref<string | undefined>(undefined);
   const expandedNodeIDs = ref<string[]>([]);
   const degreeRange = ref<[number, number]>([0, 0]);
+  const slicingConfig = ref<SlicingConfig>({
+    startEdgeVar: '',
+    endEdgeVar: '',
+    edgeSliceNumber: 1,
+    inputRange: [],
+    isTime: false,
+    isNumeric: false,
+    isValidRange: false,
+  });
+  const sliceIndex = ref(0);
 
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({
@@ -25,6 +35,8 @@ export const useProvenanceStore = defineStore('provenance', () => {
     labelVariable,
     expandedNodeIDs,
     degreeRange,
+    slicingConfig,
+    sliceIndex,
   }));
 
   // Static snapshot of the initial state for trrack
@@ -103,5 +115,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
     labelVariable,
     expandedNodeIDs,
     degreeRange,
+    slicingConfig,
+    sliceIndex,
   };
 });
