@@ -161,10 +161,11 @@ const tableData = computed(() => {
 const top = ref(0);
 const left = ref(cellSize.value * network.value.nodes.length + 200);
 const divStyle = computed(() => `position: absolute; top: ${top.value}px; left: ${left.value}px; z-index: 1;`);
+const toolbarHeight = 48;
 function iconDrag(event: MouseEvent) {
   // 24 to account for icon size and padding
-  top.value = event.clientY - 24;
-  left.value = event.clientX - 256 - 24;
+  top.value = event.clientY - toolbarHeight - 24;
+  left.value = event.clientX - 24;
 }
 function iconMouseUp() {
   document.onmouseup = null;
@@ -172,8 +173,8 @@ function iconMouseUp() {
 }
 function iconMouseDown(event: MouseEvent) {
   // 24 to account for icon size and padding
-  top.value = event.clientY - 24;
-  left.value = event.clientX - 256 - 24;
+  top.value = event.clientY - toolbarHeight - 24;
+  left.value = event.clientX - 24;
   document.onmousemove = iconDrag;
   document.onmouseup = iconMouseUp;
 }

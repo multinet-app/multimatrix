@@ -9,13 +9,12 @@ const store = useStore();
 const {
   slicedNetwork,
   isDate,
-  controlsWidth,
   sliceIndex,
 } = storeToRefs(store);
 
 const isNumeric = computed(() => (slicedNetwork.value[0].category === ''));
 const currentInstance = getCurrentInstance();
-const svgWidth = computed(() => (currentInstance !== null ? currentInstance.proxy.$vuetify.breakpoint.width - controlsWidth.value : 0));
+const svgWidth = computed(() => (currentInstance !== null ? currentInstance.proxy.$vuetify.breakpoint.width : 0));
 const rectHeight = ref(20);
 
 const currentSlice = computed(() => {
@@ -50,7 +49,7 @@ const tooltipStyle = computed(() => `left: ${tooltipPosition.value.x}px; top: ${
 
 function showTooltip(key: number, event: MouseEvent) {
   tooltipPosition.value = {
-    x: event.clientX - controlsWidth.value - 20,
+    x: event.clientX - 20,
     y: event.clientY + 20,
   };
   if (isNumeric.value) {
