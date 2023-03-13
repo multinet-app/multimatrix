@@ -59,12 +59,13 @@ onMounted(() => {
   position: absolute;
   top: 48px !important;
   height: calc(100% - 48px) !important;
+  z-index: 1;
 }
 
 #header {
   position: -webkit-sticky; /* Safari */
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 1;
 }
 </style>
