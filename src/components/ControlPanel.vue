@@ -33,9 +33,7 @@ const {
   maxIntConnections,
   intTableColorScale,
   network,
-  networkName,
   connectivityMatrixPaths,
-  showProvenanceVis,
   degreeRange,
 } = storeToRefs(store);
 
@@ -49,36 +47,6 @@ const aggregationItems = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
 });
-
-function exportNetwork() {
-  if (network.value === null) {
-    return;
-  }
-
-  const networkToExport = {
-    nodes: network.value.nodes.map((node) => {
-      const newNode = { ...node };
-      newNode.id = newNode._key;
-
-      return newNode;
-    }),
-    links: network.value.edges.map((edge) => {
-      const newEdge = { ...edge };
-      newEdge.source = `${edge._from.split('/')[1]}`;
-      newEdge.target = `${edge._to.split('/')[1]}`;
-      return newEdge;
-    }),
-  };
-
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(
-    new Blob([JSON.stringify(networkToExport)], {
-      type: 'text/json',
-    }),
-  );
-  a.download = `${networkName.value}.json`;
-  a.click();
-}
 
 function updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr' | 'intTable') {
   let legendSVG;
@@ -284,27 +252,6 @@ function removeByDegree() {
           </v-range-slider>
         </v-list-item>
 
-        <v-list-item>
-          <v-btn
-            color="primary"
-            block
-            depressed
-            @click="showProvenanceVis = true"
-          >
-            Provenance Vis
-          </v-btn>
-        </v-list-item>
-
-        <v-list-item>
-          <v-btn
-            block
-            color="grey darken-2 white--text"
-            depressed
-            @click="exportNetwork"
-          >
-            Export Network
-          </v-btn>
-        </v-list-item>
         <!-- Download Network As 1-Hop CSV-->
         <v-list-item>
           <v-btn
