@@ -113,6 +113,7 @@ function unHoverEdge(cell: Cell) {
   unHoverNode(cell.colID);
 }
 
+const toolbarHeight = 48;
 function showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
   let message = '';
 
@@ -136,8 +137,8 @@ function showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   select(tooltip.value as any)
-    .style('left', `${event.clientX - 256 + 10}px`)
-    .style('top', `${event.clientY + 10}px`)
+    .style('left', `${event.clientX + 10}px`)
+    .style('top', `${event.clientY - toolbarHeight + 10}px`)
     .html(message)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .transition(transition().delay(100).duration(200) as any)

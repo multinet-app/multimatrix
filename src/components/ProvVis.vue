@@ -8,45 +8,64 @@ const store = useStore();
 const { provenance } = storeToRefs(store);
 
 const provDiv = ref();
+const provVisHeight = ref(document.body.clientHeight - 48 - 48);
+const resizeObserver = new ResizeObserver((entries) => { provVisHeight.value = entries[0].target.clientHeight - 48 - 48; });
+resizeObserver.observe(document.body);
 
 onMounted(() => {
-  if (provDiv.value != null) {
-    ProvVisCreator(provDiv.value, provenance.value, {});
+  if (provenance.value !== null && provDiv.value != null) {
+    ProvVisCreator(provDiv.value, provenance.value);
   }
 });
 </script>
 
 <template>
   <v-navigation-drawer
-    absolute
+    id="prov-vis"
     permanent
     right
     :width="145 + 190"
   >
-    <v-btn
-      icon
-      class="ma-2"
-      @click="store.showProvenanceVis = !store.showProvenanceVis"
-    >
-      <v-icon>mdi-close</v-icon>
-    </v-btn>
+    <v-subheader id="header" class="grey darken-3 py-0 pr-0 white--text">
+      History
 
-    <v-row class="ml-2 mt-1">
-      <v-btn @click="provenance.undo()">
-        undo
+      <v-spacer />
+
+      <v-btn
+        :min-width="40"
+        :height="48"
+        depressed
+        tile
+        class="grey darken-3 pa-0"
+        dark
+        @click="store.showProvenanceVis = false"
+      >
+        <v-icon>
+          mdi-close
+        </v-icon>
       </v-btn>
-      <v-btn @click="provenance.redo()">
-        redo
-      </v-btn>
-    </v-row>
+    </v-subheader>
 
     <div
       id="provDiv"
       ref="provDiv"
+      :style="`height: ${provVisHeight}px`"
     />
   </v-navigation-drawer>
 </template>
 
 <style scoped>
+#prov-vis {
+  position: absolute;
+  top: 48px !important;
+  height: calc(100% - 48px) !important;
+  z-index: 1;
+}
 
+#header {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
 </style>

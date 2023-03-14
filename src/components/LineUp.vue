@@ -221,7 +221,6 @@ function removeHighlight() {
 
 <style>
 #lineup {
-  z-index: 1;
   padding-top: 34px;
 }
 
