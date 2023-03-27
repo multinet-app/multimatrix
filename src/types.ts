@@ -83,6 +83,7 @@ export interface SlicingConfig {
 
 export interface ProvState {
   selectNeighbors: boolean;
+  directionalEdges: boolean;
   cellSize: number;
   selectedNodes: string[];
   selectedCell: Cell | null;

@@ -7,6 +7,7 @@ import { computed, ref, watch } from 'vue';
 export const useProvenanceStore = defineStore('provenance', () => {
   // Initial values (only primitives, any more complicated value should be derived from primitives in the main store)
   const selectNeighbors = ref(true);
+  const directionalEdges = ref(false);
   const cellSize = ref(15);
   const selectedNodes = ref<string[]>([]);
   const selectedCell = ref<Cell | null>(null);
@@ -28,6 +29,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({
     selectNeighbors,
+    directionalEdges,
     cellSize,
     selectedNodes,
     selectedCell,
@@ -108,6 +110,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
   return {
     provenance,
     selectNeighbors,
+    directionalEdges,
     cellSize,
     selectedNodes,
     selectedCell,
