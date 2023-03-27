@@ -1,3 +1,5 @@
+import { ProvState } from '@/types';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function undoRedoKeyHandler(event: KeyboardEvent, provenance: any) {
   if (
@@ -60,4 +62,51 @@ export function findDifferencesInPrimitiveStates<T extends GenericObject>(firstO
   });
 
   return updates;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function capitalizeFirstLetter(input: any) {
+  const inputString = input.toString();
+  if (inputString.length > 0) {
+    return `${inputString[0].toUpperCase()}${inputString.slice(1)}`;
+  }
+  return inputString;
+}
+
+export function getTrrackLabel(updates: Partial<ProvState>, previousState: ProvState) {
+  let label = '';
+
+  if (Object.keys(updates).length > 1) {
+    label = 'Multiple Properties Changed';
+  } else if (updates.selectNeighbors !== undefined) {
+    label = `Select Neighbors Set: ${capitalizeFirstLetter(updates.selectNeighbors)}`;
+  } else if (updates.directionalEdges !== undefined) {
+    label = `Directional Edges Set: ${capitalizeFirstLetter(updates.directionalEdges)}`;
+  } else if (updates.cellSize !== undefined) {
+    label = `Cell Size Set: ${updates.cellSize}`;
+  } else if (updates.selectedNodes !== undefined) {
+    if (updates.selectedNodes.every((nodeID) => previousState.selectedNodes.includes(nodeID))) {
+      label = previousState.selectedNodes.length - updates.selectedNodes.length === 1 ? 'One Node Deselected' : 'Multiple Nodes Deselected';
+    } else {
+      label = updates.selectedNodes.length - previousState.selectedNodes.length === 1 ? 'One Node Selected' : 'Multiple Nodes Selected';
+    }
+  } else if (updates.selectedCell !== undefined) {
+    label = 'Cell Selected';
+  } else if (updates.aggregatedBy !== undefined) {
+    label = updates.aggregatedBy === null ? 'Aggregation Variable Removed' : `Aggregation Variable Set: ${capitalizeFirstLetter(updates.aggregatedBy)}`;
+  } else if (updates.labelVariable !== undefined) {
+    label = updates.labelVariable === null ? 'Label Variable Removed' : `Label Variable Set: ${capitalizeFirstLetter(updates.labelVariable)}`;
+  } else if (updates.expandedNodeIDs !== undefined) {
+    label = updates.expandedNodeIDs.length > previousState.expandedNodeIDs.length ? 'Node Expanded' : 'Node Retracted';
+  } else if (updates.degreeRange !== undefined) {
+    label = `Degree Range Set: ${updates.degreeRange}`;
+  } else if (updates.sliceIndex !== undefined) {
+    label = `Slice Index Set: ${updates.sliceIndex}`;
+  } else if (updates.slicingConfig !== undefined) {
+    label = 'Slicing Configuration Updated';
+  } else {
+    label = 'Unknown Update';
+  }
+
+  return label;
 }

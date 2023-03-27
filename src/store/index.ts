@@ -21,6 +21,7 @@ export const useStore = defineStore('store', () => {
   const { provenance } = provStore;
   const {
     selectNeighbors,
+    directionalEdges,
     cellSize,
     selectedNodes,
     selectedCell,
@@ -40,7 +41,6 @@ export const useStore = defineStore('store', () => {
   });
   const userInfo = ref<UserSpec | null>(null);
   const hoveredNodes = ref<string[]>([]);
-  const directionalEdges = ref(false);
   const showGridLines = ref(true);
   const maxConnections = ref({
     unAggr: 0,

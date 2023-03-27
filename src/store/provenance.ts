@@ -1,4 +1,4 @@
-import { findDifferencesInPrimitiveStates, isArray } from '@/lib/provenanceUtils';
+import { findDifferencesInPrimitiveStates, getTrrackLabel, isArray } from '@/lib/provenanceUtils';
 import { Cell, ProvState, SlicingConfig } from '@/types';
 import { initializeTrrack, Registry } from '@trrack/core';
 import { defineStore } from 'pinia';
@@ -7,6 +7,7 @@ import { computed, ref, watch } from 'vue';
 export const useProvenanceStore = defineStore('provenance', () => {
   // Initial values (only primitives, any more complicated value should be derived from primitives in the main store)
   const selectNeighbors = ref(true);
+  const directionalEdges = ref(false);
   const cellSize = ref(15);
   const selectedNodes = ref<string[]>([]);
   const selectedCell = ref<Cell | null>(null);
@@ -28,6 +29,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({
     selectNeighbors,
+    directionalEdges,
     cellSize,
     selectedNodes,
     selectedCell,
@@ -82,32 +84,36 @@ export const useProvenanceStore = defineStore('provenance', () => {
 
   // When the vue state changes, update trrack
   function updateTrrackState() {
-    // TODO: Find which element changed to set a user friendly label, current label is 'State Changed'
-
     // Update the provenance state if the vue state has diverged
     const piniaSnapshot = getPiniaStateSnapshot();
     const updates = findDifferencesInPrimitiveStates(provenance.getState(), piniaSnapshot);
 
+    const label = getTrrackLabel(updates, provenance.getState());
+
     if (Object.keys(updates).length !== 0) {
       // Check to see if we need to debounce the update
       if (keysToDebounce.some((debounceKey) => Object.keys(updates).includes(debounceKey))) {
-        debounce(() => { provenance.apply('State Changed', updateTrrack(piniaSnapshot)); }, 750); // 0.75 second
+        debounce(() => { provenance.apply(label, updateTrrack(piniaSnapshot)); }, 750); // 0.75 second
       } else {
-        provenance.apply('State Changed', updateTrrack(piniaSnapshot));
+        provenance.apply(label, updateTrrack(piniaSnapshot));
       }
     }
   }
   watch(currentPiniaState, updateTrrackState, { deep: true }); // deep: true is required because the computed is an object
 
   // When the trrack state changes (undo/redo), update vue
-  provenance.currentChange(() => {
-    const updates = findDifferencesInPrimitiveStates(getPiniaStateSnapshot(), provenance.getState());
-    Object.entries(updates).forEach(([key, val]) => { currentPiniaState.value[key as keyof ProvState].value = val; });
+  provenance.currentChange((updateType) => {
+    // Traversal means that the change came from moving between nodes, not a new node
+    if (updateType === 'traversal') {
+      const updates = findDifferencesInPrimitiveStates(getPiniaStateSnapshot(), provenance.getState());
+      Object.entries(updates).forEach(([key, val]) => { currentPiniaState.value[key as keyof ProvState].value = val; });
+    }
   });
 
   return {
     provenance,
     selectNeighbors,
+    directionalEdges,
     cellSize,
     selectedNodes,
     selectedCell,
