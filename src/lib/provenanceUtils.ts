@@ -91,7 +91,7 @@ export function getTrrackLabel(updates: Partial<ProvState>, previousState: ProvS
       label = updates.selectedNodes.length - previousState.selectedNodes.length === 1 ? 'One Node Selected' : 'Multiple Nodes Selected';
     }
   } else if (updates.selectedCell !== undefined) {
-    label = `Cell Selected: ${updates.cellSize}`;
+    label = 'Cell Selected';
   } else if (updates.aggregatedBy !== undefined) {
     label = updates.aggregatedBy === null ? 'Aggregation Variable Removed' : `Aggregation Variable Set: ${capitalizeFirstLetter(updates.aggregatedBy)}`;
   } else if (updates.labelVariable !== undefined) {
