@@ -400,7 +400,7 @@ const retractPath = 'M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2
 
 function expandOrRetractRow(node: Node) {
   if (aggregated.value || degreeFiltered.value) {
-    if (node.type !== 'supernode') {
+    if (node._type !== 'supernode') {
       return;
     }
     // expand and retract the supernode aggregation based on user selection
@@ -559,13 +559,13 @@ function clickedNeighborClass(node: Node) {
 
               <!-- Clickable row expand/retract -->
               <path
-                v-if="node.type === 'supernode'"
+                v-if="node._type === 'supernode'"
                 :d="expandedSuperNodes.has(node._id) ? retractPath : expandPath"
                 :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})scale(0.5)`"
                 fill="#8B8B8B"
               />
               <rect
-                v-if="node.type === 'supernode'"
+                v-if="node._type === 'supernode'"
                 :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})`"
                 width="10"
                 height="10"
