@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { select, format, ScaleLinear } from 'd3';
-import { legendColor } from 'd3-svg-legend';
 import { Node, Edge, ArangoPath } from '@/types';
 import { useStore } from '@/store';
 import ConnectivityQuery from '@/components/ConnectivityQuery.vue';
@@ -9,6 +7,7 @@ import {
   computed, ref, watch, watchEffect,
 } from 'vue';
 import { storeToRefs } from 'pinia';
+import ColorScaleLegend from '@/components/ColorScaleLegend.vue';
 
 const store = useStore();
 const {
@@ -48,28 +47,6 @@ const aggregationItems = computed(() => {
   return Object.values(nodeColumnTypes).map((colTypes) => Object.entries(colTypes).filter(([_, colType]) => colType === 'category').map(([varName, _]) => varName)).flat();
 });
 
-function updateLegend(colorScale: ScaleLinear<string, number>, legendName: 'parent' | 'unAggr' | 'intTable') {
-  let legendSVG;
-  if (legendName === 'parent') {
-    legendSVG = select('#parent-matrix-legend');
-  } else if (legendName === 'unAggr') {
-    legendSVG = select('#matrix-legend');
-  } else {
-    legendSVG = select('#int-matrix-legend');
-  }
-
-  // construct the legend and format the labels to have 0 decimal places
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const legendLinear = (legendColor() as any)
-    .shapeWidth(20)
-    .cells(colorScale.domain()[1] >= 5 ? 5 : colorScale.domain()[1] + 1)
-    .orient('horizontal')
-    .scale(colorScale)
-    .labelFormat(format('.0f'));
-
-  legendSVG.select('.legendLinear').call(legendLinear);
-}
-
 function displayCSVBuilder() {
   const reconstructedPaths: ArangoPath[] = [];
 
@@ -96,9 +73,6 @@ function displayCSVBuilder() {
   showPathTable.value = true;
 }
 
-watchEffect(() => updateLegend(cellColorScale.value, 'unAggr'));
-watchEffect(() => updateLegend(parentColorScale.value, 'parent'));
-watchEffect(() => updateLegend(intTableColorScale.value, 'intTable'));
 watchEffect(() => {
   if (!showIntNodeVis.value) {
     intAggregatedBy.value = undefined;
@@ -266,44 +240,15 @@ function removeByDegree() {
       </v-card>
 
       <v-subheader class="grey darken-3 py-0 white--text">
-        Color Scale Legend
+        Edge Legend
       </v-subheader>
 
       <div class="pa-4">
         <!-- Aggregated Matrix Legend -->
-        <v-list-item
-          v-if="aggregated || degreeFiltered"
-          class="pb-0 px-0"
-          style="display: flex; max-height: 50px"
-        >
-          {{ aggregated ? 'Aggregate Legend' : 'Filtered Legend' }}
-          <svg
-            id="parent-matrix-legend"
-            height="50"
-          >
-            <g
-              class="legendLinear"
-              transform="translate(10, 10)"
-            />
-          </svg>
-        </v-list-item>
+        <color-scale-legend v-if="aggregated || degreeFiltered" :scale="parentColorScale" :label="aggregated ? 'Count of Aggregated Edges' : 'Count of Filtered Edges'" />
 
         <!-- Matrix Legend -->
-        <v-list-item
-          class="pb-0 px-0"
-          :style="`display: flex; max-height: 50px; opacity: ${maxConnections.unAggr > 0 ? 1 : 0}`"
-        >
-          {{ aggregated ? 'Child Legend' : 'Matrix Legend' }}
-          <svg
-            id="matrix-legend"
-            height="50"
-          >
-            <g
-              class="legendLinear"
-              transform="translate(10, 10)"
-            />
-          </svg>
-        </v-list-item>
+        <color-scale-legend v-if="maxConnections.unAggr > 0" :scale="cellColorScale" :label="aggregated ? 'Count of Child Edges' : 'Count of Edges'" />
       </div>
 
       <!-- Int Table Controls + Legend -->
@@ -330,21 +275,7 @@ function removeByDegree() {
           </v-list-item>
 
           <!-- Matrix Legend -->
-          <v-list-item
-            class="pb-0 px-0"
-            :style="`display: flex; max-height: 50px; opacity: ${maxIntConnections > 0 ? 1 : 0}`"
-          >
-            {{ 'Legend' }}
-            <svg
-              id="int-matrix-legend"
-              height="50"
-            >
-              <g
-                class="legendLinear"
-                transform="translate(10, 10)"
-              />
-            </svg>
-          </v-list-item>
+          <color-scale-legend v-if="maxIntConnections > 0" :scale="intTableColorScale" label="Count of Edges" />
         </div>
       </div>
       <!-- Edge Slicing -->
