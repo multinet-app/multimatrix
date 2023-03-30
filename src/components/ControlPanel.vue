@@ -275,7 +275,7 @@ function removeByDegree() {
           </v-list-item>
 
           <!-- Matrix Legend -->
-          <color-scale-legend v-if="maxIntConnections > 0" :scale="intTableColorScale" label="Legend" />
+          <color-scale-legend v-if="maxIntConnections > 0" :scale="intTableColorScale" label="Count of Edges" />
         </div>
       </div>
       <!-- Edge Slicing -->
