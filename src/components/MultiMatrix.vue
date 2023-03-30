@@ -3,13 +3,12 @@ import {
   Cell, Edge, Node, ArangoPath,
 } from '@/types';
 import {
-  scaleBand, range, select, selectAll, transition,
+  scaleBand, select, selectAll, transition,
 } from 'd3';
 import { useStore } from '@/store';
 import LineUp from '@/components/LineUp.vue';
 import IntermediaryNodes from '@/components/IntermediaryNodes.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
-import * as reorder from 'reorder.js';
 import {
   computed, onMounted, ref, watch,
 } from 'vue';
@@ -47,24 +46,6 @@ const visMargins = ref({
 });
 const matrix = ref<Cell[][]>([]);
 const expandedSuperNodes = ref(new Set<string>());
-const icons = ref<{ [key: string]: { d: string} }>({
-  quant: {
-    d:
-          'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.3C407.7,333.7,404.7,330.7,401,330.7z M280,447.3c0,2-1.6,3.6-3.6,3.6h-52.8v-18.8h52.8c2,0,3.6,1.6,3.6,3.6V447.3z M309.2,417.9c0,2-1.6,3.6-3.6,3.6h-82v-18.8h82c2,0,3.6,1.6,3.6,3.6V417.9z M336.4,388.4c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h109.2c2,0,3.6,1.6,3.6,3.6V388.4z M367.3,359c0,2-1.6,3.6-3.6,3.6H223.6v-18.8h140.1c2,0,3.6,1.6,3.6,3.6V359z',
-  },
-  alphabetical: {
-    d:
-          'M401.1,331.2h-189c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.8C407.7,334.2,404.8,331.2,401.1,331.2z M223.7,344.3H266c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-42.3V344.3z M223.7,373H300c2,0,3.6,1.6,3.6,3.6v11.6c0,2-1.6,3.6-3.6,3.6h-76.3V373.7z M263.6,447.8c0,2-1.6,3.6-3.6,3.6h-36.4v-18.8H260c2,0,3.6,1.6,3.6,3.6V447.8z M321.5,418.4c0,2-1.6,3.6-3.6,3.6h-94.2v-18.8h94.2c2,0,3.6,1.6,3.6,3.6V418.4z M392.6,449.5h-34.3V442l22.6-27h-21.7v-8.8h33.2v7.5l-21.5,27h21.7V449.5z M381,394.7l-3.7,6.4l-3.7-6.4h2.7v-14.6h2v14.6H381z M387,380l-3.4-9.7h-13.5l-3.3,9.7h-10.2l15.8-43.3h9l15.8,43.3H387z M371.8,363.4H382l-5.1-15.3L371.8,363.4z',
-  },
-  categorical: {
-    d:
-          'M401,330.7H212c-3.7,0-6.6,3-6.6,6.6v116.4c0,3.7,3,6.6,6.6,6.6h189c3.7,0,6.6-3,6.6-6.6V337.4C407.7,333.7,404.7,330.7,401,330.7z M272.9,374.3h-52.4v-17.1h52.4V374.3z M272.9,354h-52.4v-17h52.4V354z M332.1,414.9h-52.4v-17h52.4V414.9z M332.1,394.6h-52.4v-17h52.4V394.6z M394.8,456.5h-52.4v-17h52.4V456.5z M394.8,434.9h-52.4v-17h52.4V434.9z',
-  },
-  cellSort: {
-    d:
-          'M115.3,0H6.6C3,0,0,3,0,6.6V123c0,3.7,3,6.6,6.6,6.6h108.7c3.7,0,6.6-3,6.6-6.6V6.6C122,3,119,0,115.3,0zM37.8,128.5H15.1V1.2h22.7V128.5z',
-  },
-});
 const sortKey = ref('');
 const finishedMounting = ref(false);
 
@@ -161,105 +142,6 @@ function showContextMenu(event: MouseEvent) {
   };
 
   event.preventDefault();
-}
-
-function sort(type: string): void {
-  if (network.value === null) {
-    return;
-  }
-
-  const nonNullNetwork = network.value;
-  const isNode = nonNullNetwork.nodes.map((node: Node) => node._id).includes(type);
-
-  // If we're already sorting by the requested type, remove the sorting
-  sortKey.value = sortKey.value !== type ? type : '';
-
-  let order = range(nonNullNetwork.nodes.length);
-  if (sortKey.value === 'clusterLeaf') {
-    const newEdges: unknown[] = Array(network.value.edges.length);
-
-    // Generate edges that are compatible with reorder.js
-    nonNullNetwork.edges.forEach((edge: Edge, index: number) => {
-      newEdges[index] = {
-        source: nonNullNetwork.nodes.find(
-          (node: Node) => node._id === edge._from,
-        ),
-        target: nonNullNetwork.nodes.find(
-          (node: Node) => node._id === edge._to,
-        ),
-      };
-    });
-
-    const sortableNetwork = reorder
-      .graph()
-      .nodes(nonNullNetwork.nodes)
-      .links(newEdges)
-      .init();
-
-    const mat = reorder.graph2mat(sortableNetwork);
-    order = reorder.optimal_leaf_order()(mat);
-  } else if (sortKey.value === 'edges') {
-    order.sort((a, b) => {
-      const firstValue = nonNullNetwork.nodes[b][type] as number;
-      const secondValue = nonNullNetwork.nodes[a][type] as number;
-
-      return firstValue - secondValue;
-    });
-  } else if (isNode && sortKey.value !== '') {
-    order.sort((a, b) => Number(nonNullNetwork.nodes[b].neighbors.includes(type))
-            - Number(nonNullNetwork.nodes[a].neighbors.includes(type)));
-  } else if (sortKey.value === 'shortName') {
-    order.sort((a, b) => {
-      const aVal = `${nonNullNetwork.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
-      const bVal = `${nonNullNetwork.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
-
-      if (!Number.isNaN(parseInt(aVal, 10)) && !Number.isNaN(parseInt(aVal, 10))) {
-        return a < b ? -1 : 1;
-      }
-
-      return aVal.localeCompare(bVal);
-    });
-  } else {
-    order.sort((a, b) => {
-      const firstValue = nonNullNetwork.nodes[b][type] as number;
-      const secondValue = nonNullNetwork.nodes[a][type] as number;
-
-      return firstValue - secondValue;
-    });
-  }
-
-  // Move the children back under the super nodes
-  if (aggregated.value) {
-    const oldOrder = structuredClone(order); // Required to stop no-loop-func (order is modified later so has to be cloned)
-    const newOrder = Array(order.length);
-
-    let nextIndex = 0;
-    for (let i = 0; i < order.length;) {
-      if (newOrder.includes(order[nextIndex])) {
-        nextIndex += 1;
-      } else {
-        newOrder[i] = order[nextIndex];
-        const childrenToCheck = nonNullNetwork.nodes[newOrder[i]].children;
-        i += 1;
-        nextIndex += 1;
-
-        if (childrenToCheck !== undefined) {
-          childrenToCheck
-            .filter((child) => nonNullNetwork.nodes.includes(child))
-            .sort((a, b) => oldOrder.indexOf(nonNullNetwork.nodes.indexOf(a)) - oldOrder.indexOf(nonNullNetwork.nodes.indexOf(b)))
-            .forEach((child) => {
-              newOrder[i] = nonNullNetwork.nodes.indexOf(child);
-              i += 1;
-            });
-        }
-      }
-    }
-
-    order = newOrder;
-  }
-
-  matrixIsSorter = true;
-  sortOrder.value = order;
 }
 
 watch(hoveredNodes, () => {
@@ -368,8 +250,6 @@ processData();
 const highlightLength = computed(() => matrix.value.length * cellSize.value);
 const labelFontSize = computed(() => 0.8 * cellSize.value);
 const labelWidth = 60;
-const sortIconWidth = 8.133;
-const sortIconScaleFactor = 15;
 const invisibleRectSize = 11;
 
 function clickElement(matrixElement: Node | Cell) {
@@ -418,12 +298,6 @@ function expandOrRetractRow(node: Node) {
   }
 }
 
-const iconMeta = [
-  { text: 'name', sortName: 'shortName', iconName: 'alphabetical' },
-  { text: 'cluster', sortName: 'clusterLeaf', iconName: 'categorical' },
-  { text: 'interacts', sortName: 'edges', iconName: 'quant' },
-];
-
 const neighborsOfClicked = computed(() => [...selectedNodes.value.values()].map((nodeID) => {
   if (network.value !== null) {
     const foundNode = network.value.nodes.find((n) => n._id === nodeID);
@@ -456,37 +330,6 @@ function clickedNeighborClass(node: Node) {
             id="matrix"
             :transform="`translate(${visMargins.left},${visMargins.top})`"
           >
-            <!-- Sort icons -->
-            <g
-              v-for="icon, i in iconMeta"
-              :key="icon.text"
-              :transform="`translate(${-visMargins.left},${-visMargins.top + 50 + (i * 20)})`"
-            >
-              <rect
-                :width="visMargins.left - 5"
-                height="15"
-                fill="white"
-                stroke="gray"
-                stroke-width="1"
-                cursor="pointer"
-                @click="sort(icon.sortName)"
-              />
-              <text
-                x="27"
-                y="10"
-                font-size="11"
-                style="pointer-events: none;"
-              >
-                {{ icon.text }}
-              </text>
-              <path
-                :d="icons[icon.iconName].d"
-                :fill="icon.sortName === sortKey ? '#EBB769' : '#8B8B8B'"
-                transform="scale(0.1)translate(-195,-320)"
-                style="pointer-events: none;"
-              />
-            </g>
-
             <!-- Columns -->
             <g
               v-for="node, i of network.nodes"
@@ -508,7 +351,7 @@ function clickedNeighborClass(node: Node) {
               <foreignObject
                 :width="labelWidth"
                 :height="cellSize"
-                x="20"
+                x="5"
               >
                 <p
                   :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (degreeFiltered && node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
@@ -517,13 +360,6 @@ function clickedNeighborClass(node: Node) {
                   {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
                 </p>
               </foreignObject>
-              <path
-                class="sortIcon"
-                :d="icons.cellSort.d"
-                :transform="`scale(${1 / sortIconScaleFactor})translate(${15 * sortIconScaleFactor},${((cellSize - sortIconWidth) / 2) * sortIconScaleFactor})rotate(90)`"
-                :fill="node._id === sortKey ? '#EBB769' : '#8B8B8B'"
-                @click="sort(node._id)"
-              />
             </g>
 
             <!-- Rows -->
