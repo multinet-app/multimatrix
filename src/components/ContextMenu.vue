@@ -3,11 +3,7 @@ import { useStore } from '@/store';
 import { storeToRefs } from 'pinia';
 
 const store = useStore();
-const { rightClickMenu } = storeToRefs(store);
-
-function clearSelection() {
-  store.clearSelection();
-}
+const { rightClickMenu, sortBy } = storeToRefs(store);
 </script>
 
 <template>
@@ -22,10 +18,19 @@ function clearSelection() {
       <v-list>
         <v-list-item
           dense
-          @click="clearSelection"
+          @click="store.clearSelection()"
         >
           <v-list-item-content>
             <v-list-item-title>Clear Selection</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          v-if="rightClickMenu.nodeID !== undefined"
+          dense
+          @click="sortBy = rightClickMenu.nodeID"
+        >
+          <v-list-item-content>
+            <v-list-item-title>Sort Neighbors</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>

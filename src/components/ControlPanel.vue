@@ -34,6 +34,7 @@ const {
   network,
   connectivityMatrixPaths,
   degreeRange,
+  sortBy,
 } = storeToRefs(store);
 
 // Template objects
@@ -84,6 +85,8 @@ watch(degreeRange, () => { degreeRangeLocal.value = degreeRange.value; });
 function removeByDegree() {
   degreeRange.value = degreeRangeLocal.value;
 }
+
+const sortByItems = ['Alphabetically', 'Clusters', 'Interactions'];
 </script>
 
 <template>
@@ -142,6 +145,18 @@ function removeByDegree() {
             outlined
             dense
             @change="store.aggregateNetwork"
+          />
+        </v-list-item>
+        <v-list-item>
+          <v-autocomplete
+            v-model="sortBy"
+            label="Sort By"
+            :items="sortByItems"
+            :hide-details="true"
+            class="mt-3"
+            clearable
+            outlined
+            dense
           />
         </v-list-item>
 

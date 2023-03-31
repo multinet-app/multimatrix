@@ -134,11 +134,12 @@ function hideToolTip() {
     .style('opacity', 0);
 }
 
-function showContextMenu(event: MouseEvent) {
+function showContextMenu(event: MouseEvent, nodeID?: string) {
   rightClickMenu.value = {
     show: true,
     top: event.y,
     left: event.x,
+    nodeID,
   };
 
   event.preventDefault();
@@ -347,6 +348,7 @@ function clickedNeighborClass(node: Node) {
                 @mouseover="(event) => { showToolTip(event, node); hoverNode(node._id); }"
                 @mouseout="(event) => { hideToolTip(); unHoverNode(node._id); }"
                 @click="clickElement(node)"
+                @contextmenu="e => { e.stopPropagation(); showContextMenu(e, node._id) }"
               />
               <foreignObject
                 :width="labelWidth"
