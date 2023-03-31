@@ -38,6 +38,7 @@ const {
   rightClickMenu,
   maxConnections,
   selectedHops,
+  sortBy,
 } = storeToRefs(store);
 
 const tooltip = ref(null);
@@ -46,7 +47,6 @@ const visMargins = ref({
 });
 const matrix = ref<Cell[][]>([]);
 const expandedSuperNodes = ref(new Set<string>());
-const sortKey = ref('');
 const finishedMounting = ref(false);
 
 const matrixWidth = computed(() => (network.value !== null
@@ -55,14 +55,6 @@ const matrixWidth = computed(() => (network.value !== null
 const matrixHeight = computed(() => (network.value !== null
   ? network.value.nodes.length * cellSize.value + visMargins.value.top + visMargins.value.bottom
   : 0));
-let matrixIsSorter = false;
-watch(sortOrder, () => {
-  if (!matrixIsSorter) {
-    sortKey.value = '';
-  }
-
-  matrixIsSorter = false;
-});
 const orderingScale = computed(() => scaleBand<number>()
   .domain(sortOrder.value)
   .range([0, sortOrder.value.length * cellSize.value]));
@@ -185,8 +177,6 @@ function processData(): void {
           correspondingCell: `${colNode._id}_${rowNode._id}`,
           rowID: rowNode._id,
           colID: colNode._id,
-          x: j,
-          y: i,
           z: 0,
         }));
       }
@@ -314,6 +304,8 @@ function clickedNeighborClass(node: Node) {
 
   return `${clicked} ${neighbor}`;
 }
+
+const isSortedByNode = computed(() => sortBy.value !== null && network.value.nodes.map((node: Node) => node._id).includes(sortBy.value));
 </script>
 
 <template>
@@ -335,7 +327,7 @@ function clickedNeighborClass(node: Node) {
             <g
               v-for="node, i of network.nodes"
               :key="`${node._id}_col`"
-              :transform="`translate(${i * cellSize})rotate(-90)`"
+              :transform="`translate(${isSortedByNode ? i * cellSize : orderingScale(i)})rotate(-90)`"
               class="column"
               :class="clickedNeighborClass(node)"
             >
@@ -414,9 +406,9 @@ function clickedNeighborClass(node: Node) {
               <!-- Cells -->
               <g class="cellsGroup">
                 <rect
-                  v-for="cell in matrix[i]"
+                  v-for="cell, idx in matrix[i]"
                   :key="cell.cellName"
-                  :x="(cell.x * cellSize) + 1"
+                  :x="isSortedByNode ? idx * cellSize + 1 : orderingScale(idx) + 1"
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
