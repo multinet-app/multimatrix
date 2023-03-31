@@ -53,7 +53,6 @@ const lineupHeight = computed(() => {
   return possibleHeight < 500 ? 500 : possibleHeight;
 });
 
-let lineupIsSorter = false;
 const lineupOrder = computed(() => {
   if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
     return [...Array(network.value?.nodes.length).keys()];
@@ -62,28 +61,22 @@ const lineupOrder = computed(() => {
 });
 
 // If store order has changed, update lineup
-let permutingMatrix = structuredClone(sortOrder.value);
+let permutingMatrix = structuredClone(sortOrder.value.row);
 watch(sortOrder, (newSortOrder) => {
-  if (lineup.value !== null && !lineupIsSorter) {
-    permutingMatrix = structuredClone(newSortOrder);
+  if (lineup.value !== null) {
+    permutingMatrix = structuredClone(newSortOrder.row);
     lineup.value.data.getFirstRanking().setSortCriteria([]);
-    const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
+    const sortedData = newSortOrder.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
     (lineup.value.data as LocalDataProvider).setData(sortedData);
   }
-
-  lineupIsSorter = false;
 });
 
 // If lineup order has changed, update matrix
-watch(lineupOrder, (newLineupOrder) => {
-  // If sort order has less length than number of nodes, we've filtered sort those nodes to the top
-  if (network.value !== null && newLineupOrder.length < network.value.nodes.length) {
-    return;
-  }
-
-  if (lineup.value !== null && network.value !== null && lineupIsSorter) {
-    const newSortOrder = newLineupOrder.map((i) => permutingMatrix[i]);
-    sortOrder.value = newSortOrder;
+watch(lineupOrder, () => {
+  if (lineup.value !== null && network.value !== null) {
+    lineup.value.data.getFirstRanking().setSortCriteria([]);
+    const sortedData = sortOrder.value.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
+    (lineup.value.data as LocalDataProvider).setData(sortedData);
   }
 });
 
@@ -166,12 +159,6 @@ function buildLineup() {
       hoveredIDs.forEach((nodeID) => hoveredNodes.value.push(nodeID));
 
       [lastHovered] = hoveredIDs;
-    });
-
-    lineup.value.data.getFirstRanking().on('orderChanged', (oldOrder, newOrder, _, __, eventType) => {
-      if ((eventType as string[]).includes('sort_changed')) {
-        lineupIsSorter = true;
-      }
     });
 
     lineup.value.data.getFirstRanking().on('groupsChanged', (oldSortOrder: number[], newSortOrder: number[], oldGroups: { name: string }[], newGroups: { name: string }[]) => {

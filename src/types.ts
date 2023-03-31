@@ -26,8 +26,6 @@ export interface Network {
 }
 
 export interface Cell {
-  x: number;
-  y: number;
   z: number;
   rowCellType?: string;
   colCellType?: string;
@@ -93,6 +91,7 @@ export interface ProvState {
   degreeRange: [number, number];
   sliceIndex: number;
   slicingConfig: SlicingConfig;
+  sortBy: { network: string | null; node: string | null };
 }
 
 export type ProvenanceEventTypes =
