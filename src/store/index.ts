@@ -483,30 +483,23 @@ export const useStore = defineStore('store', () => {
 
     // Move the children back under the super nodes
     if (aggregated.value) {
-      const oldOrder = order; // Required to stop no-loop-func (order is modified later so has to be cloned)
-      const newOrder = Array(order.length);
+      // Find the supernodes and get them in order
+      const newOrder = order.filter((idx) => network.value.nodes[idx]._type === 'supernode');
 
-      let nextIndex = 0;
-      for (let i = 0; i < order.length;) {
-        if (newOrder.includes(order[nextIndex])) {
-          nextIndex += 1;
-        } else {
-          newOrder[i] = order[nextIndex];
-          const childrenToCheck = network.value.nodes[newOrder[i]].children;
-          i += 1;
-          nextIndex += 1;
+      // For each child, find it's parent and splice it in after it
+      order.reverse().forEach((idx) => {
+        if (network.value.nodes[idx]._type !== 'supernode') {
+          const child = network.value.nodes[idx];
+          const parentPositionInNetwork = child.parentPosition;
 
-          if (childrenToCheck !== undefined) {
-            childrenToCheck
-              .filter((child) => network.value.nodes.includes(child))
-              .sort((a, b) => oldOrder.indexOf(network.value.nodes.indexOf(a)) - oldOrder.indexOf(network.value.nodes.indexOf(b)))
-              .forEach((child) => {
-                newOrder[i] = network.value.nodes.indexOf(child);
-                i += 1;
-              });
+          if (parentPositionInNetwork === undefined) {
+            return;
           }
+
+          const parentPositionInOrder = newOrder.indexOf(parentPositionInNetwork);
+          newOrder.splice(parentPositionInOrder + 1, 0, idx);
         }
-      }
+      });
 
       order = newOrder;
     }
