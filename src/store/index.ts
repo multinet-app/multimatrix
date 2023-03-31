@@ -451,18 +451,16 @@ export const useStore = defineStore('store', () => {
     const isNode = network.value.nodes.map((node: Node) => node._id).includes(nonNullSortBy);
 
     if (nonNullSortBy === 'Clusters') {
-      const newEdges: unknown[] = Array(network.value.edges.length);
+      const newEdges: unknown[] = [];
 
       // Generate edges that are compatible with reorder.js
-      network.value.edges.forEach((edge: Edge, index: number) => {
-        newEdges[index] = {
-          source: network.value.nodes.find(
-            (node: Node) => node._id === edge._from,
-          ),
-          target: network.value.nodes.find(
-            (node: Node) => node._id === edge._to,
-          ),
-        };
+      network.value.edges.forEach((edge: Edge) => {
+        const source = network.value.nodes.find((node: Node) => node._id === edge._from);
+        const target = network.value.nodes.find((node: Node) => node._id === edge._to);
+
+        if (source !== undefined && target !== undefined) {
+          newEdges.push({ source, target });
+        }
       });
 
       const sortableNetwork = reorder
