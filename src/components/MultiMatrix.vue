@@ -241,6 +241,7 @@ processData();
 const highlightLength = computed(() => matrix.value.length * cellSize.value);
 const labelFontSize = computed(() => 0.8 * cellSize.value);
 const labelWidth = 60;
+const colLabelWidth = 100;
 const invisibleRectSize = 11;
 
 function clickElement(matrixElement: Node | Cell) {
@@ -343,13 +344,13 @@ const isSortedByNode = computed(() => sortBy.value !== null && network.value.nod
                 @contextmenu="e => { e.stopPropagation(); showContextMenu(e, node._id) }"
               />
               <foreignObject
-                :width="labelWidth"
+                :width="colLabelWidth"
                 :height="cellSize"
                 x="5"
               >
                 <p
                   :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (degreeFiltered && node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
-                  class="label"
+                  class="label colLabel"
                 >
                   {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
                 </p>
@@ -469,6 +470,10 @@ const isSortedByNode = computed(() => sortBy.value !== null && network.value.nod
 </template>
 
 <style scoped>
+svg:deep(.colLabel) {
+  max-width: 100px !important;
+}
+
 svg:deep(.label) {
   max-width: 60px;
   text-overflow: ellipsis;
