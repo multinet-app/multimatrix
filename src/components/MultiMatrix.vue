@@ -349,10 +349,10 @@ function clickedNeighborClass(node: Node) {
                 x="5"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node.type !== 'supernode') || (degreeFiltered && node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node._type !== 'supernode') || (degreeFiltered && node._type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
                   class="label colLabel"
                 >
-                  {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+                  {{ node._type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
                 </p>
               </foreignObject>
             </g>
@@ -381,10 +381,10 @@ function clickedNeighborClass(node: Node) {
                 :x="-labelWidth"
               >
                 <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && (node.type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
+                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && (node._type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
                   class="label"
                 >
-                  {{ node.type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+                  {{ node._type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
                 </p>
               </foreignObject>
 
