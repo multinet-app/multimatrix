@@ -461,11 +461,11 @@ export const useStore = defineStore('store', () => {
 
     if (nonNullSortBy === 'Alphabetically') {
       order.sort((a, b) => {
-        const aVal = `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
-        const bVal = `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+        const aVal = network.value.nodes[a]._type === 'supernode' ? `${network.value.nodes[a][aggregatedBy.value === null ? '_key' : aggregatedBy.value]}` : `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+        const bVal = network.value.nodes[b]._type === 'supernode' ? `${network.value.nodes[b][aggregatedBy.value === null ? '_key' : aggregatedBy.value]}` : `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
 
-        if (!Number.isNaN(parseInt(aVal, 10)) && !Number.isNaN(parseInt(aVal, 10))) {
-          return a < b ? -1 : 1;
+        if (!Number.isNaN(parseFloat(aVal)) && !Number.isNaN(parseFloat(aVal))) {
+          return parseFloat(aVal) - parseFloat(bVal);
         }
 
         return aVal.localeCompare(bVal);
