@@ -105,7 +105,12 @@ export function getTrrackLabel(updates: Partial<ProvState>, previousState: ProvS
   } else if (updates.slicingConfig !== undefined) {
     label = 'Slicing Configuration Updated';
   } else if (updates.sortBy !== undefined) {
-    label = updates.sortBy === null ? 'Sorting Removed' : `Sorted By: ${updates.sortBy}`;
+    // TODO
+    if (updates.sortBy.network !== previousState.sortBy.network) {
+      label = updates.sortBy.network === null ? 'Sorting Removed' : `Sorted By: ${updates.sortBy.network}`;
+    } else if (updates.sortBy.node !== previousState.sortBy.node) {
+      label = updates.sortBy.node === null ? 'Neighbor Sorting Removed' : 'Sorted By Neighbor';
+    }
   } else {
     label = 'Unknown Update';
   }

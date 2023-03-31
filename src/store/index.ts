@@ -222,7 +222,7 @@ export const useStore = defineStore('store', () => {
     }
 
     // Reset sort order now that network has changed
-    sortBy.value = '';
+    sortBy.value = { network: null, node: null };
 
     // Recalculate neighbors
     defineNeighbors(networkAfterOperations.nodes, networkAfterOperations.edges);
@@ -436,52 +436,30 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  const sortOrder = computed(() => {
-    if (network.value.nodes.length === 0) {
-      return [];
-    }
-
+  function computeSortOrder(nonNullSortBy: string) {
+    const isNode = network.value.nodes.map((node: Node) => node._id).includes(nonNullSortBy);
     let order = range(network.value.nodes.length);
 
-    if (sortBy.value === null) {
-      return order;
-    }
-    const nonNullSortBy = sortBy.value;
+    // Generate edges that are compatible with reorder.js
+    const newEdges: unknown[] = [];
+    network.value.edges.forEach((edge: Edge) => {
+      const source = network.value.nodes.find((node: Node) => node._id === edge._from);
+      const target = network.value.nodes.find((node: Node) => node._id === edge._to);
 
-    const isNode = network.value.nodes.map((node: Node) => node._id).includes(nonNullSortBy);
+      if (source !== undefined && target !== undefined) {
+        newEdges.push({ source, target });
+      }
+    });
 
-    if (nonNullSortBy === 'Clusters') {
-      const newEdges: unknown[] = [];
+    const sortableNetwork = reorder
+      .graph()
+      .nodes(network.value.nodes)
+      .links(newEdges)
+      .init();
 
-      // Generate edges that are compatible with reorder.js
-      network.value.edges.forEach((edge: Edge) => {
-        const source = network.value.nodes.find((node: Node) => node._id === edge._from);
-        const target = network.value.nodes.find((node: Node) => node._id === edge._to);
+    const mat = reorder.graph2mat(sortableNetwork);
 
-        if (source !== undefined && target !== undefined) {
-          newEdges.push({ source, target });
-        }
-      });
-
-      const sortableNetwork = reorder
-        .graph()
-        .nodes(network.value.nodes)
-        .links(newEdges)
-        .init();
-
-      const mat = reorder.graph2mat(sortableNetwork);
-      order = reorder.optimal_leaf_order()(mat);
-    } else if (nonNullSortBy === 'Interactions') {
-      order.sort((a, b) => {
-        const firstValue = network.value.nodes[b][nonNullSortBy] as number;
-        const secondValue = network.value.nodes[a][nonNullSortBy] as number;
-
-        return firstValue - secondValue;
-      });
-    } else if (isNode && nonNullSortBy !== '') {
-      order.sort((a, b) => Number(network.value.nodes[b].neighbors.includes(nonNullSortBy))
-                - Number(network.value.nodes[a].neighbors.includes(nonNullSortBy)));
-    } else if (nonNullSortBy === 'Alphabetically') {
+    if (nonNullSortBy === 'Alphabetically') {
       order.sort((a, b) => {
         const aVal = `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
         const bVal = `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
@@ -492,18 +470,20 @@ export const useStore = defineStore('store', () => {
 
         return aVal.localeCompare(bVal);
       });
-    } else {
-      order.sort((a, b) => {
-        const firstValue = network.value.nodes[b][nonNullSortBy] as number;
-        const secondValue = network.value.nodes[a][nonNullSortBy] as number;
-
-        return firstValue - secondValue;
-      });
+    } else if (nonNullSortBy === 'Clusters') {
+      order = reorder.optimal_leaf_order()(mat);
+    } else if (nonNullSortBy === 'RCM') {
+      order = reorder.reverse_cuthill_mckee_order(sortableNetwork);
+    } else if (isNode) {
+      order.sort((a, b) => (
+        Number(network.value.nodes[b].neighbors.includes(nonNullSortBy))
+        - Number(network.value.nodes[a].neighbors.includes(nonNullSortBy))
+      ));
     }
 
     // Move the children back under the super nodes
     if (aggregated.value) {
-      const oldOrder = structuredClone(order); // Required to stop no-loop-func (order is modified later so has to be cloned)
+      const oldOrder = order; // Required to stop no-loop-func (order is modified later so has to be cloned)
       const newOrder = Array(order.length);
 
       let nextIndex = 0;
@@ -532,6 +512,15 @@ export const useStore = defineStore('store', () => {
     }
 
     return order;
+  }
+  const sortOrder = computed(() => {
+    const colOrder = sortBy.value.network === null ? range(network.value.nodes.length) : computeSortOrder(sortBy.value.network);
+    const rowOrder = sortBy.value.node === null ? colOrder : computeSortOrder(sortBy.value.node);
+
+    return {
+      row: rowOrder,
+      column: colOrder,
+    };
   });
 
   return {

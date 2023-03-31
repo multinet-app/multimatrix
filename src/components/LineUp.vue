@@ -61,12 +61,12 @@ const lineupOrder = computed(() => {
 });
 
 // If store order has changed, update lineup
-let permutingMatrix = structuredClone(sortOrder.value);
+let permutingMatrix = structuredClone(sortOrder.value.row);
 watch(sortOrder, (newSortOrder) => {
   if (lineup.value !== null) {
-    permutingMatrix = structuredClone(newSortOrder);
+    permutingMatrix = structuredClone(newSortOrder.row);
     lineup.value.data.getFirstRanking().setSortCriteria([]);
-    const sortedData = newSortOrder.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
+    const sortedData = newSortOrder.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
     (lineup.value.data as LocalDataProvider).setData(sortedData);
   }
 });
@@ -75,7 +75,7 @@ watch(sortOrder, (newSortOrder) => {
 watch(lineupOrder, () => {
   if (lineup.value !== null && network.value !== null) {
     lineup.value.data.getFirstRanking().setSortCriteria([]);
-    const sortedData = sortOrder.value.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
+    const sortedData = sortOrder.value.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
     (lineup.value.data as LocalDataProvider).setData(sortedData);
   }
 });

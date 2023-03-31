@@ -38,7 +38,6 @@ const {
   rightClickMenu,
   maxConnections,
   selectedHops,
-  sortBy,
 } = storeToRefs(store);
 
 const tooltip = ref(null);
@@ -55,9 +54,12 @@ const matrixWidth = computed(() => (network.value !== null
 const matrixHeight = computed(() => (network.value !== null
   ? network.value.nodes.length * cellSize.value + visMargins.value.top + visMargins.value.bottom
   : 0));
-const orderingScale = computed(() => scaleBand<number>()
-  .domain(sortOrder.value)
-  .range([0, sortOrder.value.length * cellSize.value]));
+const rowOrderingScale = computed(() => scaleBand<number>()
+  .domain(sortOrder.value.row)
+  .range([0, sortOrder.value.row.length * cellSize.value]));
+const columnOrderingScale = computed(() => scaleBand<number>()
+  .domain(sortOrder.value.column)
+  .range([0, sortOrder.value.column.length * cellSize.value]));
 
 // Helpers
 function isCell(element: unknown): element is Cell {
@@ -170,7 +172,7 @@ function processData(): void {
   if (network.value !== null) {
     network.value.nodes.forEach((rowNode: Node, i: number) => {
       if (network.value !== null) {
-        matrix.value[i] = network.value.nodes.map((colNode: Node, j: number) => ({
+        matrix.value[i] = network.value.nodes.map((colNode: Node) => ({
           cellName: `${rowNode._id}_${colNode._id}`,
           rowCellType: rowNode._type,
           colCellType: colNode._type,
@@ -234,7 +236,7 @@ onMounted(() => {
   finishedMounting.value = true;
 });
 
-watch([orderingScale, showGridLines, network, directionalEdges, labelVariable], () => processData());
+watch([sortOrder, showGridLines, network, directionalEdges, labelVariable], () => processData());
 
 processData();
 
@@ -305,8 +307,6 @@ function clickedNeighborClass(node: Node) {
 
   return `${clicked} ${neighbor}`;
 }
-
-const isSortedByNode = computed(() => sortBy.value !== null && network.value.nodes.map((node: Node) => node._id).includes(sortBy.value));
 </script>
 
 <template>
@@ -328,7 +328,7 @@ const isSortedByNode = computed(() => sortBy.value !== null && network.value.nod
             <g
               v-for="node, i of network.nodes"
               :key="`${node._id}_col`"
-              :transform="`translate(${isSortedByNode ? i * cellSize : orderingScale(i)})rotate(-90)`"
+              :transform="`translate(${columnOrderingScale(i)})rotate(-90)`"
               class="column"
               :class="clickedNeighborClass(node)"
             >
@@ -361,7 +361,7 @@ const isSortedByNode = computed(() => sortBy.value !== null && network.value.nod
             <g
               v-for="node, i of network.nodes"
               :key="`${node._id}_row`"
-              :transform="`translate(0,${orderingScale(i)})`"
+              :transform="`translate(0,${rowOrderingScale(i)})`"
               class="row"
               :class="clickedNeighborClass(node)"
             >
@@ -409,7 +409,7 @@ const isSortedByNode = computed(() => sortBy.value !== null && network.value.nod
                 <rect
                   v-for="cell, idx in matrix[i]"
                   :key="cell.cellName"
-                  :x="isSortedByNode ? idx * cellSize + 1 : orderingScale(idx) + 1"
+                  :x="columnOrderingScale(idx) + 1"
                   y="1"
                   :width="cellSize - 2"
                   :height="cellSize - 2"
@@ -432,26 +432,26 @@ const isSortedByNode = computed(() => sortBy.value !== null && network.value.nod
             <line
               v-for="node, i of network.nodes"
               :key="`${node._id}_vertical_gridline`"
-              :transform="`translate(${orderingScale(i)},0)rotate(-90)`"
-              :x1="-orderingScale.range()[1]"
+              :transform="`translate(${columnOrderingScale(i)},0)rotate(-90)`"
+              :x1="-columnOrderingScale.range()[1]"
             />
             <!-- Add last vertical grid line -->
             <line
-              :transform="`translate(${orderingScale.range()[1]},0)rotate(-90)`"
-              :x1="-orderingScale.range()[1]"
+              :transform="`translate(${columnOrderingScale.range()[1]},0)rotate(-90)`"
+              :x1="-columnOrderingScale.range()[1]"
             />
 
             <!-- Horizontal grid lines -->
             <line
               v-for="node, i of network.nodes"
               :key="`${node._id}_horizontal_gridline`"
-              :transform="`translate(0,${orderingScale(i)})`"
-              :x2="orderingScale.range()[1]"
+              :transform="`translate(0,${rowOrderingScale(i)})`"
+              :x2="rowOrderingScale.range()[1]"
             />
             <!-- Add last horizontal grid line -->
             <line
-              :transform="`translate(0,${orderingScale.range()[1]})`"
-              :x2="orderingScale.range()[1]"
+              :transform="`translate(0,${rowOrderingScale.range()[1]})`"
+              :x2="rowOrderingScale.range()[1]"
             />
           </g>
         </svg>

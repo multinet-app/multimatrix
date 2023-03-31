@@ -86,7 +86,7 @@ function removeByDegree() {
   degreeRange.value = degreeRangeLocal.value;
 }
 
-const sortByItems = ['Alphabetically', 'Clusters', 'Interactions'];
+const sortByItems = ['Alphabetically', 'Clusters', 'RCM'];
 </script>
 
 <template>
@@ -149,7 +149,7 @@ const sortByItems = ['Alphabetically', 'Clusters', 'Interactions'];
         </v-list-item>
         <v-list-item>
           <v-autocomplete
-            v-model="sortBy"
+            v-model="sortBy.network"
             label="Sort By"
             :items="sortByItems"
             :hide-details="true"
@@ -157,6 +157,7 @@ const sortByItems = ['Alphabetically', 'Clusters', 'Interactions'];
             clearable
             outlined
             dense
+            @change="sortBy.node = null"
           />
         </v-list-item>
 

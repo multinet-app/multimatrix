@@ -91,7 +91,7 @@ export interface ProvState {
   degreeRange: [number, number];
   sliceIndex: number;
   slicingConfig: SlicingConfig;
-  sortBy: string | null;
+  sortBy: { network: string | null; node: string | null };
 }
 
 export type ProvenanceEventTypes =
