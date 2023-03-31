@@ -436,8 +436,9 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  function computeSortOrder(nonNullSortBy: string) {
-    const isNode = network.value.nodes.map((node: Node) => node._id).includes(nonNullSortBy);
+  function computeSortOrder(nonNullSortBy: string, colOrder?: number[]) {
+    const sortedNode = network.value.nodes.find((node) => node._id === nonNullSortBy);
+    const isNode = sortedNode !== undefined;
     let order = range(network.value.nodes.length);
 
     // Generate edges that are compatible with reorder.js
@@ -474,11 +475,18 @@ export const useStore = defineStore('store', () => {
       order = reorder.optimal_leaf_order()(mat);
     } else if (nonNullSortBy === 'RCM') {
       order = reorder.reverse_cuthill_mckee_order(sortableNetwork);
-    } else if (isNode) {
-      order.sort((a, b) => (
-        Number(network.value.nodes[b].neighbors.includes(nonNullSortBy))
-        - Number(network.value.nodes[a].neighbors.includes(nonNullSortBy))
-      ));
+    } else if (isNode && colOrder !== undefined) {
+      const idxToReinsert: number[] = [];
+      order = [...colOrder];
+      order = order.reverse().filter((idx) => {
+        if (sortedNode.neighbors.includes(network.value.nodes[idx]._id)) {
+          idxToReinsert.push(idx);
+          return false;
+        }
+        return true;
+      }).reverse();
+
+      idxToReinsert.forEach((idx) => order.splice(0, 0, idx));
     }
 
     // Move the children back under the super nodes
@@ -508,7 +516,7 @@ export const useStore = defineStore('store', () => {
   }
   const sortOrder = computed(() => {
     const colOrder = sortBy.value.network === null ? range(network.value.nodes.length) : computeSortOrder(sortBy.value.network);
-    const rowOrder = sortBy.value.node === null ? colOrder : computeSortOrder(sortBy.value.node);
+    const rowOrder = sortBy.value.node === null ? colOrder : computeSortOrder(sortBy.value.node, colOrder);
 
     return {
       row: rowOrder,
