@@ -25,6 +25,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
     isValidRange: false,
   });
   const sliceIndex = ref(0);
+  const sortBy = ref<string | null>(null);
 
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({
@@ -39,6 +40,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
     degreeRange,
     slicingConfig,
     sliceIndex,
+    sortBy,
   }));
 
   // Static snapshot of the initial state for trrack
@@ -123,5 +125,6 @@ export const useProvenanceStore = defineStore('provenance', () => {
     degreeRange,
     slicingConfig,
     sliceIndex,
+    sortBy,
   };
 });

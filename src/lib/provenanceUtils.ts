@@ -104,6 +104,8 @@ export function getTrrackLabel(updates: Partial<ProvState>, previousState: ProvS
     label = `Slice Index Set: ${updates.sliceIndex}`;
   } else if (updates.slicingConfig !== undefined) {
     label = 'Slicing Configuration Updated';
+  } else if (updates.sortBy !== undefined) {
+    label = updates.sortBy === null ? 'Sorting Removed' : `Sorted By: ${updates.sortBy}`;
   } else {
     label = 'Unknown Update';
   }

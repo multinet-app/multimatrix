@@ -13,7 +13,12 @@ import {
 import { calculateNodeDegrees, defineNeighbors } from '@/lib/utils';
 import { isInternalField } from '@/lib/typeUtils';
 import { computed, ref } from 'vue';
+import * as r from 'reorder.js';
 import { useProvenanceStore } from './provenance';
+
+// Hack so that there are no type errors with reorder.js
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const reorder: any = r;
 
 export const useStore = defineStore('store', () => {
   // Provenance
@@ -31,6 +36,7 @@ export const useStore = defineStore('store', () => {
     degreeRange,
     slicingConfig,
     sliceIndex,
+    sortBy,
   } = storeToRefs(provStore);
 
   const workspaceName = ref('');
@@ -54,14 +60,14 @@ export const useStore = defineStore('store', () => {
   const selectedConnectivityPaths = ref<ArangoPath[]>([]);
   const showPathTable = ref(false);
   const maxIntConnections = ref(0);
-  const sortOrder = ref<number[]>([]);
   const intAggregatedBy = ref(undefined);
   const networkTables = ref<Table[]>([]);
   const columnTypes = ref<{ [tableName: string]: ColumnTypes } | null>(null);
-  const rightClickMenu = ref({
+  const rightClickMenu = ref<{ show: boolean; top: number; left: number; nodeID?: string }>({
     show: false,
     top: 0,
     left: 0,
+    nodeID: undefined,
   });
   const slicedNetwork = ref<SlicedNetwork[]>([]);
   const isDate = ref(false);
@@ -216,7 +222,7 @@ export const useStore = defineStore('store', () => {
     }
 
     // Reset sort order now that network has changed
-    sortOrder.value = range(0, networkAfterOperations.nodes.length);
+    sortBy.value = '';
 
     // Recalculate neighbors
     defineNeighbors(networkAfterOperations.nodes, networkAfterOperations.edges);
@@ -430,6 +436,106 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  const sortOrder = computed(() => {
+    if (network.value.nodes.length === 0) {
+      return [];
+    }
+
+    let order = range(network.value.nodes.length);
+
+    if (sortBy.value === null) {
+      return order;
+    }
+    const nonNullSortBy = sortBy.value;
+
+    const isNode = network.value.nodes.map((node: Node) => node._id).includes(nonNullSortBy);
+
+    if (nonNullSortBy === 'Clusters') {
+      const newEdges: unknown[] = Array(network.value.edges.length);
+
+      // Generate edges that are compatible with reorder.js
+      network.value.edges.forEach((edge: Edge, index: number) => {
+        newEdges[index] = {
+          source: network.value.nodes.find(
+            (node: Node) => node._id === edge._from,
+          ),
+          target: network.value.nodes.find(
+            (node: Node) => node._id === edge._to,
+          ),
+        };
+      });
+
+      const sortableNetwork = reorder
+        .graph()
+        .nodes(network.value.nodes)
+        .links(newEdges)
+        .init();
+
+      const mat = reorder.graph2mat(sortableNetwork);
+      order = reorder.optimal_leaf_order()(mat);
+    } else if (nonNullSortBy === 'Interactions') {
+      order.sort((a, b) => {
+        const firstValue = network.value.nodes[b][nonNullSortBy] as number;
+        const secondValue = network.value.nodes[a][nonNullSortBy] as number;
+
+        return firstValue - secondValue;
+      });
+    } else if (isNode && nonNullSortBy !== '') {
+      order.sort((a, b) => Number(network.value.nodes[b].neighbors.includes(nonNullSortBy))
+                - Number(network.value.nodes[a].neighbors.includes(nonNullSortBy)));
+    } else if (nonNullSortBy === 'Alphabetically') {
+      order.sort((a, b) => {
+        const aVal = `${network.value.nodes[a][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+        const bVal = `${network.value.nodes[b][labelVariable.value === undefined ? '_key' : labelVariable.value]}`;
+
+        if (!Number.isNaN(parseInt(aVal, 10)) && !Number.isNaN(parseInt(aVal, 10))) {
+          return a < b ? -1 : 1;
+        }
+
+        return aVal.localeCompare(bVal);
+      });
+    } else {
+      order.sort((a, b) => {
+        const firstValue = network.value.nodes[b][nonNullSortBy] as number;
+        const secondValue = network.value.nodes[a][nonNullSortBy] as number;
+
+        return firstValue - secondValue;
+      });
+    }
+
+    // Move the children back under the super nodes
+    if (aggregated.value) {
+      const oldOrder = structuredClone(order); // Required to stop no-loop-func (order is modified later so has to be cloned)
+      const newOrder = Array(order.length);
+
+      let nextIndex = 0;
+      for (let i = 0; i < order.length;) {
+        if (newOrder.includes(order[nextIndex])) {
+          nextIndex += 1;
+        } else {
+          newOrder[i] = order[nextIndex];
+          const childrenToCheck = network.value.nodes[newOrder[i]].children;
+          i += 1;
+          nextIndex += 1;
+
+          if (childrenToCheck !== undefined) {
+            childrenToCheck
+              .filter((child) => network.value.nodes.includes(child))
+              .sort((a, b) => oldOrder.indexOf(network.value.nodes.indexOf(a)) - oldOrder.indexOf(network.value.nodes.indexOf(b)))
+              .forEach((child) => {
+                newOrder[i] = network.value.nodes.indexOf(child);
+                i += 1;
+              });
+          }
+        }
+      }
+
+      order = newOrder;
+    }
+
+    return order;
+  });
+
   return {
     workspaceName,
     networkName,
@@ -492,5 +598,6 @@ export const useStore = defineStore('store', () => {
     degreeRange,
     slicingConfig,
     sliceIndex,
+    sortBy,
   };
 });
