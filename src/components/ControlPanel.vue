@@ -86,7 +86,7 @@ function removeByDegree() {
   degreeRange.value = degreeRangeLocal.value;
 }
 
-const sortByItems = ['Alphabetically', 'Clusters', 'RCM'];
+const sortByItems = ['Alphabetically', 'Clusters', 'Neighborhoods'];
 </script>
 
 <template>

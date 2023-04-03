@@ -473,7 +473,7 @@ export const useStore = defineStore('store', () => {
       });
     } else if (nonNullSortBy === 'Clusters') {
       order = reorder.optimal_leaf_order()(mat);
-    } else if (nonNullSortBy === 'RCM') {
+    } else if (nonNullSortBy === 'Neighborhoods') {
       order = reorder.reverse_cuthill_mckee_order(sortableNetwork);
     } else if (isNode && colOrder !== undefined) {
       const idxToReinsert: number[] = [];
