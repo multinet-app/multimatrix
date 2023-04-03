@@ -2,10 +2,9 @@
 import { ProvVisCreator } from '@trrack/vis-react';
 import { onMounted, ref } from 'vue';
 import { useStore } from '@/store';
-import { storeToRefs } from 'pinia';
 
 const store = useStore();
-const { provenance } = storeToRefs(store);
+const { provenance } = store;
 
 const provDiv = ref();
 const provVisHeight = ref(document.body.clientHeight - 48 - 48);
@@ -13,8 +12,8 @@ const resizeObserver = new ResizeObserver((entries) => { provVisHeight.value = e
 resizeObserver.observe(document.body);
 
 onMounted(() => {
-  if (provenance.value !== null && provDiv.value != null) {
-    ProvVisCreator(provDiv.value, provenance.value);
+  if (provDiv.value != null) {
+    ProvVisCreator(provDiv.value, provenance);
   }
 });
 </script>
