@@ -103,7 +103,7 @@ function exportNetwork() {
 
       <edge-slices v-if="slicedNetwork.length > 0" />
 
-      <multi-matrix v-if="network.nodes.length > 0" />
+      <multi-matrix v-if="network.nodes.length > 0" :style="{ marginLeft: showControlPanel ? '256px' : 0 }" />
 
       <alert-banner v-if="loadError.message !== ''" />
     </v-main>
