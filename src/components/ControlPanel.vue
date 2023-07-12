@@ -38,7 +38,6 @@ const {
 } = storeToRefs(store);
 
 // Template objects
-const showMenu = ref(false);
 const aggregationItems = computed(() => {
   // Rebuild column types but just for node columns
   const nodeColumnTypes = columnTypes.value !== null ? Object.fromEntries(Object.entries(columnTypes.value).filter(([tableName]) => nodeTableNames.value.includes(tableName))) : {};
@@ -87,219 +86,208 @@ function removeByDegree() {
 }
 
 const sortByItems = ['Alphabetically', 'Clusters', 'Neighborhoods'];
+
+const expandedPanels = ref<number[]>([3]);
+// Make it so the connectivity query cannot expand, but still opens the modal
+watch(expandedPanels, () => {
+  if (expandedPanels.value.includes(2)) {
+    expandedPanels.value = expandedPanels.value.filter((panel) => panel !== 2);
+  }
+});
 </script>
 
 <template>
   <v-navigation-drawer
     id="app-sidebar"
-    permanent
   >
-    <v-list class="pa-0">
-      <v-subheader class="grey darken-3 py-0 pr-0 white--text">
-        Visualization Options
+    <v-expansion-panels v-model="expandedPanels" accordion tile dark multiple>
+      <v-expansion-panel>
+        <v-expansion-panel-header color="grey darken-3">
+          Visualization Options
+        </v-expansion-panel-header>
 
-        <v-spacer />
-
-        <v-btn
-          :min-width="40"
-          :height="48"
-          depressed
-          tile
-          class="grey darken-3 pa-0"
-          @click="showMenu = !showMenu"
-        >
-          <v-icon color="white">
-            {{ showMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
-          </v-icon>
-        </v-btn>
-      </v-subheader>
-
-      <v-card
-        v-if="showMenu"
-        dark
-        tile
-        flat
-        color="grey darken-3"
-        class="pb-4 pt-0"
-      >
-        <v-list-item>
-          <v-autocomplete
-            v-model="labelVariable"
-            label="Label Variable"
-            :items="nodeVariableItems"
-            :hide-details="true"
-            class="mt-3"
-            clearable
-            outlined
-            dense
-          />
-        </v-list-item>
-        <v-list-item>
-          <v-autocomplete
-            v-model="aggregatedBy"
-            label="Aggregation Variable"
-            :items="aggregationItems"
-            :hide-details="true"
-            class="mt-3"
-            clearable
-            outlined
-            dense
-            @change="store.aggregateNetwork"
-          />
-        </v-list-item>
-        <v-list-item>
-          <v-autocomplete
-            v-model="sortBy.network"
-            label="Sort By"
-            :items="sortByItems"
-            :hide-details="true"
-            class="mt-3"
-            clearable
-            outlined
-            dense
-            @change="sortBy.node = null"
-          />
-        </v-list-item>
-
-        <!-- Auto-Select Neighbors List Item -->
-        <v-list-item>
-          <v-list-item-content> Autoselect Neighbors </v-list-item-content>
-          <v-list-item-action>
-            <v-switch
-              v-model="selectNeighbors"
-              hide-details
-              color="blue darken-1"
-            />
-          </v-list-item-action>
-        </v-list-item>
-
-        <!-- Gridline Toggle List Item -->
-        <v-list-item>
-          <v-list-item-content> Show GridLines </v-list-item-content>
-          <v-list-item-action>
-            <v-switch
-              v-model="showGridLines"
-              hide-details
-              color="blue darken-1"
-            />
-          </v-list-item-action>
-        </v-list-item>
-
-        <!-- Directional Edges Toggle Card -->
-        <v-list-item>
-          <v-list-item-content> Directional Edges </v-list-item-content>
-          <v-list-item-action>
-            <v-switch
-              v-model="directionalEdges"
-              hide-details
-              color="blue darken-1"
-            />
-          </v-list-item-action>
-        </v-list-item>
-
-        <v-list-item>
-          Cell Size
-          <v-slider
-            v-model="cellSize"
-            :min="10"
-            :max="100"
-            :label="String(cellSize)"
-            class="px-2"
-            inverse-label
-            hide-details
-            color="blue darken-1"
-          />
-        </v-list-item>
-
-        <v-list-item>
-          <v-list-item-content> Degree </v-list-item-content>
-          <v-range-slider
-            v-model="degreeRangeLocal"
-            :max="maxDegree"
-            min="0"
-            hide-details
-            class="align-center"
-            color="blue darken-1"
-            :disabled="aggregated"
-            @change="removeByDegree"
-          >
-            <template #prepend>
-              <p
-                class="pa-0 ma-0 text-center"
-                style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
-              >
-                {{ degreeRangeLocal[0] }}
-              </p>
-            </template>
-            <template #append>
-              <p
-                class="pa-0 ma-0 text-center"
-                style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
-              >
-                {{ degreeRangeLocal[1] }}
-              </p>
-            </template>
-          </v-range-slider>
-        </v-list-item>
-
-        <!-- Download Network As 1-Hop CSV-->
-        <v-list-item>
-          <v-btn
-            block
-            color="grey darken-2 white--text"
-            depressed
-            @click="displayCSVBuilder()"
-          >
-            Network as 1-hop (CSV)
-          </v-btn>
-        </v-list-item>
-      </v-card>
-
-      <v-subheader class="grey darken-3 py-0 white--text">
-        Edge Legend
-      </v-subheader>
-
-      <div class="pa-4">
-        <!-- Aggregated Matrix Legend -->
-        <color-scale-legend v-if="aggregated || degreeFiltered" :scale="parentColorScale" :label="aggregated ? 'Count of Aggregated Edges' : 'Count of Filtered Edges'" />
-
-        <!-- Matrix Legend -->
-        <color-scale-legend v-if="maxConnections.unAggr > 0" :scale="cellColorScale" :label="aggregated ? 'Count of Child Edges' : 'Count of Edges'" />
-      </div>
-
-      <!-- Int Table Controls + Legend -->
-      <div v-if="showIntNodeVis">
-        <v-subheader class="grey darken-3 py-0 white--text">
-          Intermediate Node Table
-        </v-subheader>
-
-        <div class="pa-4">
-          <!-- Aggregation Variable Selection -->
-          <v-list-item
-            class="pa-0 ma-0"
-          >
-            <v-list-item-content class="pa-0 ma-0">
+        <v-expansion-panel-content color="grey darken-3">
+          <v-list>
+            <v-list-item>
               <v-autocomplete
-                v-model="intAggregatedBy"
-                class="pa-0 ma-0"
+                v-model="labelVariable"
+                label="Label Variable"
                 :items="nodeVariableItems"
-                hint="Variable to aggregate by"
-                persistent-hint
+                :hide-details="true"
                 clearable
+                outlined
+                dense
               />
-            </v-list-item-content>
-          </v-list-item>
+            </v-list-item>
+            <v-list-item>
+              <v-autocomplete
+                v-model="aggregatedBy"
+                label="Aggregation Variable"
+                :items="aggregationItems"
+                :hide-details="true"
+                clearable
+                outlined
+                dense
+                @change="store.aggregateNetwork"
+              />
+            </v-list-item>
+            <v-list-item>
+              <v-autocomplete
+                v-model="sortBy.network"
+                label="Sort By"
+                :items="sortByItems"
+                :hide-details="true"
+                clearable
+                outlined
+                dense
+                @change="sortBy.node = null"
+              />
+            </v-list-item>
 
-          <!-- Matrix Legend -->
-          <color-scale-legend v-if="maxIntConnections > 0" :scale="intTableColorScale" label="Count of Edges" />
-        </div>
-      </div>
-      <!-- Edge Slicing -->
+            <!-- Auto-Select Neighbors List Item -->
+            <v-list-item>
+              <v-list-item-content> Autoselect Neighbors </v-list-item-content>
+              <v-list-item-action>
+                <v-switch
+                  v-model="selectNeighbors"
+                  hide-details
+                  color="blue darken-1"
+                />
+              </v-list-item-action>
+            </v-list-item>
+
+            <!-- Gridline Toggle List Item -->
+            <v-list-item>
+              <v-list-item-content> Show GridLines </v-list-item-content>
+              <v-list-item-action>
+                <v-switch
+                  v-model="showGridLines"
+                  hide-details
+                  color="blue darken-1"
+                />
+              </v-list-item-action>
+            </v-list-item>
+
+            <!-- Directional Edges Toggle Card -->
+            <v-list-item>
+              <v-list-item-content> Directional Edges </v-list-item-content>
+              <v-list-item-action>
+                <v-switch
+                  v-model="directionalEdges"
+                  hide-details
+                  color="blue darken-1"
+                />
+              </v-list-item-action>
+            </v-list-item>
+
+            <v-list-item>
+              Cell Size
+              <v-slider
+                v-model="cellSize"
+                :min="10"
+                :max="100"
+                :label="String(cellSize)"
+                class="px-2 align-center"
+                inverse-label
+                hide-details
+                color="blue darken-1"
+              />
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-content> Degree </v-list-item-content>
+              <v-range-slider
+                v-model="degreeRangeLocal"
+                :max="maxDegree"
+                min="0"
+                hide-details
+                class="align-center"
+                color="blue darken-1"
+                :disabled="aggregated"
+                @change="removeByDegree"
+              >
+                <template #prepend>
+                  <p
+                    class="pa-0 ma-0 text-center"
+                    style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
+                  >
+                    {{ degreeRangeLocal[0] }}
+                  </p>
+                </template>
+                <template #append>
+                  <p
+                    class="pa-0 ma-0 text-center"
+                    style="min-width: 25px; color: rgba(255, 255, 255, 0.7);"
+                  >
+                    {{ degreeRangeLocal[1] }}
+                  </p>
+                </template>
+              </v-range-slider>
+            </v-list-item>
+
+            <!-- Download Network As 1-Hop CSV-->
+            <v-list-item>
+              <v-btn
+                block
+                color="grey darken-2 white--text"
+                depressed
+                @click="displayCSVBuilder()"
+              >
+                Network as 1-hop (CSV)
+              </v-btn>
+            </v-list-item>
+          </v-list>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+
       <EdgeSlicing />
 
-      <!-- Connectivity Query -->
-      <connectivity-query />
-    </v-list>
+      <ConnectivityQuery />
+
+      <v-expansion-panel>
+        <v-expansion-panel-header color="grey darken-3">
+          Edge Legend
+        </v-expansion-panel-header>
+
+        <v-expansion-panel-content color="grey darken-3">
+          <div class="pa-4">
+            <!-- Aggregated Matrix Legend -->
+            <ColorScaleLegend v-if="aggregated || degreeFiltered" :scale="parentColorScale" :label="aggregated ? 'Count of Aggregated Edges' : 'Count of Filtered Edges'" />
+
+            <!-- Matrix Legend -->
+            <ColorScaleLegend v-if="maxConnections.unAggr > 0" :scale="cellColorScale" :label="aggregated ? 'Count of Child Edges' : 'Count of Edges'" />
+          </div>
+
+          <!-- Int Table Controls + Legend -->
+          <div v-if="showIntNodeVis">
+            <v-subheader class="grey darken-3 py-0 white--text">
+              Intermediate Node Table
+            </v-subheader>
+
+            <div class="pa-4">
+              <!-- Aggregation Variable Selection -->
+              <v-list-item
+                class="pa-0 ma-0"
+              >
+                <v-list-item-content class="pa-0 ma-0">
+                  <v-autocomplete
+                    v-model="intAggregatedBy"
+                    class="pa-0 ma-0"
+                    :items="nodeVariableItems"
+                    hint="Variable to aggregate by"
+                    persistent-hint
+                    clearable
+                  />
+                </v-list-item-content>
+              </v-list-item>
+
+              <!-- Matrix Legend -->
+              <ColorScaleLegend v-if="maxIntConnections > 0" :scale="intTableColorScale" label="Count of Edges" />
+            </div>
+          </div>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
   </v-navigation-drawer>
 </template>
 
@@ -308,5 +296,11 @@ const sortByItems = ['Alphabetically', 'Clusters', 'Neighborhoods'];
   position: absolute;
   top: 48px !important;
   height: calc(100% - 48px) !important;
+}
+</style>
+
+<style>
+.v-expansion-panel-content__wrap {
+  padding: 0 6px 8px 6px;
 }
 </style>

@@ -16,7 +16,6 @@ const {
   slicingConfig,
 } = storeToRefs(store);
 
-const showMenu = ref(false);
 const sliceRules = (value: string) => !Number.isNaN(parseFloat(value)) || 'Please type a number';
 const calMenu = ref([false, false]);
 const isSliced = computed(() => slicedNetwork.value.length === 0);
@@ -295,33 +294,13 @@ function resetNetwork() {
 </script>
 
 <template>
-  <div id="edgeslicing">
-    <v-list class="pa-0">
-      <v-subheader class="grey darken-3 py-0 pr-0 white--text">
-        Edge Slicing
+  <v-expansion-panel>
+    <v-expansion-panel-header color="grey darken-3">
+      Edge Slicing
+    </v-expansion-panel-header>
 
-        <v-spacer />
-
-        <v-btn
-          :min-width="40"
-          :height="48"
-          depressed
-          tile
-          class="grey darken-3 pa-0"
-          @click="showMenu = !showMenu"
-        >
-          <v-icon color="white">
-            {{ showMenu ? "mdi-chevron-up" : "mdi-chevron-down" }}
-          </v-icon>
-        </v-btn>
-      </v-subheader>
-
-      <v-card
-        v-if="showMenu"
-        flat
-        color="white"
-        class="pb-4 pt-2"
-      >
+    <v-expansion-panel-content color="grey darken-3">
+      <v-list>
         <v-list-item>
           <v-select
             v-model="startEdgeVar"
@@ -503,7 +482,7 @@ function resetNetwork() {
             </v-col>
           </v-row>
         </v-list-item>
-      </v-card>
-    </v-list>
-  </div>
+      </v-list>
+    </v-expansion-panel-content>
+  </v-expansion-panel>
 </template>
