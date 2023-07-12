@@ -3,7 +3,6 @@ import AlertBanner from '@/components/AlertBanner.vue';
 import ProvVis from '@/components/ProvVis.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import MultiMatrix from '@/components/MultiMatrix.vue';
-import EdgeSlices from '@/components/EdgeSlices.vue';
 import { getUrlVars } from '@/lib/utils';
 import { useStore } from '@/store';
 import 'multinet-components/dist/style.css';
@@ -18,7 +17,6 @@ const {
   network,
   loadError,
   showProvenanceVis,
-  slicedNetwork,
   labelVariable,
   selectedNodes,
   userInfo,
@@ -101,8 +99,6 @@ function exportNetwork() {
 
       <control-panel v-show="showControlPanel" />
 
-      <edge-slices v-if="slicedNetwork.length > 0" />
-
       <multi-matrix v-if="network.nodes.length > 0" :style="{ marginLeft: showControlPanel ? '256px' : 0 }" />
 
       <alert-banner v-if="loadError.message !== ''" />
@@ -113,18 +109,9 @@ function exportNetwork() {
 </template>
 
 <style>
-body {
-  scrollbar-width: none;
-}
-
-::-webkit-scrollbar {
-  display: none;
-}
-
 #app {
   font-family: Blinker, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: none;
 }
 </style>
