@@ -29,8 +29,6 @@ export const useProvenanceStore = defineStore('provenance', () => {
   const sliceIndex = ref(0);
   const sortBy = ref<{ network : string | null; node: string | null }>({ network: null, node: null });
 
-  const { sessionId } = getUrlVars();
-
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({
     selectNeighbors,
@@ -114,14 +112,22 @@ export const useProvenanceStore = defineStore('provenance', () => {
       const updates = findDifferencesInPrimitiveStates(getPiniaStateSnapshot(), provenance.getState());
       Object.entries(updates).forEach(([key, val]) => { currentPiniaState.value[key as keyof ProvState].value = val; });
     }
-
-    api.updateSession(sessionId || '', 'network', provenance.export());
   });
 
-  // Attempt to restore session
+  // Variables to help with session management (this is not tracked in trrack)
+  const { sessionId, workspace, network } = getUrlVars();
+  const workspaceName = ref(workspace || '');
+  const networkName = ref(network || '');
+
+  // Update the session when the provenance changes
+  provenance.currentChange(() => {
+    api.updateSession(workspaceName.value, sessionId || '', 'network', provenance.export());
+  });
+
+  // Attempt to restore session on first load
   async function restoreSession() {
     if (sessionId) {
-      const session = await api.getSession(sessionId, 'network');
+      const session = await api.getSession(workspaceName.value, sessionId, 'network');
 
       // If the session is empty, the API will be an empty object
       // Only attempt to import if we have a string
@@ -146,5 +152,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
     slicingConfig,
     sliceIndex,
     sortBy,
+    workspaceName,
+    networkName,
   };
 });

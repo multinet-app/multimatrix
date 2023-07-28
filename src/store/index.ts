@@ -37,10 +37,10 @@ export const useStore = defineStore('store', () => {
     slicingConfig,
     sliceIndex,
     sortBy,
+    workspaceName,
+    networkName,
   } = storeToRefs(provStore);
 
-  const workspaceName = ref('');
-  const networkName = ref('');
   const loadError = ref<LoadError>({
     message: '',
     href: '',
@@ -290,10 +290,14 @@ export const useStore = defineStore('store', () => {
     });
   }
 
-  async function fetchNetwork(workspaceNameLocal: string, networkNameLocal: string) {
-    workspaceName.value = workspaceNameLocal;
-    networkName.value = networkNameLocal;
-
+  async function fetchNetwork() {
+    if (workspaceName.value === '' || networkName.value === '') {
+      loadError.value = {
+        message: 'Workspace and/or network were not defined in the url',
+        href: 'https://multinet.app',
+      };
+      return;
+    }
     let networkLocal: NetworkSpec | undefined;
 
     // Get all table names
@@ -302,17 +306,10 @@ export const useStore = defineStore('store', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.status === 404) {
-        if (workspaceName.value === undefined || networkName.value === undefined) {
-          loadError.value = {
-            message: 'Workspace and/or network were not defined in the url',
-            href: 'https://multinet.app',
-          };
-        } else {
-          loadError.value = {
-            message: error.statusText,
-            href: 'https://multinet.app',
-          };
-        }
+        loadError.value = {
+          message: error.statusText,
+          href: 'https://multinet.app',
+        };
       } else if (error.status === 401) {
         loadError.value = {
           message: 'You are not authorized to view this workspace',
