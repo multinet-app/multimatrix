@@ -13,7 +13,7 @@
           y="10"
           height="15"
           :width="rectWidth"
-          style="stroke-width: 1px; stroke:rgb(0,0,0);"
+          style="stroke-width: 1px; stroke: white;"
         />
         <text
           v-for="item, index in items"
@@ -21,6 +21,7 @@
           :x="(index * (rectWidth + rectPad)) + (rectWidth / 2)"
           y="40"
           text-anchor="middle"
+          fill="white"
         >
           {{ item.input }}
         </text>
@@ -59,7 +60,7 @@ const items = computed(() => {
 });
 </script>
 
-<style>
+<style scoped>
 svg {
   min-width: 150px;
 }

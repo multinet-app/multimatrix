@@ -212,13 +212,6 @@ watchEffect(async () => {
 </script>
 
 <style>
-#app {
-  font-family: "Blinker", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow: none;
-}
-
 .v-btn__content {
   padding-bottom: 2px;
 }

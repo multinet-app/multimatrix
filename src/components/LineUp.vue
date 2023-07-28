@@ -6,10 +6,7 @@ import {
 import LineUp, {
   Column, DataBuilder, IBuilderAdapterColumnDescProps, LocalDataProvider,
 } from 'lineupjs';
-import { select } from 'd3';
 import { isInternalField } from '@/lib/typeUtils';
-import vuetify from '@/plugins/vuetify';
-import WindowInstanceMap from '@/lib/windowSizeUtils';
 import { storeToRefs } from 'pinia';
 
 const store = useStore();
@@ -31,27 +28,6 @@ const matrixElement = document.getElementById('matrix');
 if (matrixElement !== null) {
   matrixResizeObserver.observe(matrixElement);
 }
-
-const lineupWidth = computed(() => {
-  const controlsElementWidth = vuetify.framework.application.left;
-  const intermediaryElement = select<Element, Element>('#intNodeDiv').node();
-
-  let availableSpace = WindowInstanceMap.innerWidth - controlsElementWidth - matrixWidth.value - 12; // 12 from the svg container padding
-  if (intermediaryElement !== null) {
-    availableSpace -= intermediaryElement.clientWidth;
-  }
-  return availableSpace < 280 ? 280 : availableSpace; // 280 is width of popover. clamping at 280 prevents ugly overlap
-});
-
-const lineupHeight = computed(() => {
-  let possibleHeight = 500;
-  if (network.value !== null && lineup.value !== null) {
-    const tableHeader = lineup.value.node.getElementsByClassName('le-thead')[0];
-    possibleHeight = tableHeader.clientHeight + (cellSize.value * network.value.nodes.length) + 34 + 24; // 34 padding-top, 24 is needed to remove scroll
-  }
-
-  return possibleHeight < 500 ? 500 : possibleHeight;
-});
 
 const lineupOrder = computed(() => {
   if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
@@ -201,7 +177,6 @@ function removeHighlight() {
 <template>
   <div
     id="lineup"
-    :style="`width: ${lineupWidth}px; height: ${lineupHeight}px`"
     @mouseleave="removeHighlight"
   />
 </template>
@@ -218,5 +193,9 @@ function removeHighlight() {
 .le-header {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
+}
+
+.le-body {
+  overflow: hidden !important;
 }
 </style>

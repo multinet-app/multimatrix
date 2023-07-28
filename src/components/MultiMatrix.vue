@@ -14,6 +14,7 @@ import {
 } from 'vue';
 import PathTable from '@/components/PathTable.vue';
 import { storeToRefs } from 'pinia';
+import EdgeSlices from './EdgeSlices.vue';
 
 const store = useStore();
 const {
@@ -38,6 +39,7 @@ const {
   rightClickMenu,
   maxConnections,
   selectedHops,
+  slicedNetwork,
 } = storeToRefs(store);
 
 const tooltip = ref(null);
@@ -310,155 +312,155 @@ function clickedNeighborClass(node: Node) {
 </script>
 
 <template>
-  <div>
-    <v-container class="d-inline-flex">
-      <div>
-        <svg
-          :width="matrixWidth"
-          :height="matrixHeight"
-          :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
-          :style="`margin-top: ${lineupIsNested ? 31 : 0}px`"
-          @contextmenu="showContextMenu"
+  <v-container style="width: unset; max-width: unset; overflow: auto;">
+    <EdgeSlices v-if="slicedNetwork.length > 0" />
+
+    <div style="display: flex; min-width: fit-content;">
+      <svg
+        :width="matrixWidth"
+        :height="matrixHeight"
+        :viewbox="`0 0 ${matrixWidth} ${matrixHeight}`"
+        :style="`margin-top: ${lineupIsNested ? 14 : 2}px; float: left; min-width: ${matrixWidth}px;`"
+        @contextmenu="showContextMenu"
+      >
+        <g
+          id="matrix"
+          :transform="`translate(${visMargins.left},${visMargins.top})`"
         >
+          <!-- Columns -->
           <g
-            id="matrix"
-            :transform="`translate(${visMargins.left},${visMargins.top})`"
+            v-for="node, i of network.nodes"
+            :key="`${node._id}_col`"
+            :transform="`translate(${columnOrderingScale(i)})rotate(-90)`"
+            class="column"
+            :class="clickedNeighborClass(node)"
           >
-            <!-- Columns -->
-            <g
-              v-for="node, i of network.nodes"
-              :key="`${node._id}_col`"
-              :transform="`translate(${columnOrderingScale(i)})rotate(-90)`"
-              class="column"
-              :class="clickedNeighborClass(node)"
+            <rect
+              class="highlightContainer"
+              :width="highlightLength + visMargins.top + visMargins.bottom"
+              :height="cellSize"
+              :x="-highlightLength - visMargins.bottom"
+              fill-opacity="0"
+              @mouseover="(event) => { showToolTip(event, node); hoverNode(node._id); }"
+              @mouseout="(event) => { hideToolTip(); unHoverNode(node._id); }"
+              @click="clickElement(node)"
+              @contextmenu="e => { e.stopPropagation(); showContextMenu(e, node._id) }"
+            />
+            <foreignObject
+              :width="colLabelWidth"
+              :height="cellSize"
+              x="5"
             >
-              <rect
-                class="highlightContainer"
-                :width="highlightLength + visMargins.top + visMargins.bottom"
-                :height="cellSize"
-                :x="-highlightLength - visMargins.bottom"
-                fill-opacity="0"
-                @mouseover="(event) => { showToolTip(event, node); hoverNode(node._id); }"
-                @mouseout="(event) => { hideToolTip(); unHoverNode(node._id); }"
-                @click="clickElement(node)"
-                @contextmenu="e => { e.stopPropagation(); showContextMenu(e, node._id) }"
-              />
-              <foreignObject
-                :width="colLabelWidth"
-                :height="cellSize"
-                x="5"
+              <p
+                :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node._type !== 'supernode') || (degreeFiltered && node._type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
+                class="label colLabel"
               >
-                <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${(aggregated && node._type !== 'supernode') || (degreeFiltered && node._type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
-                  class="label colLabel"
-                >
-                  {{ node._type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
-                </p>
-              </foreignObject>
-            </g>
+                {{ node._type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+              </p>
+            </foreignObject>
+          </g>
 
-            <!-- Rows -->
-            <g
-              v-for="node, i of network.nodes"
-              :key="`${node._id}_row`"
-              :transform="`translate(0,${rowOrderingScale(i)})`"
-              class="row"
-              :class="clickedNeighborClass(node)"
+          <!-- Rows -->
+          <g
+            v-for="node, i of network.nodes"
+            :key="`${node._id}_row`"
+            :transform="`translate(0,${rowOrderingScale(i)})`"
+            class="row"
+            :class="clickedNeighborClass(node)"
+          >
+            <rect
+              class="highlightContainer"
+              :width="highlightLength + visMargins.left + visMargins.right"
+              :height="cellSize"
+              :x="-visMargins.left"
+              fill-opacity="0"
+              @mouseover="(event) => { showToolTip(event, node); hoverNode(node._id); }"
+              @mouseout="(event) => { hideToolTip(); unHoverNode(node._id); }"
+              @click="clickElement(node)"
+            />
+            <foreignObject
+              :width="labelWidth"
+              :height="cellSize"
+              :x="-labelWidth"
             >
-              <rect
-                class="highlightContainer"
-                :width="highlightLength + visMargins.left + visMargins.right"
-                :height="cellSize"
-                :x="-visMargins.left"
-                fill-opacity="0"
-                @mouseover="(event) => { showToolTip(event, node); hoverNode(node._id); }"
-                @mouseout="(event) => { hideToolTip(); unHoverNode(node._id); }"
-                @click="clickElement(node)"
-              />
-              <foreignObject
-                :width="labelWidth"
-                :height="cellSize"
-                :x="-labelWidth"
+              <p
+                :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && (node._type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
+                class="label"
               >
-                <p
-                  :style="`margin-top: ${cellSize * -0.1}px; font-size: ${labelFontSize}px; color: ${aggregated && (node._type !== 'supernode') ? '#AAAAAA' : '#000000'}`"
-                  class="label"
-                >
-                  {{ node._type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
-                </p>
-              </foreignObject>
+                {{ node._type === 'supernode' || labelVariable === undefined ? node['_key'] : node[labelVariable] }}
+              </p>
+            </foreignObject>
 
-              <!-- Clickable row expand/retract -->
-              <path
-                v-if="node._type === 'supernode'"
-                :d="expandedSuperNodes.has(node._id) ? retractPath : expandPath"
-                :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})scale(0.5)`"
-                fill="#8B8B8B"
-              />
+            <!-- Clickable row expand/retract -->
+            <path
+              v-if="node._type === 'supernode'"
+              :d="expandedSuperNodes.has(node._id) ? retractPath : expandPath"
+              :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})scale(0.5)`"
+              fill="#8B8B8B"
+            />
+            <rect
+              v-if="node._type === 'supernode'"
+              :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})`"
+              width="10"
+              height="10"
+              opacity="0"
+              @click="expandOrRetractRow(node)"
+            />
+
+            <!-- Cells -->
+            <g class="cellsGroup">
               <rect
-                v-if="node._type === 'supernode'"
-                :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})`"
-                width="10"
-                height="10"
-                opacity="0"
-                @click="expandOrRetractRow(node)"
+                v-for="cell, idx in matrix[i]"
+                :key="cell.cellName"
+                :x="columnOrderingScale(idx) + 1"
+                y="1"
+                :width="cellSize - 2"
+                :height="cellSize - 2"
+                :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (degreeFiltered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                :fill-opacity="cell.z"
+                :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
+                @mouseover="(event) => { showToolTip(event, cell); hoverEdge(cell); }"
+                @mouseout="(event) => { hideToolTip(); unHoverEdge(cell); }"
+                @click="clickElement(cell)"
               />
-
-              <!-- Cells -->
-              <g class="cellsGroup">
-                <rect
-                  v-for="cell, idx in matrix[i]"
-                  :key="cell.cellName"
-                  :x="columnOrderingScale(idx) + 1"
-                  y="1"
-                  :width="cellSize - 2"
-                  :height="cellSize - 2"
-                  :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (degreeFiltered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
-                  :fill-opacity="cell.z"
-                  :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
-                  @mouseover="(event) => { showToolTip(event, cell); hoverEdge(cell); }"
-                  @mouseout="(event) => { hideToolTip(); unHoverEdge(cell); }"
-                  @click="clickElement(cell)"
-                />
-              </g>
             </g>
           </g>
-          <g
-            v-if="showGridLines"
-            class="gridLines"
-            transform="translate(75,110)"
-          >
-            <!-- Vertical grid lines -->
-            <line
-              v-for="node, i of network.nodes"
-              :key="`${node._id}_vertical_gridline`"
-              :transform="`translate(${columnOrderingScale(i)},0)rotate(-90)`"
-              :x1="-columnOrderingScale.range()[1]"
-            />
-            <!-- Add last vertical grid line -->
-            <line
-              :transform="`translate(${columnOrderingScale.range()[1]},0)rotate(-90)`"
-              :x1="-columnOrderingScale.range()[1]"
-            />
+        </g>
+        <g
+          v-if="showGridLines"
+          class="gridLines"
+          transform="translate(75,110)"
+        >
+          <!-- Vertical grid lines -->
+          <line
+            v-for="node, i of network.nodes"
+            :key="`${node._id}_vertical_gridline`"
+            :transform="`translate(${columnOrderingScale(i)},0)rotate(-90)`"
+            :x1="-columnOrderingScale.range()[1]"
+          />
+          <!-- Add last vertical grid line -->
+          <line
+            :transform="`translate(${columnOrderingScale.range()[1]},0)rotate(-90)`"
+            :x1="-columnOrderingScale.range()[1]"
+          />
 
-            <!-- Horizontal grid lines -->
-            <line
-              v-for="node, i of network.nodes"
-              :key="`${node._id}_horizontal_gridline`"
-              :transform="`translate(0,${rowOrderingScale(i)})`"
-              :x2="rowOrderingScale.range()[1]"
-            />
-            <!-- Add last horizontal grid line -->
-            <line
-              :transform="`translate(0,${rowOrderingScale.range()[1]})`"
-              :x2="rowOrderingScale.range()[1]"
-            />
-          </g>
-        </svg>
-      </div>
+          <!-- Horizontal grid lines -->
+          <line
+            v-for="node, i of network.nodes"
+            :key="`${node._id}_horizontal_gridline`"
+            :transform="`translate(0,${rowOrderingScale(i)})`"
+            :x2="rowOrderingScale.range()[1]"
+          />
+          <!-- Add last horizontal grid line -->
+          <line
+            :transform="`translate(0,${rowOrderingScale.range()[1]})`"
+            :x2="rowOrderingScale.range()[1]"
+          />
+        </g>
+      </svg>
       <intermediary-nodes v-if="finishedMounting && showIntNodeVis" />
       <line-up v-if="finishedMounting" />
-    </v-container>
+    </div>
 
     <div
       id="tooltip"
@@ -466,7 +468,7 @@ function clickedNeighborClass(node: Node) {
     />
     <path-table v-if="showPathTable" />
     <context-menu />
-  </div>
+  </v-container>
 </template>
 
 <style scoped>

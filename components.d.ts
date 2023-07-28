@@ -7,6 +7,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AboutDialog: typeof import('./src/components/AboutDialog.vue')['default']
     AlertBanner: typeof import('./src/components/AlertBanner.vue')['default']
+    ColorScaleLegend: typeof import('./src/components/ColorScaleLegend.vue')['default']
     ConnectivityQuery: typeof import('./src/components/ConnectivityQuery.vue')['default']
     ContextMenu: typeof import('./src/components/ContextMenu.vue')['default']
     ControlPanel: typeof import('./src/components/ControlPanel.vue')['default']
@@ -33,6 +34,10 @@ declare module 'vue' {
     VDialog: typeof import('vuetify/lib')['VDialog']
     VDivider: typeof import('vuetify/lib')['VDivider']
     VExpandTransition: typeof import('vuetify/lib')['VExpandTransition']
+    VExpansionPanel: typeof import('vuetify/lib')['VExpansionPanel']
+    VExpansionPanelContent: typeof import('vuetify/lib')['VExpansionPanelContent']
+    VExpansionPanelHeader: typeof import('vuetify/lib')['VExpansionPanelHeader']
+    VExpansionPanels: typeof import('vuetify/lib')['VExpansionPanels']
     VIcon: typeof import('vuetify/lib')['VIcon']
     VList: typeof import('vuetify/lib')['VList']
     VListItem: typeof import('vuetify/lib')['VListItem']
