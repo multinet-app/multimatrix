@@ -28,7 +28,7 @@
     "react-dom": "^18.2.0",
     "reorder.js": "^2.2.5",
     "unplugin-vue-components": "^0.22.12",
-    "vite": "^4.0.2",
+    "vite": "^4.0.5",
     "vue": "^2.7.0",
     "vuetify": "^2.6.10"
   },
