@@ -3,7 +3,6 @@ import AlertBanner from '@/components/AlertBanner.vue';
 import ProvVis from '@/components/ProvVis.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import MultiMatrix from '@/components/MultiMatrix.vue';
-import { getUrlVars } from '@/lib/utils';
 import { useStore } from '@/store';
 import 'multinet-components/dist/style.css';
 import { storeToRefs } from 'pinia';
