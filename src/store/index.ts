@@ -368,7 +368,7 @@ export const useStore = defineStore('store', () => {
     const nodeRows = await api.nodes(workspaceName.value, networkName.value, { offset: 0, limit: 300 });
 
     // Generate and resolve edge table promise and extract rows
-    const edges = await api.edges(workspaceName.value, networkName.value, { offset: 0, limit: 1000 });
+    const edges = await api.edges(workspaceName.value, networkName.value, { offset: 0, limit: Number.MAX_SAFE_INTEGER });
 
     const nodes = defineNeighbors(nodeRows.results, edges.results as Edge[]);
 
