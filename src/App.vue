@@ -10,6 +10,7 @@ import { undoRedoKeyHandler } from '@/lib/provenanceUtils';
 import { ref, computed } from 'vue';
 import { ToolBar } from 'multinet-components';
 import oauthClient from '@/oauth';
+import { isInternalField } from './lib/typeUtils';
 
 const store = useStore();
 const {
@@ -31,14 +32,15 @@ const showControlPanel = ref(false);
 
 const searchItems = computed(() => {
   if (labelVariable.value !== undefined) {
-    return network.value.nodes.map((node) => (node[labelVariable.value || ''])) as string[];
+    const allCombinations = network.value.nodes.map((node) => Object.entries(node).map(([key, value]) => (isInternalField(key) ? null : ({ text: `${key}: ${value}`, value: { [key]: value } })))).flat();
+    return [...new Map(allCombinations.filter((combo) => combo !== null).map((combo) => [combo?.text, combo])).values()];
   }
   return [];
 });
 
-function search(searchTerm: string) {
+function search(searchTerm: Record<string, unknown>) {
   const nodeIDsToSelect = network.value.nodes
-    .filter((node) => (labelVariable.value !== undefined && node[labelVariable.value] === searchTerm))
+    .filter((node) => Object.entries(searchTerm).every(([key, value]) => node[key] === value))
     .map((node) => node._id);
 
   if (nodeIDsToSelect.length > 0) {
