@@ -12,7 +12,7 @@ import {
 } from '@/types';
 import { calculateNodeDegrees, defineNeighbors } from '@/lib/utils';
 import { isInternalField } from '@/lib/typeUtils';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import * as r from 'reorder.js';
 import { useProvenanceStore } from './provenance';
 
@@ -263,6 +263,22 @@ export const useStore = defineStore('store', () => {
     nodeColumnNames = nodeColumnNames.filter((varName) => !isInternalField(varName));
 
     return nodeColumnNames;
+  });
+
+  // Set the label variable to the first node "label" column on load
+  watch(nodeVariableItems, () => {
+    // Filter the column names to only those that are labels
+    const nodeTableTypes = nodeTableNames.value.map((nodeTableName: string) => (columnTypes.value !== null ? columnTypes.value[nodeTableName] : {}));
+    const labelCandidate = nodeTableTypes
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .map((nodeTableType) => Object.entries(nodeTableType).filter(([col, type]) => type === 'label').map(([col, type]) => col))
+      .flat()
+      .filter((col) => !isInternalField(col));
+
+    // If there are label candidates, set the label variable to the first one
+    if (labelCandidate.length > 0) {
+      [labelVariable.value] = labelCandidate;
+    }
   });
 
   const edgeVariableItems = computed(() => {
