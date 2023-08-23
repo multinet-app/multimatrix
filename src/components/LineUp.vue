@@ -8,6 +8,7 @@ import LineUp, {
 } from 'lineupjs';
 import { isInternalField } from '@/lib/typeUtils';
 import { storeToRefs } from 'pinia';
+import { arraysAreEqual } from '@/lib/provenanceUtils';
 
 const store = useStore();
 const {
@@ -43,11 +44,14 @@ watch(sortOrder, (newSortOrder) => {
 });
 
 // If lineup order has changed, update matrix
-watch(lineupOrder, () => {
+watch(lineupOrder, (newOrder, oldOrder) => {
   if (lineup.value !== null && network.value !== null) {
     lineup.value.data.getFirstRanking().setSortCriteria([]);
     const sortedData = sortOrder.value.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
-    (lineup.value.data as LocalDataProvider).setData(sortedData);
+
+    if (!arraysAreEqual(newOrder, oldOrder)) {
+      (lineup.value.data as LocalDataProvider).setData(sortedData);
+    }
   }
 });
 

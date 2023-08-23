@@ -25,7 +25,7 @@ export function isArray(input: unknown): input is Array<string> {
   return typeof input === 'object' && input !== null && input.constructor === Array;
 }
 
-function arraysAreEqual<T>(a: T[], b: T[]) {
+export function arraysAreEqual<T>(a: T[], b: T[]) {
   return a.length === b.length && a.every((element, index) => element === b[index]);
 }
 
