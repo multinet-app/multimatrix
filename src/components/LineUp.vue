@@ -172,6 +172,8 @@ watch(cellSize, () => {
 function removeHighlight() {
   hoveredNodes.value = [];
 }
+
+const labelFontSize = computed(() => `${0.8 * cellSize.value}px`);
 </script>
 
 <template>
@@ -197,5 +199,9 @@ function removeHighlight() {
 
 .le-body {
   overflow: hidden !important;
+}
+
+.le-td {
+  font-size: v-bind(labelFontSize);
 }
 </style>
