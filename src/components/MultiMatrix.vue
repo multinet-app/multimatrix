@@ -14,6 +14,7 @@ import {
 } from 'vue';
 import PathTable from '@/components/PathTable.vue';
 import { storeToRefs } from 'pinia';
+import { isInternalField } from '@/lib/typeUtils';
 import EdgeSlices from './EdgeSlices.vue';
 
 const store = useStore();
@@ -101,13 +102,10 @@ function showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
           Col ID: ${networkElement.colID} <br/>
           Number of edges: ${networkElement.z}`;
   } else {
-    // Get node id
-    message = `ID: ${networkElement._id}`;
-
     // Loop through other props to add to tooltip
     Object.keys(networkElement).forEach((key) => {
-      if (!['_key', '_rev', 'id', 'neighbors'].includes(key)) {
-        message += `<br/> ${capitalizeFirstLetter(key)}: ${networkElement[key]}`;
+      if (!isInternalField(key)) {
+        message += `${capitalizeFirstLetter(key)}: ${networkElement[key]} <br/>`;
       }
     });
   }
