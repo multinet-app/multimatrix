@@ -29,12 +29,7 @@ if (matrixElement !== null) {
   matrixResizeObserver.observe(matrixElement);
 }
 
-const lineupOrder = computed(() => {
-  if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
-    return [...Array(network.value?.nodes.length).keys()];
-  }
-  return [...lineup.value.data.getFirstRanking().getOrder()];
-});
+const lineupOrder = ref<number[]>([]);
 
 // If store order has changed, update lineup
 let permutingMatrix = structuredClone(sortOrder.value.row);
@@ -136,6 +131,8 @@ function buildLineup() {
 
       [lastHovered] = hoveredIDs;
     });
+
+    lineup.value?.data.on('orderChanged', (order) => { lineupOrder.value = order; });
 
     lineup.value.data.getFirstRanking().on('groupsChanged', (oldSortOrder: number[], newSortOrder: number[], oldGroups: { name: string }[], newGroups: { name: string }[]) => {
       if (JSON.stringify(oldGroups.map((group) => group.name)) !== JSON.stringify(newGroups.map((group) => group.name))) {
