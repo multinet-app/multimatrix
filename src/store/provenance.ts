@@ -27,7 +27,7 @@ export const useProvenanceStore = defineStore('provenance', () => {
     isValidRange: false,
   });
   const sliceIndex = ref(0);
-  const sortBy = ref<{ network : string | null; node: string | null }>({ network: null, node: null });
+  const sortBy = ref<{ network : string | null; node: string | null; lineup: number[] | null }>({ network: null, node: null, lineup: null });
 
   // A live computed state so that we can edit the values when trrack does undo/redo
   const currentPiniaState = computed(() => ({

@@ -222,7 +222,7 @@ export const useStore = defineStore('store', () => {
     }
 
     // Reset sort order now that network has changed
-    sortBy.value = { network: null, node: null };
+    sortBy.value = { network: null, node: null, lineup: null };
 
     // Recalculate neighbors
     defineNeighbors(networkAfterOperations.nodes, networkAfterOperations.edges);
@@ -533,8 +533,8 @@ export const useStore = defineStore('store', () => {
     const rowOrder = sortBy.value.node === null ? colOrder : computeSortOrder(sortBy.value.node, colOrder);
 
     return {
-      row: rowOrder,
-      column: colOrder,
+      row: sortBy.value.lineup || rowOrder,
+      column: sortBy.value.lineup || colOrder,
     };
   });
 

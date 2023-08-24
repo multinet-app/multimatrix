@@ -18,6 +18,7 @@ const {
   cellSize,
   sortOrder,
   lineupIsNested,
+  sortBy,
 } = storeToRefs(store);
 
 const lineup = ref<LineUp | null>(null);
@@ -30,36 +31,36 @@ if (matrixElement !== null) {
   matrixResizeObserver.observe(matrixElement);
 }
 
-const lineupOrder = ref<number[]>([]);
+const lineupOrder = ref<number[]>(Array.from({ length: network.value !== null ? network.value.nodes.length : 0 }, (_, i) => i));
 
 // If store order has changed, update lineup
-let permutingMatrix = structuredClone(sortOrder.value.row);
 watch(sortOrder, (newSortOrder) => {
-  if (lineup.value !== null) {
-    permutingMatrix = structuredClone(newSortOrder.row);
-    lineup.value.data.getFirstRanking().setSortCriteria([]);
-    const sortedData = newSortOrder.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
-    (lineup.value.data as LocalDataProvider).setData(sortedData);
-  }
+  // TODO: Make lineup responsive to global sort order
+  // if (lineup.value !== null && !arraysAreEqual(newSortOrder.row, lineupOrder.value)) {
+  //   lineup.value.data.getFirstRanking().setSortCriteria([]);
+  //   const sortedData = newSortOrder.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
+  //   (lineup.value.data as LocalDataProvider).setData(sortedData);
+  // }
 });
 
 // If lineup order has changed, update matrix
-watch(lineupOrder, (newOrder, oldOrder) => {
-  if (lineup.value !== null && network.value !== null) {
-    lineup.value.data.getFirstRanking().setSortCriteria([]);
-    const sortedData = sortOrder.value.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
-
-    if (!arraysAreEqual(newOrder, oldOrder)) {
-      (lineup.value.data as LocalDataProvider).setData(sortedData);
-    }
+watch(lineupOrder, (newOrder) => {
+  // If the order is empty, don't update
+  if (newOrder.length === 0) {
+    return;
   }
+  // If the order is the same as the matrix, don't update
+  if (arraysAreEqual(newOrder, sortOrder.value.row)) {
+    sortBy.value.lineup = null;
+    return;
+  }
+  // Otherwise, update the matrix with the lineup sort order
+  sortBy.value.lineup = newOrder;
 });
 
 // Helper functions
 function idsToIndices(ids: string[]) {
-  const sortedData = permutingMatrix.map((i) => (network.value !== null ? network.value.nodes[i] : null));
-
-  return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
+  return ids.map((nodeID) => network.value.nodes.findIndex((node) => (node === null ? false : node._id === nodeID)));
 }
 
 // Update selection/hover from matrix
@@ -74,8 +75,7 @@ watchEffect(() => {
 
 function indicesToIDs(indices: number[]) {
   if (network.value !== null) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return indices.map((index) => network.value!.nodes[permutingMatrix[index]]._id);
+    return indices.map((index) => network.value?.nodes[index]._id);
   }
   return [];
 }
@@ -136,7 +136,11 @@ function buildLineup() {
       [lastHovered] = hoveredIDs;
     });
 
-    lineup.value?.data.on('orderChanged', (order) => { lineupOrder.value = order; });
+    lineup.value?.data.on('orderChanged', (oldOrder, newOrder, c, d, reasonArray) => {
+      if (reasonArray[0] === 'sort_changed') {
+        lineupOrder.value = newOrder;
+      }
+    });
 
     lineup.value.data.getFirstRanking().on('groupsChanged', (oldSortOrder: number[], newSortOrder: number[], oldGroups: { name: string }[], newGroups: { name: string }[]) => {
       if (JSON.stringify(oldGroups.map((group) => group.name)) !== JSON.stringify(newGroups.map((group) => group.name))) {
