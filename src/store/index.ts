@@ -277,7 +277,8 @@ export const useStore = defineStore('store', () => {
 
     // If there are label candidates, set the label variable to the first one
     if (labelCandidate.length > 0) {
-      [labelVariable.value] = labelCandidate;
+      // eslint-disable-next-line prefer-destructuring
+      labelVariable.value = labelCandidate[0];
     }
   });
 
