@@ -7,7 +7,6 @@ export interface Dimensions {
 
 export interface Node extends TableRow {
   neighbors: string[];
-  degreeCount: number;
   children?: Node[];
   parentPosition?: number;
   _type?: string;

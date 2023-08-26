@@ -29,7 +29,7 @@ module.exports = {
     'no-debugger': ['error'],
     'vue/max-len': ['off'],
     'import/prefer-default-export': ['off'],
-    'no-underscore-dangle': ['error', { allow: ['_id', '_from', '_to', '_key', '_type'] }],
+    'no-underscore-dangle': ['error', { allow: ['_id', '_from', '_to', '_key', '_type', '_index'] }],
     ...a11yOff,
     'no-param-reassign': ['error', { props: false }],
     'import/extensions': ['error', { ts: 'never', vue: 'always' }],

@@ -33,18 +33,46 @@ if (matrixElement !== null) {
 
 const lineupOrder = ref<number[]>(Array.from({ length: network.value !== null ? network.value.nodes.length : 0 }, (_, i) => i));
 
+function hideIndexColumn(lineupDiv: HTMLElement) {
+  const colNumber = [...lineupDiv.getElementsByClassName('lu-th-label')]
+    .filter((label) => (label as HTMLElement).innerText === '_index')[0]
+    .parentElement?.getAttribute('data-id');
+  const elements = document.querySelectorAll(`[data-id="${colNumber}"]:not(.hidden)`);
+
+  if (elements.length > 2) {
+    elements.forEach((element) => {
+      element.classList.add('hidden');
+    });
+  } else {
+    // Retry after 100ms
+    setTimeout(() => {
+      hideIndexColumn(lineupDiv);
+    }, 200);
+  }
+}
+
 // If store order has changed, update lineup
 watch(sortOrder, (newSortOrder) => {
-  // TODO: Make lineup responsive to global sort order
-  // if (lineup.value !== null && !arraysAreEqual(newSortOrder.row, lineupOrder.value)) {
-  //   lineup.value.data.getFirstRanking().setSortCriteria([]);
-  //   const sortedData = newSortOrder.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
-  //   (lineup.value.data as LocalDataProvider).setData(sortedData);
-  // }
+  if (
+    lineup.value !== null
+    && newSortOrder.row.length === lineupOrder.value.length
+    && !arraysAreEqual(newSortOrder.row, lineupOrder.value)
+  ) {
+    // Update the index column
+    newSortOrder.row.forEach((sortIndex, i) => {
+      (lineup.value?.data as LocalDataProvider).data[sortIndex]._index = i;
+    });
+
+    // Sort the index column
+    const col = (lineup.value.data as LocalDataProvider).find((d) => d.desc.label === '_index');
+    col?.markDirty('values'); // tell lineup that
+    col?.sortByMe(true);
+  }
 });
 
 // If lineup order has changed, update matrix
 watch(lineupOrder, (newOrder) => {
+  hideIndexColumn(document.getElementById('lineup') as HTMLElement);
   // If the order is empty, don't update
   if (newOrder.length === 0) {
     return;
@@ -55,7 +83,11 @@ watch(lineupOrder, (newOrder) => {
     return;
   }
   // Otherwise, update the matrix with the lineup sort order
-  sortBy.value.lineup = newOrder;
+  sortBy.value = {
+    lineup: newOrder,
+    network: null,
+    node: null,
+  };
 });
 
 // Helper functions
@@ -95,9 +127,13 @@ function buildLineup() {
   const lineupDiv = document.getElementById('lineup');
 
   if (network.value !== null && lineupDiv !== null) {
-    const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column));
+    // Clone the data to avoid modifying the store and add an index column
+    const childrenKeys = [...new Set(network.value.nodes.map((node) => (node.children ? Object.keys(node.children[0]) : [])).flat())];
+    const childrenKeysObject = Object.fromEntries(childrenKeys.map((key) => [key, null]));
+    const lineupData = structuredClone(network.value.nodes).map((node, i) => ({ ...node, ...(node.children ? childrenKeysObject : {}), _index: i }));
+    const columns = [...new Set(lineupData.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column));
 
-    builder.value = new DataBuilder(network.value.nodes);
+    builder.value = new DataBuilder(lineupData);
 
     // Config adjustments
     builder.value
@@ -115,6 +151,9 @@ function buildLineup() {
       .deriveColors()
       .defaultRanking()
       .build(lineupDiv);
+
+    // Hide the index column
+    hideIndexColumn(lineupDiv);
 
     let lastHovered = '';
 
@@ -137,9 +176,10 @@ function buildLineup() {
     });
 
     lineup.value?.data.on('orderChanged', (oldOrder, newOrder, c, d, reasonArray) => {
-      if (reasonArray[0] === 'sort_changed') {
-        lineupOrder.value = newOrder;
+      if (reasonArray[0] === 'group_changed') {
+        return;
       }
+      lineupOrder.value = newOrder;
     });
 
     lineup.value.data.getFirstRanking().on('groupsChanged', (oldSortOrder: number[], newSortOrder: number[], oldGroups: { name: string }[], newGroups: { name: string }[]) => {
@@ -208,5 +248,9 @@ const labelFontSize = computed(() => `${0.8 * cellSize.value}px`);
 
 .le-td {
   font-size: v-bind(labelFontSize);
+}
+
+.hidden {
+  display: none !important;
 }
 </style>

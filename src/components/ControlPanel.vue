@@ -140,7 +140,7 @@ watch(expandedPanels, () => {
                 clearable
                 outlined
                 dense
-                @change="sortBy.node = null"
+                @change="sortBy = { ...sortBy, node: (sortBy.network === null ? sortBy.node : null), lineup: null }"
               />
             </v-list-item>
 

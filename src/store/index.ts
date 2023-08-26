@@ -147,7 +147,6 @@ export const useStore = defineStore('store', () => {
           children: value.map((node) => structuredClone(node)),
           _type: 'supernode',
           neighbors: [] as string[],
-          degreeCount: 0,
           [aggregatedBy.value!]: key,
         }),
       );
@@ -197,7 +196,6 @@ export const useStore = defineStore('store', () => {
       const filteredNode: Node = {
         _type: 'supernode',
         neighbors: [],
-        degreeCount: 0,
         _key: 'filtered',
         _id: 'filtered',
         _rev: '',
@@ -529,12 +527,13 @@ export const useStore = defineStore('store', () => {
     return order;
   }
   const sortOrder = computed(() => {
-    const colOrder = sortBy.value.network === null ? range(network.value.nodes.length) : computeSortOrder(sortBy.value.network);
+    const colOrder = sortBy.value.lineup
+      || (sortBy.value.network === null ? range(network.value.nodes.length) : computeSortOrder(sortBy.value.network));
     const rowOrder = sortBy.value.node === null ? colOrder : computeSortOrder(sortBy.value.node, colOrder);
 
     return {
-      row: sortBy.value.lineup || rowOrder,
-      column: sortBy.value.lineup || colOrder,
+      row: rowOrder,
+      column: colOrder,
     };
   });
 
