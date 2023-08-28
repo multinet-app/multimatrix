@@ -140,7 +140,7 @@ watch(expandedPanels, () => {
                 clearable
                 outlined
                 dense
-                @change="sortBy.node = null"
+                @change="sortBy = { ...sortBy, node: (sortBy.network === null ? sortBy.node : null), lineup: null }"
               />
             </v-list-item>
 
@@ -184,7 +184,7 @@ watch(expandedPanels, () => {
               Cell Size
               <v-slider
                 v-model="cellSize"
-                :min="10"
+                :min="5"
                 :max="100"
                 :label="String(cellSize)"
                 class="px-2 align-center"

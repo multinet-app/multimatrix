@@ -8,6 +8,7 @@ import LineUp, {
 } from 'lineupjs';
 import { isInternalField } from '@/lib/typeUtils';
 import { storeToRefs } from 'pinia';
+import { arraysAreEqual } from '@/lib/provenanceUtils';
 
 const store = useStore();
 const {
@@ -17,6 +18,7 @@ const {
   cellSize,
   sortOrder,
   lineupIsNested,
+  sortBy,
 } = storeToRefs(store);
 
 const lineup = ref<LineUp | null>(null);
@@ -29,38 +31,68 @@ if (matrixElement !== null) {
   matrixResizeObserver.observe(matrixElement);
 }
 
-const lineupOrder = computed(() => {
-  if (lineup.value === null || [...lineup.value.data.getFirstRanking().getOrder()].length === 0) {
-    return [...Array(network.value?.nodes.length).keys()];
+const lineupOrder = ref<number[]>(Array.from({ length: network.value !== null ? network.value.nodes.length : 0 }, (_, i) => i));
+
+function hideIndexColumn(lineupDiv: HTMLElement) {
+  const colNumber = [...lineupDiv.getElementsByClassName('lu-th-label')]
+    .filter((label) => (label as HTMLElement).innerText === '_index')[0]
+    .parentElement?.getAttribute('data-id');
+  const elements = document.querySelectorAll(`[data-id="${colNumber}"]:not(.hidden)`);
+
+  if (elements.length > 2) {
+    elements.forEach((element) => {
+      element.classList.add('hidden');
+    });
+  } else {
+    // Retry after 100ms
+    setTimeout(() => {
+      hideIndexColumn(lineupDiv);
+    }, 200);
   }
-  return [...lineup.value.data.getFirstRanking().getOrder()];
-});
+}
 
 // If store order has changed, update lineup
-let permutingMatrix = structuredClone(sortOrder.value.row);
 watch(sortOrder, (newSortOrder) => {
-  if (lineup.value !== null) {
-    permutingMatrix = structuredClone(newSortOrder.row);
-    lineup.value.data.getFirstRanking().setSortCriteria([]);
-    const sortedData = newSortOrder.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
-    (lineup.value.data as LocalDataProvider).setData(sortedData);
+  if (
+    lineup.value !== null
+    && newSortOrder.row.length === lineupOrder.value.length
+    && !arraysAreEqual(newSortOrder.row, lineupOrder.value)
+  ) {
+    // Update the index column
+    newSortOrder.row.forEach((sortIndex, i) => {
+      (lineup.value?.data as LocalDataProvider).data[sortIndex]._index = i;
+    });
+
+    // Sort the index column
+    const col = (lineup.value.data as LocalDataProvider).find((d) => d.desc.label === '_index');
+    col?.markDirty('values'); // tell lineup that
+    col?.sortByMe(true);
   }
 });
 
 // If lineup order has changed, update matrix
-watch(lineupOrder, () => {
-  if (lineup.value !== null && network.value !== null) {
-    lineup.value.data.getFirstRanking().setSortCriteria([]);
-    const sortedData = sortOrder.value.row.map((i) => (network.value !== null ? network.value.nodes[i] : {}));
-    (lineup.value.data as LocalDataProvider).setData(sortedData);
+watch(lineupOrder, (newOrder) => {
+  hideIndexColumn(document.getElementById('lineup') as HTMLElement);
+  // If the order is empty, don't update
+  if (newOrder.length === 0) {
+    return;
   }
+  // If the order is the same as the matrix, don't update
+  if (arraysAreEqual(newOrder, sortOrder.value.row)) {
+    sortBy.value.lineup = null;
+    return;
+  }
+  // Otherwise, update the matrix with the lineup sort order
+  sortBy.value = {
+    lineup: newOrder,
+    network: null,
+    node: null,
+  };
 });
 
 // Helper functions
 function idsToIndices(ids: string[]) {
-  const sortedData = permutingMatrix.map((i) => (network.value !== null ? network.value.nodes[i] : null));
-
-  return ids.map((nodeID) => sortedData.findIndex((node) => (node === null ? false : node._id === nodeID)));
+  return ids.map((nodeID) => network.value.nodes.findIndex((node) => (node === null ? false : node._id === nodeID)));
 }
 
 // Update selection/hover from matrix
@@ -75,8 +107,7 @@ watchEffect(() => {
 
 function indicesToIDs(indices: number[]) {
   if (network.value !== null) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return indices.map((index) => network.value!.nodes[permutingMatrix[index]]._id);
+    return indices.map((index) => network.value?.nodes[index]._id);
   }
   return [];
 }
@@ -96,9 +127,13 @@ function buildLineup() {
   const lineupDiv = document.getElementById('lineup');
 
   if (network.value !== null && lineupDiv !== null) {
-    const columns = [...new Set(network.value.nodes.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column));
+    // Clone the data to avoid modifying the store and add an index column
+    const childrenKeys = [...new Set(network.value.nodes.map((node) => (node.children ? Object.keys(node.children[0]) : [])).flat())];
+    const childrenKeysObject = Object.fromEntries(childrenKeys.map((key) => [key, null]));
+    const lineupData = structuredClone(network.value.nodes).map((node, i) => ({ ...node, ...(node.children ? childrenKeysObject : {}), _index: i }));
+    const columns = [...new Set(lineupData.map((node) => Object.keys(node)).flat())].filter((column) => !isInternalField(column));
 
-    builder.value = new DataBuilder(network.value.nodes);
+    builder.value = new DataBuilder(lineupData);
 
     // Config adjustments
     builder.value
@@ -116,6 +151,9 @@ function buildLineup() {
       .deriveColors()
       .defaultRanking()
       .build(lineupDiv);
+
+    // Hide the index column
+    hideIndexColumn(lineupDiv);
 
     let lastHovered = '';
 
@@ -135,6 +173,13 @@ function buildLineup() {
       hoveredIDs.forEach((nodeID) => hoveredNodes.value.push(nodeID));
 
       [lastHovered] = hoveredIDs;
+    });
+
+    lineup.value?.data.on('orderChanged', (oldOrder, newOrder, c, d, reasonArray) => {
+      if (reasonArray[0] === 'group_changed') {
+        return;
+      }
+      lineupOrder.value = newOrder;
     });
 
     lineup.value.data.getFirstRanking().on('groupsChanged', (oldSortOrder: number[], newSortOrder: number[], oldGroups: { name: string }[], newGroups: { name: string }[]) => {
@@ -172,6 +217,8 @@ watch(cellSize, () => {
 function removeHighlight() {
   hoveredNodes.value = [];
 }
+
+const labelFontSize = computed(() => `${0.8 * cellSize.value}px`);
 </script>
 
 <template>
@@ -197,5 +244,13 @@ function removeHighlight() {
 
 .le-body {
   overflow: hidden !important;
+}
+
+.le-td {
+  font-size: v-bind(labelFontSize);
+}
+
+.hidden {
+  display: none !important;
 }
 </style>

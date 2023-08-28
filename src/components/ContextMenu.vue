@@ -27,7 +27,7 @@ const { rightClickMenu, sortBy } = storeToRefs(store);
         <v-list-item
           v-if="rightClickMenu.nodeID !== undefined"
           dense
-          @click="sortBy.node = sortBy.node === rightClickMenu.nodeID ? null : rightClickMenu.nodeID"
+          @click="sortBy = { ...sortBy, node: sortBy.node === rightClickMenu.nodeID ? null : rightClickMenu.nodeID }"
         >
           <v-list-item-content>
             <v-list-item-title>{{ sortBy.node === rightClickMenu.nodeID ? 'Remove Neighbor Sort' : 'Sort Neighbors' }}</v-list-item-title>
