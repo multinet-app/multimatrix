@@ -41,6 +41,7 @@ const {
   maxConnections,
   selectedHops,
   slicedNetwork,
+  expandedNodeIDs,
 } = storeToRefs(store);
 
 const tooltip = ref(null);
@@ -48,7 +49,6 @@ const visMargins = ref({
   left: 75, top: 110, right: 1, bottom: 1,
 });
 const matrix = ref<Cell[][]>([]);
-const expandedSuperNodes = ref(new Set<string>());
 const finishedMounting = ref(false);
 
 const matrixWidth = computed(() => (network.value !== null
@@ -112,8 +112,8 @@ function showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   select(tooltip.value as any)
-    .style('left', `${event.clientX + 10}px`)
-    .style('top', `${event.clientY - toolbarHeight + 10}px`)
+    .style('left', `${event.offsetX + 25}px`)
+    .style('top', `${event.offsetY + 10}px`)
     .html(message)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .transition(transition().delay(100).duration(200) as any)
@@ -206,22 +206,11 @@ function processData(): void {
   // Find max value of z
   matrix.value.forEach((row: Cell[]) => {
     row.forEach((cell: Cell) => {
-      if (
-        cell.rowCellType === undefined
-            || cell.colCellType === undefined
-      ) {
-        if (cell.z > maxNumConnections) {
-          maxNumConnections = cell.z;
-        }
+      if (cell.rowCellType === undefined && cell.colCellType === undefined && cell.z > maxNumConnections) {
+        maxNumConnections = cell.z;
       }
-      if (
-        (cell.rowCellType === 'supernode'
-            && cell.colCellType === 'supernode') || (degreeFiltered.value && (cell.rowCellType === 'supernode'
-            || cell.colCellType === 'supernode'))
-      ) {
-        if (cell.z > maxAggrConnections) {
-          maxAggrConnections = cell.z;
-        }
+      if ((cell.rowCellType === 'supernode' || cell.colCellType === 'supernode') && cell.z > maxAggrConnections) {
+        maxAggrConnections = cell.z;
       }
     });
   });
@@ -278,13 +267,11 @@ function expandOrRetractRow(node: Node) {
       return;
     }
     // expand and retract the supernode aggregation based on user selection
-    if (expandedSuperNodes.value.has(node._id)) {
+    if (expandedNodeIDs.value.includes(node._id)) {
       // retract
-      expandedSuperNodes.value.delete(node._id);
       store.retractAggregatedNode(node._id);
     } else {
       // expand
-      expandedSuperNodes.value.add(node._id);
       store.expandAggregatedNode(node._id);
     }
   } else {
@@ -392,7 +379,7 @@ function clickedNeighborClass(node: Node) {
             <!-- Clickable row expand/retract -->
             <path
               v-if="node._type === 'supernode'"
-              :d="expandedSuperNodes.has(node._id) ? retractPath : expandPath"
+              :d="expandedNodeIDs.includes(node._id) ? retractPath : expandPath"
               :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})scale(0.5)`"
               fill="#8B8B8B"
             />
@@ -414,7 +401,7 @@ function clickedNeighborClass(node: Node) {
                 y="1"
                 :width="cellSize - 2"
                 :height="cellSize - 2"
-                :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (degreeFiltered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                :fill="(cell.rowCellType === 'supernode' || cell.colCellType === 'supernode') ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                 :fill-opacity="cell.z"
                 :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                 @mouseover="(event) => { showToolTip(event, cell); hoverEdge(cell); }"
