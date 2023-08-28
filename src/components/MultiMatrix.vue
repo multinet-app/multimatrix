@@ -112,8 +112,8 @@ function showToolTip(event: MouseEvent, networkElement: Cell | Node): void {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   select(tooltip.value as any)
-    .style('left', `${event.clientX + 10}px`)
-    .style('top', `${event.clientY - toolbarHeight + 10}px`)
+    .style('left', `${event.offsetX + 25}px`)
+    .style('top', `${event.offsetY + 10}px`)
     .html(message)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .transition(transition().delay(100).duration(200) as any)
