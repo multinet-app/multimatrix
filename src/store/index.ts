@@ -74,17 +74,20 @@ export const useStore = defineStore('store', () => {
   const controlsWidth = ref(256);
   const selectedHops = ref(1);
   const nodeDegreeDict = ref<{ [key: string]: number }>({});
-  const maxDegree = ref(0);
   const networkPreFilter = ref<Network>({ nodes: [], edges: [] });
   const lineupIsNested = ref(false);
 
   const networkOnLoad = ref<Network>({ nodes: [], edges: [] });
   const aggregated = computed(() => aggregatedBy.value !== null);
+  watch(directionalEdges, () => {
+    degreeRange.value = [0, calculateNodeDegrees(networkOnLoad.value, directionalEdges.value)[1]];
+  });
   const degreeRangeOnLoad = computed<[number, number]>(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, maxDegreeLocal] = calculateNodeDegrees(networkOnLoad.value, directionalEdges.value);
     return [0, maxDegreeLocal];
   });
+  const maxDegree = computed(() => calculateNodeDegrees(networkOnLoad.value, directionalEdges.value)[1]);
   const degreeFiltered = computed(() => !(degreeRange.value[0] === degreeRangeOnLoad.value[0] && degreeRange.value[1] === degreeRangeOnLoad.value[1]));
 
   const network = computed(() => {
