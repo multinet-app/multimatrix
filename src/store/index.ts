@@ -428,6 +428,7 @@ export const useStore = defineStore('store', () => {
   }
 
   function aggregateNetwork(varName: string | null) {
+    expandedNodeIDs.value = [];
     aggregatedBy.value = varName;
 
     // Reset network if aggregated
@@ -611,5 +612,6 @@ export const useStore = defineStore('store', () => {
     slicingConfig,
     sliceIndex,
     sortBy,
+    expandedNodeIDs,
   };
 });

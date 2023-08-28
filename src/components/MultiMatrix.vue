@@ -41,6 +41,7 @@ const {
   maxConnections,
   selectedHops,
   slicedNetwork,
+  expandedNodeIDs,
 } = storeToRefs(store);
 
 const tooltip = ref(null);
@@ -48,7 +49,6 @@ const visMargins = ref({
   left: 75, top: 110, right: 1, bottom: 1,
 });
 const matrix = ref<Cell[][]>([]);
-const expandedSuperNodes = ref(new Set<string>());
 const finishedMounting = ref(false);
 
 const matrixWidth = computed(() => (network.value !== null
@@ -267,13 +267,11 @@ function expandOrRetractRow(node: Node) {
       return;
     }
     // expand and retract the supernode aggregation based on user selection
-    if (expandedSuperNodes.value.has(node._id)) {
+    if (expandedNodeIDs.value.includes(node._id)) {
       // retract
-      expandedSuperNodes.value.delete(node._id);
       store.retractAggregatedNode(node._id);
     } else {
       // expand
-      expandedSuperNodes.value.add(node._id);
       store.expandAggregatedNode(node._id);
     }
   } else {
@@ -381,7 +379,7 @@ function clickedNeighborClass(node: Node) {
             <!-- Clickable row expand/retract -->
             <path
               v-if="node._type === 'supernode'"
-              :d="expandedSuperNodes.has(node._id) ? retractPath : expandPath"
+              :d="expandedNodeIDs.includes(node._id) ? retractPath : expandPath"
               :transform="`translate(-73, ${(cellSize - invisibleRectSize) / 2})scale(0.5)`"
               fill="#8B8B8B"
             />
