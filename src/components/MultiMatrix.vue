@@ -206,22 +206,11 @@ function processData(): void {
   // Find max value of z
   matrix.value.forEach((row: Cell[]) => {
     row.forEach((cell: Cell) => {
-      if (
-        cell.rowCellType === undefined
-            || cell.colCellType === undefined
-      ) {
-        if (cell.z > maxNumConnections) {
-          maxNumConnections = cell.z;
-        }
+      if (cell.rowCellType === undefined && cell.colCellType === undefined && cell.z > maxNumConnections) {
+        maxNumConnections = cell.z;
       }
-      if (
-        (cell.rowCellType === 'supernode'
-            && cell.colCellType === 'supernode') || (degreeFiltered.value && (cell.rowCellType === 'supernode'
-            || cell.colCellType === 'supernode'))
-      ) {
-        if (cell.z > maxAggrConnections) {
-          maxAggrConnections = cell.z;
-        }
+      if ((cell.rowCellType === 'supernode' || cell.colCellType === 'supernode') && cell.z > maxAggrConnections) {
+        maxAggrConnections = cell.z;
       }
     });
   });
@@ -414,7 +403,7 @@ function clickedNeighborClass(node: Node) {
                 y="1"
                 :width="cellSize - 2"
                 :height="cellSize - 2"
-                :fill="(cell.rowCellType === 'supernode' && cell.colCellType === 'supernode') || (degreeFiltered && (cell.rowCellType === 'supernode' || cell.colCellType === 'supernode')) ? parentColorScale(cell.z) : cellColorScale(cell.z)"
+                :fill="(cell.rowCellType === 'supernode' || cell.colCellType === 'supernode') ? parentColorScale(cell.z) : cellColorScale(cell.z)"
                 :fill-opacity="cell.z"
                 :class="selectedCell === cell.cellName ? 'cell clicked' : ''"
                 @mouseover="(event) => { showToolTip(event, cell); hoverEdge(cell); }"
